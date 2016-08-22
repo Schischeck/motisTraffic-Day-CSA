@@ -5,7 +5,11 @@
 
 #include "motis/core/schedule/constant_graph.h"
 
+#include "motis/routing/label/criteria/transfers.h"
+#include "motis/routing/label/criteria/travel_time.h"
+
 namespace motis {
+namespace routing {
 
 struct lower_bounds {
   lower_bounds(
@@ -14,8 +18,9 @@ struct lower_bounds {
       : travel_time_(graph, goal, additional_edges),
         transfers_(graph, goal, additional_edges) {}
 
-  constant_graph_dijkstra<0> travel_time_;
-  constant_graph_dijkstra<1> transfers_;
+  constant_graph_dijkstra<0, MAX_TRAVEL_TIME> travel_time_;
+  constant_graph_dijkstra<1, MAX_TRANSFERS> transfers_;
 };
 
+}  // namespace routing
 }  // namespace motis

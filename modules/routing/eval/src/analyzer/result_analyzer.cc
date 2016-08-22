@@ -17,18 +17,24 @@ struct response {
             r->statistics()->labels_popped_until_first_result()),
         labels_after_last_(r->statistics()->labels_popped_after_last_result()),
         labels_created_(r->statistics()->labels_created()),
-        time_(r->statistics()->pareto_dijkstra()),
+        pd_time_(r->statistics()->pareto_dijkstra()),
         start_labels_(r->statistics()->start_label_count()),
         con_count_(r->connections()->size()),
-        max_label_quit_(false) {}
+        max_label_quit_(r->statistics()->max_label_quit()),
+        total_time_(r->statistics()->total_calculation_time()),
+        travel_time_lb_time_(r->statistics()->travel_time_lb()),
+        transfers_lb_time_(r->statistics()->transfers_lb()) {}
 
   unsigned labels_until_first_;
   unsigned labels_after_last_;
   unsigned labels_created_;
-  unsigned time_;
+  unsigned pd_time_;
   unsigned start_labels_;
   unsigned con_count_;
   bool max_label_quit_;
+  unsigned total_time_;
+  unsigned travel_time_lb_time_;
+  unsigned transfers_lb_time_;
 };
 
 int main(int argc, char* argv[]) {
@@ -43,7 +49,10 @@ int main(int argc, char* argv[]) {
   std::string line;
 
   unsigned max_label_quit = 0;
-  unsigned sum = 0;
+  unsigned pd_time_sum = 0;
+  unsigned total_time_sum = 0;
+  unsigned travel_time_lb_time_sum = 0;
+  unsigned transfers_lb_time_sum = 0;
   unsigned count = 0;
   unsigned no_con_count = 0;
   unsigned labels_popped_until_first_result = 0;
@@ -70,7 +79,10 @@ int main(int argc, char* argv[]) {
     labels_popped_until_first_result += res.labels_until_first_;
     labels_popped_after_last_result += res.labels_after_last_;
     no_labels_created += res.labels_created_;
-    sum += res.time_;
+    pd_time_sum += res.pd_time_;
+    total_time_sum += res.total_time_;
+    travel_time_lb_time_sum += res.travel_time_lb_time_;
+    transfers_lb_time_sum += res.transfers_lb_time_;
     start_labels += res.start_labels_;
     ++count;
   }
@@ -87,25 +99,62 @@ int main(int argc, char* argv[]) {
             << "\n\n";
 
   std::cout << "    average core routing time [ms]: "
-            << sum / static_cast<double>(count) << "\n"
+            << pd_time_sum / static_cast<double>(count) << "\n"
             << "90 quantile core routing time [ms]: "
-            << quantile(&response::time_, responses, 0.9f) << "\n"
+            << quantile(&response::pd_time_, responses, 0.9f) << "\n"
             << "80 quantile core routing time [ms]: "
-            << quantile(&response::time_, responses, 0.8f) << "\n\n";
+            << quantile(&response::pd_time_, responses, 0.8f) << "\n"
+            << "50 quantile core routing time [ms]: "
+            << quantile(&response::pd_time_, responses, 0.5f) << "\n\n";
+
+  std::cout << "    average total time [ms]: "
+            << total_time_sum / static_cast<double>(count) << "\n"
+            << "90 quantile total time [ms]: "
+            << quantile(&response::total_time_, responses, 0.9f) << "\n"
+            << "80 quantile total time [ms]: "
+            << quantile(&response::total_time_, responses, 0.8f) << "\n"
+            << "50 quantile total time [ms]: "
+            << quantile(&response::total_time_, responses, 0.5f) << "\n\n";
+
+  std::cout << "    average travel time lb time [ms]: "
+            << travel_time_lb_time_sum / static_cast<double>(count) << "\n"
+            << "90 quantile travel time lb time [ms]: "
+            << quantile(&response::travel_time_lb_time_, responses, 0.9f)
+            << "\n"
+            << "80 quantile travel time lb time [ms]: "
+            << quantile(&response::travel_time_lb_time_, responses, 0.8f)
+            << "\n"
+            << "50 quantile travel time lb time [ms]: "
+            << quantile(&response::travel_time_lb_time_, responses, 0.5f)
+            << "\n\n";
+
+  std::cout << "    average transfers lb time [ms]: "
+            << transfers_lb_time_sum / static_cast<double>(count) << "\n"
+            << "90 quantile transfers lb time [ms]: "
+            << quantile(&response::transfers_lb_time_, responses, 0.9f) << "\n"
+            << "80 quantile transfers lb time [ms]: "
+            << quantile(&response::transfers_lb_time_, responses, 0.8f) << "\n"
+            << "50 quantile transfers lb time [ms]: "
+            << quantile(&response::transfers_lb_time_, responses, 0.5f)
+            << "\n\n";
 
   std::cout << "    average number of start labels: "
             << start_labels / static_cast<double>(count) << "\n"
             << "90 quantile number of start labels: "
             << quantile(&response::start_labels_, responses, 0.9f) << "\n"
             << "80 quantile number of start labels: "
-            << quantile(&response::start_labels_, responses, 0.8f) << "\n\n";
+            << quantile(&response::start_labels_, responses, 0.8f) << "\n"
+            << "50 quantile number of start labels: "
+            << quantile(&response::start_labels_, responses, 0.5f) << "\n\n";
 
   std::cout << "    average number of labels created: "
             << no_labels_created / static_cast<double>(count) << "\n"
             << "90 quantile number of labels created: "
             << quantile(&response::labels_created_, responses, 0.9f) << "\n"
             << "80 quantile number of labels created: "
-            << quantile(&response::labels_created_, responses, 0.8f) << "\n\n";
+            << quantile(&response::labels_created_, responses, 0.8f) << "\n"
+            << "50 quantile number of labels created: "
+            << quantile(&response::labels_created_, responses, 0.5f) << "\n\n";
 
   std::cout << "avg labels popped:\n";
   std::cout << "\tuntil first result: "

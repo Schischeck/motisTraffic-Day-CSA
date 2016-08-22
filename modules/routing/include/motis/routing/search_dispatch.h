@@ -13,7 +13,7 @@ namespace routing {
 
 template <typename T>
 struct get_search_dir {
-  typedef T value_type;
+  static constexpr auto v_ = search_dir::FWD;
 };
 
 template <template <search_dir, typename...> class Label, typename... Args>

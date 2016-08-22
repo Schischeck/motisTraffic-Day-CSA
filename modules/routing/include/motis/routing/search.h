@@ -27,6 +27,7 @@ struct search_result {
   search_result(statistics stats, std::vector<journey> journeys)  // NOLINT
       : stats_(stats),
         journeys_(std::move(journeys)) {}
+  explicit search_result(unsigned travel_time_lb) : stats_(travel_time_lb) {}
   statistics stats_;
   std::vector<journey> journeys_;
 };
@@ -48,13 +49,18 @@ struct search {
     lower_bounds lbs(Dir == search_dir::FWD ? q.sched_->lower_bounds_fwd_
                                             : q.sched_->lower_bounds_bwd_,
                      q.to_->id_, lb_graph_edges);
-    lbs.travel_time_.run();
-    lbs.transfers_.run();
 
-    if (lbs.travel_time_[q.from_->id_] ==
-        std::numeric_limits<uint32_t>::max()) {
-      return search_result();
+    MOTIS_START_TIMING(travel_time_lb_timing);
+    lbs.travel_time_.run();
+    MOTIS_STOP_TIMING(travel_time_lb_timing);
+
+    if (!lbs.travel_time_.is_reachable(q.from_->id_)) {
+      return search_result(MOTIS_TIMING_MS(travel_time_lb_timing));
     }
+
+    MOTIS_START_TIMING(transfers_lb_timing);
+    lbs.transfers_.run();
+    MOTIS_STOP_TIMING(transfers_lb_timing);
 
     std::unordered_map<node const*, std::vector<edge>> additional_edges;
     for (auto const& e : q.query_edges_) {
@@ -77,6 +83,9 @@ struct search {
     MOTIS_STOP_TIMING(pareto_dijkstra_timing);
 
     auto stats = pd.get_statistics();
+    stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
+    stats.travel_time_lb_ = MOTIS_TIMING_MS(travel_time_lb_timing);
+    stats.transfers_lb_ = MOTIS_TIMING_MS(transfers_lb_timing);
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
     return search_result(

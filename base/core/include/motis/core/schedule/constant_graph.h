@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "motis/core/common/dial.h"
 #include "motis/core/schedule/nodes.h"
 
 namespace motis {
@@ -69,12 +70,10 @@ public:
   std::vector<std::vector<simple_edge>> edges_;
 };
 
-template <int Criterion>
+template <int Criterion, uint32_t MaxValue>
 class constant_graph_dijkstra {
 public:
   using dist_t = uint32_t;
-
-  enum : dist_t { UNREACHABLE = std::numeric_limits<dist_t>::max() };
 
   struct label {
     label(uint32_t node, uint32_t dist) : node_(node), dist_(dist) {}
@@ -86,6 +85,17 @@ public:
     uint32_t node_;
     dist_t dist_;
   };
+
+  struct get_bucket {
+    std::size_t operator()(label const& l) const { return l.dist_; }
+  };
+
+  struct compare {
+    // not necessary
+    bool operator()(label const&, label const&) { return false; }
+  };
+
+  enum : dist_t { UNREACHABLE = std::numeric_limits<dist_t>::max() };
 
   constant_graph_dijkstra(
       constant_graph const& graph, int goal,
@@ -121,7 +131,7 @@ public:
 
   inline void expand_edge(uint32_t dist, simple_edge const& edge) {
     uint32_t new_dist = dist + edge.dist_[Criterion];  // NOLINT
-    if (new_dist < dists_[edge.to_]) {
+    if (new_dist < dists_[edge.to_] && new_dist <= MaxValue) {
       dists_[edge.to_] = new_dist;
       pq_.push(label(edge.to_, new_dist));
     }
@@ -130,7 +140,7 @@ public:
   inline bool is_reachable(dist_t val) { return val != UNREACHABLE; }
 
   constant_graph const& graph_;
-  std::priority_queue<label, std::vector<label>, std::greater<label>> pq_;
+  dial<label, MaxValue, get_bucket, compare, false> pq_;
   std::vector<dist_t> dists_;
   std::unordered_map<int, std::vector<simple_edge>> const& additional_edges_;
 };

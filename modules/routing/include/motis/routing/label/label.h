@@ -11,8 +11,10 @@ struct label_data : public DataClass... {};
 
 template <search_dir Dir, typename Data, typename Init, typename Updater,
           typename Filter, typename Dominance, typename PostSearchDominance,
-          typename Comparator>
+          typename Comparator, typename GetBucket, std::size_t MaxBucket>
 struct label : public Data {
+  enum : std::size_t { MAX_BUCKET = MaxBucket };
+
   label() = default;
 
   label(edge const* e, label* pred, time now, lower_bounds& lb)
@@ -81,6 +83,8 @@ struct label : public Data {
   bool operator<(label const& o) const {
     return Comparator::lexicographical_compare(*this, o);
   }
+
+  std::size_t get_bucket() const { return GetBucket()(this); }
 
   label* pred_;
   edge const* edge_;
