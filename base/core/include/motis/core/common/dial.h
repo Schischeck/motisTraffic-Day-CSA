@@ -13,7 +13,8 @@ template <typename T, std::size_t MaxBucket,
           >
 class dial {
 public:
-  dial(GetBucketFn get_bucket = GetBucketFn(), CompareFn cmp = CompareFn())
+  explicit dial(GetBucketFn get_bucket = GetBucketFn(),
+                CompareFn cmp = CompareFn())
       : get_bucket_(std::forward<GetBucketFn>(get_bucket)),
         cmp_(std::forward<CompareFn>(cmp)),
         current_bucket_(0),
