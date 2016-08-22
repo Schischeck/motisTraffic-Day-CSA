@@ -62,7 +62,15 @@ state next_state(int s, Label const* c, Label const* n) {
       } else {
         return IN_CONNECTION;
       }
-    case WALK: return n && get_node(*n)->is_station_node() ? WALK : AT_STATION;
+      break;
+    case WALK:
+      if (n && get_node(*n)->is_foot_node()) {
+        return WALK_SKIP;
+      } else if (n && get_node(*n)->is_station_node()) {
+        return WALK;
+      } else {
+        return AT_STATION;
+      }
     case WALK_SKIP: return WALK;
   }
   return static_cast<state>(s);

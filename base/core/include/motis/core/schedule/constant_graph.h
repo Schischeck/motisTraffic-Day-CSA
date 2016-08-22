@@ -46,6 +46,10 @@ public:
 
   void add_edges(node const& node, search_dir const dir) {
     for (auto const& edge : node.edges_) {
+      if (edge.type() == edge::INVALID_EDGE) {
+        continue;
+      }
+
       auto const from = edge.get_destination(dir)->id_;
       auto const to = edge.get_source(dir)->id_;
 
@@ -68,6 +72,10 @@ public:
 template <int Criterion>
 class constant_graph_dijkstra {
 public:
+  using dist_t = uint32_t;
+
+  enum : dist_t { UNREACHABLE = std::numeric_limits<dist_t>::max() };
+
   struct label {
     label(uint32_t node, uint32_t dist) : node_(node), dist_(dist) {}
 
@@ -75,19 +83,20 @@ public:
       return a.dist_ > b.dist_;
     }
 
-    uint32_t node_, dist_;
+    uint32_t node_;
+    dist_t dist_;
   };
 
   constant_graph_dijkstra(
       constant_graph const& graph, int goal,
       std::unordered_map<int, std::vector<simple_edge>> const& additional_edges)
       : graph_(graph), additional_edges_(additional_edges) {
-    dists_.resize(graph_.edges_.size(), std::numeric_limits<uint32_t>::max());
+    dists_.resize(graph_.edges_.size(), UNREACHABLE);
     dists_[goal] = 0;
     pq_.push(label(goal, 0));
   }
 
-  inline uint32_t operator[](int node) const {
+  inline dist_t operator[](int node) const {
     assert(node < static_cast<int>(dists_.size()));
     return dists_[node];
   }
@@ -118,9 +127,11 @@ public:
     }
   }
 
+  inline bool is_reachable(dist_t val) { return val != UNREACHABLE; }
+
   constant_graph const& graph_;
   std::priority_queue<label, std::vector<label>, std::greater<label>> pq_;
-  std::vector<uint32_t> dists_;
+  std::vector<dist_t> dists_;
   std::unordered_map<int, std::vector<simple_edge>> const& additional_edges_;
 };
 

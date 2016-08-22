@@ -36,7 +36,9 @@ public:
         label_store_(label_store),
         max_labels_(label_store.size() / sizeof(Label) - 1000) {
     for (auto const& start_label : start_labels) {
-      node_labels_[start_label->get_node()->id_].emplace_back(start_label);
+      if (!start_label->is_filtered()) {
+        node_labels_[start_label->get_node()->id_].emplace_back(start_label);
+      }
     }
   }
 
@@ -109,7 +111,10 @@ public:
 private:
   void create_new_label(Label* l, edge const& edge) {
     Label blank;
-    bool created = l->create_label(blank, edge, lower_bounds_);
+    bool created =
+        l->create_label(blank, edge, lower_bounds_,
+                        edge.get_source<Dir>()->get_station() == goal_ &&
+                            edge.get_destination<Dir>() == goal_);
     if (!created) {
       return;
     }

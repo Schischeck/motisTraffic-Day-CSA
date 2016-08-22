@@ -28,25 +28,35 @@ struct label : public Data {
   node const* get_node() const { return edge_->get_destination<Dir>(); }
 
   template <typename Edge, typename LowerBounds>
-  bool create_label(label& l, Edge const& e, LowerBounds& lb) {
+  bool create_label(label& l, Edge const& e, LowerBounds& lb, bool no_cost) {
     if (pred_ && e.template get_destination<Dir>() == pred_->get_node()) {
       return false;
     }
 
-    auto ec = e.template get_edge_cost<Dir>(now_, connection_);
-    if (!ec.is_valid()) {
-      return false;
+    if (no_cost) {
+      l = *this;
+      l.pred_ = this;
+      l.edge_ = &e;
+      l.connection_ = nullptr;
+      return true;
+    } else {
+      auto ec = e.template get_edge_cost<Dir>(now_, connection_);
+      if (!ec.is_valid()) {
+        return false;
+      }
+
+      l = *this;
+      l.pred_ = this;
+      l.edge_ = &e;
+      l.connection_ = ec.connection_;
+      l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
+
+      Updater::update(l, ec, lb);
+      return !l.is_filtered();
     }
-
-    l = *this;
-    l.pred_ = this;
-    l.edge_ = &e;
-    l.connection_ = ec.connection_;
-    l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
-
-    Updater::update(l, ec, lb);
-    return !Filter::is_filtered(l);
   }
+
+  inline bool is_filtered() { return Filter::is_filtered(*this); }
 
   bool dominates(label const& o) const {
     if (incomparable(o)) {
