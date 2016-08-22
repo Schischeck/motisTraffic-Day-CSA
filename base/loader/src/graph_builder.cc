@@ -31,8 +31,8 @@ graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
                              bool adjust_footpaths)
     : duplicate_count_(0),
       lcon_count_(0),
-      next_route_index_(-1),
-      next_node_id_(-1),
+      next_route_index_(0),
+      next_node_id_(0),
       sched_(sched),
       first_day_((from - schedule_interval->from()) / (MINUTES_A_DAY * 60)),
       last_day_((to - schedule_interval->from()) / (MINUTES_A_DAY * 60) - 1),
@@ -282,7 +282,7 @@ void graph_builder::add_route_services(
       continue;
     }
 
-    auto r = create_route(services[0]->route(), route, ++next_route_index_);
+    auto r = create_route(services[0]->route(), route, next_route_index_++);
     index_first_route_node(*r);
     write_trip_info(*r);
   }
@@ -717,10 +717,14 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   sched->route_count_ = builder.next_route_index_;
   sched->node_count_ = builder.next_node_id_;
-  sched->lower_bounds_fwd_ =
-      constant_graph(sched->station_nodes_, search_dir::FWD);
-  sched->lower_bounds_bwd_ =
-      constant_graph(sched->station_nodes_, search_dir::BWD);
+  sched->transfers_lower_bounds_fwd_ = build_interchange_graph(
+      sched->station_nodes_, sched->route_count_, search_dir::FWD);
+  sched->transfers_lower_bounds_bwd_ = build_interchange_graph(
+      sched->station_nodes_, sched->route_count_, search_dir::BWD);
+  sched->travel_time_lower_bounds_fwd_ =
+      build_station_graph(sched->station_nodes_, search_dir::FWD);
+  sched->travel_time_lower_bounds_bwd_ =
+      build_station_graph(sched->station_nodes_, search_dir::BWD);
   sched->waiting_time_rules_ = load_waiting_time_rules(sched->categories_);
   sched->schedule_begin_ -= SCHEDULE_OFFSET_MINUTES * 60;
 
@@ -734,7 +738,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   LOG(info) << sched->connection_infos_.size() << " connection infos";
   LOG(info) << builder.lcon_count_ << " light connections";
-  LOG(info) << builder.next_route_index_ + 1 << " routes";
+  LOG(info) << builder.next_route_index_ << " routes";
   LOG(info) << sched->trip_mem_.size() << " trips";
 
   return sched;

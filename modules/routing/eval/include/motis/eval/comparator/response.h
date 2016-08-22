@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <tuple>
 
 #include "motis/protocol/RoutingResponse_generated.h"
@@ -39,7 +40,7 @@ inline bool dominates(std::tuple<Criteria...> const& c1,
 
 struct response {
   explicit response(routing::RoutingResponse const* r);
-  std::vector<connection> connections_;
+  std::set<connection> connections_;
 };
 
 }  // namespace comparator

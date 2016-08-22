@@ -25,8 +25,8 @@ struct weighted_initializer {
   static void init(Label& l, LowerBounds& lb) {
     l.weighted_ = std::abs(l.now_ - l.start_);
 
-    auto const tt_lb = lb.travel_time_[l.get_node()->id_];
-    auto const ic_lb = lb.transfers_[l.get_node()->id_];
+    auto const tt_lb = lb.travel_time_[l.get_node()];
+    auto const ic_lb = lb.transfers_[l.get_node()];
     if (lb.travel_time_.is_reachable(tt_lb) &&
         lb.transfers_.is_reachable(ic_lb)) {
       l.weighted_lb_ = l.weighted_ + tt_lb + (TRANSFER_COST * ic_lb);
@@ -44,8 +44,8 @@ struct weighted_updater {
       l.weighted_ += TRANSFER_COST;
     }
 
-    auto const tt_lb = lb.travel_time_[l.get_node()->id_];
-    auto const ic_lb = lb.transfers_[l.get_node()->id_];
+    auto const tt_lb = lb.travel_time_[l.get_node()];
+    auto const ic_lb = lb.transfers_[l.get_node()];
     if (lb.travel_time_.is_reachable(tt_lb) &&
         lb.transfers_.is_reachable(ic_lb)) {
       l.weighted_lb_ = l.weighted_ + tt_lb + (TRANSFER_COST * ic_lb);

@@ -18,11 +18,13 @@ const bool FORWARDING = true;
 template <search_dir Dir, typename Label, typename LowerBounds>
 struct pareto_dijkstra {
   struct compare_labels {
-    bool operator()(Label const* a, Label const* b) { return b->operator<(*a); }
+    bool operator()(Label const* a, Label const* b) const {
+      return b->operator<(*a);
+    }
   };
 
   struct get_bucket {
-    std::size_t operator()(Label const* l) { return l->get_bucket(); }
+    std::size_t operator()(Label const* l) const { return l->get_bucket(); }
   };
 
   pareto_dijkstra(
