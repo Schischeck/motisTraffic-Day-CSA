@@ -229,10 +229,14 @@ msg_ptr rt::on_system_time_change(msg_ptr const&) {
   }
 
   manual_timer lb_update("lower bound graph update");
-  sched.lower_bounds_fwd_ =
-      constant_graph(sched.station_nodes_, search_dir::FWD);
-  sched.lower_bounds_bwd_ =
-      constant_graph(sched.station_nodes_, search_dir::BWD);
+  sched.transfers_lower_bounds_fwd_ = build_interchange_graph(
+      sched.station_nodes_, sched.route_count_, search_dir::FWD);
+  sched.transfers_lower_bounds_bwd_ = build_interchange_graph(
+      sched.station_nodes_, sched.route_count_, search_dir::BWD);
+  sched.travel_time_lower_bounds_fwd_ =
+      build_station_graph(sched.station_nodes_, search_dir::FWD);
+  sched.travel_time_lower_bounds_bwd_ =
+      build_station_graph(sched.station_nodes_, search_dir::BWD);
   lb_update.stop_and_print();
 
   std::cout << stats_ << std::endl;
