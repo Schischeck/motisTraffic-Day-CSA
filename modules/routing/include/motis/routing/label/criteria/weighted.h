@@ -12,7 +12,7 @@ struct weighted {
 struct weighted_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
-    l.weighted_ = l.now_ - l.start_;
+    l.weighted_ = std::abs(l.now_ - l.start_);
     l.weighted_lb_ = l.weighted_ + lb.travel_time_[l.get_node()->id_] +
                      lb.transfers_[l.get_node()->id_] * TRANSFER_COST;
   }
