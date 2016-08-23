@@ -1,7 +1,6 @@
 #pragma once
 
-#include <unordered_map>
-
+#include "motis/core/common/hash_map.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
@@ -37,9 +36,10 @@ struct search {
   static search_result get_connections(search_query const& q) {
     q.mem_->reset();
 
-    std::unordered_map<int, std::vector<simple_edge>>
-        travel_time_lb_graph_edges;
-    std::unordered_map<int, std::vector<simple_edge>> transfers_lb_graph_edges;
+    hash_map<int, std::vector<simple_edge>> travel_time_lb_graph_edges;
+    hash_map<int, std::vector<simple_edge>> transfers_lb_graph_edges;
+    travel_time_lb_graph_edges.set_empty_key(std::numeric_limits<int>::max());
+    transfers_lb_graph_edges.set_empty_key(std::numeric_limits<int>::max());
     for (auto const& e : q.query_edges_) {
       auto const orig_from = e.from_->get_station()->id_;
       auto const orig_to = e.to_->get_station()->id_;
@@ -70,9 +70,10 @@ struct search {
     lbs.transfers_.run();
     MOTIS_STOP_TIMING(transfers_lb_timing);
 
-    std::unordered_map<node const*, std::vector<edge>> additional_edges;
+    hash_map<node const*, std::vector<edge>> additional_edges;
+    additional_edges.set_empty_key(nullptr);
     for (auto const& e : q.query_edges_) {
-      additional_edges[(Dir == search_dir::FWD) ? e.from_ : e.to_].push_back(e);
+      additional_edges[e.get_source<Dir>()].push_back(e);
     }
 
     auto mutable_node = const_cast<node*>(q.from_);  // NOLINT
@@ -84,7 +85,7 @@ struct search {
         StartLabelGenerator::generate(*q.sched_, *q.mem_, lbs, &start_edge,
                                       q.query_edges_, q.interval_begin_,
                                       q.interval_end_),
-        additional_edges, lbs, *q.mem_);
+        std::move(additional_edges), lbs, *q.mem_);
 
     MOTIS_START_TIMING(pareto_dijkstra_timing);
     pd.search();

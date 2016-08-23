@@ -3,9 +3,9 @@
 #include <list>
 #include <ostream>
 #include <queue>
-#include <unordered_map>
 
 #include "motis/core/common/dial.h"
+#include "motis/core/common/hash_map.h"
 
 #include "motis/routing/mem_manager.h"
 #include "motis/routing/statistics.h"
@@ -27,11 +27,10 @@ struct pareto_dijkstra {
     std::size_t operator()(Label const* l) const { return l->get_bucket(); }
   };
 
-  pareto_dijkstra(
-      int node_count, station_node const* goal,
-      std::vector<Label*> const& start_labels,
-      std::unordered_map<node const*, std::vector<edge>> additional_edges,
-      LowerBounds& lower_bounds, mem_manager& label_store)
+  pareto_dijkstra(int node_count, station_node const* goal,
+                  std::vector<Label*> const& start_labels,
+                  hash_map<node const*, std::vector<edge>> additional_edges,
+                  LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
         node_labels_(node_count),
         additional_edges_(std::move(additional_edges)),
@@ -223,7 +222,7 @@ private:
   std::vector<std::vector<Label*>> node_labels_;
   dial<Label*, Label::MAX_BUCKET, get_bucket, compare_labels, true> queue_;
   std::vector<Label*> equals_;
-  std::unordered_map<node const*, std::vector<edge>> additional_edges_;
+  hash_map<node const*, std::vector<edge>> additional_edges_;
   std::vector<Label*> results_;
   LowerBounds& lower_bounds_;
   mem_manager& label_store_;

@@ -3,10 +3,10 @@
 #include <array>
 #include <functional>
 #include <queue>
-#include <unordered_map>
 #include <vector>
 
 #include "motis/core/common/dial.h"
+#include "motis/core/common/hash_map.h"
 #include "motis/core/schedule/nodes.h"
 
 namespace motis {
@@ -175,7 +175,7 @@ public:
 
   constant_graph_dijkstra(
       constant_graph const& g, int goal,
-      std::unordered_map<int, std::vector<simple_edge>> const& additional_edges,
+      hash_map<int, std::vector<simple_edge>> const& additional_edges,
       MapNodeFn map_node = MapNodeFn())
       : graph_(g),
         additional_edges_(additional_edges),
@@ -222,7 +222,7 @@ public:
   std::vector<std::vector<simple_edge>> const& graph_;
   dial<label, MaxValue, get_bucket, compare, false> pq_;
   std::vector<dist_t> dists_;
-  std::unordered_map<int, std::vector<simple_edge>> const& additional_edges_;
+  hash_map<int, std::vector<simple_edge>> const& additional_edges_;
   MapNodeFn map_node_;
 };
 
