@@ -9,9 +9,9 @@ namespace routing {
 template <typename... DataClass>
 struct label_data : public DataClass... {};
 
-template <search_dir Dir, typename Data, typename Init, typename Updater,
-          typename Filter, typename Dominance, typename PostSearchDominance,
-          typename Comparator, typename GetBucket, std::size_t MaxBucket>
+template <search_dir Dir, std::size_t MaxBucket, typename GetBucket,
+          typename Data, typename Init, typename Updater, typename Filter,
+          typename Dominance, typename PostSearchDominance, typename Comparator>
 struct label : public Data {
   enum : std::size_t { MAX_BUCKET = MaxBucket };
 
