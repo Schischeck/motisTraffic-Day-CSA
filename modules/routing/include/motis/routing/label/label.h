@@ -9,10 +9,12 @@ namespace routing {
 template <typename... DataClass>
 struct label_data : public DataClass... {};
 
-template <search_dir Dir, typename Data, typename Init, typename Updater,
-          typename Filter, typename Dominance, typename PostSearchDominance,
-          typename Comparator>
+template <search_dir Dir, std::size_t MaxBucket, typename GetBucket,
+          typename Data, typename Init, typename Updater, typename Filter,
+          typename Dominance, typename PostSearchDominance, typename Comparator>
 struct label : public Data {
+  enum : std::size_t { MAX_BUCKET = MaxBucket };
+
   label() = default;
 
   label(edge const* e, label* pred, time now, lower_bounds& lb)
@@ -28,25 +30,35 @@ struct label : public Data {
   node const* get_node() const { return edge_->get_destination<Dir>(); }
 
   template <typename Edge, typename LowerBounds>
-  bool create_label(label& l, Edge const& e, LowerBounds& lb) {
+  bool create_label(label& l, Edge const& e, LowerBounds& lb, bool no_cost) {
     if (pred_ && e.template get_destination<Dir>() == pred_->get_node()) {
       return false;
     }
 
-    auto ec = e.template get_edge_cost<Dir>(now_, connection_);
-    if (!ec.is_valid()) {
-      return false;
+    if (no_cost) {
+      l = *this;
+      l.pred_ = this;
+      l.edge_ = &e;
+      l.connection_ = nullptr;
+      return true;
+    } else {
+      auto ec = e.template get_edge_cost<Dir>(now_, connection_);
+      if (!ec.is_valid()) {
+        return false;
+      }
+
+      l = *this;
+      l.pred_ = this;
+      l.edge_ = &e;
+      l.connection_ = ec.connection_;
+      l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
+
+      Updater::update(l, ec, lb);
+      return !l.is_filtered();
     }
-
-    l = *this;
-    l.pred_ = this;
-    l.edge_ = &e;
-    l.connection_ = ec.connection_;
-    l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
-
-    Updater::update(l, ec, lb);
-    return !Filter::is_filtered(l);
   }
+
+  inline bool is_filtered() { return Filter::is_filtered(*this); }
 
   bool dominates(label const& o) const {
     if (incomparable(o)) {
@@ -71,6 +83,8 @@ struct label : public Data {
   bool operator<(label const& o) const {
     return Comparator::lexicographical_compare(*this, o);
   }
+
+  std::size_t get_bucket() const { return GetBucket()(this); }
 
   label* pred_;
   edge const* edge_;

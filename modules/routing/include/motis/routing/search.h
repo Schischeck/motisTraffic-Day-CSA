@@ -1,7 +1,6 @@
 #pragma once
 
-#include <unordered_map>
-
+#include "motis/core/common/hash_map.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
@@ -27,6 +26,7 @@ struct search_result {
   search_result(statistics stats, std::vector<journey> journeys)  // NOLINT
       : stats_(stats),
         journeys_(std::move(journeys)) {}
+  explicit search_result(unsigned travel_time_lb) : stats_(travel_time_lb) {}
   statistics stats_;
   std::vector<journey> journeys_;
 };
@@ -36,29 +36,44 @@ struct search {
   static search_result get_connections(search_query const& q) {
     q.mem_->reset();
 
-    std::unordered_map<int, std::vector<simple_edge>> lb_graph_edges;
+    hash_map<int, std::vector<simple_edge>> travel_time_lb_graph_edges;
+    hash_map<int, std::vector<simple_edge>> transfers_lb_graph_edges;
+    travel_time_lb_graph_edges.set_empty_key(std::numeric_limits<int>::max());
+    transfers_lb_graph_edges.set_empty_key(std::numeric_limits<int>::max());
     for (auto const& e : q.query_edges_) {
       auto const orig_from = e.from_->get_station()->id_;
       auto const orig_to = e.to_->get_station()->id_;
       auto const from = (Dir == search_dir::FWD) ? orig_from : orig_to;
       auto const to = (Dir == search_dir::FWD) ? orig_to : orig_from;
-      lb_graph_edges[to].emplace_back(from, e.get_minimum_cost());
+      auto const ec = e.get_minimum_cost();
+      travel_time_lb_graph_edges[to].emplace_back(from, ec.time_);
+      transfers_lb_graph_edges[to].emplace_back(from, ec.transfer_ ? 1 : 0);
     }
 
-    lower_bounds lbs(Dir == search_dir::FWD ? q.sched_->lower_bounds_fwd_
-                                            : q.sched_->lower_bounds_bwd_,
-                     q.to_->id_, lb_graph_edges);
+    lower_bounds lbs(
+        *q.sched_,  //
+        Dir == search_dir::FWD ? q.sched_->travel_time_lower_bounds_fwd_
+                               : q.sched_->travel_time_lower_bounds_bwd_,
+        Dir == search_dir::FWD ? q.sched_->transfers_lower_bounds_fwd_
+                               : q.sched_->transfers_lower_bounds_bwd_,
+        q.to_->id_, travel_time_lb_graph_edges, transfers_lb_graph_edges);
+
+    MOTIS_START_TIMING(travel_time_lb_timing);
     lbs.travel_time_.run();
-    lbs.transfers_.run();
+    MOTIS_STOP_TIMING(travel_time_lb_timing);
 
-    if (lbs.travel_time_[q.from_->id_] ==
-        std::numeric_limits<uint32_t>::max()) {
-      return search_result();
+    if (!lbs.travel_time_.is_reachable(q.from_->id_)) {
+      return search_result(MOTIS_TIMING_MS(travel_time_lb_timing));
     }
 
-    std::unordered_map<node const*, std::vector<edge>> additional_edges;
+    MOTIS_START_TIMING(transfers_lb_timing);
+    lbs.transfers_.run();
+    MOTIS_STOP_TIMING(transfers_lb_timing);
+
+    hash_map<node const*, std::vector<edge>> additional_edges;
+    additional_edges.set_empty_key(nullptr);
     for (auto const& e : q.query_edges_) {
-      additional_edges[(Dir == search_dir::FWD) ? e.from_ : e.to_].push_back(e);
+      additional_edges[e.get_source<Dir>()].push_back(e);
     }
 
     auto mutable_node = const_cast<node*>(q.from_);  // NOLINT
@@ -70,13 +85,16 @@ struct search {
         StartLabelGenerator::generate(*q.sched_, *q.mem_, lbs, &start_edge,
                                       q.query_edges_, q.interval_begin_,
                                       q.interval_end_),
-        additional_edges, lbs, *q.mem_);
+        std::move(additional_edges), lbs, *q.mem_);
 
     MOTIS_START_TIMING(pareto_dijkstra_timing);
     pd.search();
     MOTIS_STOP_TIMING(pareto_dijkstra_timing);
 
     auto stats = pd.get_statistics();
+    stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
+    stats.travel_time_lb_ = MOTIS_TIMING_MS(travel_time_lb_timing);
+    stats.transfers_lb_ = MOTIS_TIMING_MS(transfers_lb_timing);
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
     return search_result(

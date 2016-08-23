@@ -2,7 +2,7 @@
 
 #include <numeric>
 
-#include "motis/core/common/transform_to_vec.h"
+#include "motis/core/common/transform_to_set.h"
 
 using namespace motis::routing;
 
@@ -24,7 +24,7 @@ unsigned transfers(Connection const* c) {
 unsigned price(Connection const*) { return 0; }
 
 response::response(RoutingResponse const* r)
-    : connections_(transform_to_vec(*r->connections(), [](Connection const* c) {
+    : connections_(transform_to_set(*r->connections(), [](Connection const* c) {
         return std::make_tuple(travel_time(c), transfers(c), price(c));
       })) {}
 

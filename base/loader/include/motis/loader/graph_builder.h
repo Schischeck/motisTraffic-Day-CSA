@@ -210,7 +210,8 @@ struct graph_builder {
 
   unsigned duplicate_count_;
   unsigned lcon_count_;
-  int next_route_index_;
+  unsigned next_route_index_;
+  unsigned next_node_id_;
   std::map<Category const*, int> categories_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
@@ -226,7 +227,6 @@ struct graph_builder {
   hash_set<connection*, deep_ptr_hash<connection::hash, connection>,
            deep_ptr_eq<connection>>
       connections_;
-  unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
   bool apply_rules_;
