@@ -1,60 +1,68 @@
 #pragma once
 
-#include "motis/routes/prepare/rel/polyline_aggregator.h"
-#include "motis/routes/prepare/rel/relation_parser.h"
+#include <vector>
 
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/writer.h"
+#include "motis/core/common/geo.h"
 
-using namespace rapidjson;
+#include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {
 namespace routes {
 
-inline void write_geojson(
-    std::vector<std::vector<geo_detail::latlng>> const& polylines) {
-  FILE* fp = std::fopen("geo.json", "w");
-  char writeBuffer[65536];
-
-  rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-  rapidjson::PrettyWriter<rapidjson::FileWriteStream> w(os);
-
-  w.StartObject();
-  w.String("type").String("FeatureCollection");
-  w.String("features").StartArray();
-
-  for (auto const& polyline : polylines) {
-    w.StartObject();
-    w.String("type").String("Feature");
-    w.String("properties").StartObject().EndObject();
-    w.String("geometry").StartObject();
-    w.String("type").String("LineString");
-    w.String("coordinates").StartArray();
-
-    for (auto const& coords : polyline) {
-      w.StartArray();
-      w.Double(coords.lng_, 9);
-      w.Double(coords.lat_, 9);
-      w.EndArray();
-    }
-
-    w.EndArray();
-    w.EndObject();
-    w.EndObject();
+struct station_seq {
+  friend bool operator<(station_seq const& lhs, station_seq const& rhs) {
+    return std::tie(lhs.station_ids_, lhs.coordinates_) <
+           std::tie(rhs.station_ids_, rhs.coordinates_);
   }
 
-  w.EndArray();
-  w.EndObject();
+  friend bool operator==(station_seq const& lhs, station_seq const& rhs) {
+    return std::tie(lhs.station_ids_, lhs.coordinates_) ==
+           std::tie(rhs.station_ids_, rhs.coordinates_);
+  }
+
+  std::vector<std::string> station_ids_;
+  std::vector<geo_detail::latlng> coordinates_;
+};
+
+std::vector<station_seq> load_station_sequences(
+    motis::loader::Schedule const* sched) {
+  std::vector<station_seq> result;
+
+  for (auto const& route : *sched->routes()) {
+    station_seq seq;
+
+    for (auto const& station : *route->stations()) {
+      seq.station_ids_.emplace_back(station->id()->str());
+      seq.station_ids_.emplace_back(station->lat(), station->lng());
+    }
+    result.emplace_back(std::move(seq));
+  }
+
+  std::sort(begin(result), end(result));
+  result.erase(std::unique(begin(result), end(result)), end(result));
+
+  return result;
 }
 
-inline void do_something(std::string const& osm_file) {
+void match_sequences(
+    std::vector<std::vector<geo_detail::latlng>> const& polylines,
+    std::vector<station_seq> const& sequences) {
 
-  auto relations = parse_relations(osm_file);
+  for (auto const& polyline : polylines) {
+    auto rtree = make_point_rtree(polyline, [&](auto&& c) {
+      return point_tree{c.lng_, c.lat_};
+    });
 
-  auto polylines = aggregate_polylines(relations.relations_);
+    for (auto const& seq : sequences) {
+      for (auto i = 0u; i < seq.coordinates_.size(); ++i) {
+        auto close_nodes = rtree.in_radius(seq.coordinates_[i].lat_,
+                                           seq.coordinates_[i].lng_, 50);
 
-  write_geojson(polylines);
+      }
+    }
+  }
+
+  auto seq = load
 }
 
 }  // namespace routes

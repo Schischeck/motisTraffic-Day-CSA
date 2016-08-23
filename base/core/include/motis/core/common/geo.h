@@ -61,6 +61,17 @@ inline double distance_in_m(double a_lat, double a_lng, double b_lat,
 }
 
 struct latlng {
+  latlng() = default;
+  latlng(double lat, double lng) : lat_(lat), lng_(lng) {}
+
+  friend bool operator<(latlng const& lhs, latlng const& rhs) {
+    return std::tie(lhs.lat_, lhs.lng_) < std::tie(rhs.lat_, rhs.lng_);
+  }
+
+  friend bool operator==(latlng const& lhs, latlng const& rhs) {
+    return std::tie(lhs.lat_, lhs.lng_) == std::tie(rhs.lat_, rhs.lng_);
+  }
+
   double lat_, lng_;
 };
 
