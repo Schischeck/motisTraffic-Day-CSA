@@ -2,7 +2,7 @@
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
-#include "motis/loader/util.h"
+#include "motis/core/common/transform_to_vec.h"
 
 #include "motis/routes/prepare/osm_util.h"
 
@@ -24,10 +24,6 @@ parsed_relations parse_relations(std::string const& osm_file_) {
                                   "train",  "tram", "light_rail"};
 
   foreach_osm_relation(osm_file_, [&](auto&& relation) {
-    // if (relation.id() != 1741581) {
-      // return;
-    // }
-
     auto const type = relation.get_value_by_key("type", "");
     if (std::none_of(begin(types), end(types),
                      [&](auto&& t) { return t == type; })) {
@@ -68,8 +64,8 @@ parsed_relations parse_relations(std::string const& osm_file_) {
 
     w->second->resolved_ = true;
     w->second->nodes_ =
-        loader::transform_to_vec(std::begin(way.nodes()), std::end(way.nodes()),
-                                 [](auto&& n) { return node{n.ref()}; });
+        transform_to_vec(std::begin(way.nodes()), std::end(way.nodes()),
+                         [](auto&& n) { return node{n.ref()}; });
 
     for (auto& n : w->second->nodes_) {
       pending_nodes_[n.id_].push_back(&n);

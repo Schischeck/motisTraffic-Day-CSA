@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "motis/core/common/geo.h"
+#include "motis/routes/prepare/point_rtree.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -50,7 +51,7 @@ void match_sequences(
 
   for (auto const& polyline : polylines) {
     auto rtree = make_point_rtree(polyline, [&](auto&& c) {
-      return point_tree{c.lng_, c.lat_};
+      return point_rtree::point{c.lng_, c.lat_};
     });
 
     for (auto const& seq : sequences) {
@@ -62,7 +63,7 @@ void match_sequences(
     }
   }
 
-  auto seq = load
+  // auto seq = load
 }
 
 }  // namespace routes

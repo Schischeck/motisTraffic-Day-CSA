@@ -13,7 +13,6 @@
 #endif
 
 namespace motis {
-
 namespace geo_detail {
 
 constexpr double kEarthRadiusMeters = 6371000.0f;
