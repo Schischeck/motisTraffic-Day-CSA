@@ -15,8 +15,8 @@ struct Statistics {
   labels_popped_until_first_result:uint;
   labels_popped_after_last_result:uint;
   priority_queue_max_size:uint;
-  travel_time_l_b:uint;
-  transfers_l_b:uint;
+  travel_time_lb:uint;
+  transfers_lb:uint;
   total_calculation_time:uint;
   pareto_dijkstra:uint;
 }

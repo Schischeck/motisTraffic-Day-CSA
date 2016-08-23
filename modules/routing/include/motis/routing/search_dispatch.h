@@ -12,17 +12,17 @@ namespace motis {
 namespace routing {
 
 template <typename T>
-struct get_search_dir {
-  typedef T value_type;
-};
+struct get_search_dir {};
 
-template <template <search_dir, typename...> class Label, typename... Args>
-struct get_search_dir<Label<search_dir::FWD, Args...>> {
+template <template <search_dir, size_t, typename...> class Label,
+          size_t MaxBucket, typename... Args>
+struct get_search_dir<Label<search_dir::FWD, MaxBucket, Args...>> {
   static constexpr auto v_ = search_dir::FWD;
 };
 
-template <template <search_dir, typename...> class Label, typename... Args>
-struct get_search_dir<Label<search_dir::BWD, Args...>> {
+template <template <search_dir, size_t, typename...> class Label,
+          size_t MaxBucket, typename... Args>
+struct get_search_dir<Label<search_dir::BWD, MaxBucket, Args...>> {
   static constexpr auto v_ = search_dir::BWD;
 };
 

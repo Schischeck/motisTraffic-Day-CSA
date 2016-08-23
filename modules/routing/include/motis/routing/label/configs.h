@@ -19,7 +19,8 @@ namespace routing {
 
 template <search_dir Dir>
 using default_label =
-    label<Dir, label_data<travel_time, transfers, absurdity>,
+    label<Dir, MAX_TRAVEL_TIME, get_travel_time_lb,
+          label_data<travel_time, transfers, absurdity>,
           initializer<travel_time_initializer, transfers_initializer,
                       absurdity_initializer>,
           updater<travel_time_updater, transfers_updater, absurdity_updater>,
@@ -27,36 +28,38 @@ using default_label =
           dominance<absurdity_tb, travel_time_dominance, transfers_dominance>,
           dominance<absurdity_post_search_tb, travel_time_alpha_dominance,
                     transfers_dominance>,
-          comparator<travel_time_dominance, transfers_dominance>>;
+          comparator<transfers_dominance>>;
 
 template <search_dir Dir>
 using default_simple_label = label<
-    Dir, label_data<travel_time, transfers>,
+    Dir, MAX_TRAVEL_TIME, get_travel_time_lb,
+    label_data<travel_time, transfers>,
     initializer<travel_time_initializer, transfers_initializer>,
     updater<travel_time_updater, transfers_updater>,
     filter<travel_time_filter, transfers_filter>,
     dominance<default_tb, travel_time_dominance, transfers_dominance>,
     dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance>,
-    comparator<travel_time_dominance, transfers_dominance>>;
+    comparator<transfers_dominance>>;
 
 template <search_dir Dir>
 using single_criterion_label =
-    label<Dir, label_data<weighted>, initializer<weighted_initializer>,
-          updater<weighted_updater>, filter<weighted_filter>,
-          dominance<default_tb, weighted_dominance>, dominance<post_search_tb>,
-          comparator<weighted_dominance>>;
+    label<Dir, MAX_WEIGHTED, get_weighted_lb, label_data<weighted>,
+          initializer<weighted_initializer>, updater<weighted_updater>,
+          filter<weighted_filter>, dominance<default_tb, weighted_dominance>,
+          dominance<post_search_tb>, comparator<weighted_dominance>>;
 
 template <search_dir Dir>
 using single_criterion_no_intercity_label =
-    label<Dir, label_data<weighted>, initializer<weighted_initializer>,
-          updater<weighted_updater>,
+    label<Dir, MAX_WEIGHTED, get_weighted_lb, label_data<weighted>,
+          initializer<weighted_initializer>, updater<weighted_updater>,
           filter<weighted_filter, no_intercity_filter>,
           dominance<default_tb, weighted_dominance>, dominance<post_search_tb>,
           comparator<weighted_dominance>>;
 
 template <search_dir Dir>
 using late_connections_label = label<
-    Dir, label_data<travel_time, transfers, late_connections, absurdity>,
+    Dir, MAX_TRAVEL_TIME, get_travel_time_lb,
+    label_data<travel_time, transfers, late_connections, absurdity>,
     initializer<travel_time_initializer, transfers_initializer,
                 late_connections_initializer, absurdity_initializer>,
     updater<travel_time_updater, transfers_updater, late_connections_updater,
@@ -66,11 +69,12 @@ using late_connections_label = label<
               late_connections_dominance>,
     dominance<absurdity_post_search_tb, travel_time_alpha_dominance,
               transfers_dominance, late_connections_post_search_dominance>,
-    comparator<travel_time_dominance, transfers_dominance>>;
+    comparator<transfers_dominance>>;
 
 template <search_dir Dir>
 using late_connections_label_for_tests = label<
-    Dir, label_data<travel_time, transfers, late_connections>,
+    Dir, MAX_TRAVEL_TIME, get_travel_time_lb,
+    label_data<travel_time, transfers, late_connections>,
     initializer<travel_time_initializer, transfers_initializer,
                 late_connections_initializer>,
     updater<travel_time_updater, transfers_updater, late_connections_updater>,
@@ -79,7 +83,7 @@ using late_connections_label_for_tests = label<
               late_connections_dominance>,
     dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance,
               late_connections_post_search_dominance_for_tests>,
-    comparator<travel_time_dominance, transfers_dominance>>;
+    comparator<transfers_dominance>>;
 
 }  // namespace routing
 }  // namespace motis
