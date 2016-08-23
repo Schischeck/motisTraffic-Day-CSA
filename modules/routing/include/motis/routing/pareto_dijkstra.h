@@ -19,7 +19,7 @@ template <search_dir Dir, typename Label, typename LowerBounds>
 struct pareto_dijkstra {
   struct compare_labels {
     bool operator()(Label const* a, Label const* b) const {
-      return b->operator<(*a);
+      return a->operator<(*b);
     }
   };
 

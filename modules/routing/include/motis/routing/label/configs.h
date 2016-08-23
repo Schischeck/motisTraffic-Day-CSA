@@ -27,7 +27,7 @@ using default_label =
           dominance<absurdity_tb, travel_time_dominance, transfers_dominance>,
           dominance<absurdity_post_search_tb, travel_time_alpha_dominance,
                     transfers_dominance>,
-          comparator<travel_time_dominance, transfers_dominance>,
+          comparator<transfers_dominance>,
           get_travel_time_lb, MAX_TRAVEL_TIME>;
 
 template <search_dir Dir>
@@ -38,7 +38,7 @@ using default_simple_label = label<
     filter<travel_time_filter, transfers_filter>,
     dominance<default_tb, travel_time_dominance, transfers_dominance>,
     dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance>,
-    comparator<travel_time_dominance, transfers_dominance>, get_travel_time_lb,
+    comparator<transfers_dominance>, get_travel_time_lb,
     MAX_TRAVEL_TIME>;
 
 template <search_dir Dir>
@@ -68,7 +68,7 @@ using late_connections_label = label<
               late_connections_dominance>,
     dominance<absurdity_post_search_tb, travel_time_alpha_dominance,
               transfers_dominance, late_connections_post_search_dominance>,
-    comparator<travel_time_dominance, transfers_dominance>, get_travel_time_lb,
+    comparator<transfers_dominance>, get_travel_time_lb,
     MAX_TRAVEL_TIME>;
 
 template <search_dir Dir>
@@ -82,7 +82,7 @@ using late_connections_label_for_tests = label<
               late_connections_dominance>,
     dominance<post_search_tb, travel_time_alpha_dominance, transfers_dominance,
               late_connections_post_search_dominance_for_tests>,
-    comparator<travel_time_dominance, transfers_dominance>, get_travel_time_lb,
+    comparator<transfers_dominance>, get_travel_time_lb,
     MAX_TRAVEL_TIME>;
 
 }  // namespace routing
