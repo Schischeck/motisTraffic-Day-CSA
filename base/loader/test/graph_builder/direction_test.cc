@@ -11,9 +11,7 @@ class loader_direction_services_graph_builder_test
     : public loader_graph_builder_test {
 public:
   loader_direction_services_graph_builder_test()
-      : loader_graph_builder_test("direction-services",
-                                  to_unix_time(2015, 9, 11),
-                                  to_unix_time(2015, 9, 12)) {}
+      : loader_graph_builder_test("direction-services", "20150911", 2) {}
 };
 
 TEST_F(loader_direction_services_graph_builder_test, direction_station) {

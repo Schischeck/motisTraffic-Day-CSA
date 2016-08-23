@@ -6,8 +6,8 @@
 
 #include "net/tcp_server.h"
 
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/module/message.h"
-#include "motis/loader/util.h"
 
 using net::tcp_server;
 using namespace motis::module;

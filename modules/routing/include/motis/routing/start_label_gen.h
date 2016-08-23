@@ -70,20 +70,24 @@ struct pretrip_gen {
     std::vector<edge const*> edges;
     if (Dir == search_dir::FWD) {
       for (auto const& e : station->edges_) {
-        edges.push_back(&e);
+        if (e.type() != edge::INVALID_EDGE) {
+          edges.push_back(&e);
+        }
       }
     } else {
       for (auto const& e : station->incoming_edges_) {
-        edges.push_back(e);
+        if (e->type() != edge::INVALID_EDGE) {
+          edges.push_back(e);
+        }
       }
     }
 
     for (auto const& e : edges) {
-      if (!e->get_destination<Dir>()->is_route_node()) {
+      auto rn = e->get_destination<Dir>();
+      if (!rn->is_route_node()) {
         continue;
       }
 
-      auto rn = (Dir == search_dir::FWD) ? e->to_ : e->from_;
       if (Dir == search_dir::FWD) {
         for (auto const& re : rn->edges_) {
           generate_start_labels(*e, re, mem, lbs, start_edge, query_edge, d,

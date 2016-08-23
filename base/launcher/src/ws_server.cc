@@ -3,8 +3,11 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <string>
 
 #include "boost/system/system_error.hpp"
+
+#include "snappy.h"
 
 #define WEBSOCKETPP_STRICT_MASKING
 #include "websocketpp/config/asio_no_tls.hpp"
@@ -17,6 +20,7 @@ typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 using websocketpp::connection_hdl;
 using websocketpp::lib::bind;
 using websocketpp::lib::error_code;
+using websocketpp::frame::opcode::BINARY;
 using websocketpp::frame::opcode::TEXT;
 
 using namespace motis::module;
@@ -28,7 +32,7 @@ using sid = unsigned;
 
 struct ws_server::ws_server_impl {
   ws_server_impl(boost::asio::io_service& ios, receiver& receiver)
-      : receiver_(receiver), ios_(ios), next_sid_(0) {
+      : binary_(false), receiver_(receiver), ios_(ios), next_sid_(0) {
     server_.set_access_channels(websocketpp::log::alevel::none);
     server_.set_open_handler(bind(&ws_server_impl::on_open, this, p::_1));
     server_.set_close_handler(bind(&ws_server_impl::on_close, this, p::_1));
@@ -44,7 +48,8 @@ struct ws_server::ws_server_impl {
     }
   }
 
-  void listen(std::string const& host, std::string const& port) {
+  void listen(std::string const& host, std::string const& port, bool binary) {
+    binary_ = binary;
     server_.init_asio(&ios_);
     server_.listen(host, port);
     server_.start_accept();
@@ -64,7 +69,8 @@ struct ws_server::ws_server_impl {
       }
 
       error_code send_ec;
-      server_.send(sid_it->second, msg->to_json(), TEXT, send_ec);
+      server_.send(sid_it->second, encode_msg(msg), binary_ ? BINARY : TEXT,
+                   send_ec);
     });
   }
 
@@ -126,7 +132,7 @@ struct ws_server::ws_server_impl {
 
     msg_ptr req_msg;
     try {
-      req_msg = make_msg(msg->get_payload());
+      req_msg = decode_msg(msg->get_payload());
     } catch (std::system_error const& e) {
       send_error(e.code(), session, 0);
       return;
@@ -145,6 +151,27 @@ struct ws_server::ws_server_impl {
     }
   }
 
+  msg_ptr decode_msg(std::string const& req_buf) {
+    if (binary_) {
+      snappy::Uncompress(static_cast<char const*>(req_buf.data()),
+                         req_buf.size(), &buf_);
+      return make_msg(reinterpret_cast<void const*>(buf_.data()), buf_.size());
+    } else {
+      return make_msg(req_buf);
+    }
+  }
+
+  std::string encode_msg(msg_ptr const& msg) {
+    std::string b;
+    if (binary_) {
+      auto const data = reinterpret_cast<char const*>(msg->data());
+      snappy::Compress(data, msg->size(), &b);
+    } else {
+      b = msg->to_json();
+    }
+    return b;
+  }
+
   void reply(sid session, int req_id, msg_ptr res, std::error_code ec) {
     if (ec) {
       send_error(ec, session, req_id);
@@ -154,6 +181,8 @@ struct ws_server::ws_server_impl {
       send_success(session, req_id);
     }
   }
+
+  bool binary_;
 
   motis::module::receiver& receiver_;
 
@@ -165,6 +194,8 @@ struct ws_server::ws_server_impl {
   sid next_sid_;
   std::map<sid, connection_hdl> sid_con_map_;
   std::map<connection_hdl, sid, std::owner_less<connection_hdl>> con_sid_map_;
+
+  std::string buf_;
 };
 
 ws_server::~ws_server() = default;
@@ -177,8 +208,9 @@ void ws_server::set_api_key(std::string const& api_key) {
   impl_->set_api_key(api_key);
 }
 
-void ws_server::listen(std::string const& host, std::string const& port) {
-  impl_->listen(host, port);
+void ws_server::listen(std::string const& host, std::string const& port,
+                       bool binary) {
+  impl_->listen(host, port, binary);
 }
 
 void ws_server::stop() { impl_->stop(); }

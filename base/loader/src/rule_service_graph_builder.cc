@@ -15,7 +15,7 @@
 namespace motis {
 namespace loader {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 
 int calculate_offset(RuleService const* rule_service) {
   int offset = 0;
@@ -417,7 +417,7 @@ void rule_service_graph_builder::add_rule_services(
       continue;
     }
 
-    auto route_id = ++gb_.next_route_index_;
+    auto route_id = gb_.next_route_index_++;
 
     rule_service_section_builder section_builder(gb_, rule_service);
     section_builder.build_sections(rule_service);

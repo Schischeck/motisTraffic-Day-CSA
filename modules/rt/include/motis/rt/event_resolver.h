@@ -1,11 +1,109 @@
 #pragma once
 
+#include <map>
+#include <set>
+#include <vector>
+
+#include "boost/optional.hpp"
+
+#include "motis/core/common/transform_to_vec.h"
+#include "motis/core/schedule/schedule.h"
+
+#include "motis/rt/find_trip_fuzzy.h"
+
 namespace motis {
 namespace rt {
 
-struct event_resolver {
-  // TODO(Felix Guendling) implement
+struct event_info {
+  uint32_t station_idx_;
+  time sched_time_;
+  event_type ev_type_;
 };
+
+inline std::vector<boost::optional<event_info>> resolve_event_info(
+    schedule const& sched, std::vector<ris::Event const*> const& events) {
+  return transform_to_vec(
+      events, [&](ris::Event const* ev) -> boost::optional<event_info> {
+        auto const station = find_station(sched, ev->station_id()->str());
+        if (station == nullptr) {
+          return {};
+        }
+
+        auto const time = unix_to_motistime(sched, ev->schedule_time());
+        if (time == INVALID_TIME) {
+          return {};
+        }
+
+        return {event_info{station->index_, time, from_fbs(ev->type())}};
+      });
+}
+
+inline std::map<uint32_t /* station_idx */, bool /* is_unique */>
+get_station_unique(trip const* trp) {
+  std::map<uint32_t, bool> station_unique;
+  for (auto const& trp_e : *trp->edges_) {
+    if (station_unique.empty()) {
+      station_unique[trp_e.get_edge()->from_->get_station()->id_] = true;
+    }
+
+    auto const station_idx = trp_e.get_edge()->to_->get_station()->id_;
+    auto const it = station_unique.find(station_idx);
+    if (it == end(station_unique)) {
+      station_unique.emplace(station_idx, true);
+    } else {
+      it->second = false;
+    }
+  }
+  return station_unique;
+}
+
+inline std::vector<boost::optional<ev_key>> resolve_to_ev_keys(
+    schedule const& sched, trip const* trp,
+    std::vector<boost::optional<event_info>> const& events) {
+  auto const station_unique = get_station_unique(trp);
+  auto resolved = std::vector<boost::optional<ev_key>>(events.size());
+
+  auto const set_event = [&](edge const* e, event_type const ev_type) {
+    auto const station_idx = get_route_node(*e, ev_type)->get_station()->id_;
+    for (unsigned i = 0; i < events.size(); ++i) {
+      auto const& ev = events[i];
+      if (!ev || ev->ev_type_ != ev_type || ev->station_idx_ != station_idx) {
+        continue;
+      }
+
+      auto const k = ev_key{e, trp->lcon_idx_, ev_type};
+      if (station_unique.at(station_idx)) {
+        resolved[i] = k;
+      } else {
+        auto const diff =
+            std::abs(static_cast<int>(ev->sched_time_) -
+                     static_cast<int>(get_schedule_time(sched, k)));
+
+        if (diff == 0) {
+          resolved[i] = k;
+        }
+      }
+    }
+  };
+
+  for (auto const& trp_e : *trp->edges_) {
+    auto const e = trp_e.get_edge();
+    set_event(e, event_type::DEP);
+    set_event(e, event_type::ARR);
+  }
+
+  return resolved;
+}
+
+inline std::vector<boost::optional<ev_key>> resolve_events(
+    schedule const& sched, ris::IdEvent const* id,
+    std::vector<ris::Event const*> const& evs) {
+  auto trp = find_trip_fuzzy(sched, id);
+  if (trp == nullptr) {
+    return {};
+  }
+  return resolve_to_ev_keys(sched, trp, resolve_event_info(sched, evs));
+}
 
 }  // namespace rt
 }  // namespace motis

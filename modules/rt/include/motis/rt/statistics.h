@@ -42,7 +42,8 @@ struct statistics {
         additional_err_station_(0),
         additional_err_time_(0),
         additional_decreasing_ev_time_(0),
-        additional_station_mismatch_(0) {}
+        additional_station_mismatch_(0),
+        canceled_trp_not_found_(0) {}
 
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     auto c = [&](char const* desc, unsigned number) {
@@ -92,6 +93,9 @@ struct statistics {
     c("station not found", s.additional_err_station_);
     c("bad event time", s.additional_err_time_);
 
+    o << "\ncanceled services\n";
+    c("trip not found", s.canceled_trp_not_found_);
+
     return o;
   }
 
@@ -132,6 +136,7 @@ struct statistics {
       case additional_service_builder::status::OK: ++additional_ok_; break;
       case additional_service_builder::status::TRIP_ID_MISMATCH:
         ++additional_trip_id_;
+        break;
       case additional_service_builder::status::EVENT_COUNT_MISMATCH:
         ++additional_err_count_;
         break;
@@ -187,6 +192,8 @@ struct statistics {
   unsigned additional_err_time_;
   unsigned additional_decreasing_ev_time_;
   unsigned additional_station_mismatch_;
+
+  unsigned canceled_trp_not_found_;
 };
 
 }  // namespace rt

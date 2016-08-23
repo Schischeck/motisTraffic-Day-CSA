@@ -10,7 +10,7 @@
 #include "motis/loader/util.h"
 
 using namespace parser;
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace motis::logging;
 
 namespace motis {
@@ -18,7 +18,7 @@ namespace loader {
 namespace hrd {
 
 track_rules parse_track_rules(loaded_file const& file,
-                                    flatbuffers::FlatBufferBuilder& b) {
+                                    flatbuffers64::FlatBufferBuilder& b) {
   scoped_timer timer("parsing track rules");
   track_rules prs;
   std::map<uint64_t, Offset<String>> track_names;

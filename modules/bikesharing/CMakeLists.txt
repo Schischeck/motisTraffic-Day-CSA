@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(motis)
 
 include_directories(include)
@@ -8,6 +8,7 @@ set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/bikesharing/dbsch
 file(GLOB_RECURSE bikesharing-dbschema-files ${bikesharing-dbschema-dir}/*.fbs)
 
 build_flatbuffers(
+  32                                       # num_bits
   "--everything-required"                  # commandline_options
   "${bikesharing-dbschema-files}"          # flatbuffers_schemas
   "${bikesharing-dbschema-dir}"            # schema_include_dirs
@@ -22,10 +23,10 @@ file(GLOB_RECURSE motis-bikesharing-files src/*.cc)
 add_library(motis-bikesharing STATIC ${motis-bikesharing-files})
 add_dependencies(motis-bikesharing generated-bikesharing-dbschema-headers)
 set_target_properties(motis-bikesharing PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-target_link_libraries(motis-bikesharing 
+target_link_libraries(motis-bikesharing
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
-  motis-module 
+  motis-module
   pugixml
   rocksdb
 )

@@ -1,7 +1,7 @@
 namespace motis.osrm;
 
 struct Cost {
-  time:int;
+  duration:double;
   distance:double;
 }
 

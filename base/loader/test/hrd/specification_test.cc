@@ -8,10 +8,10 @@
 
 #include "motis/loader/parser_error.h"
 
+#include "./paths.h"
 #include "./test_spec_test.h"
 
 using namespace parser;
-using namespace flatbuffers;
 
 namespace motis {
 namespace loader {

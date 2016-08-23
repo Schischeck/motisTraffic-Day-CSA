@@ -14,10 +14,10 @@
 #include "motis/core/common/constants.h"
 #include "motis/core/common/geo.h"
 #include "motis/core/common/logging.h"
+#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/common/util.h"
 #include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
-#include "motis/loader/util.h"
 #include "motis/bikesharing/error.h"
 
 #include "motis/protocol/Message_generated.h"
@@ -27,7 +27,6 @@ using namespace motis::lookup;
 using namespace motis::geo_detail;
 using namespace motis::logging;
 using namespace motis::module;
-using namespace motis::loader;
 using namespace parser;
 using namespace pugi;
 namespace fs = boost::filesystem;

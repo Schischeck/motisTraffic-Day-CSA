@@ -4,7 +4,6 @@
 
 #include "motis/core/common/constants.h"
 #include "motis/module/context/motis_call.h"
-#include "motis/loader/util.h"
 
 #include "motis/intermodal/error.h"
 
@@ -14,7 +13,6 @@ using namespace flatbuffers;
 using namespace motis::module;
 using namespace motis::lookup;
 using namespace motis::osrm;
-using namespace motis::loader;
 using namespace motis::routing;
 
 namespace motis {
@@ -75,7 +73,7 @@ void add_departure(message_creator& mc, IntermodalRoutingRequest const* req,
         auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
 
         for (auto i = 0ul; i < stations->size(); ++i) {
-          auto const walk_dur = osrm_resp->costs()->Get(i)->time();
+          auto const walk_dur = osrm_resp->costs()->Get(i)->duration();
           if (walk_dur > max_dur) {
             continue;
           }
@@ -109,7 +107,7 @@ void add_arrival(message_creator& mc, IntermodalRoutingRequest const* req,
         auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
 
         for (auto i = 0ul; i < stations->size(); ++i) {
-          auto const walk_dur = osrm_resp->costs()->Get(i)->time();
+          auto const walk_dur = osrm_resp->costs()->Get(i)->duration();
           if (walk_dur > max_dur) {
             continue;
           }

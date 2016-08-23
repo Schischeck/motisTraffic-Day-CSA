@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(motis)
 
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
@@ -94,17 +94,14 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
-include_directories(SYSTEM external_lib) # for osrm-backend
 include_directories(SYSTEM external_lib/expat/include)
 include_directories(SYSTEM external_lib/flatbuffers/include)
 include_directories(SYSTEM external_lib/googletest/googletest/include)
 include_directories(SYSTEM external_lib/osmium/include)
 include_directories(SYSTEM external_lib/miniz)
-include_directories(SYSTEM external_lib/osrm-backend)
 include_directories(SYSTEM external_lib/osrm-backend/include)
 include_directories(SYSTEM external_lib/osrm-backend/third_party)
 include_directories(SYSTEM external_lib/pugixml/src)
-include_directories(SYSTEM external_lib/rapidjson/include)
 include_directories(SYSTEM external_lib/rocksdb/include)
 include_directories(SYSTEM external_lib/rocksdb/external_lib/snappy)
 include_directories(SYSTEM external_lib/sparsehash/src)
@@ -154,7 +151,7 @@ set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
 list(REMOVE_ITEM modules
-  "connectionchecker"
+  "reliability"
   "railviz"
 )
 
@@ -185,6 +182,8 @@ configure_file (
 file(GLOB_RECURSE motis-test-files test/src/*.cc)
 file(GLOB_RECURSE motis-modules-test-files ${module-test-files})
 file(GLOB_RECURSE motis-base-test-files base/*_test.cc)
+file(GLOB_RECURSE motis-loader-test-files base/loader/*_test.cc)
+set_source_files_properties(${motis-loader-test-files} PROPERTIES COMPILE_DEFINITIONS FLATBUFFERS_64=1)
 add_executable(motis-test EXCLUDE_FROM_ALL
   ${motis-test-files}
   ${motis-modules-test-files}

@@ -129,6 +129,48 @@ void create_additional_msg(motis::schedule const& sched,
       CreateAdditionMessage(fbb, trip_id, fbb.CreateVector(events)).Union()));
 }
 
+void create_cancel_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
+  // clang-format off
+  std::vector<Offset<Event>> events{
+    CreateEvent(fbb,
+      fbb.CreateString("0000003"),
+      1,
+      fbb.CreateString("381"),
+      EventType_DEP,
+      unix_time(sched, 1210)),
+    CreateEvent(fbb,
+      fbb.CreateString("0000004"),
+      1,
+      fbb.CreateString("381"),
+      EventType_ARR,
+      unix_time(sched, 1300)
+    ),
+    CreateEvent(fbb,
+      fbb.CreateString("0000004"),
+      1,
+      fbb.CreateString("381"),
+      EventType_DEP,
+      unix_time(sched, 1310)
+    ),
+    CreateEvent(fbb,
+      fbb.CreateString("0000005"),
+      1,
+      fbb.CreateString("381"),
+      EventType_ARR,
+      unix_time(sched, 1400)
+    )
+  };
+  auto trip_id = CreateIdEvent(fbb,
+        fbb.CreateString("0000001"),
+        1,
+        unix_time(sched, 1010));
+  // clang-format on
+
+  fbb.Finish(CreateMessage(
+      fbb, MessageUnion_CancelMessage,
+      CreateCancelMessage(fbb, trip_id, fbb.CreateVector(events)).Union()));
+}
+
 msg_ptr get_trip_conflict_ris_message(motis::schedule const& sched) {
   FlatBufferBuilder is_msg_fbb;
   create_invalid_trip_is_msg(sched, is_msg_fbb);
@@ -161,6 +203,19 @@ motis::module::msg_ptr get_additional_ris_message(
     motis::schedule const& sched) {
   FlatBufferBuilder fbb;
   create_additional_msg(sched, fbb);
+
+  message_creator mc;
+  std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
+      mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
+  mc.create_and_finish(MsgContent_RISBatch,
+                       CreateRISBatch(mc, mc.CreateVector(messages)).Union(),
+                       "/ris/messages", DestinationType_Topic);
+  return make_msg(mc);
+}
+
+motis::module::msg_ptr get_cancel_ris_message(motis::schedule const& sched) {
+  FlatBufferBuilder fbb;
+  create_cancel_msg(sched, fbb);
 
   message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(

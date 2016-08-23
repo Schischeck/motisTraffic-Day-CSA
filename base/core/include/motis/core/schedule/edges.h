@@ -24,15 +24,6 @@ struct edge_cost {
 
   bool is_valid() const { return time_ != INVALID_TIME; }
 
-  uint16_t operator[](int index) const {
-    switch (index) {
-      case 0: return time_;
-      case 1: return transfer_ ? 1 : 0;
-      case 2: return price_;
-      default: return 0;
-    }
-  }
-
   light_connection const* connection_;
   duration time_;
   uint16_t price_;
@@ -133,7 +124,9 @@ public:
   }
 
   edge_cost get_minimum_cost() const {
-    if (m_.type_ == ROUTE_EDGE) {
+    if (m_.type_ == INVALID_EDGE) {
+      return NO_EDGE;
+    } else if (m_.type_ == ROUTE_EDGE) {
       if (m_.route_edge_.conns_.size() == 0) {
         return NO_EDGE;
       } else {

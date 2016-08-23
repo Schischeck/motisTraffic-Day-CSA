@@ -3,7 +3,9 @@
 #include <list>
 #include <ostream>
 #include <queue>
-#include <unordered_map>
+
+#include "motis/core/common/dial.h"
+#include "motis/core/common/hash_map.h"
 
 #include "motis/routing/mem_manager.h"
 #include "motis/routing/statistics.h"
@@ -14,29 +16,32 @@ namespace routing {
 const bool FORWARDING = true;
 
 template <search_dir Dir, typename Label, typename LowerBounds>
-class pareto_dijkstra {
-public:
-  class compare_labels {
-  public:
-    bool operator()(Label const* l1, Label const* l2) const {
-      return l2->operator<(*l1);
+struct pareto_dijkstra {
+  struct compare_labels {
+    bool operator()(Label const* a, Label const* b) const {
+      return a->operator<(*b);
     }
   };
 
-  pareto_dijkstra(
-      int node_count, station_node const* goal,
-      std::vector<Label*> const& start_labels,
-      std::unordered_map<node const*, std::vector<edge>> additional_edges,
-      LowerBounds& lower_bounds, mem_manager& label_store)
+  struct get_bucket {
+    std::size_t operator()(Label const* l) const { return l->get_bucket(); }
+  };
+
+  pareto_dijkstra(int node_count, station_node const* goal,
+                  std::vector<Label*> const& start_labels,
+                  hash_map<node const*, std::vector<edge>> additional_edges,
+                  LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
         node_labels_(node_count),
-        queue_(begin(start_labels), end(start_labels)),
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
         max_labels_(label_store.size() / sizeof(Label) - 1000) {
-    for (auto const& start_label : start_labels) {
-      node_labels_[start_label->get_node()->id_].emplace_back(start_label);
+    for (auto const& l : start_labels) {
+      if (!l->is_filtered()) {
+        node_labels_[l->get_node()->id_].emplace_back(l);
+        queue_.push(l);
+      }
     }
   }
 
@@ -109,7 +114,10 @@ public:
 private:
   void create_new_label(Label* l, edge const& edge) {
     Label blank;
-    bool created = l->create_label(blank, edge, lower_bounds_);
+    bool created =
+        l->create_label(blank, edge, lower_bounds_,
+                        edge.get_source<Dir>()->get_station() == goal_ &&
+                            edge.get_destination<Dir>() == goal_);
     if (!created) {
       return;
     }
@@ -212,9 +220,9 @@ private:
 
   station_node const* goal_;
   std::vector<std::vector<Label*>> node_labels_;
-  std::priority_queue<Label*, std::vector<Label*>, compare_labels> queue_;
+  dial<Label*, Label::MAX_BUCKET, get_bucket, compare_labels, true> queue_;
   std::vector<Label*> equals_;
-  std::unordered_map<node const*, std::vector<edge>> additional_edges_;
+  hash_map<node const*, std::vector<edge>> additional_edges_;
   std::vector<Label*> results_;
   LowerBounds& lower_bounds_;
   mem_manager& label_store_;

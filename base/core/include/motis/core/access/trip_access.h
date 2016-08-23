@@ -8,8 +8,6 @@
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
 
-#include "motis/protocol/TripId_generated.h"
-
 namespace motis {
 
 inline trip const* get_trip(schedule const& sched, std::string const& eva_nr,
@@ -49,12 +47,6 @@ inline trip const* find_trip(schedule const& sched, primary_trip_id id) {
     return it->second;
   }
   return nullptr;
-}
-
-inline trip const* get_trip(schedule const& sched, TripId const* t) {
-  return get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
-                  t->target_station_id()->str(), t->target_time(),
-                  t->line_id()->str());
 }
 
 }  // namespace motis

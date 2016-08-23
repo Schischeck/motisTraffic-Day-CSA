@@ -9,6 +9,7 @@
 #define LISTEN_TCP "listen.tcp"
 #define WS_HOST "listen.ws_host"
 #define WS_PORT "listen.ws_port"
+#define WS_BINARY "listen.ws_binary"
 #define TCP_HOST "listen.tcp_host"
 #define TCP_PORT "listen.tcp_port"
 #define HTTP_HOST "listen.http_host"
@@ -22,7 +23,8 @@ namespace launcher {
 
 listener_settings::listener_settings(bool listen_ws, bool listen_http,
                                      bool listen_tcp, std::string ws_host,
-                                     std::string ws_port, std::string http_host,
+                                     std::string ws_port, bool ws_binary,
+                                     std::string http_host,
                                      std::string http_port,
                                      std::string tcp_host, std::string tcp_port,
                                      std::string api_key)
@@ -31,6 +33,7 @@ listener_settings::listener_settings(bool listen_ws, bool listen_http,
       listen_tcp_(listen_tcp),
       ws_host_(std::move(ws_host)),
       ws_port_(std::move(ws_port)),
+      ws_binary_(ws_binary),
       http_host_(std::move(http_host)),
       http_port_(std::move(http_port)),
       tcp_host_(std::move(tcp_host)),
@@ -56,6 +59,9 @@ boost::program_options::options_description listener_settings::desc() {
       (WS_PORT,
        po::value<std::string>(&ws_port_)->default_value(ws_port_),
        "websocket listener port")
+      (WS_BINARY,
+       po::value<bool>(&ws_binary_)->default_value(ws_binary_),
+       "websocket binary mode (flatbuffers+snappy)")
       (HTTP_HOST,
        po::value<std::string>(&http_host_)->default_value(http_host_),
        "http listener host")
@@ -81,6 +87,7 @@ void listener_settings::print(std::ostream& out) const {
       << "  " << LISTEN_TCP << ": " << listen_tcp_ << "\n"
       << "  " << WS_HOST << ": " << ws_host_ << "\n"
       << "  " << WS_PORT << ": " << ws_port_ << "\n"
+      << "  " << WS_BINARY << ": " << ws_binary_ << "\n"
       << "  " << HTTP_HOST << ": " << http_host_ << "\n"
       << "  " << HTTP_PORT << ": " << http_port_ << "\n"
       << "  " << TCP_HOST << ": " << tcp_host_ << "\n"

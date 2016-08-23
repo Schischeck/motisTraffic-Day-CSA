@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/test/motis_instance_test.h"
-#include "../hrd/test_spec_test.h"
+#include "../hrd/paths.h"
 
 namespace fbs = flatbuffers;
 using namespace motis;

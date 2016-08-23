@@ -5,6 +5,8 @@
 namespace motis {
 namespace routing {
 
+constexpr duration MAX_TRANSFERS = 6;
+
 struct transfers {
   uint8_t transfers_, transfers_lb_;
 };
@@ -13,7 +15,13 @@ struct transfers_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
     l.transfers_ = 0;
-    l.transfers_lb_ = lb.transfers_[l.get_node()->id_];
+
+    auto const lb_val = lb.transfers_[l.get_node()];
+    if (lb.transfers_.is_reachable(lb_val)) {
+      l.transfers_lb_ = lb_val;
+    } else {
+      l.transfers_lb_ = std::numeric_limits<uint8_t>::max();
+    }
   }
 };
 
@@ -23,7 +31,13 @@ struct transfers_updater {
     if (ec.transfer_) {
       ++l.transfers_;
     }
-    l.transfers_lb_ = l.transfers_ + lb.transfers_[l.get_node()->id_];
+
+    auto const lb_val = lb.transfers_[l.get_node()];
+    if (lb.transfers_.is_reachable(lb_val)) {
+      l.transfers_lb_ = l.transfers_ + lb_val;
+    } else {
+      l.transfers_lb_ = std::numeric_limits<uint8_t>::max();
+    }
   }
 };
 
@@ -47,7 +61,7 @@ struct transfers_dominance {
 struct transfers_filter {
   template <typename Label>
   static bool is_filtered(Label const& l) {
-    return l.transfers_lb_ > 6;
+    return l.transfers_lb_ > MAX_TRANSFERS;
   }
 };
 

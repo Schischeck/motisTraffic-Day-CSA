@@ -20,6 +20,7 @@ namespace module {
 std::unique_ptr<Parser> init_parser() {
   auto parser = std::make_unique<Parser>();
   parser->opts.strict_json = true;
+  parser->opts.skip_unexpected_fields_in_json = true;
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {  // NOLINT

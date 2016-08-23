@@ -7,7 +7,7 @@
 #include "boost/geometry/geometries/point.hpp"
 #include "boost/geometry/index/rtree.hpp"
 
-#include "motis/loader/util.h"
+#include "motis/core/common/transform_to_vec.h"
 
 namespace motis {
 namespace routes {
@@ -48,7 +48,7 @@ struct point_rtree {
                  }));
 
     std::sort(begin(results), end(results));
-    return loader::transform_to_vec(results, [](auto&& r) { return r.second; });
+    return transform_to_vec(results, [](auto&& r) { return r.second; });
   }
 
 private:
@@ -80,7 +80,7 @@ point_rtree make_point_rtree(C const& container, F fun) {
   // fun(e) should return a point: {e.lng, e.lat}
   auto i = 0;
   return point_rtree::rtree_t{
-      loader::transform_to_vec(container, [&](auto&& e) -> point_rtree::value {
+      transform_to_vec(container, [&](auto&& e) -> point_rtree::value {
         return {fun(e), i++};
       })};
 }

@@ -7,7 +7,7 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace flatbuffers;
+using namespace flatbuffers64;
 using namespace parser;
 
 Offset<String> line_builder::get_or_create_line(

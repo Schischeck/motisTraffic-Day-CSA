@@ -47,6 +47,12 @@ void routes::load_auxiliary_file() {
   }
 }
 
+inline trip const* get_trip(schedule const& sched, TripId const* t) {
+  return get_trip(sched, t->station_id()->str(), t->train_nr(), t->time(),
+                  t->target_station_id()->str(), t->target_time(),
+                  t->line_id()->str());
+}
+
 msg_ptr routes::id_train_routes(msg_ptr const& msg) {
   auto const& req = motis_content(RoutesIdTrainRequest, msg);
   auto const& sched = get_schedule();
@@ -82,7 +88,7 @@ msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
 
   mc.create_and_finish(
       MsgContent_OSRMSmoothViaRouteRequest,
-      CreateOSRMSmoothViaRouteRequest(mc, mc.CreateString("car"),
+      CreateOSRMSmoothViaRouteRequest(mc, mc.CreateString("bus"),
                                       mc.CreateVector(waypoints))
           .Union(),
       "/osrm/smooth_via");
@@ -92,7 +98,7 @@ msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
 msg_ptr routes::resolve_route_osrm(schedule const& sched, trip const* trp) {
   auto osrm_req = trip_to_osrm_request(sched, trp);
   auto const osrm_msg = motis_call(osrm_req)->val();
-  auto osrm_resp = motis_content(OSRMViaRouteResponse, osrm_msg);
+  auto osrm_resp = motis_content(OSRMSmoothViaRouteResponse, osrm_msg);
 
   message_creator mc;
   std::vector<Offset<Polyline>> segments;
@@ -104,7 +110,7 @@ msg_ptr routes::resolve_route_osrm(schedule const& sched, trip const* trp) {
   mc.create_and_finish(
       MsgContent_RoutesIdTrainResponse,
       CreateRoutesIdTrainResponse(mc, mc.CreateVector(segments),
-                                  mc.CreateString("osrm/car"))
+                                  mc.CreateString("osrm/bus"))
           .Union());
   return make_msg(mc);
 }

@@ -2,12 +2,13 @@
 
 #include "boost/filesystem.hpp"
 
-#include "flatbuffers/flatbuffers.h"
-
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
 #include "parser/file.h"
 
+#include "motis/routes/both_flatbuffers.h"
+
+#include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/rel/osm_relations.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
 
@@ -17,15 +18,14 @@
 #include "version.h"
 
 namespace fs = boost::filesystem;
-using namespace flatbuffers;
 using namespace parser;
 using namespace motis;
 using namespace motis::loader;
 using namespace motis::routes;
 
 struct prepare_settings : public conf::simple_config {
-  prepare_settings(std::string const &schedule = "rohdaten",
-                   std::string const &osm = "germany-latest.osm.pbf")
+  prepare_settings(std::string const& schedule = "rohdaten",
+                   std::string const& osm = "germany-latest.osm.pbf")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
@@ -36,7 +36,7 @@ struct prepare_settings : public conf::simple_config {
   std::string out_;
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   prepare_settings opt;
 
   try {
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
 
     parser.read_configuration_file(false);
     parser.print_used(std::cout);
-  } catch (std::exception const &e) {
+  } catch (std::exception const& e) {
     std::cout << "options error: " << e.what() << "\n";
     return 1;
   }
@@ -67,10 +67,14 @@ int main(int argc, char **argv) {
 
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
-  
 
   load_station_sequences(schedule);
 
   // do_something(opt.osm_);
 
+  // flatbuffers::FlatBufferBuilder fbb;
+  // fbb.Finish(CreateRoutesAuxiliary(
+  //     fbb, find_bus_stop_positions(fbb, schedule, opt.osm_)));
+  // parser::file(opt.out_.c_str(), "w+").write(fbb.GetBufferPointer(),
+  // fbb.GetSize());
 }

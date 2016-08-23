@@ -15,10 +15,7 @@ namespace loader {
 
 class loader_trip : public loader_graph_builder_test {
 public:
-  loader_trip()
-      : loader_graph_builder_test(
-            "trip", to_unix_time(2015, 10, 25),
-            to_unix_time(2015, 10, 25) + 2 * MINUTES_A_DAY * 60) {}
+  loader_trip() : loader_graph_builder_test("trip", "20151025", 2) {}
 };
 
 TEST_F(loader_trip, none) {

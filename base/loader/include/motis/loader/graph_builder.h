@@ -6,6 +6,8 @@
 #include <set>
 #include <vector>
 
+#include "flatbuffers/flatbuffers.h"
+
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
@@ -123,10 +125,10 @@ struct graph_builder {
   void add_dummy_node(std::string const& name);
 
   void add_stations(
-      flatbuffers::Vector<flatbuffers::Offset<Station>> const* stations);
+      flatbuffers64::Vector<flatbuffers64::Offset<Station>> const* stations);
 
   void link_meta_stations(
-      flatbuffers::Vector<flatbuffers::Offset<MetaStation>> const*
+      flatbuffers64::Vector<flatbuffers64::Offset<MetaStation>> const*
           meta_stations);
 
   timezone const* get_or_create_timezone(Timezone const* input_timez);
@@ -141,7 +143,7 @@ struct graph_builder {
   trip* register_service(Service const* s, int day_idx);
 
   void add_services(
-      flatbuffers::Vector<flatbuffers::Offset<Service>> const* services);
+      flatbuffers64::Vector<flatbuffers64::Offset<Service>> const* services);
 
   void index_first_route_node(route const& r);
 
@@ -170,7 +172,7 @@ struct graph_builder {
       int day, time prev_arr, bool& adjusted);
 
   void add_footpaths(
-      flatbuffers::Vector<flatbuffers::Offset<Footpath>> const* footpaths);
+      flatbuffers64::Vector<flatbuffers64::Offset<Footpath>> const* footpaths);
 
   void connect_reverse();
 
@@ -178,11 +180,11 @@ struct graph_builder {
   void sort_trips();
 
   bitfield const& get_or_create_bitfield(
-      flatbuffers::String const* serialized_bitfield);
+      flatbuffers64::String const* serialized_bitfield);
 
   void read_attributes(
       int day,
-      flatbuffers::Vector<flatbuffers::Offset<Attribute>> const* attributes,
+      flatbuffers64::Vector<flatbuffers64::Offset<Attribute>> const* attributes,
       std::vector<attribute const*>& active_attributes);
 
   std::string const* get_or_create_direction(Direction const* dir);
@@ -192,7 +194,8 @@ struct graph_builder {
   int get_or_create_category_index(Category const* c);
 
   int get_or_create_track(
-      int day, flatbuffers::Vector<flatbuffers::Offset<Track>> const* tracks);
+      int day,
+      flatbuffers64::Vector<flatbuffers64::Offset<Track>> const* tracks);
 
   void write_trip_info(route&);
 
@@ -207,15 +210,16 @@ struct graph_builder {
 
   unsigned duplicate_count_;
   unsigned lcon_count_;
-  int next_route_index_;
+  unsigned next_route_index_;
+  unsigned next_node_id_;
   std::map<Category const*, int> categories_;
   std::map<std::string, int> tracks_;
   std::map<AttributeInfo const*, attribute*> attributes_;
-  std::map<flatbuffers::String const*, std::string const*> directions_;
+  std::map<flatbuffers64::String const*, std::string const*> directions_;
   std::map<Provider const*, provider const*> providers_;
   hash_map<Station const*, station_node*> stations_;
   std::map<Timezone const*, timezone const*> timezones_;
-  hash_map<flatbuffers::String const*, bitfield> bitfields_;
+  hash_map<flatbuffers64::String const*, bitfield> bitfields_;
   hash_set<connection_info*,
            deep_ptr_hash<connection_info::hash, connection_info>,
            deep_ptr_eq<connection_info>>
@@ -223,7 +227,6 @@ struct graph_builder {
   hash_set<connection*, deep_ptr_hash<connection::hash, connection>,
            deep_ptr_eq<connection>>
       connections_;
-  unsigned next_node_id_;
   schedule& sched_;
   int first_day_, last_day_;
   bool apply_rules_;
@@ -232,10 +235,6 @@ struct graph_builder {
   connection_info con_info_;
   connection con_;
 };
-
-schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
-                         bool unique_check, bool apply_rules,
-                         bool adjust_footpaths);
 
 }  // namespace loader
 }  // namespace motis

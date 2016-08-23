@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(motis)
 
 set(routes-fbs-dir ${CMAKE_CURRENT_SOURCE_DIR}/fbs)
@@ -6,6 +6,7 @@ set(generated-headers-dir "${CMAKE_BINARY_DIR}/generated/motis/routes/fbs")
 file(GLOB_RECURSE routes-fbs-files ${routes-fbs-dir}/*.fbs)
 
 build_flatbuffers(
+  32
   "--everything-required"        # commandline_options
   "${routes-fbs-files}"          # flatbuffers_schemas
   "${routes-fbs-dir}"            # schema_include_dirs
@@ -22,8 +23,7 @@ if (NOT ZLIB_FOUND)
   include_directories(${ZLIB_INCLUDE_DIRS})
 endif()
 
-file(GLOB_RECURSE motis-routes-prepare-files src/prepare/*.cc)
-list(APPEND motis-routes-prepare-files src/prepare.cc)
+file(GLOB_RECURSE motis-routes-prepare-files src/prepare.cc src/prepare/*.cc)
 
 file(GLOB_RECURSE motis-routes-files src/*.cc)
 foreach(file ${motis-routes-prepare-files})
@@ -40,7 +40,6 @@ target_link_libraries(motis-routes
   motis-module
 )
 set_target_properties(motis-routes PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-
 
 add_executable(routes-prepare EXCLUDE_FROM_ALL ${motis-routes-prepare-files})
 add_dependencies(routes-prepare generated-routes-fbs-headers)
