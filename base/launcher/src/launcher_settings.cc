@@ -8,7 +8,7 @@
 #include "motis/core/common/date_time_util.h"
 #include "motis/core/common/util.h"
 
-#define MODE "mode"
+#define LARGE_STATIONS "mode"
 #define MODULES "modules"
 #define MODE_BATCH "batch"
 #define MODE_SERVER "server"
@@ -61,7 +61,7 @@ po::options_description launcher_settings::desc() {
   po::options_description desc("Launcher Settings");
   // clang-format off
   desc.add_options()
-      (MODE,
+      (LARGE_STATIONS,
        po::value<motis_mode_t>(&mode_)->default_value(mode_),
        "Mode of operation:\n"
        MODE_BATCH " = inject batch file\n"
@@ -80,7 +80,7 @@ po::options_description launcher_settings::desc() {
 }
 
 void launcher_settings::print(std::ostream& out) const {
-  out << "  " << MODE << ": " << mode_ << "\n"
+  out << "  " << LARGE_STATIONS << ": " << mode_ << "\n"
       << "  " << BATCH_INPUT_FILE << ": " << batch_input_file_ << "\n"
       << "  " << BATCH_OUTPUT_FILE << ": " << batch_output_file_ << "\n"
       << "  " << NUM_THREADS << ": " << num_threads_;
