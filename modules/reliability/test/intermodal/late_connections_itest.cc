@@ -183,7 +183,7 @@ TEST_F(reliability_late_connections, search) {
   }
   { /* direct connection, arrival 02:00 */
     auto const& j = journeys[1];
-    ASSERT_EQ(65, j.night_penalty_);
+    ASSERT_EQ(60, j.night_penalty_);
     ASSERT_EQ(0, j.db_costs_);
     ASSERT_EQ(1, j.transports_.front().train_nr_);
     ASSERT_EQ(schedule_hotels::FRANKFURT.eva_, j.stops_[1].eva_no_);
@@ -574,7 +574,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
   ASSERT_EQ(2, res->response()->connections()->size());
 
   {
-    auto const conn = (*res->response()->connections())[0];
+    auto const conn = (*res->response()->connections())[1];
     ASSERT_EQ(5000, conn->db_costs());
     ASSERT_EQ(0, conn->night_penalty());
     ASSERT_EQ(3, conn->transports()->size());
@@ -599,7 +599,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
     }
   }
   {
-    auto const conn = (*res->response()->connections())[1];
+    auto const conn = (*res->response()->connections())[0];
     ASSERT_EQ(6150, conn->db_costs());
     ASSERT_EQ(300, conn->night_penalty());
     ASSERT_EQ(2, conn->transports()->size());

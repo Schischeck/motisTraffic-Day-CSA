@@ -153,7 +153,6 @@ set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
 list(REMOVE_ITEM modules
-  "reliability"
   "railviz"
 )
 
