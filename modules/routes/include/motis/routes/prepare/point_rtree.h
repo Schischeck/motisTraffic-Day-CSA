@@ -25,7 +25,7 @@ struct point_rtree {
       boost::geometry::index::rtree<value,
                                     boost::geometry::index::quadratic<16>>;
 
-  point_rtree(rtree_t rtree) : rtree_(std::move(rtree)) {}
+  explicit point_rtree(rtree_t rtree) : rtree_(std::move(rtree)) {}
 
   std::vector<size_t> in_radius(double lat, double lng,
                                 double max_radius) const {
@@ -68,8 +68,8 @@ private:
 
   /// Computes the distance (in meters) between two coordinates
   static inline double distance_in_m(point const& a, point const& b) {
-    constexpr double kEarthRadiusMeters = 6371000.0f;
-    return boost::geometry::distance(a, b) * kEarthRadiusMeters;
+    constexpr double earth_radius_meters = 6371000.0f;
+    return boost::geometry::distance(a, b) * earth_radius_meters;
   }
 
   rtree_t rtree_;
@@ -79,10 +79,10 @@ template <typename C, typename F>
 point_rtree make_point_rtree(C const& container, F fun) {
   // fun(e) should return a point: {e.lng, e.lat}
   auto i = 0;
-  return point_rtree::rtree_t{
+  return point_rtree{point_rtree::rtree_t{
       transform_to_vec(container, [&](auto&& e) -> point_rtree::value {
         return {fun(e), i++};
-      })};
+      })}};
 }
 
 }  // namespace routes

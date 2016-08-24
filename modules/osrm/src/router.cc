@@ -88,7 +88,7 @@ public:
     }
 
     auto& all_routes = result.values["routes"];
-    if (all_routes.get<Array>().values.size() == 0) {
+    if (all_routes.get<Array>().values.empty()) {
       throw std::system_error(error::no_routing_response);
     }
 

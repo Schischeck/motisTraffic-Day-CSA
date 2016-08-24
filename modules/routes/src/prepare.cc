@@ -22,9 +22,9 @@ using namespace motis::loader;
 using namespace motis::routes;
 
 struct prepare_settings : public conf::simple_config {
-  prepare_settings(std::string const& schedule = "rohdaten",
-                   std::string const& osm = "germany-latest.osm.pbf",
-                   std::string const& out = "routes-auxiliary.raw")
+  explicit prepare_settings(std::string const& schedule = "rohdaten",
+                            std::string const& osm = "germany-latest.osm.pbf",
+                            std::string const& out = "routes-auxiliary.raw")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
@@ -71,5 +71,6 @@ int main(int argc, char** argv) {
   flatbuffers::FlatBufferBuilder fbb;
   fbb.Finish(CreateRoutesAuxiliary(
       fbb, find_bus_stop_positions(fbb, schedule, opt.osm_)));
-  parser::file(opt.out_.c_str(), "w+").write(fbb.GetBufferPointer(), fbb.GetSize());
+  parser::file(opt.out_.c_str(), "w+")
+      .write(fbb.GetBufferPointer(), fbb.GetSize());
 }
