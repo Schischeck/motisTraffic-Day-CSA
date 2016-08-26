@@ -99,7 +99,6 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
                     : nullptr;
     sched_.eva_to_station_.insert(
         std::make_pair(input_station->id()->str(), s.get()));
-    sched_.stations_.emplace_back(std::move(s));
 
     // Store DS100.
     if (input_station->external_ids()) {
@@ -107,6 +106,8 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
         sched_.ds100_to_station_.insert(std::make_pair(ds100->str(), s.get()));
       }
     }
+
+    sched_.stations_.emplace_back(std::move(s));
   }
 
   // First regular node id:

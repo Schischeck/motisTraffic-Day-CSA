@@ -1,0 +1,7 @@
+namespace motis.routes;
+
+table BusStopPosition {
+  station_id: string;
+  lat: double;
+  lng: double;
+}

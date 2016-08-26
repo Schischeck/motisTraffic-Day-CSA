@@ -73,7 +73,7 @@ void add_departure(message_creator& mc, IntermodalRoutingRequest const* req,
         auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
 
         for (auto i = 0ul; i < stations->size(); ++i) {
-          auto const walk_dur = osrm_resp->costs()->Get(i)->time();
+          auto const walk_dur = osrm_resp->costs()->Get(i)->duration();
           if (walk_dur > max_dur) {
             continue;
           }
@@ -107,7 +107,7 @@ void add_arrival(message_creator& mc, IntermodalRoutingRequest const* req,
         auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
 
         for (auto i = 0ul; i < stations->size(); ++i) {
-          auto const walk_dur = osrm_resp->costs()->Get(i)->time();
+          auto const walk_dur = osrm_resp->costs()->Get(i)->duration();
           if (walk_dur > max_dur) {
             continue;
           }
@@ -185,7 +185,7 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
       CreateRoutingRequest(mc, start.type_, start.transformed_,
                            CreateInputStation(mc, mc.CreateString(STATION_END),
                                               mc.CreateString(STATION_END)),
-                           req->search_type(), SearchDir_Forward,
+                           req->search_type(), req->search_dir(),
                            mc.CreateVector(std::vector<Offset<Via>>{}),
                            mc.CreateVector(edges))
           .Union(),
