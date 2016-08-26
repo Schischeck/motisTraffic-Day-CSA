@@ -80,9 +80,9 @@ inline void copy_trip_route(schedule& sched, ev_key const& k,
   };
 
   for (auto const& e : route_edges(k)) {
-    auto from = get_or_create<node const*, node*>(
+    auto const from = get_or_create<node const*, node*>(
         nodes, e->from_, [&] { return build_node(e->from_); });
-    auto to = get_or_create<node const*, node*>(
+    auto const to = get_or_create<node const*, node*>(
         nodes, e->to_, [&] { return build_node(e->to_); });
 
     from->edges_.push_back(copy_edge(*e, from, to, k.lcon_idx_));
@@ -277,6 +277,13 @@ inline void seperate_trip(schedule& sched, ev_key const& k,
   add_incoming_edges_from_new_route(edges, incoming);
   rebuild_incoming_edges(station_nodes, incoming);
   update_delays(k.lcon_idx_, edges, sched, moved_events);
+}
+
+inline void seperate_trip(schedule& sched, trip const* trp,
+                          hash_map<ev_key, ev_key>& moved_events) {
+  auto const first_dep =
+      ev_key{trp->edges_->front().get_edge(), trp->lcon_idx_, event_type::DEP};
+  seperate_trip(sched, first_dep, moved_events);
 }
 
 }  // namespace rt

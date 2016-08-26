@@ -23,6 +23,7 @@
 #include "motis/rt/delay_propagator.h"
 #include "motis/rt/event_resolver.h"
 #include "motis/rt/find_trip_fuzzy.h"
+#include "motis/rt/reroute.h"
 #include "motis/rt/separate_trip.h"
 #include "motis/rt/shifted_nodes_msg_builder.h"
 #include "motis/rt/trip_correction.h"
@@ -134,9 +135,7 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
             break;
           }
 
-          auto const first_dep = ev_key{trp->edges_->front().get_edge(),
-                                        trp->lcon_idx_, event_type::DEP};
-          seperate_trip(s, first_dep, moved_events_);
+          seperate_trip(s, trp, moved_events_);
 
           auto const resolved = resolve_events(
               s, msg->trip_id(),
@@ -156,10 +155,15 @@ msg_ptr rt::on_message(msg_ptr const& msg) {
           break;
         }
 
-        case MessageUnion_RerouteMessage: break;
+        case MessageUnion_RerouteMessage:
+          reroute(s, reinterpret_cast<RerouteMessage const*>(c), moved_events_);
+          break;
 
         default: break;
       }
+    } catch (std::exception const& e) {
+      printf("rt::on_message: UNEXPECTED ERROR: %s\n", e.what());
+      continue;
     } catch (...) {
       continue;
     }
