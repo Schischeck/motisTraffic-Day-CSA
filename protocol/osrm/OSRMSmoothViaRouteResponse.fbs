@@ -6,5 +6,4 @@ table OSRMSmoothViaRouteResponse {
   time:int;
   distance:double;
   segments: [Polyline];
-  // TODO  used_waypoints: [uint]; 
 }

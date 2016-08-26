@@ -19,7 +19,7 @@ template <typename F>
 void foreach_osm_node(std::string const& filename, F f) {
   osmium::io::Reader reader(filename, osmium::osm_entity_bits::node);
   for (auto it = std::begin(reader); it != std::end(reader); ++it) {
-    f(static_cast<osmium::Node&>(*it)); // NOLINT
+    f(static_cast<osmium::Node&>(*it));  // NOLINT
   }
 }
 
