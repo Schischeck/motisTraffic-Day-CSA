@@ -33,7 +33,7 @@ namespace motis {
 namespace routing {
 
 routing::routing()
-    : label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}
+    : max_label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}
 
 routing::~routing() = default;
 
@@ -42,14 +42,14 @@ po::options_description routing::desc() {
   // clang-format off
   desc.add_options()
     (LABEL_MEMORY_NUM_BYTES,
-     po::value<std::size_t>(&label_bytes_)->default_value(label_bytes_),
-     "size of the label store in bytes");
+     po::value<std::size_t>(&max_label_bytes_)->default_value(max_label_bytes_),
+     "max size of the label store in bytes");
   // clang-format on
   return desc;
 }
 
 void routing::print(std::ostream& out) const {
-  out << "  " << LABEL_MEMORY_NUM_BYTES << ": " << label_bytes_;
+  out << "  " << LABEL_MEMORY_NUM_BYTES << ": " << max_label_bytes_;
 }
 
 void routing::init(motis::module::registry& reg) {
@@ -63,7 +63,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
   auto const& sched = get_schedule();
   auto query = build_query(sched, req);
 
-  mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
+  mem_retriever mem(mem_pool_mutex_, mem_pool_, max_label_bytes_);
   query.mem_ = &mem.get();
 
   auto res = search_dispatch(query, req->start_type(), req->search_type(),
