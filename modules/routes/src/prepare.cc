@@ -6,11 +6,12 @@
 #include "conf/simple_config.h"
 #include "parser/file.h"
 
-#include "motis/routes/both_flatbuffers.h"
+#include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
+#include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/rel/osm_relations.h"
-#include "motis/routes/prepare/rel/relation_matcher.h"
+#include "motis/routes/prepare/station_sequences.h"
 
 #include "motis/routes/fbs/RoutesAuxiliary_generated.h"
 #include "motis/schedule-format/Schedule_generated.h"
@@ -30,6 +31,7 @@ struct prepare_settings : public conf::simple_config {
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
+    string_param(out_, out, "out", "/path/to/routes-auxiliary.raw");
   }
 
   std::string schedule_;

@@ -1,7 +1,10 @@
 #pragma once
 
-#include "flatbuffers/flatbuffers.h"
 #undef FLATBUFFERS_H_
+#undef FLATBUFFERS_NAMESPACE_H_
+
 #undef FLATBUFFERS_NAMESPACE
-#define FLATBUFFERS_NAMESPACE flatbuffers64
+
+#define FLATBUFFERS_64 1
+
 #include "flatbuffers/flatbuffers.h"
