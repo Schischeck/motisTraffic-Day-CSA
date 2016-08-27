@@ -326,7 +326,7 @@ void test_journey2(journey const& j) {
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  ASSERT_EQ(3, j.transports_[0].mumo_id_);
+  ASSERT_EQ(2, j.transports_[0].mumo_id_);
   ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
@@ -421,7 +421,7 @@ TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
-  test_journey1(journeys[0], 3);
+  test_journey1(journeys[0], 2);
 }
 
 TEST_F(reliability_bikesharing_routing,

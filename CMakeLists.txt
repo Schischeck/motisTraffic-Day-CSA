@@ -10,6 +10,9 @@ endif()
 
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
+set(USE_OPENMP OFF CACHE BOOL openmp FORCE)
+
+
 ################################
 # MOTIS Version
 ################################
@@ -152,7 +155,6 @@ set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
 list(REMOVE_ITEM modules
-  "reliability"
   "railviz"
 )
 

@@ -88,7 +88,7 @@ public:
     }
 
     auto& all_routes = result.values["routes"];
-    if (all_routes.get<Array>().values.size() == 0) {
+    if (all_routes.get<Array>().values.empty()) {
       throw std::system_error(error::no_routing_response);
     }
 
@@ -110,9 +110,9 @@ public:
   msg_ptr smooth_via(OSRMSmoothViaRouteRequest const* req) {
     SmoothViaParameters params;
 
-    for (auto&& waypoint : *req->waypoints()) {
+    for (auto const& waypoint : *req->waypoints()) {
       std::vector<Coordinate> coords;
-      for (auto&& pos : *waypoint->positions()) {
+      for (auto const& pos : *waypoint->positions()) {
         coords.push_back(make_coord(pos->lat(), pos->lng()));
       }
       params.waypoints.push_back(std::move(coords));
@@ -148,7 +148,8 @@ public:
 };
 
 router::router(std::string path)
-    : impl_(std::make_unique<router::impl>(path)){};
+    : impl_(std::make_unique<router::impl>(path)) {}
+
 router::~router() = default;
 
 msg_ptr router::one_to_many(OSRMOneToManyRequest const* req) const {

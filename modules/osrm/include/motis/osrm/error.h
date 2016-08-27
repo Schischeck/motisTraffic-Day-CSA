@@ -10,8 +10,7 @@ namespace error {
 enum error_code_t {
   ok = 0,
   profile_not_available = 1,
-  no_routing_response = 2,
-  invalid_request = 3,
+  no_routing_response = 2
 };
 }  // namespace error
 
@@ -23,7 +22,6 @@ public:
     switch (ev) {
       case error::profile_not_available: return "osrm: profile not available";
       case error::no_routing_response: return "osrm: no routing response";
-      case error::invalid_request: return "osrm: invalid request";
       default: return "osrm: unkown error";
     }
   }

@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <iomanip>
 
 namespace motis {
 namespace reliability {
