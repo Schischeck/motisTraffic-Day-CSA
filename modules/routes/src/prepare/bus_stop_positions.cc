@@ -2,26 +2,11 @@
 
 #include <iostream>
 
-#include "osmium/handler.hpp"
-#include "osmium/io/pbf_input.hpp"
-#include "osmium/io/reader_iterator.hpp"
-#include "osmium/io/xml_input.hpp"
-#include "osmium/memory/buffer.hpp"
-#include "osmium/osm.hpp"
-#include "osmium/visitor.hpp"
-
+#include "motis/routes/prepare/osm_util.h"
 #include "motis/routes/prepare/point_rtree.h"
 
 namespace motis {
 namespace routes {
-
-template <typename F>
-void foreach_osm_node(std::string const& filename, F f) {
-  osmium::io::Reader reader(filename, osmium::osm_entity_bits::node);
-  for (auto it = std::begin(reader); it != std::end(reader); ++it) {
-    f(static_cast<osmium::Node&>(*it));  // NOLINT
-  }
-}
 
 flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BusStopPosition>>>
 find_bus_stop_positions(flatbuffers::FlatBufferBuilder& fbb,
