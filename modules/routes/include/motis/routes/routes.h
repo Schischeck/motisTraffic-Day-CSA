@@ -7,6 +7,8 @@
 
 #include "motis/module/module.h"
 
+#include "motis/core/common/geo.h"
+
 namespace motis {
 namespace routes {
 
@@ -28,8 +30,7 @@ private:
   motis::module::msg_ptr trip_to_osrm_request(schedule const&, trip const*);
 
   std::string aux_file_;
-  std::map<std::string, std::vector<std::pair<double, double>>>
-      extra_bus_stop_positions_;
+  std::map<std::string, std::vector<latlng>> extra_bus_stop_positions_;
 };
 
 }  // namespace routes

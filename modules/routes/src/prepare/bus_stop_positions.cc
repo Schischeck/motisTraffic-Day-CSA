@@ -8,10 +8,8 @@
 namespace motis {
 namespace routes {
 
-flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BusStopPosition>>>
-find_bus_stop_positions(flatbuffers::FlatBufferBuilder& fbb,
-                        motis::loader::Schedule const* sched,
-                        std::string const& osm_file) {
+std::map<std::string, std::vector<latlng>> find_bus_stop_positions(
+    motis::loader::Schedule const* sched, std::string const& osm_file) {
   std::string const stop_position = "stop_position";
   std::string const yes = "yes";
 
@@ -19,7 +17,7 @@ find_bus_stop_positions(flatbuffers::FlatBufferBuilder& fbb,
     return point_rtree::point{s->lng(), s->lat()};
   });
 
-  std::vector<flatbuffers::Offset<BusStopPosition>> bus_stop_positions;
+  std::map<std::string, std::vector<latlng>> result;
   foreach_osm_node(osm_file, [&](auto&& node) {
     if (stop_position != node.get_value_by_key("public_transport", "") ||
         yes != node.get_value_by_key("bus", "")) {
@@ -36,14 +34,31 @@ find_bus_stop_positions(flatbuffers::FlatBufferBuilder& fbb,
         continue;
       }
 
-      bus_stop_positions.push_back(
-          CreateBusStopPosition(fbb, fbb.CreateString(station_id), lat, lng));
+      result[station_id].emplace_back(lat, lng);
       break;
     }
   });
 
-  std::cout << "positions" << bus_stop_positions.size() << std::endl;
-  return fbb.CreateVector(bus_stop_positions);
+  return result;
+}
+
+flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StopPositions>>>
+write_stop_positions(
+    flatbuffers::FlatBufferBuilder& fbb,
+    std::map<std::string, std::vector<latlng>> const& stop_positions) {
+  std::vector<flatbuffers::Offset<StopPositions>> result;
+
+  for (auto const& pair : stop_positions) {
+    std::vector<Position> positions;
+    for(auto const& p : pair.second) {
+      positions.emplace_back(p.lat_, p.lng_);
+    }
+    result.emplace_back(
+        CreateStopPositions(fbb, fbb.CreateString(pair.first),
+                            fbb.CreateVectorOfStructs(positions)));
+  }
+
+  return fbb.CreateVector(result);
 }
 
 }  // namespace routes

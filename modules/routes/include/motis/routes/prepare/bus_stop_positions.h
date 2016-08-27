@@ -1,20 +1,25 @@
 #pragma once
 
+#include <map>
 #include <string>
 
 #include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
-#include "motis/routes/fbs/BusStopPosition_generated.h"
+#include "motis/core/common/geo.h"
+
+#include "motis/routes/fbs/StopPositions_generated.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {
 namespace routes {
 
-flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<BusStopPosition>>>
-find_bus_stop_positions(flatbuffers::FlatBufferBuilder&,
-                        motis::loader::Schedule const*,
-                        std::string const& osm_file);
+std::map<std::string, std::vector<latlng>> find_bus_stop_positions(
+    motis::loader::Schedule const*, std::string const& osm_file);
+
+flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StopPositions>>>
+write_stop_positions(flatbuffers::FlatBufferBuilder&,
+                     std::map<std::string, std::vector<latlng>> const&);
 
 }  // namespace routes
 }  // namespace motis

@@ -71,19 +71,15 @@ int main(int argc, char** argv) {
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
 
-  // load_station_sequences(schedule);
+  load_station_sequences(schedule);
 
   // do_something(opt.osm_);
 
-  // flatbuffers::FlatBufferBuilder fbb;
-  // fbb.Finish(CreateRoutesAuxiliary(
-  //     fbb, find_bus_stop_positions(fbb, schedule, opt.osm_)));
-  // parser::file(opt.out_.c_str(), "w+").write(fbb.GetBufferPointer(),
-  // fbb.GetSize());
+  auto stop_positions = find_bus_stop_positions(schedule, opt.osm_);
 
   flatbuffers::FlatBufferBuilder fbb;
-  fbb.Finish(CreateRoutesAuxiliary(
-      fbb, find_bus_stop_positions(fbb, schedule, opt.osm_)));
+  fbb.Finish(
+      CreateRoutesAuxiliary(fbb, write_stop_positions(fbb, stop_positions)));
   parser::file(opt.out_.c_str(), "w+")
       .write(fbb.GetBufferPointer(), fbb.GetSize());
 }

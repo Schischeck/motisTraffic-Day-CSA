@@ -42,8 +42,10 @@ void routes::load_auxiliary_file() {
   auto const aux_content = GetRoutesAuxiliary(buf.buf_);
 
   for (auto const& s : *aux_content->bus_stop_positions()) {
-    extra_bus_stop_positions_[s->station_id()->str()].emplace_back(s->lat(),
-                                                                   s->lng());
+    extra_bus_stop_positions_.emplace(
+        s->station_id()->str(), transform_to_vec(*s->positions(), [](auto&& p) {
+          return latlng{p->lat(), p->lng()};
+        }));
   }
 }
 
@@ -71,13 +73,13 @@ msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
   for (auto const& stop : access::stops(trp)) {
     auto const& station = stop.get_station(sched);
 
-    std::vector<Position> pos;
+    std::vector<motis::Position> pos;
     pos.emplace_back(station.lat(), station.lng());
 
     auto it = extra_bus_stop_positions_.find(station.eva_nr_);
     if (it != end(extra_bus_stop_positions_)) {
-      for (auto const& pair : it->second) {
-        pos.emplace_back(pair.first, pair.second);
+      for (auto const& p : it->second) {
+        pos.emplace_back(p.lat_, p.lng_);
       }
     }
     waypoints.emplace_back(CreateWaypoint(mc, mc.CreateVectorOfStructs(pos)));
