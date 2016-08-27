@@ -24,7 +24,7 @@ struct station_seq {
   }
 
   std::vector<std::string> station_ids_;
-  std::vector<geo_detail::latlng> coordinates_;
+  std::vector<latlng> coordinates_;
 };
 
 std::vector<station_seq> load_station_sequences(motis::loader::Schedule const*);

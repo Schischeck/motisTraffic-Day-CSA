@@ -13,6 +13,22 @@
 #endif
 
 namespace motis {
+
+struct latlng {
+  latlng() = default;
+  latlng(double lat, double lng) : lat_(lat), lng_(lng) {}
+
+  friend bool operator<(latlng const& lhs, latlng const& rhs) {
+    return std::tie(lhs.lat_, lhs.lng_) < std::tie(rhs.lat_, rhs.lng_);
+  }
+
+  friend bool operator==(latlng const& lhs, latlng const& rhs) {
+    return std::tie(lhs.lat_, lhs.lng_) == std::tie(rhs.lat_, rhs.lng_);
+  }
+
+  double lat_, lng_;
+};
+
 namespace geo_detail {
 
 constexpr double kEarthRadiusMeters = 6371000.0f;
@@ -58,21 +74,6 @@ inline double distance_in_m(double a_lat, double a_lng, double b_lat,
   return geo_detail::distance_in_m(spherical_point(a_lng, a_lat),
                                    spherical_point(b_lng, b_lat));
 }
-
-struct latlng {
-  latlng() = default;
-  latlng(double lat, double lng) : lat_(lat), lng_(lng) {}
-
-  friend bool operator<(latlng const& lhs, latlng const& rhs) {
-    return std::tie(lhs.lat_, lhs.lng_) < std::tie(rhs.lat_, rhs.lng_);
-  }
-
-  friend bool operator==(latlng const& lhs, latlng const& rhs) {
-    return std::tie(lhs.lat_, lhs.lng_) == std::tie(rhs.lat_, rhs.lng_);
-  }
-
-  double lat_, lng_;
-};
 
 inline double distance_in_m(latlng const a, latlng const b) {
   return geo_detail::distance_in_m(spherical_point(a.lng_, a.lat_),

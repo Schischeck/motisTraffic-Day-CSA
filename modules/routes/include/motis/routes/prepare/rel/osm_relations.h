@@ -13,7 +13,7 @@ namespace motis {
 namespace routes {
 
 inline void write_geojson(
-    std::vector<std::vector<geo_detail::latlng>> const& polylines) {
+    std::vector<std::vector<latlng>> const& polylines) {
   FILE* fp = std::fopen("geo.json", "w");
   char writeBuffer[65536];
 

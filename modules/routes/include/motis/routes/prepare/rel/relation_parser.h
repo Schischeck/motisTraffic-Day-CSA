@@ -16,7 +16,7 @@ struct node {
 
   int64_t id_;
   bool resolved_;
-  geo_detail::latlng pos_;
+  latlng pos_;
 };
 
 struct way {

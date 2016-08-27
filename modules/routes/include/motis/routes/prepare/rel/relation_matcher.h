@@ -11,7 +11,7 @@ namespace motis {
 namespace routes {
 
 void match_sequences(
-    std::vector<std::vector<geo_detail::latlng>> const& polylines,
+    std::vector<std::vector<latlng>> const& polylines,
     std::vector<station_seq> const& sequences) {
 
   for (auto const& polyline : polylines) {

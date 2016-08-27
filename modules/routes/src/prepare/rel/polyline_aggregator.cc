@@ -84,8 +84,7 @@ boost::optional<size_t> find_next(std::vector<double> const& distances) {
   return {};
 }
 
-void append(std::vector<geo_detail::latlng>& result, way const* w,
-            bool const forward) {
+void append(std::vector<latlng>& result, way const* w, bool const forward) {
   if (forward) {
     for (auto const& n : w->nodes_) {
       result.push_back(n.pos_);
@@ -97,14 +96,14 @@ void append(std::vector<geo_detail::latlng>& result, way const* w,
   }
 }
 
-std::pair<std::vector<geo_detail::latlng>, size_t> extract_polyline(
+std::pair<std::vector<latlng>, size_t> extract_polyline(
     std::vector<way*> const& ways,
     std::vector<std::vector<double>> const& distances, size_t start_idx,
     bool start_forward) {
   size_t idx = start_idx;
   bool forward = start_forward;
 
-  std::vector<geo_detail::latlng> result;
+  std::vector<latlng> result;
   while (true) {
     append(result, ways[idx], forward);
 
@@ -120,7 +119,7 @@ std::pair<std::vector<geo_detail::latlng>, size_t> extract_polyline(
   assert(false);  // !?
 }
 
-void aggregate_ways(std::vector<std::vector<geo_detail::latlng>>& polylines,
+void aggregate_ways(std::vector<std::vector<latlng>>& polylines,
                     std::set<size_t>& visited, std::vector<way*> const& ways,
                     std::vector<std::vector<double>> const& matrix,
                     bool forward) {
@@ -139,8 +138,8 @@ void aggregate_ways(std::vector<std::vector<geo_detail::latlng>>& polylines,
 
     auto result = extract_polyline(ways, matrix, i, true);
 
-    if(i == result.second) {
-      continue; // a single way is usually bullshit
+    if (i == result.second) {
+      continue;  // a single way is usually bullshit
     }
 
     visited.insert(result.second);
@@ -148,10 +147,10 @@ void aggregate_ways(std::vector<std::vector<geo_detail::latlng>>& polylines,
   }
 }
 
-std::vector<std::vector<geo_detail::latlng>> aggregate_polylines(
+std::vector<std::vector<latlng>> aggregate_polylines(
     std::vector<relation> relations) {
 
-  std::vector<std::vector<geo_detail::latlng>> polylines;
+  std::vector<std::vector<latlng>> polylines;
   for (auto& relation : relations) {
     auto& ways = relation.ways_;
 

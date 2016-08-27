@@ -7,7 +7,7 @@
 namespace motis {
 namespace routes {
 
-std::vector<std::vector<geo_detail::latlng>> aggregate_polylines(
+std::vector<std::vector<latlng>> aggregate_polylines(
     std::vector<relation> relations);
 
 }  // namespace routes
