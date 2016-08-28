@@ -20,7 +20,7 @@ std::vector<station_seq> load_station_sequences(
 
     for (auto const& station : *route->stations()) {
       seq.station_ids_.emplace_back(station->id()->str());
-      seq.station_ids_.emplace_back(station->lat(), station->lng());
+      seq.coordinates_.emplace_back(station->lat(), station->lng());
     }
     result.emplace_back(std::move(seq));
   }
