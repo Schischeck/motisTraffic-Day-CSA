@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <algorithm>
-#include <iostream>
 #include <list>
 #include <memory>
 
@@ -29,24 +28,19 @@ private:
   struct node {
     node* next_;
   } list_;
-  unsigned long parent_allocations_;
-  unsigned long freelist_allocations_;
 
 public:
-  freelist_allocator()
-      : list_{nullptr}, parent_allocations_(0), freelist_allocations_(0) {}
+  freelist_allocator() : list_{nullptr} {}
 
   ~freelist_allocator() { deallocate_all(); }
 
   memory_block allocate(std::size_t size) {
     assert(size >= sizeof(node*));
     if (list_.next_ != nullptr) {
-      ++freelist_allocations_;
       auto ptr = list_.next_;
       list_.next_ = ptr->next_;
       return {ptr, size};
     } else {
-      ++parent_allocations_;
       return parent_.allocate(size);
     }
   }
@@ -59,13 +53,6 @@ public:
   }
 
   void deallocate_all() {
-    auto percent = parent_allocations_ == 0
-                       ? 0.0
-                       : 100.0 * static_cast<double>(freelist_allocations_) /
-                             (parent_allocations_ + freelist_allocations_);
-    std::cout << "freelist_allocator: " << parent_allocations_
-              << " parent allocations, " << freelist_allocations_
-              << " freelist allocations (" << percent << "%)" << std::endl;
     list_ = {nullptr};
     parent_.deallocate_all();
   }
@@ -94,11 +81,6 @@ public:
   }
 
   void deallocate_all() {
-    std::cout << "increasing_block_allocator: " << allocated_blocks_.size()
-              << " blocks ("
-              << (std::pow(Factor, allocated_blocks_.size()) - 1) *
-                     InitialSize / (1024 * 1024)
-              << " MiB)" << std::endl;
     next_size_ = InitialSize;
     std::for_each(begin(allocated_blocks_), end(allocated_blocks_),
                   [this](auto& b) { parent_.deallocate(b); });
