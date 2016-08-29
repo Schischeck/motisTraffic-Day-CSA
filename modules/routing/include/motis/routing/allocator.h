@@ -36,6 +36,8 @@ public:
   freelist_allocator()
       : list_{nullptr}, parent_allocations_(0), freelist_allocations_(0) {}
 
+  ~freelist_allocator() { deallocate_all(); }
+
   memory_block allocate(std::size_t size) {
     assert(size >= sizeof(node*));
     if (list_.next_ != nullptr) {
@@ -75,6 +77,8 @@ struct increasing_block_allocator {
 public:
   increasing_block_allocator() : next_size_(InitialSize) {}
 
+  ~increasing_block_allocator() { deallocate_all(); }
+
   memory_block allocate() {
     memory_block block = parent_.allocate(next_size_);
     next_size_ *= Factor;
@@ -111,6 +115,8 @@ template <typename BaseAllocator>
 struct in_block_allocator {
 public:
   in_block_allocator() : current_block_{nullptr, 0}, pos_(nullptr) {}
+
+  ~in_block_allocator() { deallocate_all(); }
 
   memory_block allocate(std::size_t size) {
     if (pos_ != nullptr &&

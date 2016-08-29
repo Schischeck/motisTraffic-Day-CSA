@@ -52,8 +52,8 @@ public:
   std::size_t size() const { return max_size_; }
 
 private:
-  freelist_allocator<
-      in_block_allocator<increasing_block_allocator<default_allocator>>>
+  freelist_allocator<in_block_allocator<
+      increasing_block_allocator<default_allocator, 16 * 1024 * 1024>>>
       allocator_;
   std::size_t used_size_;
   std::size_t max_size_;
