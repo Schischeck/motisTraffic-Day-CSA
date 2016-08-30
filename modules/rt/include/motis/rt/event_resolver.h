@@ -8,6 +8,7 @@
 
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/conv/event_type_conv.h"
 
 #include "motis/rt/find_trip_fuzzy.h"
 

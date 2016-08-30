@@ -171,6 +171,144 @@ void create_cancel_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
       CreateCancelMessage(fbb, trip_id, fbb.CreateVector(events)).Union()));
 }
 
+void create_cancel_reroute_msg(motis::schedule const& sched,
+                               FlatBufferBuilder& fbb) {
+  // clang-format off
+  std::vector<Offset<Event>> cancelled_events{
+    CreateEvent(fbb,
+      fbb.CreateString("0000002"),
+      1,
+      fbb.CreateString("381"),
+      EventType_ARR,
+      unix_time(sched, 1100)),
+    CreateEvent(fbb,
+      fbb.CreateString("0000002"),
+      1,
+      fbb.CreateString("381"),
+      EventType_DEP,
+      unix_time(sched, 1110)
+    )
+  };
+
+  std::vector<Offset<ReroutedEvent>> new_events{};
+
+  auto trip_id = CreateIdEvent(fbb,
+        fbb.CreateString("0000001"),
+        1,
+        unix_time(sched, 1010));
+  // clang-format on
+
+  fbb.Finish(CreateMessage(
+      fbb, MessageUnion_RerouteMessage,
+      CreateRerouteMessage(fbb, trip_id, fbb.CreateVector(cancelled_events),
+                           fbb.CreateVector(new_events))
+          .Union()));
+}
+
+void create_reroute_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
+  // clang-format off
+  std::vector<Offset<Event>> cancelled_events{
+    CreateEvent(fbb,
+      fbb.CreateString("0000001"),
+      1,
+      fbb.CreateString("381"),
+      EventType_DEP,
+      unix_time(sched, 1010)),
+    CreateEvent(fbb,
+      fbb.CreateString("0000003"),
+      1,
+      fbb.CreateString("381"),
+      EventType_ARR,
+      unix_time(sched, 1200)
+    ),
+    CreateEvent(fbb,
+      fbb.CreateString("0000003"),
+      1,
+      fbb.CreateString("381"),
+      EventType_DEP,
+      unix_time(sched, 1210)
+    ),
+    CreateEvent(fbb,
+      fbb.CreateString("0000005"),
+      1,
+      fbb.CreateString("381"),
+      EventType_ARR,
+      unix_time(sched, 1400)
+    )
+  };
+
+  std::vector<Offset<ReroutedEvent>> new_events{
+    CreateReroutedEvent(fbb,
+      CreateAdditionalEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000002"),
+          1,
+          fbb.CreateString("381"),
+          EventType_ARR,
+          unix_time(sched, 1100)
+        ),
+        fbb.CreateString("IC"),
+        fbb.CreateString("9")
+      ),
+      RerouteStatus_Normal
+    ),
+    CreateReroutedEvent(fbb,
+      CreateAdditionalEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000002"),
+          1,
+          fbb.CreateString("381"),
+          EventType_DEP,
+          unix_time(sched, 1110)
+        ),
+        fbb.CreateString("IC"),
+        fbb.CreateString("9")
+      ),
+      RerouteStatus_Normal
+    ),
+    CreateReroutedEvent(fbb,
+      CreateAdditionalEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000005"),
+          1,
+          fbb.CreateString("381"),
+          EventType_DEP,
+          unix_time(sched, 910)
+        ),
+        fbb.CreateString("IC"),
+        fbb.CreateString("9")
+      ),
+      RerouteStatus_UmlNeu
+    ),
+    CreateReroutedEvent(fbb,
+      CreateAdditionalEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000001"),
+          1,
+          fbb.CreateString("381"),
+          EventType_ARR,
+          unix_time(sched, 1500)
+        ),
+        fbb.CreateString("IC"),
+        fbb.CreateString("9")
+      ),
+      RerouteStatus_UmlNeu
+    )
+  };
+
+  auto trip_id = CreateIdEvent(fbb,
+        fbb.CreateString("0000001"),
+        1,
+        unix_time(sched, 1010));
+  // clang-format on
+
+  fbb.Finish(CreateMessage(
+      fbb, MessageUnion_RerouteMessage,
+      CreateRerouteMessage(fbb, trip_id, fbb.CreateVector(cancelled_events),
+                           fbb.CreateVector(new_events))
+          .Union()));
+}
+
 msg_ptr get_trip_conflict_ris_message(motis::schedule const& sched) {
   FlatBufferBuilder is_msg_fbb;
   create_invalid_trip_is_msg(sched, is_msg_fbb);
@@ -220,6 +358,25 @@ motis::module::msg_ptr get_cancel_ris_message(motis::schedule const& sched) {
   message_creator mc;
   std::vector<Offset<MessageHolder>> messages{CreateMessageHolder(
       mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
+  mc.create_and_finish(MsgContent_RISBatch,
+                       CreateRISBatch(mc, mc.CreateVector(messages)).Union(),
+                       "/ris/messages", DestinationType_Topic);
+  return make_msg(mc);
+}
+
+motis::module::msg_ptr get_reroute_ris_message(motis::schedule const& sched) {
+  FlatBufferBuilder fbb1;
+  create_cancel_reroute_msg(sched, fbb1);
+
+  FlatBufferBuilder fbb2;
+  create_reroute_msg(sched, fbb2);
+
+  message_creator mc;
+  std::vector<Offset<MessageHolder>> messages{
+      CreateMessageHolder(
+          mc, mc.CreateVector(fbb1.GetBufferPointer(), fbb1.GetSize())),
+      CreateMessageHolder(
+          mc, mc.CreateVector(fbb2.GetBufferPointer(), fbb2.GetSize()))};
   mc.create_and_finish(MsgContent_RISBatch,
                        CreateRISBatch(mc, mc.CreateVector(messages)).Union(),
                        "/ris/messages", DestinationType_Topic);

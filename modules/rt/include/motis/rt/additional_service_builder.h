@@ -15,7 +15,7 @@
 #include "motis/loader/classes.h"
 
 #include "motis/rt/connection_builder.h"
-#include "motis/rt/separate_trip.h"
+#include "motis/rt/incoming_edges.h"
 
 #include "motis/protocol/RISMessage_generated.h"
 
@@ -160,15 +160,14 @@ struct additional_service_builder {
     return trip_edges;
   }
 
-  trip const* update_trips(std::vector<section> const& sections,
-                           std::vector<trip::route_edge> const& trip_edges) {
-    station_node* first_station;
-    light_connection first_lcon;
-    std::tie(first_lcon, first_station, std::ignore) = sections.front();
+  trip const* update_trips(std::vector<trip::route_edge> const& trip_edges) {
+    auto const first_edge = trip_edges.front().get_edge();
+    auto const first_station = first_edge->from_->get_station();
+    auto const first_lcon = first_edge->m_.route_edge_.conns_[0];
 
-    station_node* last_station;
-    light_connection last_lcon;
-    std::tie(last_lcon, std::ignore, last_station) = sections.back();
+    auto const last_edge = trip_edges.back().get_edge();
+    auto const last_station = last_edge->to_->get_station();
+    auto const last_lcon = last_edge->m_.route_edge_.conns_[0];
 
     sched_.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(trip_edges));
@@ -226,7 +225,7 @@ struct additional_service_builder {
     auto const route = build_route(sections, incoming);
     add_incoming_station_edges(station_nodes, incoming);
     rebuild_incoming_edges(station_nodes, incoming);
-    auto const trp = update_trips(sections, route);
+    auto const trp = update_trips(route);
 
     return verify_trip_id(trp, msg->trip_id());
   }

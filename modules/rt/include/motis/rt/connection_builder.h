@@ -3,7 +3,9 @@
 #include <map>
 #include <string>
 
+#include "motis/core/common/get_or_create.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/loader/classes.h"
 
 namespace motis {
 namespace rt {
