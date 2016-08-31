@@ -15,7 +15,6 @@
 #include "motis/rt/validy_check.h"
 
 using motis::module::msg_ptr;
-namespace fbs = flatbuffers;
 using namespace motis::logging;
 
 namespace motis {
