@@ -18,7 +18,7 @@ inline std::vector<future> motis_publish_(msg_ptr const& msg, ctx::op_id id) {
 }
 
 #define motis_publish(msg) \
-  motis::module::motis_publish_(msg, ctx::op_id(CTX_LOCATION))
+  ::motis::module::motis_publish_(msg, ctx::op_id(CTX_LOCATION))
 
 }  // namespace module
 }  // namespace motis
