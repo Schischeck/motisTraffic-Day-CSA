@@ -23,7 +23,7 @@ enum class status {
 struct schedule_event {
   schedule_event(primary_trip_id trp_id, uint32_t station_idx,
                  motis::time schedule_time, event_type ev_type)
-      : trp_id_(trp_id),
+      : trp_id_(std::move(trp_id)),
         station_idx_(station_idx),
         schedule_time_(schedule_time),
         ev_type_(ev_type) {}
