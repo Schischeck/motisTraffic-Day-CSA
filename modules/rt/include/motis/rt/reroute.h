@@ -2,6 +2,7 @@
 
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/conv/event_type_conv.h"
 
 #include "motis/rt/connection_builder.h"
 #include "motis/rt/event_resolver.h"
@@ -91,15 +92,41 @@ struct section {
   reroute_event dep_, arr_;
 };
 
-inline delay_info* get_stored_delay_info(schedule& /* s */,
-                                         trip const* /* trp */,
-                                         ris::ReroutedEvent const* /* ev */) {
-  // TODO(felix) implement
-  return nullptr;
+inline delay_info* get_stored_delay_info(
+    schedule const& sched,
+    std::map<schedule_event, delay_info*> const& cancelled_delays,
+    trip const* trp, ris::ReroutedEvent const* ev) {
+  auto it = cancelled_delays.find(schedule_event{
+      trp->id_.primary_,
+      get_station(sched, ev->base()->base()->station_id()->str())->index_,
+      unix_to_motistime(sched, ev->base()->base()->schedule_time()),
+      from_fbs(ev->base()->base()->type())});
+  return (it == end(cancelled_delays)) ? nullptr : it->second;
+}
+
+inline void store_cancelled_delays(
+    schedule const& sched, trip const* trp,
+    std::vector<boost::optional<ev_key>> const& del_evs,
+    std::map<schedule_event, delay_info*>& cancelled_delays) {
+  for (auto const& ev : del_evs) {
+    if (!ev) {
+      continue;
+    }
+
+    auto it = sched.graph_to_delay_info_.find(*ev);
+    if (it != end(sched.graph_to_delay_info_)) {
+      cancelled_delays.emplace(
+          schedule_event{trp->id_.primary_, ev->get_station_idx(),
+                         it->second->get_schedule_time(), ev->ev_type_},
+          it->second);
+    }
+  }
 }
 
 inline void add_additional_events(
-    schedule& sched, trip const* trp,
+    schedule& sched,
+    std::map<schedule_event, delay_info*> const& cancelled_delays,
+    trip const* trp,
     flatbuffers::Vector<flatbuffers::Offset<ris::ReroutedEvent>> const*
         new_events,
     std::vector<reroute_event>& events) {
@@ -115,7 +142,8 @@ inline void add_additional_events(
     }
 
     auto const new_ev = new_events->Get(i);
-    events.emplace_back(*ev, new_ev, get_stored_delay_info(sched, trp, new_ev));
+    events.emplace_back(*ev, new_ev, get_stored_delay_info(
+                                         sched, cancelled_delays, trp, new_ev));
   }
 }
 
@@ -137,24 +165,19 @@ inline void add_if_not_deleted(
 }
 
 inline void add_not_deleted_trip_events(
-    schedule& sched, flatbuffers::Vector<flatbuffers::Offset<ris::Event>> const*
-                         cancelled_events,
+    schedule& sched, std::vector<boost::optional<ev_key>> const& deleted,
     trip const* trp, std::vector<reroute_event>& events) {
-  auto const del_evs = resolve_events(
-      sched, trp, transform_to_vec(*cancelled_events,
-                                   [](ris::Event const* ev) { return ev; }));
-
   for (auto const& trp_e : *trp->edges_) {
     auto const e = trp_e.get_edge();
-    add_if_not_deleted(sched, del_evs,
+    add_if_not_deleted(sched, deleted,
                        ev_key{e, trp->lcon_idx_, event_type::DEP}, events);
-    add_if_not_deleted(sched, del_evs,
+    add_if_not_deleted(sched, deleted,
                        ev_key{e, trp->lcon_idx_, event_type::ARR}, events);
   }
 }
 
 inline status check_events(std::vector<reroute_event> const& events) {
-  if (events.size() == 0 || events.size() % 2 != 0) {
+  if (events.empty() || events.size() % 2 != 0) {
     return status::EVENT_COUNT_MISMATCH;
   }
 
@@ -315,31 +338,36 @@ inline void update_trip(schedule& sched, trip* trp,
   trp->lcon_idx_ = 0;
 }
 
-inline status reroute(schedule& sched, ris::RerouteMessage const* msg) {
+inline status reroute(schedule& sched,
+                      std::map<schedule_event, delay_info*>& cancelled_delays,
+                      ris::RerouteMessage const* msg) {
   auto const trp =
       const_cast<trip*>(find_trip_fuzzy(sched, msg->trip_id()));  // NOLINT
   if (trp == nullptr) {
     return status::TRIP_NOT_FOUND;
   }
 
-  auto events = std::vector<reroute_event>{};
-  add_additional_events(sched, trp, msg->new_events(), events);
-  add_not_deleted_trip_events(sched, msg->cancelled_events(), trp, events);
-  std::sort(begin(events), end(events));
-
-  auto check_result = check_events(events);
+  auto evs = std::vector<reroute_event>{};
+  auto const del_evs = resolve_events(
+      sched, trp, transform_to_vec(*msg->cancelled_events(),
+                                   [](ris::Event const* ev) { return ev; }));
+  add_additional_events(sched, cancelled_delays, trp, msg->new_events(), evs);
+  add_not_deleted_trip_events(sched, del_evs, trp, evs);
+  std::sort(begin(evs), end(evs));
+  auto check_result = check_events(evs);
   if (check_result != status::OK) {
     return check_result;
   }
 
-  auto const sections = build_trip_from_events(sched, events);
+  auto const sections = build_trip_from_events(sched, evs);
   auto const station_nodes = get_station_nodes(sections);
   auto incoming = incoming_non_station_edges(station_nodes);
   auto const trip_edges = build_route(sched, sections, incoming);
   add_incoming_station_edges(station_nodes, incoming);
   rebuild_incoming_edges(station_nodes, incoming);
-  update_delay_infos(events, trip_edges);
+  update_delay_infos(evs, trip_edges);
   update_trip(sched, trp, trip_edges);
+  store_cancelled_delays(sched, trp, del_evs, cancelled_delays);
 
   return status::OK;
 }

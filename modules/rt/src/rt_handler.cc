@@ -120,7 +120,8 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 
         case ris::MessageUnion_RerouteMessage:
           propagate();
-          reroute(s, reinterpret_cast<ris::RerouteMessage const*>(c));
+          reroute(s, cancelled_delays_,
+                  reinterpret_cast<ris::RerouteMessage const*>(c));
           break;
 
         default: break;

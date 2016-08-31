@@ -25,7 +25,7 @@ private:
   schedule& sched_;
   delay_propagator propagator_;
   statistics stats_;
-  std::map<schedule_event, delay_info> cancelled_;
+  std::map<schedule_event, delay_info*> cancelled_delays_;
 };
 
 }  // namespace rt
