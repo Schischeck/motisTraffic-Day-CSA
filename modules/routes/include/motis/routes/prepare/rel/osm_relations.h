@@ -3,6 +3,7 @@
 #include "motis/routes/prepare/rel/polyline_aggregator.h"
 #include "motis/routes/prepare/rel/relation_parser.h"
 
+#include "motis/core/common/logging.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/writer.h"
@@ -12,8 +13,8 @@ using namespace rapidjson;
 namespace motis {
 namespace routes {
 
-inline void write_geojson(
-    std::vector<std::vector<latlng>> const& polylines) {
+inline void write_geojson(std::vector<std::vector<latlng>> const& polylines) {
+  logging::scoped_timer("Exporting geojson");
   FILE* fp = std::fopen("geo.json", "w");
   char writeBuffer[65536];
 

@@ -11,6 +11,7 @@
 
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/rel/osm_relations.h"
+#include "motis/routes/prepare/rel/relation_matcher.h"
 #include "motis/routes/prepare/station_sequences.h"
 
 #include "motis/routes/fbs/RoutesAuxiliary_generated.h"
@@ -71,15 +72,31 @@ int main(int argc, char** argv) {
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
 
-  load_station_sequences(schedule);
+  auto station_seq = load_station_sequences(schedule);
+
+  auto relations = parse_relations(opt.osm_);
+
+  auto polylines = aggregate_polylines(relations.relations_);
+
+  auto matches = match_sequences(polylines, station_seq);
+  std::cout << "\n" << matches.size();
+  std::vector<std::vector<latlng>> output;
+  for (auto const& match : matches) {
+    if (match.full_match) {
+      output.push_back(match.polyline_);
+    }
+  }
+  std::cout << "\n" << output.size();
+  write_geojson(output);
 
   // do_something(opt.osm_);
 
-  auto stop_positions = find_bus_stop_positions(schedule, opt.osm_);
+  //  auto stop_positions = find_bus_stop_positions(schedule, opt.osm_);
 
-  flatbuffers::FlatBufferBuilder fbb;
-  fbb.Finish(
-      CreateRoutesAuxiliary(fbb, write_stop_positions(fbb, stop_positions)));
-  parser::file(opt.out_.c_str(), "w+")
-      .write(fbb.GetBufferPointer(), fbb.GetSize());
+  //  flatbuffers::FlatBufferBuilder fbb;
+  //  fbb.Finish(
+  //      CreateRoutesAuxiliary(fbb, write_stop_positions(fbb,
+  //      stop_positions)));
+  //  parser::file(opt.out_.c_str(), "w+")
+  //      .write(fbb.GetBufferPointer(), fbb.GetSize());
 }
