@@ -171,6 +171,93 @@ void create_cancel_msg(motis::schedule const& sched, FlatBufferBuilder& fbb) {
       CreateCancelMessage(fbb, trip_id, fbb.CreateVector(events)).Union()));
 }
 
+void create_delay_for_reroute_msg(motis::schedule const& sched,
+                                  FlatBufferBuilder& fbb) {
+  // clang-format off
+  std::vector<Offset<UpdatedEvent>> events{
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000002"),
+          1,
+          fbb.CreateString("381"),
+          EventType_ARR,
+          unix_time(sched, 1100)
+        ),
+        unix_time(sched, 1105)
+    ),
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000002"),
+          1,
+          fbb.CreateString("381"),
+          EventType_DEP,
+          unix_time(sched, 1110)
+        ),
+        unix_time(sched, 1112)
+    ),
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000003"),
+          1,
+          fbb.CreateString("381"),
+          EventType_ARR,
+          unix_time(sched, 1200)
+        ),
+        unix_time(sched, 1202)
+    ),
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000003"),
+          1,
+          fbb.CreateString("381"),
+          EventType_DEP,
+          unix_time(sched, 1210)
+        ),
+        unix_time(sched, 1212)
+    ),
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000004"),
+          1,
+          fbb.CreateString("381"),
+          EventType_ARR,
+          unix_time(sched, 1300)
+        ),
+        unix_time(sched, 1305)
+    ),
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000004"),
+          1,
+          fbb.CreateString("381"),
+          EventType_DEP,
+          unix_time(sched, 1310)
+        ),
+        unix_time(sched, 1312)
+    ),
+    CreateUpdatedEvent(fbb,
+        CreateEvent(fbb,
+          fbb.CreateString("0000005"),
+          1,
+          fbb.CreateString("381"),
+          EventType_ARR,
+          unix_time(sched, 1400)
+        ),
+        unix_time(sched, 1405)
+    )
+  };
+  auto trip_id = CreateIdEvent(fbb,
+        fbb.CreateString("0000001"),
+        1,
+        unix_time(sched, 1010));
+  // clang-format on
+
+  fbb.Finish(CreateMessage(fbb, MessageUnion_DelayMessage,
+                           CreateDelayMessage(fbb, trip_id, DelayType_Forecast,
+                                              fbb.CreateVector(events))
+                               .Union()));
+}
+
 void create_cancel_reroute_msg(motis::schedule const& sched,
                                FlatBufferBuilder& fbb) {
   // clang-format off
@@ -365,6 +452,9 @@ motis::module::msg_ptr get_cancel_ris_message(motis::schedule const& sched) {
 }
 
 motis::module::msg_ptr get_reroute_ris_message(motis::schedule const& sched) {
+  FlatBufferBuilder fbb0;
+  create_delay_for_reroute_msg(sched, fbb0);
+
   FlatBufferBuilder fbb1;
   create_cancel_reroute_msg(sched, fbb1);
 
@@ -373,6 +463,8 @@ motis::module::msg_ptr get_reroute_ris_message(motis::schedule const& sched) {
 
   message_creator mc;
   std::vector<Offset<MessageHolder>> messages{
+      CreateMessageHolder(
+          mc, mc.CreateVector(fbb0.GetBufferPointer(), fbb0.GetSize())),
       CreateMessageHolder(
           mc, mc.CreateVector(fbb1.GetBufferPointer(), fbb1.GetSize())),
       CreateMessageHolder(

@@ -36,7 +36,7 @@ struct rt_reroute_test : public motis_instance_test {
   }
 };
 
-TEST_F(rt_reroute_test, trip_conflict_test) {
+TEST_F(rt_reroute_test, reroute_with_delay) {
   publish(get_reroute_ris_message(sched()));
   publish(make_no_msg("/ris/system_time_changed"));
 
@@ -44,9 +44,9 @@ TEST_F(rt_reroute_test, trip_conflict_test) {
       get_trip_event_info(get_trip(sched(), "0000001", 1, unix_time(1010),
                                    "0000005", unix_time(1400), "381"));
   EXPECT_EQ(motis_time(910), ev1["0000005"].dep_);
-  EXPECT_EQ(motis_time(1100), ev1["0000002"].arr_);
-  EXPECT_EQ(motis_time(1110), ev1["0000002"].dep_);
-  EXPECT_EQ(motis_time(1300), ev1["0000004"].arr_);
-  EXPECT_EQ(motis_time(1310), ev1["0000004"].dep_);
+  EXPECT_EQ(motis_time(1105), ev1["0000002"].arr_);
+  EXPECT_EQ(motis_time(1112), ev1["0000002"].dep_);
+  EXPECT_EQ(motis_time(1305), ev1["0000004"].arr_);
+  EXPECT_EQ(motis_time(1312), ev1["0000004"].dep_);
   EXPECT_EQ(motis_time(1500), ev1["0000001"].arr_);
 }

@@ -227,17 +227,12 @@ inline connection_info const* get_con_info(
   }
 }
 
-inline motis::time get_time(reroute_event const& ev) {
-  switch (ev.type_) {
-    case reroute_event::type::ADDITIONAL: return ev.sched_time_;
-    case reroute_event::type::TRIP_EVENT:
-      return ev.di_ ? ev.di_->get_current_time() : ev.sched_time_;
-    default: return INVALID_TIME;
-  }
-}
-
 inline std::vector<section> build_trip_from_events(
     schedule& sched, std::vector<reroute_event> const& events) {
+  auto const get_time = [](reroute_event const& ev) {
+    return ev.di_ ? ev.di_->get_current_time() : ev.sched_time_;
+  };
+
   std::vector<section> sections;
   std::map<connection_info, connection_info const*> con_infos;
   for (auto it = std::begin(events); it != std::end(events); ++it, ++it) {
