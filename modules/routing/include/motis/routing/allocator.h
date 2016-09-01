@@ -55,9 +55,10 @@ struct memory_block {
 
 struct default_allocator {
 public:
-  void add_stats(std::vector<mem_stats>&) const {}
   memory_block allocate(std::size_t size) { return {operator new(size), size}; }
   void deallocate(memory_block block) { operator delete(block.ptr_); }
+  void reset() {}
+  void add_stats(std::vector<mem_stats>&) const {}
 };
 
 template <typename BaseAllocator>
@@ -122,11 +123,12 @@ struct increasing_block_allocator {
   }
 
   void reset() {
-    stats_.reset();
     next_size_ = InitialSize;
     std::for_each(begin(allocated_blocks_), end(allocated_blocks_),
                   [this](auto& b) { parent_.deallocate(b); });
     allocated_blocks_.clear();
+    stats_.reset();
+    parent_.reset();
   }
 
   void add_stats(std::vector<mem_stats>& stats) const {
@@ -172,6 +174,7 @@ public:
   void reset() {
     current_block_ = {nullptr, 0};
     pos_ = nullptr;
+    stats_.reset();
     parent_.reset();
   }
 
