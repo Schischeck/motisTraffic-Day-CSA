@@ -74,11 +74,16 @@ int main(int argc, char** argv) {
 
   auto station_seq = load_station_sequences(schedule);
 
+  auto bus_stops = find_bus_stop_positions(schedule, opt.osm_);
+
   auto relations = parse_relations(opt.osm_);
 
   auto polylines = aggregate_polylines(relations.relations_);
 
-  auto matches = match_sequences(polylines, station_seq);
+  auto matches = match_sequences(polylines, station_seq, bus_stops);
+
+  //  auto better_matches = match_better(station_seq, matches);
+
   std::cout << "\n" << matches.size();
   std::vector<std::vector<latlng>> output;
   for (auto const& match : matches) {
@@ -86,12 +91,11 @@ int main(int argc, char** argv) {
       output.push_back(match.polyline_);
     }
   }
-  std::cout << "\n" << output.size();
+  //  output.insert(begin(output), begin(polylines), end(polylines));
+  std::cout << "\n Output" << output.size();
   write_geojson(output);
 
   // do_something(opt.osm_);
-
-  //  auto stop_positions = find_bus_stop_positions(schedule, opt.osm_);
 
   //  flatbuffers::FlatBufferBuilder fbb;
   //  fbb.Finish(
