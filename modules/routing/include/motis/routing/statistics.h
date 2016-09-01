@@ -86,8 +86,8 @@ struct statistics {
         fbb.CreateVector(
             transform_to_vec(memory_statistics, [&fbb](mem_stats const& s) {
               return CreateMemStats(fbb, fbb.CreateString(s.get_name()),
-                                    s.get_hits(), s.get_allocations(),
-                                    s.get_deallocations());
+                                    s.get_hits(), s.get_allocs(),
+                                    s.get_deallocs());
             })));
   }
 };

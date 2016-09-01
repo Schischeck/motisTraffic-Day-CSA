@@ -15,13 +15,13 @@ struct mem_stats {
   mem_stats(char const* name) : name_(name), hits_(0), alloc_(0), dealloc_(0) {}
 
   std::size_t get_hits() const { return hits_; }
-  std::size_t get_allocations() const { return alloc_; }
-  std::size_t get_deallocations() const { return dealloc_; }
+  std::size_t get_allocs() const { return alloc_; }
+  std::size_t get_deallocs() const { return dealloc_; }
   char const* get_name() const { return name_; }
 
-  void count_allocation() { ++alloc_; }
-  void count_deallocation() { ++dealloc_; }
-  void count_hit() { ++hits_; }
+  void count_allocation(std::size_t c = 1) { alloc_ += c; }
+  void count_deallocation(std::size_t c = 1) { dealloc_ += c; }
+  void count_hit(std::size_t c = 1) { hits_ += c; }
   void reset() {
     hits_ = 0;
     alloc_ = 0;
@@ -37,13 +37,13 @@ struct mem_stats {
   mem_stats(char const*) {}
 
   std::size_t get_hits() const { return 0; }
-  std::size_t get_allocations() const { return 0; }
-  std::size_t get_deallocations() const { return 0; }
+  std::size_t get_allocs() const { return 0; }
+  std::size_t get_deallocs() const { return 0; }
   char const* get_name() const { return ""; }
 
-  void count_allocation() {}
-  void count_deallocation() {}
-  void count_hit() {}
+  void count_allocation(std::size_t c = 1) { (void)(c); }
+  void count_deallocation(std::size_t c = 1) { (void)(c); }
+  void count_hit(std::size_t c = 1) { (void)(c); }
   void reset() {}
 };
 #endif
