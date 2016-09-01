@@ -11,7 +11,7 @@ namespace routing {
 
 #ifndef N_MOTIS_ROUTING_MEMORY_STATS
 struct mem_stats {
-  mem_stats() = default;
+  mem_stats() : name_(""), hits_(0), alloc_(0), dealloc_(0) {}
   mem_stats(char const* name) : name_(name), hits_(0), alloc_(0), dealloc_(0) {}
 
   std::size_t get_hits() const { return hits_; }
