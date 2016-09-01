@@ -73,14 +73,13 @@ msg_ptr routing::route(msg_ptr const& msg) {
   res.stats_.total_calculation_time_ = MOTIS_TIMING_MS(routing_timing);
 
   message_creator fbb;
-  auto const stats = to_fbs(res.stats_);
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
-      CreateRoutingResponse(fbb, &stats, fbb.CreateVector(transform_to_vec(
-                                             res.journeys_,
-                                             [&](journey const& j) {
-                                               return to_connection(fbb, j);
-                                             })))
+      CreateRoutingResponse(
+          fbb, to_fbs(fbb, res.stats_, query.mem_->get_mem_stats()),
+          fbb.CreateVector(transform_to_vec(
+              res.journeys_,
+              [&](journey const& j) { return to_connection(fbb, j); })))
           .Union());
   return make_msg(fbb);
 }

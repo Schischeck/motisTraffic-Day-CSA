@@ -72,15 +72,23 @@ struct statistics {
              << "\n";
   }
 
-  friend Statistics to_fbs(statistics const& s) {
-    return Statistics(
-        s.max_label_quit_, s.labels_created_, s.start_label_count_,
+  friend flatbuffers::Offset<Statistics> to_fbs(
+      flatbuffers::FlatBufferBuilder& fbb, statistics const& s,
+      std::vector<mem_stats> const& memory_statistics) {
+    return CreateStatistics(
+        fbb, s.max_label_quit_, s.labels_created_, s.start_label_count_,
         s.labels_popped_, s.labels_equals_popped_, s.labels_filtered_,
         s.labels_dominated_by_results_, s.labels_dominated_by_former_labels_,
         s.labels_dominated_by_later_labels_,
         s.labels_popped_until_first_result_, s.labels_popped_after_last_result_,
         s.priority_queue_max_size_, s.travel_time_lb_, s.transfers_lb_,
-        s.total_calculation_time_, s.pareto_dijkstra_);
+        s.total_calculation_time_, s.pareto_dijkstra_,
+        fbb.CreateVector(
+            transform_to_vec(memory_statistics, [&fbb](mem_stats const& s) {
+              return CreateMemStats(fbb, fbb.CreateString(s.get_name()),
+                                    s.get_hits(), s.get_allocations(),
+                                    s.get_deallocations());
+            })));
   }
 };
 

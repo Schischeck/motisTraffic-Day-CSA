@@ -9,6 +9,45 @@
 namespace motis {
 namespace routing {
 
+#ifndef N_MOTIS_ROUTING_MEMORY_STATS
+struct mem_stats {
+  mem_stats() = default;
+  mem_stats(char const* name) : name_(name), hits_(0), alloc_(0), dealloc_(0) {}
+
+  std::size_t get_hits() const { return hits_; }
+  std::size_t get_allocations() const { return alloc_; }
+  std::size_t get_deallocations() const { return dealloc_; }
+  char const* get_name() const { return name_; }
+
+  void count_allocation() { ++alloc_; }
+  void count_deallocation() { ++dealloc_; }
+  void count_hit() { ++hits_; }
+  void reset() {
+    hits_ = 0;
+    alloc_ = 0;
+    dealloc_ = 0;
+  }
+
+  char const* name_;
+  std::size_t hits_, alloc_, dealloc_;
+};
+#else
+struct mem_stats {
+  mem_stats() = default;
+  mem_stats(char const*) {}
+
+  std::size_t get_hits() const { return 0; }
+  std::size_t get_allocations() const { return 0; }
+  std::size_t get_deallocations() const { return 0; }
+  char const* get_name() const { return ""; }
+
+  void count_allocation() {}
+  void count_deallocation() {}
+  void count_hit() {}
+  void reset() {}
+};
+#endif
+
 struct memory_block {
   void* ptr_;
   std::size_t size_;
@@ -16,27 +55,22 @@ struct memory_block {
 
 struct default_allocator {
 public:
+  void add_stats(std::vector<mem_stats>&) const {}
   memory_block allocate(std::size_t size) { return {operator new(size), size}; }
-
   void deallocate(memory_block block) { operator delete(block.ptr_); }
 };
 
 template <typename BaseAllocator>
 struct freelist_allocator {
-private:
-  BaseAllocator parent_;
-  struct node {
-    node* next_;
-  } list_;
+  freelist_allocator() : list_{nullptr}, stats_("freelist") {}
 
-public:
-  freelist_allocator() : list_{nullptr} {}
-
-  ~freelist_allocator() { deallocate_all(); }
+  ~freelist_allocator() { reset(); }
 
   memory_block allocate(std::size_t size) {
     assert(size >= sizeof(node*));
+    stats_.count_allocation();
     if (list_.next_ != nullptr) {
+      stats_.count_hit();
       auto ptr = list_.next_;
       list_.next_ = ptr->next_;
       return {ptr, size};
@@ -47,47 +81,61 @@ public:
 
   void deallocate(memory_block block) {
     assert(block.size_ >= sizeof(node*));
+    stats_.count_deallocation();
     auto p = reinterpret_cast<node*>(block.ptr_);
     p->next_ = list_.next_;
     list_.next_ = p;
   }
 
-  void deallocate_all() {
+  void reset() {
     list_ = {nullptr};
-    parent_.deallocate_all();
+    stats_.reset();
+    parent_.reset();
   }
+
+  void add_stats(std::vector<mem_stats>& stats) const {
+    stats.push_back(stats_);
+    parent_.add_stats(stats);
+  }
+
+private:
+  BaseAllocator parent_;
+  struct node {
+    node* next_;
+  } list_;
+  mem_stats stats_;
 };
 
 template <typename BaseAllocator, std::size_t InitialSize = 1024 * 1024,
           std::size_t Factor = 2>
 struct increasing_block_allocator {
-public:
-  increasing_block_allocator() : next_size_(InitialSize) {}
+  increasing_block_allocator() : stats_("inc_block"), next_size_(InitialSize) {}
 
-  ~increasing_block_allocator() { deallocate_all(); }
+  ~increasing_block_allocator() { reset(); }
 
   memory_block allocate() {
-    memory_block block = parent_.allocate(next_size_);
+    stats_.count_allocation();
+    auto block = parent_.allocate(next_size_);
     next_size_ *= Factor;
     allocated_blocks_.emplace_back(block);
     return block;
   }
 
-  void deallocate(memory_block block) {
-    allocated_blocks_.erase(
-        std::remove_if(begin(allocated_blocks_), end(allocated_blocks_),
-                       [&](auto& b) { return b.ptr_ == block.ptr_; }));
-    parent_.deallocate(block);
-  }
-
-  void deallocate_all() {
+  void reset() {
+    stats_.reset();
     next_size_ = InitialSize;
     std::for_each(begin(allocated_blocks_), end(allocated_blocks_),
                   [this](auto& b) { parent_.deallocate(b); });
     allocated_blocks_.clear();
   }
 
+  void add_stats(std::vector<mem_stats>& stats) const {
+    stats.push_back(stats_);
+    parent_.add_stats(stats);
+  }
+
 private:
+  mem_stats stats_;
   BaseAllocator parent_;
   std::size_t next_size_;
   std::list<memory_block> allocated_blocks_;
@@ -96,14 +144,17 @@ private:
 template <typename BaseAllocator>
 struct in_block_allocator {
 public:
-  in_block_allocator() : current_block_{nullptr, 0}, pos_(nullptr) {}
+  in_block_allocator()
+      : stats_("in_block"), current_block_{nullptr, 0}, pos_(nullptr) {}
 
-  ~in_block_allocator() { deallocate_all(); }
+  ~in_block_allocator() { reset(); }
 
   memory_block allocate(std::size_t size) {
+    stats_.count_allocation();
     if (pos_ != nullptr &&
         pos_ + size < reinterpret_cast<unsigned char*>(current_block_.ptr_) +
                           current_block_.size_) {
+      stats_.count_hit();
       void* ptr = pos_;
       pos_ += size;
       return {ptr, size};
@@ -116,15 +167,21 @@ public:
     }
   }
 
-  void deallocate(memory_block block) { (void)block; }
+  void deallocate(memory_block) {}
 
-  void deallocate_all() {
+  void reset() {
     current_block_ = {nullptr, 0};
     pos_ = nullptr;
-    parent_.deallocate_all();
+    parent_.reset();
+  }
+
+  void add_stats(std::vector<mem_stats>& stats) const {
+    stats.push_back(stats_);
+    parent_.add_stats(stats);
   }
 
 private:
+  mem_stats stats_;
   BaseAllocator parent_;
   memory_block current_block_;
   unsigned char* pos_;

@@ -2,7 +2,14 @@ include "base/Connection.fbs";
 
 namespace motis.routing;
 
-struct Statistics {
+table MemStats {
+  name:string;
+  hits:uint;
+  allocations:uint;
+  deallocations:uint;
+}
+
+table Statistics {
   max_label_quit:bool;
   labels_created:uint;
   start_label_count:uint;
@@ -19,6 +26,7 @@ struct Statistics {
   transfers_lb:uint;
   total_calculation_time:uint;
   pareto_dijkstra:uint;
+  mem_stats:[MemStats];
 }
 
 table RoutingResponse {

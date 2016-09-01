@@ -18,7 +18,7 @@ public:
   mem_manager& operator=(mem_manager const&) = delete;
 
   void reset() {
-    allocator_.deallocate_all();
+    allocator_.reset();
     used_size_ = 0;
   }
 
@@ -38,6 +38,12 @@ public:
   std::size_t used_size() const { return used_size_; }
 
   std::size_t size() const { return max_size_; }
+
+  std::vector<mem_stats> get_mem_stats() {
+    std::vector<mem_stats> stats;
+    allocator_.add_stats(stats);
+    return stats;
+  }
 
 private:
   freelist_allocator<in_block_allocator<
