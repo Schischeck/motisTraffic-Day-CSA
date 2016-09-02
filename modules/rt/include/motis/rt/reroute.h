@@ -261,6 +261,7 @@ inline std::vector<section> build_trip_from_events(
 }
 
 // TODO(felix) code duplication additional_service_builder::build_route
+// TODO(felix) don't build change edges, if in/out allowed was false in trip
 inline std::vector<trip::route_edge> build_route(
     schedule& sched, std::vector<section> const& sections,
     std::map<node const*, std::vector<edge*>>& incoming) {

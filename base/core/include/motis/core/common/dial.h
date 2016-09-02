@@ -35,6 +35,8 @@ public:
       bucket.emplace_back(std::forward<El>(el));
     }
 
+    current_bucket_ = std::min(current_bucket_, dist);
+
     ++size_;
   }
 
