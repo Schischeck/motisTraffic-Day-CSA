@@ -21,7 +21,7 @@ struct in_out_allowed {
   bool in_allowed_, out_allowed_;
 };
 
-inline std::set<edge const*> route_edges(ev_key const& k) {
+inline std::set<trip::route_edge> route_edges(ev_key const& k) {
   return route_bfs(k, bfs_direction::BOTH, true);
 }
 
@@ -71,9 +71,9 @@ inline edge copy_edge(edge const& original, node* from, node* to,
   return e;
 }
 
-inline void copy_trip_route(schedule& sched, ev_key const& k,
-                            std::map<node const*, node*>& nodes,
-                            std::map<edge const*, trip::route_edge>& edges) {
+inline void copy_trip_route(
+    schedule& sched, ev_key const& k, std::map<node const*, node*>& nodes,
+    std::map<trip::route_edge, trip::route_edge>& edges) {
   auto const route_id = sched.route_count_++;
 
   auto const build_node = [&](node const* orig) {
@@ -112,7 +112,7 @@ inline std::set<trip const*> route_trips(schedule const& sched,
 }
 
 inline void update_trips(schedule& sched, ev_key const& k,
-                         std::map<edge const*, trip::route_edge>& edges) {
+                         std::map<trip::route_edge, trip::route_edge>& edges) {
   for (auto const& t : route_trips(sched, k)) {
     sched.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(
@@ -165,9 +165,10 @@ inline std::set<station_node*> route_station_nodes(ev_key const& k) {
   return station_nodes;
 }
 
-inline void update_delays(std::size_t lcon_idx,
-                          std::map<edge const*, trip::route_edge> const& edges,
-                          schedule& sched) {
+inline void update_delays(
+    std::size_t lcon_idx,
+    std::map<trip::route_edge, trip::route_edge> const& edges,
+    schedule& sched) {
   auto const update_di = [&](ev_key const& orig_k, ev_key const& new_k) {
     auto const it = sched.graph_to_delay_info_.find(orig_k);
     if (it != end(sched.graph_to_delay_info_)) {
@@ -195,7 +196,7 @@ inline void seperate_trip(schedule& sched, ev_key const& k) {
   auto const station_nodes = route_station_nodes(k);
   auto incoming = incoming_non_station_edges(station_nodes);
   auto nodes = std::map<node const*, node*>{};
-  auto edges = std::map<edge const*, trip::route_edge>{};
+  auto edges = std::map<trip::route_edge, trip::route_edge>{};
 
   copy_trip_route(sched, k, nodes, edges);
   update_trips(sched, k, edges);

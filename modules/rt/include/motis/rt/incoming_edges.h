@@ -59,7 +59,7 @@ inline void add_incoming_station_edges(
 }
 
 inline void add_incoming_edges_from_new_route(
-    std::map<edge const*, trip::route_edge> const& edges,
+    std::map<trip::route_edge, trip::route_edge> const& edges,
     std::map<node const*, std::vector<edge*>>& in) {
   for (auto const& trp_e : edges) {
     auto e = trp_e.second.get_edge();

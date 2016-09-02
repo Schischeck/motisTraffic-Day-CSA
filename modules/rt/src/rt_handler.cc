@@ -137,6 +137,8 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 }
 
 void rt_handler::propagate() {
+  MOTIS_FINALLY([this]() { propagator_.reset(); });
+
   scoped_timer timer("rt update");
   manual_timer graph_update("graph update");
 

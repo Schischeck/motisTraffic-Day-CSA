@@ -327,6 +327,13 @@ inline void update_trip(schedule& sched, trip* trp,
     e->m_.route_edge_.conns_[trp->lcon_idx_].valid_ = false;
   }
 
+  std::vector<trip*> trps = {trp};
+  auto merged_trps_idx = sched.merged_trips_.size();
+  sched.merged_trips_.emplace_back(std::make_unique<std::vector<trip*>>(trps));
+  for (auto const& e : trip_edges) {
+    e->m_.route_edge_.conns_[0].trips_ = merged_trps_idx;
+  }
+
   sched.trip_edges_.emplace_back(
       std::make_unique<std::vector<trip::route_edge>>(trip_edges));
   trp->edges_ = sched.trip_edges_.back().get();
