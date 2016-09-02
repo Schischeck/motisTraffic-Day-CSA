@@ -12,7 +12,6 @@
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/util.h"
 
-#define FLATBUFFERS_64 1
 #include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {
