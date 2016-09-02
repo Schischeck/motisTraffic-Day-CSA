@@ -204,8 +204,10 @@ inline uint16_t get_track(schedule& sched, reroute_event const& ev) {
   switch (ev.type_) {
     case reroute_event::type::ADDITIONAL:
       return get_track(sched, ev.additional_event_->base()->track()->str());
-    case reroute_event::type::TRIP_EVENT:
-      return ev.k_.lcon()->full_con_->d_track_;
+    case reroute_event::type::TRIP_EVENT: {
+      auto const& fcon = ev.k_.lcon()->full_con_;
+      return ev.ev_type_ == event_type::DEP ? fcon->d_track_ : fcon->a_track_;
+    }
     default: return 0;
   }
 }
