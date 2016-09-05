@@ -4,8 +4,6 @@
 #include <vector>
 
 #include "motis/module/module.h"
-#include "motis/rt/rt_handler.h"
-#include "motis/rt/statistics.h"
 
 namespace motis {
 namespace rt {

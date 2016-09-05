@@ -2,6 +2,8 @@
 
 #include "boost/program_options.hpp"
 
+#include "motis/rt/rt_handler.h"
+
 namespace po = boost::program_options;
 
 namespace motis {

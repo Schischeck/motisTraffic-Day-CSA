@@ -51,11 +51,11 @@ struct ev_key {
     return ev_type_ == event_type::DEP ? lcon()->d_time_ : lcon()->a_time_;
   }
 
-  uint32_t get_station_idx() const {
-    return (ev_type_ == event_type::DEP ? route_edge_->from_ : route_edge_->to_)
-        ->get_station()
-        ->id_;
+  node* get_node() const {
+    return ev_type_ == event_type::DEP ? route_edge_->from_ : route_edge_->to_;
   }
+
+  uint32_t get_station_idx() const { return get_node()->get_station()->id_; }
 
   trip::route_edge route_edge_;
   std::size_t lcon_idx_;

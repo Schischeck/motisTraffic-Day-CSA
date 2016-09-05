@@ -7,6 +7,7 @@
 #include "motis/rt/connection_builder.h"
 #include "motis/rt/event_resolver.h"
 #include "motis/rt/find_trip_fuzzy.h"
+#include "motis/rt/in_out_allowed.h"
 #include "motis/rt/incoming_edges.h"
 
 namespace motis {
@@ -43,6 +44,25 @@ struct schedule_event {
   motis::time schedule_time_;
   event_type ev_type_;
 };
+
+inline bool is_in_allowed(ev_key const& ev) {
+  auto const rn = ev.get_node();
+  auto const sn = rn->get_station();
+  return std::find_if(begin(rn->incoming_edges_), end(rn->incoming_edges_),
+                      [&sn](edge const* in) {
+                        return in->type() != edge::INVALID_EDGE &&
+                               in->from_ == sn;
+                      }) != end(rn->incoming_edges_);
+}
+
+inline bool is_out_allowed(ev_key const& ev) {
+  auto const rn = ev.get_node();
+  auto const sn = rn->get_station();
+  return std::find_if(
+             begin(rn->edges_), end(rn->edges_), [&sn](edge const& out) {
+               return out.type() != edge::INVALID_EDGE && out.to_ == sn;
+             }) != end(rn->edges_);
+}
 
 struct reroute_event : public event_info {
   enum class type { TRIP_EVENT, ADDITIONAL };
@@ -260,8 +280,6 @@ inline std::vector<section> build_trip_from_events(
   return sections;
 }
 
-// TODO(felix) code duplication additional_service_builder::build_route
-// TODO(felix) don't build change edges, if in/out allowed was false in trip
 inline std::vector<trip::route_edge> build_route(
     schedule& sched, std::vector<section> const& sections,
     std::map<node const*, std::vector<edge*>>& incoming) {
@@ -275,14 +293,33 @@ inline std::vector<trip::route_edge> build_route(
     auto const to_station_transfer_time =
         sched.stations_.at(s.to_->id_)->transfer_time_;
 
+    auto from_in_out = s.dep_.type_ == reroute_event::type::TRIP_EVENT
+                           ? get_in_out_allowed(s.dep_.k_.get_node())
+                           : in_out_allowed(true, true);
+    auto to_in_out = s.arr_.type_ == reroute_event::type::TRIP_EVENT
+                         ? get_in_out_allowed(s.arr_.k_.get_node())
+                         : in_out_allowed(true, true);
+
     auto const from_route_node =
-        prev_route_node
-            ? prev_route_node
-            : build_route_node(route_id, sched.node_count_++, s.from_,
-                               from_station_transfer_time, true, true);
-    auto const to_route_node =
-        build_route_node(route_id, sched.node_count_++, s.to_,
-                         to_station_transfer_time, true, true);
+        prev_route_node ? prev_route_node
+                        : build_route_node(route_id, sched.node_count_++,
+                                           s.from_, from_station_transfer_time,
+                                           from_in_out.in_allowed_,
+                                           from_in_out.out_allowed_);
+    auto const to_route_node = build_route_node(
+        route_id, sched.node_count_++, s.to_, to_station_transfer_time,
+        to_in_out.in_allowed_, to_in_out.out_allowed_);
+
+    if (from_in_out.out_allowed_ &&
+        from_route_node->get_station()->foot_node_) {
+      from_route_node->edges_.push_back(make_after_train_edge(
+          from_route_node, from_route_node->get_station()->foot_node_));
+    }
+
+    if (to_in_out.out_allowed_ && to_route_node->get_station()->foot_node_) {
+      to_route_node->edges_.push_back(make_after_train_edge(
+          to_route_node, to_route_node->get_station()->foot_node_));
+    }
 
     from_route_node->edges_.push_back(
         make_route_edge(from_route_node, to_route_node, {s.lcon_}));
@@ -311,7 +348,7 @@ inline void update_delay_infos(
     std::vector<reroute_event>& events,
     std::vector<trip::route_edge> const& trip_edges) {
   auto const update_di = [](reroute_event& ev, ev_key const& new_ev) {
-    if (ev.type_ == reroute_event::type::TRIP_EVENT && ev.di_ != nullptr) {
+    if (ev.di_ != nullptr) {
       ev.di_->set_ev_key(new_ev);
     }
   };
