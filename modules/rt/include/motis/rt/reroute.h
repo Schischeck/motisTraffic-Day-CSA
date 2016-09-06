@@ -45,25 +45,6 @@ struct schedule_event {
   event_type ev_type_;
 };
 
-inline bool is_in_allowed(ev_key const& ev) {
-  auto const rn = ev.get_node();
-  auto const sn = rn->get_station();
-  return std::find_if(begin(rn->incoming_edges_), end(rn->incoming_edges_),
-                      [&sn](edge const* in) {
-                        return in->type() != edge::INVALID_EDGE &&
-                               in->from_ == sn;
-                      }) != end(rn->incoming_edges_);
-}
-
-inline bool is_out_allowed(ev_key const& ev) {
-  auto const rn = ev.get_node();
-  auto const sn = rn->get_station();
-  return std::find_if(
-             begin(rn->edges_), end(rn->edges_), [&sn](edge const& out) {
-               return out.type() != edge::INVALID_EDGE && out.to_ == sn;
-             }) != end(rn->edges_);
-}
-
 struct reroute_event : public event_info {
   enum class type { TRIP_EVENT, ADDITIONAL };
 
