@@ -72,6 +72,7 @@ struct reroute_event : public event_info {
       : event_info(k.get_station_idx(), schedtime, k.ev_type_),
         type_(type::TRIP_EVENT),
         k_(k),
+        in_out_(get_in_out_allowed(k.get_node())),
         di_(di),
         additional_event_(nullptr) {}
 
@@ -80,6 +81,7 @@ struct reroute_event : public event_info {
                 delay_info* di)
       : event_info(std::move(ev_info)),
         type_(type::ADDITIONAL),
+        in_out_(true, true),
         di_(di),
         additional_event_(additional_event) {}
 
@@ -88,6 +90,10 @@ struct reroute_event : public event_info {
   // TRIP_EVENT: original full connection
   // ADDITIONAL: nullptr
   ev_key k_;
+
+  // TRIP_EVENT: original in allowed / out allowed setting
+  // ADDITIONAL: (true, true)
+  in_out_allowed in_out_;
 
   // TRIP_EVENT: nullptr | delay info, if available
   // ADDITIONAL: nullptr | delay info, if stored
@@ -293,33 +299,15 @@ inline std::vector<trip::route_edge> build_route(
     auto const to_station_transfer_time =
         sched.stations_.at(s.to_->id_)->transfer_time_;
 
-    auto from_in_out = s.dep_.type_ == reroute_event::type::TRIP_EVENT
-                           ? get_in_out_allowed(s.dep_.k_.get_node())
-                           : in_out_allowed(true, true);
-    auto to_in_out = s.arr_.type_ == reroute_event::type::TRIP_EVENT
-                         ? get_in_out_allowed(s.arr_.k_.get_node())
-                         : in_out_allowed(true, true);
-
     auto const from_route_node =
         prev_route_node ? prev_route_node
                         : build_route_node(route_id, sched.node_count_++,
                                            s.from_, from_station_transfer_time,
-                                           from_in_out.in_allowed_,
-                                           from_in_out.out_allowed_);
+                                           s.dep_.in_out_.in_allowed_,
+                                           s.dep_.in_out_.out_allowed_);
     auto const to_route_node = build_route_node(
         route_id, sched.node_count_++, s.to_, to_station_transfer_time,
-        to_in_out.in_allowed_, to_in_out.out_allowed_);
-
-    if (from_in_out.out_allowed_ &&
-        from_route_node->get_station()->foot_node_) {
-      from_route_node->edges_.push_back(make_after_train_edge(
-          from_route_node, from_route_node->get_station()->foot_node_));
-    }
-
-    if (to_in_out.out_allowed_ && to_route_node->get_station()->foot_node_) {
-      to_route_node->edges_.push_back(make_after_train_edge(
-          to_route_node, to_route_node->get_station()->foot_node_));
-    }
+        s.arr_.in_out_.in_allowed_, s.arr_.in_out_.out_allowed_);
 
     from_route_node->edges_.push_back(
         make_route_edge(from_route_node, to_route_node, {s.lcon_}));
