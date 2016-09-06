@@ -7,46 +7,43 @@
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 
+#include "./get_trip_event_info.h"
+
 using namespace motis;
 using namespace motis::module;
+using namespace motis::rt;
 using namespace motis::test;
 using namespace motis::test::schedule;
 using motis::test::schedule::invalid_realtime::dataset_opt;
 using motis::test::schedule::invalid_realtime::get_reroute_ris_message;
 
 struct rt_reroute_test : public motis_instance_test {
-  struct stop_times {
-    motis::time arr_, dep_;
-  };
-
-  using trip_event_info = std::map<std::string /* station id */, stop_times>;
-
   rt_reroute_test() : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
 
-  trip_event_info get_trip_event_info(trip const* trp) {
-    trip_event_info trp_ev_info;
-    for (auto const& trip_e : *trp->edges_) {
-      auto const e = trip_e.get_edge();
-      trp_ev_info[sched().stations_.at(e->from_->get_station()->id_)->eva_nr_]
-          .dep_ = e->get_connection(trp->lcon_idx_)->d_time_;
-      trp_ev_info[sched().stations_.at(e->to_->get_station()->id_)->eva_nr_]
-          .arr_ = e->get_connection(trp->lcon_idx_)->a_time_;
-    }
-    return trp_ev_info;
+  void SetUp() override {
+    publish(get_reroute_ris_message(sched()));
+    publish(make_no_msg("/ris/system_time_changed"));
   }
 };
 
-TEST_F(rt_reroute_test, reroute_with_delay) {
-  publish(get_reroute_ris_message(sched()));
-  publish(make_no_msg("/ris/system_time_changed"));
+TEST_F(rt_reroute_test, reroute_with_delay_times) {
+  auto evs = get_trip_event_info(
+      sched(), get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
+                        unix_time(1400), "381"));
+  EXPECT_EQ(motis_time(910), evs["0000005"].dep_);
+  EXPECT_EQ(motis_time(1105), evs["0000002"].arr_);
+  EXPECT_EQ(motis_time(1112), evs["0000002"].dep_);
+  EXPECT_EQ(motis_time(1305), evs["0000004"].arr_);
+  EXPECT_EQ(motis_time(1312), evs["0000004"].dep_);
+  EXPECT_EQ(motis_time(1500), evs["0000001"].arr_);
+}
 
-  auto ev1 =
-      get_trip_event_info(get_trip(sched(), "0000001", 1, unix_time(1010),
-                                   "0000005", unix_time(1400), "381"));
-  EXPECT_EQ(motis_time(910), ev1["0000005"].dep_);
-  EXPECT_EQ(motis_time(1105), ev1["0000002"].arr_);
-  EXPECT_EQ(motis_time(1112), ev1["0000002"].dep_);
-  EXPECT_EQ(motis_time(1305), ev1["0000004"].arr_);
-  EXPECT_EQ(motis_time(1312), ev1["0000004"].dep_);
-  EXPECT_EQ(motis_time(1500), ev1["0000001"].arr_);
+TEST_F(rt_reroute_test, reroute_with_delay_in_out) {
+  auto ev1 = get_trip_event_info(
+      sched(), get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
+                        unix_time(1400), "381"));
+  EXPECT_EQ(in_out_allowed(true, true), ev1["0000005"].in_out_);
+  EXPECT_EQ(in_out_allowed(true, true), ev1["0000002"].in_out_);
+  EXPECT_EQ(in_out_allowed(false, false), ev1["0000004"].in_out_);
+  EXPECT_EQ(in_out_allowed(true, true), ev1["0000001"].in_out_);
 }

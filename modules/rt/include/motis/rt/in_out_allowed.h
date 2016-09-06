@@ -12,6 +12,9 @@ struct in_out_allowed {
   in_out_allowed() = default;
   in_out_allowed(bool in_allowed, bool out_allowed)
       : in_allowed_(in_allowed), out_allowed_(out_allowed) {}
+  bool operator==(in_out_allowed const& o) const {
+    return in_allowed_ == o.in_allowed_ && out_allowed_ == o.out_allowed_;
+  }
   bool in_allowed_, out_allowed_;
 };
 
