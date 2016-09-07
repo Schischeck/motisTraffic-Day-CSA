@@ -27,7 +27,8 @@ TEST_F(routing_trip_to_connection_test, simple) {
                    fbb.CreateString("381"))
           .Union(),
       "/trip_to_connection");
-  auto const msg = motis_content(Connection, call(make_msg(fbb)));
+  auto const res = call(make_msg(fbb));
+  auto const msg = motis_content(Connection, res);
   EXPECT_EQ("8000096", msg->stops()->Get(0)->station()->id()->str());
   EXPECT_EQ(
       "8000105",
