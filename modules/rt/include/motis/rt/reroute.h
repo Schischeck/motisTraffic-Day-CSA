@@ -349,13 +349,13 @@ inline void update_trip(schedule& sched, trip* trp,
   trp->lcon_idx_ = 0;
 }
 
-inline status reroute(schedule& sched,
-                      std::map<schedule_event, delay_info*>& cancelled_delays,
-                      ris::RerouteMessage const* msg) {
+inline std::pair<status, trip const*> reroute(
+    schedule& sched, std::map<schedule_event, delay_info*>& cancelled_delays,
+    ris::RerouteMessage const* msg) {
   auto const trp =
       const_cast<trip*>(find_trip_fuzzy(sched, msg->trip_id()));  // NOLINT
   if (trp == nullptr) {
-    return status::TRIP_NOT_FOUND;
+    return {status::TRIP_NOT_FOUND, nullptr};
   }
 
   auto evs = std::vector<reroute_event>{};
@@ -367,7 +367,7 @@ inline status reroute(schedule& sched,
   std::sort(begin(evs), end(evs));
   auto check_result = check_events(evs);
   if (check_result != status::OK) {
-    return check_result;
+    return {check_result, trp};
   }
 
   auto const sections = build_trip_from_events(sched, evs);
@@ -380,7 +380,7 @@ inline status reroute(schedule& sched,
   update_trip(sched, trp, trip_edges);
   store_cancelled_delays(sched, trp, del_evs, cancelled_delays);
 
-  return status::OK;
+  return {status::OK, trp};
 }
 
 }  // namespace rt

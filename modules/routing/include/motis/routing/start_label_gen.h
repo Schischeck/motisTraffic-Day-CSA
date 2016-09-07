@@ -130,7 +130,9 @@ struct pretrip_gen {
       return (Dir == search_dir::FWD) ? lcon->d_time_ : lcon->a_time_;
     };
 
+    auto i = 0;
     auto t = (Dir == search_dir::FWD) ? departure_begin : departure_end;
+    auto const max_start_labels = departure_end - departure_begin;
     while (!end_reached(t)) {
       auto con = re.get_connection<Dir>(t);
 
@@ -154,6 +156,10 @@ struct pretrip_gen {
       }
 
       (Dir == search_dir::FWD) ? ++t : --t;
+
+      if (++i > max_start_labels) {
+        throw std::system_error(error::too_many_start_labels);
+      }
     }
   }
 };

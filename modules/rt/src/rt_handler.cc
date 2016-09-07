@@ -117,11 +117,22 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           break;
         }
 
-        case ris::MessageUnion_RerouteMessage:
+        case ris::MessageUnion_RerouteMessage: {
           propagate();
-          reroute(s, cancelled_delays_,
-                  reinterpret_cast<ris::RerouteMessage const*>(c));
+
+          auto const result =
+              reroute(s, cancelled_delays_,
+                      reinterpret_cast<ris::RerouteMessage const*>(c));
+
+          if (result.first == status::OK) {
+            for (auto const& e : *result.second->edges_) {
+              propagator_.add_delay(ev_key{e, 0, event_type::DEP});
+              propagator_.add_delay(ev_key{e, 0, event_type::ARR});
+            }
+          }
+
           break;
+        }
 
         default: break;
       }

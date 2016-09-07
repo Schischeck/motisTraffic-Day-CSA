@@ -21,7 +21,7 @@ public:
 
   template <typename T, typename... Args>
   T* create(Args&&... args) {
-    assert(next_position_ <= memory_buffer_.get() + size());
+    assert(next_position_ + sizeof(T) < memory_buffer_.get() + size());
     auto el = reinterpret_cast<T*>(next_position_);
     next_position_ += sizeof(T);
     return new (el) T(std::forward<Args>(args)...);
