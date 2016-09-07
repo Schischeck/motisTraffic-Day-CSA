@@ -4,15 +4,11 @@
 #include <vector>
 
 #include "motis/module/module.h"
-#include "motis/rt/statistics.h"
 
 namespace motis {
-
-struct trip;
-
 namespace rt {
 
-struct delay_propagator;
+struct rt_handler;
 
 struct rt : public motis::module::module {
   rt();
@@ -27,15 +23,7 @@ struct rt : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
-  motis::module::msg_ptr on_message(motis::module::msg_ptr const& msg);
-  motis::module::msg_ptr on_system_time_change(
-      motis::module::msg_ptr const& msg);
-
-  motis::module::msg_ptr handle_messages(motis::module::msg_ptr const&);
-
-  hash_map<ev_key, ev_key> moved_events_;
-  std::unique_ptr<delay_propagator> propagator_;
-  statistics stats_;
+  std::unique_ptr<rt_handler> handler_;
 };
 
 }  // namespace rt

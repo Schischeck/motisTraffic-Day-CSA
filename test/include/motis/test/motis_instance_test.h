@@ -39,7 +39,6 @@ struct motis_instance_test : public ::testing::Test {
       std::vector<module::msg_ptr>*);
 
   schedule const& sched() const { return *instance_->sched_; }
-  schedule& sched() { return *instance_->sched_; }
 
   std::time_t unix_time(int hhmm, int day_idx = 0,
                         int timezone_offset = kDefaultTimezoneOffset) const {
@@ -57,7 +56,6 @@ struct motis_instance_test : public ::testing::Test {
     return *reinterpret_cast<Module*>(it->get());
   }
 
-private:
   bootstrap::motis_instance_ptr instance_;
 };
 

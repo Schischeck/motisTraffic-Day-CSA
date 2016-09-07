@@ -19,6 +19,7 @@ motis::module::msg_ptr get_trip_conflict_ris_message(motis::schedule const&);
 motis::module::msg_ptr get_ts_conflict_ris_message(motis::schedule const&);
 motis::module::msg_ptr get_additional_ris_message(motis::schedule const&);
 motis::module::msg_ptr get_cancel_ris_message(motis::schedule const&);
+motis::module::msg_ptr get_reroute_ris_message(motis::schedule const&);
 
 }  // namespace invalid_realtime
 }  // namespace schedule
