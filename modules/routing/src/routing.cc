@@ -54,6 +54,8 @@ void routing::print(std::ostream& out) const {
 
 void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
+  reg.register_op("/trip_to_connection",
+                  std::bind(&routing::trip_to_connection, this, p::_1));
 }
 
 msg_ptr routing::route(msg_ptr const& msg) {
@@ -81,6 +83,59 @@ msg_ptr routing::route(msg_ptr const& msg) {
                                              [&](journey const& j) {
                                                return to_connection(fbb, j);
                                              })))
+          .Union());
+  return make_msg(fbb);
+}
+
+#include "motis/core/conv/trip_conv.h"
+#include "motis/core/access/edge_access.h"
+#include "motis/routing/label/configs.h"
+
+msg_ptr routing::trip_to_connection(msg_ptr const& msg) {
+  using label = default_label<search_dir::FWD>;
+
+  auto const& sched = get_schedule();
+  auto trp = from_fbs(sched, motis_content(TripId, msg));
+
+  auto const first = trp->edges_->front()->from_;
+  auto const last = trp->edges_->back()->to_;
+
+  auto const e_0 = make_foot_edge(nullptr, first->get_station());
+  auto const e_1 = make_foot_edge(first->get_station(), first);
+  auto const e_n = make_foot_edge(last, last->get_station());
+
+  auto const dep_time = get_lcon(trp->edges_->front(), trp->lcon_idx_).d_time_;
+
+  auto const make_label = [&](label* pred, edge const* e,
+                              light_connection const* lcon, time now) {
+    auto l = label();
+    l.pred_ = pred;
+    l.edge_ = e;
+    l.connection_ = lcon;
+    l.start_ = dep_time;
+    l.now_ = now;
+    l.dominated_ = false;
+    return l;
+  };
+
+  auto labels = std::vector<label>{trp->edges_->size() + 3};
+  labels[0] = make_label(nullptr, &e_0, nullptr, dep_time);
+  labels[1] = make_label(&labels[0], &e_1, nullptr, dep_time);
+
+  int i = 2;
+  for (auto const& e : *trp->edges_) {
+    auto const& lcon = get_lcon(e, trp->lcon_idx_);
+    labels[i] = make_label(&labels[i - 1], e, &lcon, lcon.a_time_);
+    ++i;
+  }
+
+  labels[i] = make_label(&labels[i - 1], &e_n, nullptr, labels[i - 1].now_);
+
+  message_creator fbb;
+  fbb.create_and_finish(
+      MsgContent_Connection,
+      to_connection(
+          fbb, output::labels_to_journey(sched, &labels[i], search_dir::FWD))
           .Union());
   return make_msg(fbb);
 }
