@@ -1,7 +1,0 @@
-namespace motis.routes;
-
-table RoutesSectionReq {
-  departure: string;
-  arrival: string;
-  clasz: int = 9;
-}

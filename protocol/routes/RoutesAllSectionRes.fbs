@@ -1,7 +1,0 @@
-include "routes/RoutesSection.fbs";
-
-namespace motis.routes;
-
-table RoutesAllSectionRes {
-  sections: [RoutesSection];
-}

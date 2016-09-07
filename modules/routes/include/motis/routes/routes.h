@@ -1,12 +1,11 @@
 #pragma once
 
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "parser/file.h"
-
 #include "motis/module/module.h"
-#include "motis/protocol/RoutesSections_generated.h"
 
 namespace motis {
 namespace routes {
@@ -19,13 +18,18 @@ struct routes : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
-  motis::module::msg_ptr routes_section(motis::module::msg_ptr const& m);
+  void load_auxiliary_file();
 
-  motis::module::msg_ptr all_sections(motis::module::msg_ptr const& m);
+  motis::module::msg_ptr id_train_routes(motis::module::msg_ptr const&);
 
-  parser::buffer routes_buf_;
-  std::string routes_file_;
-  bool file_loaded_;
+  motis::module::msg_ptr resolve_route_osrm(schedule const&, trip const*);
+  motis::module::msg_ptr resolve_route_stub(schedule const&, trip const*);
+
+  motis::module::msg_ptr trip_to_osrm_request(schedule const&, trip const*);
+
+  std::string aux_file_;
+  std::map<std::string, std::vector<std::pair<double, double>>>
+      extra_bus_stop_positions_;
 };
 
 }  // namespace routes

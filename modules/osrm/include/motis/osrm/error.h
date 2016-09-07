@@ -10,7 +10,7 @@ namespace error {
 enum error_code_t {
   ok = 0,
   profile_not_available = 1,
-  no_routing_response = 2,
+  no_routing_response = 2
 };
 }  // namespace error
 

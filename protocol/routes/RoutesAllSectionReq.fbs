@@ -1,5 +1,0 @@
-namespace motis.routes;
-
-table RoutesAllSectionReq {
-	clasz: int;
-}

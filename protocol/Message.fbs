@@ -15,10 +15,8 @@ include "lookup/LookupMetaStationRequest.fbs";
 include "lookup/LookupMetaStationResponse.fbs";
 include "lookup/LookupIdTrainRequest.fbs";
 include "lookup/LookupIdTrainResponse.fbs";
-include "routes/RoutesSectionReq.fbs";
-include "routes/RoutesSectionRes.fbs";
-include "routes/RoutesAllSectionReq.fbs";
-include "routes/RoutesAllSectionRes.fbs";
+include "routes/RoutesIdTrainRequest.fbs";
+include "routes/RoutesIdTrainResponse.fbs";
 include "railviz/RailVizInit.fbs";
 include "railviz/RailVizAlltraReq.fbs";
 include "railviz/RailVizAlltraRes.fbs";
@@ -31,6 +29,8 @@ include "osrm/OSRMOneToManyRequest.fbs";
 include "osrm/OSRMOneToManyResponse.fbs";
 include "osrm/OSRMViaRouteRequest.fbs";
 include "osrm/OSRMViaRouteResponse.fbs";
+include "osrm/OSRMSmoothViaRouteRequest.fbs";
+include "osrm/OSRMSmoothViaRouteResponse.fbs";
 include "reliability/ReliabilityRatingResponse.fbs";
 include "reliability/ReliableRoutingRequest.fbs";
 include "reliability/ReliableRoutingResponse.fbs";
@@ -107,10 +107,8 @@ union MsgContent {
   motis.lookup.LookupBatchMetaStationResponse,
   motis.lookup.LookupIdTrainRequest,
   motis.lookup.LookupIdTrainResponse,
-  motis.routes.RoutesSectionReq,
-  motis.routes.RoutesSectionRes,
-  motis.routes.RoutesAllSectionReq,
-  motis.routes.RoutesAllSectionRes,
+  motis.routes.RoutesIdTrainRequest,
+  motis.routes.RoutesIdTrainResponse,
   motis.railviz.RailVizInit,
   motis.railviz.RailVizAlltraReq,
   motis.railviz.RailVizAlltraRes,
@@ -123,6 +121,8 @@ union MsgContent {
   motis.osrm.OSRMOneToManyResponse,
   motis.osrm.OSRMViaRouteRequest,
   motis.osrm.OSRMViaRouteResponse,
+  motis.osrm.OSRMSmoothViaRouteRequest,
+  motis.osrm.OSRMSmoothViaRouteResponse,
   motis.reliability.ReliableRoutingRequest,
   motis.reliability.ReliableRoutingResponse,
   motis.reliability.ReliabilityRatingResponse,
