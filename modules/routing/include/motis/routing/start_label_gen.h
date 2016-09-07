@@ -132,7 +132,7 @@ struct pretrip_gen {
 
     auto i = 0;
     auto t = (Dir == search_dir::FWD) ? departure_begin : departure_end;
-    auto const max_start_labels = departure_end - departure_begin;
+    auto const max_start_labels = departure_end - departure_begin + 1;
     while (!end_reached(t)) {
       auto con = re.get_connection<Dir>(t);
 
