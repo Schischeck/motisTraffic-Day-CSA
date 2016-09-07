@@ -10,6 +10,7 @@
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
 #include "motis/routes/prepare/bus_stop_positions.h"
+#include "motis/routes/prepare/rel/match_connector.h"
 #include "motis/routes/prepare/rel/osm_relations.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
 #include "motis/routes/prepare/station_sequences.h"
@@ -72,28 +73,61 @@ int main(int argc, char** argv) {
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
 
-  auto station_seq = load_station_sequences(schedule);
+  //  auto sequences = load_station_sequences(schedule);
+  //
+  //  auto bus_stops = find_bus_stop_positions(schedule, opt.osm_);
+  //
+  //  auto relations = parse_relations(opt.osm_);
+  //
+  //  auto polylines = aggregate_polylines(relations.relations_);
+  //
+  //  auto matches = match_sequences(polylines, sequences, bus_stops);
 
-  auto bus_stops = find_bus_stop_positions(schedule, opt.osm_);
+  std::vector<match_seq> test_matches;
+  station_seq seq;
 
-  auto relations = parse_relations(opt.osm_);
+  seq.station_ids_ = {"0", "1", "2", "3", "4", "5", "6"};
+  seq.coordinates_ = {{1.0, 0.0}, {2.0, 0.0}, {3.0, 0.0}, {4.0, 0.0},
+                      {5.0, 0.0}, {6.0, 0.0}, {8.0, 0.0}};
 
-  auto polylines = aggregate_polylines(relations.relations_);
+  match_seq m1, m2, m3;
+  m1.polyline_.emplace_back(1.0, 0.0);
+  m1.polyline_.emplace_back(2.0, 0.0);
+  m1.polyline_.emplace_back(3.0, 0.0);
 
-  auto matches = match_sequences(polylines, station_seq, bus_stops);
+  m1.stations_.emplace_back(0, 0);
+  m1.stations_.emplace_back(1, 1);
+  m1.stations_.emplace_back(2, 2);
+  test_matches.push_back(m1);
 
-  //  auto better_matches = match_better(station_seq, matches);
+  m2.polyline_.emplace_back(4.0, 1.0);
+  m2.polyline_.emplace_back(5.0, 1.0);
 
-  std::cout << "\n" << matches.size();
-  std::vector<std::vector<latlng>> output;
-  for (auto const& match : matches) {
-    if (match.full_match) {
-      output.push_back(match.polyline_);
-    }
-  }
-  //  output.insert(begin(output), begin(polylines), end(polylines));
-  std::cout << "\n Output" << output.size();
-  write_geojson(output);
+  m2.stations_.emplace_back(2, 0);
+  m2.stations_.emplace_back(3, 1);
+  test_matches.push_back(m2);
+
+  m3.polyline_.emplace_back(6.0, 0.0);
+  m3.polyline_.emplace_back(7.0, 0.0);
+
+  m3.stations_.emplace_back(4, 0);
+  m3.stations_.emplace_back(5, 1);
+  test_matches.push_back(m3);
+
+  build_graph(seq, test_matches);
+
+  //  std::cout << "\n" << matches.size();
+  //  std::vector<std::vector<latlng>> output;
+  //  for (auto const& match : matches) {
+  //    for (auto const& m : match) {
+  //      if (m.full_match_) {
+  //        output.push_back(m.polyline_);
+  //      }
+  //    }
+  //  }
+  //  //  output.insert(begin(output), begin(polylines), end(polylines));
+  //  std::cout << "\n Output" << output.size();
+  //  write_geojson(output);
 
   // do_something(opt.osm_);
 
