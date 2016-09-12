@@ -308,6 +308,7 @@ int graph_builder::get_index(
           begin(route_section),
           std::lower_bound(begin(route_section), end(route_section),
                            sections[section_idx]));
+      --section_idx;
     } else {
       // Check if departures stay sorted.
       bool earlier_eq_dep =
