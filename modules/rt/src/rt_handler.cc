@@ -14,7 +14,7 @@
 #include "motis/rt/separate_trip.h"
 #include "motis/rt/shifted_nodes_msg_builder.h"
 #include "motis/rt/trip_correction.h"
-#include "motis/rt/validy_check.h"
+#include "motis/rt/validity_check.h"
 
 using motis::module::msg_ptr;
 using namespace motis::logging;

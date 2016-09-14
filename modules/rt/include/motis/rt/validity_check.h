@@ -5,7 +5,7 @@
 namespace motis {
 namespace rt {
 
-bool fits_edge(ev_key const& k, motis::time const t) {
+inline bool fits_edge(ev_key const& k, motis::time const t) {
   auto prev = k.lcon_idx_ == 0
                   ? ev_key{}  //
                   : ev_key{k.route_edge_, k.lcon_idx_ - 1, k.ev_type_};
@@ -16,7 +16,8 @@ bool fits_edge(ev_key const& k, motis::time const t) {
          (!succ.valid() || t < succ.get_time());
 }
 
-bool fits_trip(schedule const& sched, ev_key const& k, motis::time const t) {
+inline bool fits_trip(schedule const& sched, ev_key const& k,
+                      motis::time const t) {
   switch (k.ev_type_) {
     case event_type::ARR: {
       auto const dep_time =
