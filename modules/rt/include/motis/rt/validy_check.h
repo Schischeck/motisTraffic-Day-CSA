@@ -5,58 +5,47 @@
 namespace motis {
 namespace rt {
 
-inline bool overtakes(ev_key const& k) {
-  auto const get_event_time = [](light_connection const& lcon,
-                                 event_type const ev_type) {
-    return ev_type == event_type::DEP ? lcon.d_time_ : lcon.a_time_;
-  };
-
-  auto const next_lcon = [](array<light_connection> const& conns,
-                            light_connection const* it) {
-    return ++it == end(conns) ? nullptr : it;
-  };
-
-  auto const prev_lcon = [](array<light_connection> const& conns,
-                            light_connection const* it) {
-    return it == begin(conns) ? nullptr : --it;
-  };
-
-  auto const& conns = k.route_edge_->m_.route_edge_.conns_;
-  auto const ev_time = get_event_time(*k.lcon(), k.ev_type_);
-  auto const next = next_lcon(conns, k.lcon());
-  auto const prev = prev_lcon(conns, k.lcon());
-  return (next && get_event_time(*next, k.ev_type_) <= ev_time) ||
-         (prev && get_event_time(*prev, k.ev_type_) >= ev_time);
+bool fits_edge(ev_key const& k, motis::time const t) {
+  auto prev = k.lcon_idx_ == 0
+                  ? ev_key{}  //
+                  : ev_key{k.route_edge_, k.lcon_idx_ - 1, k.ev_type_};
+  auto succ = k.lcon_idx_ == k.route_edge_->m_.route_edge_.conns_.size() - 1
+                  ? ev_key{}
+                  : ev_key{k.route_edge_, k.lcon_idx_ + 1, k.ev_type_};
+  return (!prev.valid() || t > prev.get_time()) &&
+         (!succ.valid() || t < succ.get_time());
 }
 
-inline bool conflicts(ev_key const& k) {
+bool fits_trip(schedule const& sched, ev_key const& k, motis::time const t) {
   switch (k.ev_type_) {
     case event_type::ARR: {
-      auto const dep_time = get_time(k.get_opposite());
-      auto const arr_time = get_time(k);
-      if (dep_time > arr_time) {
-        return true;
+      auto const dep_time =
+          motis::get_delay_info(sched, k.get_opposite()).get_current_time();
+      if (dep_time > t) {
+        return false;
       }
 
       bool valid = true;
       for_each_departure(k, [&](ev_key const& dep) {
-        valid = valid && get_time(dep) >= arr_time;
+        valid =
+            valid && motis::get_delay_info(sched, dep).get_current_time() >= t;
       });
-      return !valid;
+      return valid;
     }
 
     case event_type::DEP: {
-      auto const dep_time = get_time(k);
-      auto const arr_time = get_time(k.get_opposite());
-      if (dep_time > arr_time) {
-        return true;
+      auto const arr_time =
+          motis::get_delay_info(sched, k.get_opposite()).get_current_time();
+      if (t > arr_time) {
+        return false;
       }
 
       bool valid = true;
       for_each_arrival(k, [&](ev_key const& arr) {
-        valid = valid && get_time(arr) <= dep_time;
+        valid =
+            valid && motis::get_delay_info(sched, arr).get_current_time() <= t;
       });
-      return !valid;
+      return valid;
     }
 
     default: return true;

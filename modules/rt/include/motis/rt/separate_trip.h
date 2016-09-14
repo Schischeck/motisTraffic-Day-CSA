@@ -144,7 +144,7 @@ inline void update_delays(
     auto const it = sched.graph_to_delay_info_.find(orig_k);
     if (it != end(sched.graph_to_delay_info_)) {
       auto const di = it->second;
-      sched.graph_to_delay_info_[new_k] = it->second;
+      sched.graph_to_delay_info_[new_k] = di;
       di->set_ev_key(new_k);
     }
   };

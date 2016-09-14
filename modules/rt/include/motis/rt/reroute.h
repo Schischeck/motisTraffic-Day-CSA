@@ -18,7 +18,8 @@ enum class status {
   TRIP_NOT_FOUND,
   EVENT_COUNT_MISMATCH,
   STATION_MISMATCH,
-  EVENT_ORDER_MISMATCH
+  EVENT_ORDER_MISMATCH,
+  RULE_SERVICE_REROUTE_NOT_SUPPORTED
 };
 
 struct schedule_event {
@@ -356,6 +357,18 @@ inline std::pair<status, trip const*> reroute(
       const_cast<trip*>(find_trip_fuzzy(sched, msg->trip_id()));  // NOLINT
   if (trp == nullptr) {
     return {status::TRIP_NOT_FOUND, nullptr};
+  }
+
+  for (auto const& e : *trp->edges_) {
+    if (get_lcon(e, trp->lcon_idx_).full_con_->con_info_->merged_with_ ||
+        std::any_of(
+            begin(e->from_->incoming_edges_), end(e->from_->incoming_edges_),
+            [](edge const* e) { return e->type() == edge::THROUGH_EDGE; }) ||
+        std::any_of(
+            begin(e->to_->edges_), end(e->to_->edges_),
+            [](edge const& e) { return e.type() == edge::THROUGH_EDGE; })) {
+      return {status::RULE_SERVICE_REROUTE_NOT_SUPPORTED, nullptr};
+    }
   }
 
   auto evs = std::vector<reroute_event>{};

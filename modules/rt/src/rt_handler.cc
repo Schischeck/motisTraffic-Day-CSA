@@ -1,5 +1,7 @@
 #include "motis/rt/rt_handler.h"
 
+#include "parser/util.h"
+
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
 #include "motis/core/common/transform_to_vec.h"
@@ -19,21 +21,6 @@ using namespace motis::logging;
 
 namespace motis {
 namespace rt {
-
-void fix_time(ev_key const& k) {
-  auto const mutable_t = [&k]() -> motis::time& {
-    auto& t =
-        k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_;
-    return const_cast<motis::time&>(t);  // NOLINT
-  };
-
-  bool last = k.lcon_idx_ == k.route_edge_->m_.route_edge_.conns_.size() - 1;
-  if (last) {
-    mutable_t() = INVALID_TIME;
-  } else {
-    mutable_t() = ev_key{k.route_edge_, k.lcon_idx_ + 1, k.ev_type_}.get_time();
-  }
-}
 
 rt_handler::rt_handler(schedule& sched) : sched_(sched), propagator_(sched) {}
 
@@ -150,50 +137,42 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 void rt_handler::propagate() {
   MOTIS_FINALLY([this]() { propagator_.reset(); });
 
-  scoped_timer timer("rt update");
-  manual_timer graph_update("graph update");
-
-  auto& sched = module::get_schedule();
-
-  LOG(info) << "rt propagating " << propagator_.events().size() << " events";
   propagator_.propagate();
-  LOG(info) << "rt total changes " << propagator_.events().size();
 
-  // Update graph.
+  std::set<trip const*> trips_to_correct;
+  shifted_nodes_msg_builder shifted_nodes(sched_);
   for (auto const& di : propagator_.events()) {
     auto const& k = di->get_ev_key();
+    auto const t = di->get_current_time();
+
+    auto const edge_fit = fits_edge(k, t);
+    auto const trip_fit = fits_trip(sched_, k, t);
+    if (!edge_fit || !trip_fit) {
+      auto const trp = sched_.merged_trips_[k.lcon()->trips_]->front();
+      seperate_trip(sched_, trp);
+
+      if (!trip_fit) {
+        trips_to_correct.insert(trp);
+      }
+    }
 
     auto& event_time =
         k.ev_type_ == event_type::DEP ? k.lcon()->d_time_ : k.lcon()->a_time_;
-    const_cast<time&>(event_time) = di->get_current_time();  // NOLINT
-  }
-
-  // Check for graph corruption and revert if necessary.
-  shifted_nodes_msg_builder shifted_nodes(sched);
-  for (auto const& di : propagator_.events()) {
-    auto const& k = di->get_ev_key();
-
-    if (!k.lcon()->valid_) {
-      continue;
-    } else if (conflicts(k)) {
-      for (auto const& di : trip_corrector(sched, k).fix_times()) {
-        shifted_nodes.add(di);
-        ++stats_.conflicting_moved_;
-      }
-      ++stats_.conflicting_events_;
-    } else if (overtakes(k)) {
-      ++stats_.route_overtake_;
-      seperate_trip(sched, k);
-      fix_time(k);
-    }
+    const_cast<time&>(event_time) = t;  // NOLINT
 
     shifted_nodes.add(di);
   }
 
+  for (auto const& trp : trips_to_correct) {
+    assert(trp->lcon_idx_ == 0 &&
+           trp->edges_->front()->m_.route_edge_.conns_.size() == 1);
+    for (auto const& di : trip_corrector(sched_, trp).fix_times()) {
+      shifted_nodes.add(di);
+    }
+  }
+
   stats_.propagated_updates_ = propagator_.events().size();
   stats_.graph_updates_ = shifted_nodes.size();
-
-  graph_update.stop_and_print();
 
   if (!shifted_nodes.empty()) {
     motis_publish(shifted_nodes.finish());
@@ -201,6 +180,8 @@ void rt_handler::propagate() {
 }
 
 msg_ptr rt_handler::flush(msg_ptr const&) {
+  scoped_timer t("flush");
+
   MOTIS_FINALLY([this]() {
     stats_ = statistics();
     propagator_.reset();
@@ -220,6 +201,40 @@ msg_ptr rt_handler::flush(msg_ptr const&) {
   lb_update.stop_and_print();
 
   std::cout << stats_ << std::endl;
+
+  verify(
+      [this] {
+        for (auto const& sn : sched_.station_nodes_) {
+          for (auto const& se : sn->edges_) {
+            if (se.to_->type() != node_type::ROUTE_NODE) {
+              continue;
+            }
+
+            for (auto const& re : se.to_->edges_) {
+              if (re.empty()) {
+                continue;
+              }
+
+              auto const& lcons = re.m_.route_edge_.conns_;
+              auto const is_sorted_dep = std::is_sorted(
+                  begin(lcons), end(lcons),
+                  [](light_connection const& a, light_connection const& b) {
+                    return a.d_time_ < b.d_time_;
+                  });
+              auto const is_sorted_arr = std::is_sorted(
+                  begin(lcons), end(lcons),
+                  [](light_connection const& a, light_connection const& b) {
+                    return a.a_time_ < b.a_time_;
+                  });
+              if (!is_sorted_dep || !is_sorted_arr) {
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      }(),
+      "graph consistency after rt update");
 
   return nullptr;
 }
