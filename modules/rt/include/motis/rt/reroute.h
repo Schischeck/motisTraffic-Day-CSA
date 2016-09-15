@@ -69,8 +69,8 @@ struct reroute_event : public event_info {
 
   type type_;
 
-  // TRIP_EVENT: original full connection
-  // ADDITIONAL: nullptr
+  // TRIP_EVENT: original event
+  // ADDITIONAL: invalid event
   ev_key k_;
 
   // TRIP_EVENT: original in allowed / out allowed setting
