@@ -1,11 +1,13 @@
 #include "motis/routes/prepare/rel/match_connector.h"
 
+#include "motis/routes/prepare/rel/seq_graph_dijkstra.h"
+
 namespace motis {
 namespace routes {
 
 void build_graph(station_seq const& seq, std::vector<match_seq>& matches) {
 
-  graph g;
+  seq_graph g;
 
   g.station_to_nodes_.resize(seq.station_ids_.size());
 
@@ -15,19 +17,24 @@ void build_graph(station_seq const& seq, std::vector<match_seq>& matches) {
 
   create_edges(g);
 
-  std::sort(begin(g.nodes_), end(g.nodes_),
-            [](auto&& l, auto&& r) { return l->station_ < r->station_; });
-
   for (auto& node : g.nodes_) {
     std::cout << "\n"
-              << "station " << node->station_ << " : ";
+              << "station " << node->station_ << " " << node->idx_ << " : ";
     for (auto const& edge : node->edges_) {
       std::cout << edge.from_->station_ << "|" << edge.to_->station_ << " ";
     }
   }
+
+  seq_graph_dijkstra dijkstra(g, {2}, {7});
+  dijkstra.run();
+  std::vector<latlng> polyline;
+
+  for (auto const& e : dijkstra.get_links(7)) {
+    std::cout << "\n" << e->from_->station_ << "|" << e->to_->station_;
+  }
 }
 
-void create_nodes(graph& g, std::vector<match_seq>& matches) {
+void create_nodes(seq_graph& g, std::vector<match_seq>& matches) {
   auto offset = 0;
   for (auto i = 0u; i < matches.size(); i++) {
     offset = g.nodes_.size();
@@ -35,8 +42,9 @@ void create_nodes(graph& g, std::vector<match_seq>& matches) {
 
       auto station = matches[i].stations_[j];
 
-      g.nodes_.emplace_back(std::make_unique<station_p>(
-          station.first, i, matches[i].polyline_[station.second]));
+      g.nodes_.emplace_back(
+          std::make_unique<station_p>(g.nodes_.size(), station.first, i,
+                                      matches[i].polyline_[station.second]));
       g.station_to_nodes_[station.first].push_back(g.nodes_.back().get());
 
       if (j > 0) {
@@ -51,7 +59,7 @@ void create_nodes(graph& g, std::vector<match_seq>& matches) {
   }
 }
 
-void create_unmatched_nodes(graph& g, station_seq const& seq) {
+void create_unmatched_nodes(seq_graph& g, station_seq const& seq) {
   std::vector<size_t> missing_nodes;
 
   for (auto i = 0u; i < seq.station_ids_.size(); i++) {
@@ -64,13 +72,13 @@ void create_unmatched_nodes(graph& g, station_seq const& seq) {
   }
 
   for (auto const& s : missing_nodes) {
-    g.nodes_.emplace_back(
-        std::make_unique<station_p>(s, -1, seq.coordinates_[s]));
+    g.nodes_.emplace_back(std::make_unique<station_p>(g.nodes_.size(), s, -1,
+                                                      seq.coordinates_[s]));
     g.station_to_nodes_[s].push_back(g.nodes_.back().get());
   }
 }
 
-void create_edges(graph& g) {
+void create_edges(seq_graph& g) {
   for (auto i = 0u; i < g.station_to_nodes_.size(); i++) {
     connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i]);
     if (i < g.station_to_nodes_.size() - 1) {

@@ -13,13 +13,14 @@ namespace routes {
 struct poly_edge;
 struct station_p {
 
-  station_p(size_t station, size_t match, latlng coords)
-      : station_(station), match_(match), coords_(coords){};
+  station_p(size_t idx, size_t station, size_t match, latlng coords)
+      : station_(station), match_(match), coords_(coords), idx_(idx){};
 
   std::vector<poly_edge> edges_;
   size_t station_;
   long match_;
   latlng coords_;
+  size_t idx_;
 };
 
 struct poly_edge {
@@ -41,7 +42,7 @@ struct poly_edge {
   float weight_;
 };
 
-struct graph {
+struct seq_graph {
   std::vector<std::unique_ptr<station_p>> nodes_;
   std::vector<std::vector<station_p*>> station_to_nodes_;
 };
@@ -51,11 +52,11 @@ void connect_matches(std::vector<station_seq> const& sequences,
 
 void build_graph(station_seq const& seq, std::vector<match_seq>& matches);
 
-void create_nodes(graph& g, std::vector<match_seq>& matches);
+void create_nodes(seq_graph& g, std::vector<match_seq>& matches);
 
-void create_unmatched_nodes(graph& g, station_seq const& seq);
+void create_unmatched_nodes(seq_graph& g, station_seq const& seq);
 
-void create_edges(graph& g);
+void create_edges(seq_graph& g);
 
 void connect_nodes(std::vector<station_p*>& station1,
                    std::vector<station_p*>& station2);
