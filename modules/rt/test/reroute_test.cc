@@ -18,7 +18,14 @@ using motis::test::schedule::invalid_realtime::dataset_opt;
 using motis::test::schedule::invalid_realtime::get_reroute_ris_message;
 
 struct rt_reroute_test : public motis_instance_test {
-  rt_reroute_test() : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
+  rt_reroute_test()
+      : motis::test::motis_instance_test(no_rule_services(dataset_opt),
+                                         {"rt"}) {}
+
+  static loader::loader_options no_rule_services(loader::loader_options opt) {
+    opt.apply_rules_ = false;
+    return opt;
+  }
 
   void SetUp() override {
     publish(get_reroute_ris_message(sched()));

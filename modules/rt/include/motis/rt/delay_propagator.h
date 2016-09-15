@@ -26,10 +26,11 @@ struct delay_propagator {
 
   hash_set<delay_info*> const& events() const { return events_; }
 
-  void add_delay(ev_key const& k, timestamp_reason const reason,
-                 time const updated_time) {
+  void add_delay(ev_key const& k,
+                 timestamp_reason const reason = timestamp_reason::SCHEDULE,
+                 time const updated_time = INVALID_TIME) {
     auto di = get_or_create_di(k);
-    if (di->set(reason, updated_time)) {
+    if (reason != timestamp_reason::SCHEDULE && di->set(reason, updated_time)) {
       expand(di->get_ev_key());
     }
   }

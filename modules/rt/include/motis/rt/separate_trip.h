@@ -143,8 +143,9 @@ inline void update_delays(
   auto const update_di = [&](ev_key const& orig_k, ev_key const& new_k) {
     auto const it = sched.graph_to_delay_info_.find(orig_k);
     if (it != end(sched.graph_to_delay_info_)) {
-      sched.graph_to_delay_info_[new_k] = it->second;
-      it->second->set_ev_key(new_k);
+      auto const di = it->second;
+      sched.graph_to_delay_info_[new_k] = di;
+      di->set_ev_key(new_k);
     }
   };
 

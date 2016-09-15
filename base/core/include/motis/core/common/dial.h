@@ -25,7 +25,6 @@ public:
   inline void push(El&& el) {
     auto const dist = get_bucket_(el);
     assert(dist <= MaxBucket);
-    assert(dist >= current_bucket_);
 
     auto& bucket = buckets_[dist];
     if (Sort) {
