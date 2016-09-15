@@ -55,7 +55,7 @@ void create_nodes(graph& g, std::vector<match_seq>& matches);
 
 void create_missing_nodes(graph& g, station_seq const& seq);
 
-void create_edges(graph& g);
+void create_unmatched_nodes(graph& g, station_seq const& seq);
 
 void connect_nodes(std::vector<station_p*>& station1,
                    std::vector<station_p*>& station2);

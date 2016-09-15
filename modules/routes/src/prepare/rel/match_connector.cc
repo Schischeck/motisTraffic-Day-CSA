@@ -46,7 +46,7 @@ void create_nodes(graph& g, std::vector<match_seq>& matches) {
   }
 }
 
-void create_missing_nodes(graph& g, station_seq const& seq) {
+void create_umatched_nodes(graph& g, station_seq const& seq) {
   std::vector<size_t> missing_nodes;
 
   for (auto i = 0u; i < seq.station_ids_.size(); i++) {
