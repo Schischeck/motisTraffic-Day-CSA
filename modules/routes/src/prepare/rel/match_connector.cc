@@ -7,17 +7,20 @@ void build_graph(station_seq const& seq, std::vector<match_seq>& matches) {
 
   graph g;
 
-  g.station_to_nodes_.resize(seq.station_ids_.size(),
-                             std::vector<station_p*>());
+  g.station_to_nodes_.resize(seq.station_ids_.size());
+
   create_nodes(g, matches);
 
-  create_missing_nodes(g, seq);
+  create_unmatched_nodes(g, seq);
 
   create_edges(g);
 
+  std::sort(begin(g.nodes_), end(g.nodes_),
+            [](auto&& l, auto&& r) { return l->station_ < r->station_; });
+
   for (auto& node : g.nodes_) {
     std::cout << "\n"
-              << "node " << node->station_ << " : ";
+              << "station " << node->station_ << " : ";
     for (auto const& edge : node->edges_) {
       std::cout << edge.from_->station_ << "|" << edge.to_->station_ << " ";
     }
@@ -31,12 +34,14 @@ void create_nodes(graph& g, std::vector<match_seq>& matches) {
     for (auto j = 0u; j < matches[i].stations_.size(); j++) {
 
       auto station = matches[i].stations_[j];
+
       g.nodes_.emplace_back(std::make_unique<station_p>(
           station.first, i, matches[i].polyline_[station.second]));
       g.station_to_nodes_[station.first].push_back(g.nodes_.back().get());
 
       if (j > 0) {
         auto prev_station = matches[i].stations_[j - 1];
+
         g.nodes_[offset + j - 1]->edges_.emplace_back(
             g.nodes_[offset + j - 1].get(), g.nodes_[offset + j].get(),
             matches[i].polyline_, prev_station.second,
@@ -46,7 +51,7 @@ void create_nodes(graph& g, std::vector<match_seq>& matches) {
   }
 }
 
-void create_umatched_nodes(graph& g, station_seq const& seq) {
+void create_unmatched_nodes(graph& g, station_seq const& seq) {
   std::vector<size_t> missing_nodes;
 
   for (auto i = 0u; i < seq.station_ids_.size(); i++) {
@@ -78,7 +83,7 @@ void connect_nodes(std::vector<station_p*>& station1,
                    std::vector<station_p*>& station2) {
   for (auto n1 : station1) {
     for (auto n2 : station2) {
-      if (n1->match_ == n2->match_) {
+      if (n1->match_ == n2->match_ && n1->station_ == n2->station_) {
         continue;
       }
       auto edge = std::find_if(
@@ -112,6 +117,11 @@ std::vector<latlng> find_route(latlng const& p1, latlng const& p2) {
 void connect_matches(std::vector<station_seq> const& sequences,
                      std::vector<std::vector<match_seq>>& matches) {
   for (auto i = 0u; i < sequences.size(); i++) {
+    if (matches[i].empty()) {
+      continue;
+    }
+    std::cout << "\n"
+              << "Sequence " << i;
     build_graph(sequences[i], matches[i]);
   }
 }
