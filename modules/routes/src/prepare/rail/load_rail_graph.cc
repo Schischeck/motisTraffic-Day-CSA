@@ -52,8 +52,11 @@ struct rail_graph_loader {
     scoped_timer timer("parsing osm rail ways");
 
     std::string rail{"rail"};
+    std::string yes{"yes"};
     std::string crossover{"crossover"};
-    std::vector<std::string> usages{"main", "branch"};
+    std::vector<std::string> excluded_usages{"industrial", "military", "test",
+                                             "tourism"};
+    std::vector<std::string> excluded_services{"yard", "spur"}; // , "siding"
 
     foreach_osm_way(osm_file, [&](auto&& way) {
       if (rail != way.get_value_by_key("railway", "")) {
@@ -61,9 +64,18 @@ struct rail_graph_loader {
       }
 
       auto const usage = way.get_value_by_key("usage", "");
-      if (std::none_of(begin(usages), end(usages),
-                       [&](auto&& u) { return u == usage; }) &&
-          crossover != way.get_value_by_key("service", "")) {
+      if (std::any_of(begin(excluded_usages), end(excluded_usages),
+                      [&](auto&& u) { return u == usage; })) {
+        return;
+      }
+
+      auto const service = way.get_value_by_key("service", "");
+      if (std::any_of(begin(excluded_services), end(excluded_services),
+                      [&](auto&& s) { return s == service; })) {
+        return;
+      }
+
+      if(yes == way.get_value_by_key("railway:preserved", "")) {
         return;
       }
 
