@@ -20,6 +20,7 @@ struct event_info {
       : station_idx_(station_idx), sched_time_(sched_time), ev_type_(ev_type) {}
 
   friend bool operator<(event_info const& a, event_info const& b) {
+    // For correct event chains: arrivals first.
     auto const a_is_dep = (a.ev_type_ == event_type::DEP);
     auto const b_is_dep = (b.ev_type_ == event_type::DEP);
     return std::tie(a.sched_time_, a.station_idx_, a_is_dep) <

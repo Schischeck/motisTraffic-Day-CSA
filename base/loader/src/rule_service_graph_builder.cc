@@ -374,7 +374,7 @@ struct rule_service_route_builder {
                         [](service_section* ss) { return ss == nullptr; }),
            "every section created");
     verify(std::all_of(begin(sections), end(sections),
-                       [&s, &sections](service_section* ss) {
+                       [&s](service_section const* ss) {
                          auto is_curr = [&s](participant const& p) {
                            return p.service_ == s;
                          };
@@ -386,7 +386,7 @@ struct rule_service_route_builder {
            "every section contains participant");
     verify(std::all_of(
                begin(sections), end(sections),
-               [](service_section* ss) {
+               [](service_section const* ss) {
                  auto const get_from_to = [](participant const& p) {
                    auto const stations = p.service_->route()->stations();
                    auto const from = stations->Get(p.section_idx_);
@@ -394,7 +394,7 @@ struct rule_service_route_builder {
                    return std::make_pair(from, to);
                  };
 
-                 auto ref = get_from_to(ss->second.front());
+                 auto const ref = get_from_to(ss->second.front());
                  return std::all_of(begin(ss->second), end(ss->second),
                                     [&get_from_to, &ref](participant const& p) {
                                       return get_from_to(p) == ref;
@@ -430,7 +430,7 @@ struct rule_service_route_builder {
                        [](auto&& s) { return s->first.is_valid(); }),
            "all built sections are valid");
     verify(
-        [&]() {
+        [&sections]() {
           for (auto i = 0u; i < sections.size() - 1; ++i) {
             if (sections[i]->first.to_route_node_ !=
                 sections[i + 1]->first.from_route_node_) {

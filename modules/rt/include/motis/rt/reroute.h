@@ -47,12 +47,12 @@ struct schedule_event {
 };
 
 struct reroute_event : public event_info {
-  enum class type { TRIP_EVENT, ADDITIONAL };
+  enum class type { ORIGINAL_EVENT, ADDITIONAL };
 
-  // TRIP_EVENT
+  // ORIGINAL_EVENT
   reroute_event(ev_key k, motis::time schedtime, delay_info* di)
       : event_info(k.get_station_idx(), schedtime, k.ev_type_),
-        type_(type::TRIP_EVENT),
+        type_(type::ORIGINAL_EVENT),
         k_(k),
         in_out_(get_in_out_allowed(k.get_node())),
         di_(di),
@@ -69,19 +69,19 @@ struct reroute_event : public event_info {
 
   type type_;
 
-  // TRIP_EVENT: original event
+  // ORIGINAL_EVENT: original event
   // ADDITIONAL: invalid event
   ev_key k_;
 
-  // TRIP_EVENT: original in allowed / out allowed setting
+  // ORIGINAL_EVENT: original in allowed / out allowed setting
   // ADDITIONAL: (true, true)
   in_out_allowed in_out_;
 
-  // TRIP_EVENT: nullptr | delay info, if available
+  // ORIGINAL_EVENT: nullptr | delay info, if available
   // ADDITIONAL: nullptr | delay info, if stored
   delay_info* di_;
 
-  // TRIP_EVENT: nullptr
+  // ORIGINAL_EVENT: nullptr
   // ADDITIONAL: points to fbs message
   ris::ReroutedEvent const* additional_event_;
 };
@@ -212,7 +212,7 @@ inline uint16_t get_track(schedule& sched, reroute_event const& ev) {
   switch (ev.type_) {
     case reroute_event::type::ADDITIONAL:
       return get_track(sched, ev.additional_event_->base()->track()->str());
-    case reroute_event::type::TRIP_EVENT: {
+    case reroute_event::type::ORIGINAL_EVENT: {
       auto const& fcon = ev.k_.lcon()->full_con_;
       return ev.ev_type_ == event_type::DEP ? fcon->d_track_ : fcon->a_track_;
     }
@@ -231,7 +231,7 @@ inline connection_info const* get_con_info(
                           base->base()->line_id()->str(),
                           base->base()->service_num());
     }
-    case reroute_event::type::TRIP_EVENT:
+    case reroute_event::type::ORIGINAL_EVENT:
       return ev.k_.lcon()->full_con_->con_info_;
     default: return nullptr;
   }
@@ -252,8 +252,8 @@ inline std::vector<section> build_trip_from_events(
     auto const dep_station = sched.station_nodes_.at(dep.station_idx_).get();
     auto const arr_station = sched.station_nodes_.at(arr.station_idx_).get();
 
-    if (dep.type_ == reroute_event::type::TRIP_EVENT &&
-        arr.type_ == reroute_event::type::TRIP_EVENT &&
+    if (dep.type_ == reroute_event::type::ORIGINAL_EVENT &&
+        arr.type_ == reroute_event::type::ORIGINAL_EVENT &&
         dep.k_.get_opposite() == arr.k_) {
       sections.emplace_back(*dep.k_.lcon(), dep_station, arr_station, dep, arr);
     } else {
