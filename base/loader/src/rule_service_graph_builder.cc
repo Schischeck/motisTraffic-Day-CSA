@@ -12,6 +12,8 @@
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/util.h"
 
+#include "motis/schedule-format/Schedule_generated.h"
+
 namespace motis {
 namespace loader {
 
@@ -235,6 +237,18 @@ struct rule_service_route_builder {
 
     for (auto& entry : sections_) {
       write_trip_info(entry.first, entry.second);
+      verify(
+          [&entry] {
+            node const* pred_to = nullptr;
+            for (auto const& s : entry.second) {
+              if (pred_to != nullptr && pred_to != s->first.from_route_node_) {
+                return false;
+              }
+              pred_to = s->first.to_route_node_;
+            }
+            return true;
+          }(),
+          "rule service: route node ordering")
     }
   }
 
@@ -293,17 +307,100 @@ struct rule_service_route_builder {
     return lcons;
   }
 
+  node* find_to(std::set<service_section*>& visited,
+                std::vector<service_section*> const& sections, int i) const {
+    if (i >= static_cast<int>(sections.size()) || i < 0 ||
+        visited.find(sections[i]) != end(visited)) {
+      return nullptr;
+    }
+
+    auto const& s = sections[i];
+    visited.emplace(s);
+
+    if (s->first.to_route_node_ != nullptr) {
+      return s->first.to_route_node_;
+    }
+
+    auto const succ_from = find_from(visited, sections, i + 1);
+    if (succ_from != nullptr) {
+      return succ_from;
+    }
+
+    for (participant const& p : s->second) {
+      auto const& p_sections = sections_.at(p.service_);
+      auto const p_succ_from =
+          find_from(visited, p_sections, p.section_idx_ + 1);
+      if (p_succ_from) {
+        return p_succ_from;
+      }
+    }
+
+    return nullptr;
+  }
+
+  node* find_from(std::set<service_section*>& visited,
+                  std::vector<service_section*> const& sections, int i) const {
+    if (i >= static_cast<int>(sections.size()) || i < 0 ||
+        visited.find(sections[i]) != end(visited)) {
+      return nullptr;
+    }
+
+    auto const& s = sections[i];
+    visited.emplace(s);
+
+    if (s->first.from_route_node_ != nullptr) {
+      return s->first.from_route_node_;
+    }
+
+    auto const pred_to = find_to(visited, sections, i - 1);
+    if (pred_to != nullptr) {
+      return pred_to;
+    }
+
+    for (participant const& p : s->second) {
+      auto const& p_sections = sections_.at(p.service_);
+      auto const p_pred_to = find_to(visited, p_sections, p.section_idx_ - 1);
+      if (p_pred_to) {
+        return p_pred_to;
+      }
+    }
+
+    return nullptr;
+  }
+
   void build_route(Service const* s, std::vector<service_section*>& sections) {
-    assert(s->sections()->size() == sections.size());
-    assert(std::none_of(begin(sections), end(sections),
-                        [](service_section* ss) { return ss == nullptr; }));
-    assert(std::all_of(
-        begin(sections), end(sections), [&s, &sections](service_section* ss) {
-          auto is_curr = [&s](participant const& p) { return p.service_ == s; };
-          auto contains_curr = std::find_if(begin(ss->second), end(ss->second),
-                                            is_curr) != end(ss->second);
-          return contains_curr;
-        }));
+    verify(s->sections()->size() == sections.size(), "section count mismatch");
+    verify(std::none_of(begin(sections), end(sections),
+                        [](service_section* ss) { return ss == nullptr; }),
+           "every section created");
+    verify(std::all_of(begin(sections), end(sections),
+                       [&s](service_section const* ss) {
+                         auto is_curr = [&s](participant const& p) {
+                           return p.service_ == s;
+                         };
+                         auto contains_curr =
+                             std::find_if(begin(ss->second), end(ss->second),
+                                          is_curr) != end(ss->second);
+                         return contains_curr;
+                       }),
+           "every section contains participant");
+    verify(std::all_of(
+               begin(sections), end(sections),
+               [](service_section const* ss) {
+                 auto const get_from_to = [](participant const& p) {
+                   auto const stations = p.service_->route()->stations();
+                   auto const from = stations->Get(p.section_idx_);
+                   auto const to = stations->Get(p.section_idx_ + 1);
+                   return std::make_pair(from, to);
+                 };
+
+                 auto const ref = get_from_to(ss->second.front());
+                 return std::all_of(begin(ss->second), end(ss->second),
+                                    [&get_from_to, &ref](participant const& p) {
+                                      return get_from_to(p) == ref;
+                                    });
+               }),
+           "service section station mismatch");
 
     auto const& r = s->route();
     auto const& stops = r->stations();
@@ -318,20 +415,31 @@ struct rule_service_route_builder {
       auto from = section_idx;
       auto to = section_idx + 1;
 
-      bool is_first = section_idx == 0;
-      bool is_last = section_idx == stops->size() - 2;
-
-      auto prev_section = is_first ? route_section() : sections[i - 1]->first;
-      auto next_section = is_last ? route_section() : sections[i + 1]->first;
+      std::set<service_section *> v_from, v_to;  // visited sets
+      auto const from_route_node = find_from(v_from, sections, section_idx);
+      auto const to_route_node = find_to(v_to, sections, section_idx);
 
       sections[section_idx]->first = gb_.add_route_section(
           route_id_, build_connections(*sections[section_idx]),
           stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
           stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
-          prev_section, next_section);
-
-      assert(sections[section_idx]->first.is_valid());
+          from_route_node, to_route_node);
     }
+
+    verify(std::all_of(begin(sections), end(sections),
+                       [](auto&& s) { return s->first.is_valid(); }),
+           "all built sections are valid");
+    verify(
+        [&sections]() {
+          for (auto i = 0u; i < sections.size() - 1; ++i) {
+            if (sections[i]->first.to_route_node_ !=
+                sections[i + 1]->first.from_route_node_) {
+              return false;
+            }
+          }
+          return true;
+        }(),
+        "all sections: s[i].to = s[i + 1].from");
   }
 
   void write_trip_info(Service const* s,
@@ -341,8 +449,8 @@ struct rule_service_route_builder {
                  begin(sections), end(sections), [](service_section* section) {
                    return trip::route_edge(section->first.get_route_edge());
                  }));
-    auto edges = gb_.sched_.trip_edges_.back().get();
 
+    auto edges = gb_.sched_.trip_edges_.back().get();
     int lcon_idx = 0;
     for (int day_idx = first_day_; day_idx <= last_day_; ++day_idx) {
       if (traffic_days_.test(day_idx)) {

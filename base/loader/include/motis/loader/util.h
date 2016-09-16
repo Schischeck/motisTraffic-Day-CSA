@@ -72,7 +72,7 @@ inline It find_nth(It begin, It end, std::size_t n, Predicate fun) {
   while (it != end && num_elements_found != n) {
     it = std::find_if(it, end, fun);
     ++num_elements_found;
-    if (num_elements_found != n) {
+    if (it != end && num_elements_found != n) {
       ++it;
     }
   }

@@ -51,8 +51,11 @@ struct entry : public delay_info {
 };
 
 struct trip_corrector {
-  explicit trip_corrector(schedule& sched, ev_key const& k)
-      : sched_(sched), trip_ev_keys_(trip_bfs(k, bfs_direction::BOTH)) {}
+  explicit trip_corrector(schedule& sched, trip const* trp)
+      : sched_(sched),
+        trip_ev_keys_(trip_bfs(
+            ev_key{trp->edges_->front(), trp->lcon_idx_, event_type::DEP},
+            bfs_direction::BOTH)) {}
 
   std::vector<delay_info const*> fix_times() {
     set_min_max();

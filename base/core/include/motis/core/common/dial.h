@@ -25,7 +25,6 @@ public:
   inline void push(El&& el) {
     auto const dist = get_bucket_(el);
     assert(dist <= MaxBucket);
-    assert(dist >= current_bucket_);
 
     auto& bucket = buckets_[dist];
     if (Sort) {
@@ -34,6 +33,8 @@ public:
     } else {
       bucket.emplace_back(std::forward<El>(el));
     }
+
+    current_bucket_ = std::min(current_bucket_, dist);
 
     ++size_;
   }
