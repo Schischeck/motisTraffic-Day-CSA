@@ -50,6 +50,7 @@ target_link_libraries(routes-prepare
   ${ZLIB_LIBRARIES}
   expat
   motis-loader
+  motis-lib-geo
   conf
 )
 
