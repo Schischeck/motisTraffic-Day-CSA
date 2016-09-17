@@ -142,10 +142,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/core/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/loader/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/module/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/base/client/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/geo/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test/include)
 
 add_subdirectory(base/core EXCLUDE_FROM_ALL)
 add_subdirectory(base/loader EXCLUDE_FROM_ALL)
+add_subdirectory(lib/geo EXCLUDE_FROM_ALL)
 add_subdirectory(base/module EXCLUDE_FROM_ALL)
 
 file(GLOB all-modules RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/modules/*)
