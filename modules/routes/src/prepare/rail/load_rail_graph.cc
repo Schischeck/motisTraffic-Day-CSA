@@ -3,15 +3,15 @@
 #include <algorithm>
 #include <map>
 
-#include "motis/core/common/geo.h"
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/transform_to_vec.h"
 
 #include "motis/routes/prepare/osm_util.h"
-#include "motis/routes/prepare/rail/dump_rail_graph.h"
+#include "motis/routes/prepare/rail/geojson.h"
 
 using namespace motis::logging;
+using namespace motis::geo;
 
 namespace motis {
 namespace routes {
@@ -34,14 +34,6 @@ struct osm_rail_way {
   std::vector<osm_rail_node*> nodes_;
 };
 
-size_t polyline_length(std::vector<latlng> const& polyline) {
-  size_t length = 0;
-  for (auto i = 0u; i < polyline.size() - 1; ++i) {
-    length += geo_detail::distance_in_m(polyline[i], polyline[i + 1]);
-  }
-  return length;
-}
-
 struct rail_graph_loader {
   rail_graph_loader() {
     osm_nodes_.set_empty_key(std::numeric_limits<int64_t>::min());
@@ -56,7 +48,7 @@ struct rail_graph_loader {
     std::string crossover{"crossover"};
     std::vector<std::string> excluded_usages{"industrial", "military", "test",
                                              "tourism"};
-    std::vector<std::string> excluded_services{"yard", "spur"}; // , "siding"
+    std::vector<std::string> excluded_services{"yard", "spur"};  // , "siding"
 
     foreach_osm_way(osm_file, [&](auto&& way) {
       if (rail != way.get_value_by_key("railway", "")) {
@@ -75,7 +67,7 @@ struct rail_graph_loader {
         return;
       }
 
-      if(yes == way.get_value_by_key("railway:preserved", "")) {
+      if (yes == way.get_value_by_key("railway:preserved", "")) {
         return;
       }
 
@@ -146,7 +138,7 @@ struct rail_graph_loader {
     for (auto it = from; it != std::next(to); ++it) {
       polyline.emplace_back((*it)->pos_.lat_, (*it)->pos_.lng_);
     }
-    auto const dist = polyline_length(polyline);
+    auto const dist = length(polyline);
 
     auto& nodes = graph_.nodes_;
     auto from_node = map_get_or_create(graph_nodes_, (*from)->id_, [&]() {
@@ -174,7 +166,6 @@ struct rail_graph_loader {
   rail_graph graph_;
   hash_map<int64_t, rail_node*> graph_nodes_;
 };
-
 
 rail_graph load_rail_graph(std::string const& osm_file) {
   rail_graph_loader loader;
