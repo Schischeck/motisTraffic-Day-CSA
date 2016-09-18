@@ -9,8 +9,10 @@
 
 #include "motis/core/common/transform_to_vec.h"
 
+// TODO refactor this to user geo::latlng
+
 namespace motis {
-namespace routes {
+namespace geo {
 
 struct point_rtree {
   using cs = boost::geometry::cs::spherical_equatorial<boost::geometry::degree>;
@@ -85,5 +87,5 @@ point_rtree make_point_rtree(C const& container, F fun) {
       })}};
 }
 
-}  // namespace routes
+}  // namespace geo
 }  // namespace motis

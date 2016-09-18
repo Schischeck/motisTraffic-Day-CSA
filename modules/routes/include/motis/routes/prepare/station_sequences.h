@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "motis/core/common/geo.h"
+#include "motis/geo/latlng.h"
 
 namespace motis {
 
@@ -24,7 +24,7 @@ struct station_seq {
   }
 
   std::vector<std::string> station_ids_;
-  std::vector<latlng> coordinates_;
+  std::vector<geo::latlng> coordinates_;
 };
 
 std::vector<station_seq> load_station_sequences(motis::loader::Schedule const*);

@@ -6,13 +6,15 @@
 #include "conf/simple_config.h"
 #include "parser/file.h"
 
+#include "motis/geo/geojson.h"
+
 #include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
 #include "motis/routes/prepare/bus_stop_positions.h"
-#include "motis/routes/prepare/rel/match_connector.h"
-#include "motis/routes/prepare/rel/osm_relations.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
+#include "motis/routes/prepare/seq/seq_graph_builder.h"
+#include "motis/routes/prepare/seq/seq_graph_dijkstra.h"
 #include "motis/routes/prepare/station_sequences.h"
 
 #include "motis/routes/fbs/RoutesAuxiliary_generated.h"
@@ -25,6 +27,7 @@ using namespace parser;
 using namespace motis;
 using namespace motis::loader;
 using namespace motis::routes;
+using namespace motis::geo;
 
 struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
@@ -74,58 +77,68 @@ int main(int argc, char** argv) {
   auto const schedule = GetSchedule(schedule_buf.buf_);
 
   auto const sequences = load_station_sequences(schedule);
-
   auto const bus_stops = find_bus_stop_positions(schedule, opt.osm_);
 
-  auto relations = parse_relations(opt.osm_);
+  auto const rel_matches = match_osm_relations(opt.osm_, sequences, bus_stops);
 
-  auto const polylines = aggregate_polylines(relations.relations_);
+  // std::vector<match_seq> test_matches;
+  // station_seq seq;
 
-  auto matches = match_sequences(polylines, sequences, bus_stops);
+  // seq.station_ids_ = {"0", "1", "2", "3", "4", "5", "6"};
+  // seq.coordinates_ = {{1.0, 0.0}, {2.0, 0.0}, {3.0, 0.0}, {4.0, 0.0},
+  //                     {5.0, 0.0}, {6.0, 0.0}, {8.0, 0.0}};
 
-  std::vector<match_seq> test_matches;
-  station_seq seq;
+  // match_seq m1, m2, m3;
+  // m1.polyline_.emplace_back(1.0, 0.0);
+  // m1.polyline_.emplace_back(2.0, 0.0);
+  // m1.polyline_.emplace_back(3.0, 0.0);
 
-  seq.station_ids_ = {"0", "1", "2", "3", "4", "5", "6"};
-  seq.coordinates_ = {{1.0, 0.0}, {2.0, 0.0}, {3.0, 0.0}, {4.0, 0.0},
-                      {5.0, 0.0}, {6.0, 0.0}, {8.0, 0.0}};
+  // m1.stations_.emplace_back(0, 0);
+  // m1.stations_.emplace_back(1, 1);
+  // m1.stations_.emplace_back(2, 2);
+  // test_matches.push_back(m1);
 
-  match_seq m1, m2, m3;
-  m1.polyline_.emplace_back(1.0, 0.0);
-  m1.polyline_.emplace_back(2.0, 0.0);
-  m1.polyline_.emplace_back(3.0, 0.0);
+  // m3.polyline_.emplace_back(6.0, 0.0);
+  // m3.polyline_.emplace_back(7.0, 0.0);
+  // m3.stations_.emplace_back(4, 0);
+  // m3.stations_.emplace_back(5, 1);
+  // test_matches.push_back(m3);
 
-  m1.stations_.emplace_back(0, 0);
-  m1.stations_.emplace_back(1, 1);
-  m1.stations_.emplace_back(2, 2);
-  test_matches.push_back(m1);
+  // m2.polyline_.emplace_back(4.0, 1.0);
+  // m2.polyline_.emplace_back(5.0, 1.0);
 
-  m3.polyline_.emplace_back(6.0, 0.0);
-  m3.polyline_.emplace_back(7.0, 0.0);
-  m3.stations_.emplace_back(4, 0);
-  m3.stations_.emplace_back(5, 1);
-  test_matches.push_back(m3);
-
-  m2.polyline_.emplace_back(4.0, 1.0);
-  m2.polyline_.emplace_back(5.0, 1.0);
-
-  m2.stations_.emplace_back(2, 0);
-  m2.stations_.emplace_back(3, 1);
-  test_matches.push_back(m2);
+  // m2.stations_.emplace_back(2, 0);
+  // m2.stations_.emplace_back(3, 1);
+  // test_matches.push_back(m2);
 
   //  build_graph(seq, test_matches);
   //  connect_matches(sequences, matches);
-  build_graph(sequences[1792], matches[1792]);
 
-  std::vector<std::vector<latlng>> output;
-  for (auto const& match : matches) {
+  std::vector<polyline> output;
+  for (auto const& match : rel_matches) {
     for (auto const& m : match) {
       output.push_back(m.polyline_);
     }
   }
-  write_geojson(output);
+  dump_polylines(output);
 
-  // do_something(opt.osm_);
+  auto seq_graph = build_seq_graph(sequences[1792], rel_matches[1792]);
+
+  for (auto& node : seq_graph.nodes_) {
+    std::cout << "\n"
+              << "station " << node->station_ << " " << node->idx_ << " : ";
+    for (auto const& edge : node->edges_) {
+      std::cout << edge.from_->station_ << "|" << edge.to_->station_ << " ";
+    }
+  }
+
+  seq_graph_dijkstra dijkstra(seq_graph, {2}, {7});
+  dijkstra.run();
+  std::vector<latlng> polyline;
+
+  for (auto const& e : dijkstra.get_links(7)) {
+    std::cout << "\n" << e->from_->station_ << "|" << e->to_->station_;
+  }
 
   //  flatbuffers::FlatBufferBuilder fbb;
   //  fbb.Finish(

@@ -1,6 +1,12 @@
 #include "motis/routes/prepare/rel/polyline_aggregator.h"
 
+#include <iostream>
 #include <limits>
+#include <set>
+
+#include "boost/optional.hpp"
+
+using namespace motis::geo;
 
 namespace motis {
 namespace routes {
@@ -16,7 +22,7 @@ std::vector<std::vector<double>> distance_matrix(
       return kIdentity;
     }
 
-    double const dist = geo_detail::distance_in_m(from.pos_, to.pos_);
+    double const dist = geo::distance(from.pos_, to.pos_);
     if (dist < kMaxFuzzyDistance) {
       return dist;
     }

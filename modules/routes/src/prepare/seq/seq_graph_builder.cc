@@ -1,40 +1,11 @@
-#include "motis/routes/prepare/rel/match_connector.h"
+#include "motis/routes/prepare/seq/seq_graph_builder.h"
 
-#include "motis/routes/prepare/rel/seq_graph_dijkstra.h"
+using namespace motis::geo;
 
 namespace motis {
 namespace routes {
 
-void build_graph(station_seq const& seq, std::vector<match_seq>& matches) {
-
-  seq_graph g;
-
-  g.station_to_nodes_.resize(seq.station_ids_.size());
-
-  create_nodes(g, matches);
-
-  create_unmatched_nodes(g, seq);
-
-  create_edges(g);
-
-  for (auto& node : g.nodes_) {
-    std::cout << "\n"
-              << "station " << node->station_ << " " << node->idx_ << " : ";
-    for (auto const& edge : node->edges_) {
-      std::cout << edge.from_->station_ << "|" << edge.to_->station_ << " ";
-    }
-  }
-
-  seq_graph_dijkstra dijkstra(g, {2}, {7});
-  dijkstra.run();
-  std::vector<latlng> polyline;
-
-  for (auto const& e : dijkstra.get_links(7)) {
-    std::cout << "\n" << e->from_->station_ << "|" << e->to_->station_;
-  }
-}
-
-void create_nodes(seq_graph& g, std::vector<match_seq>& matches) {
+void create_nodes(seq_graph& g, std::vector<match_seq> const& matches) {
   auto offset = 0;
   for (auto i = 0u; i < matches.size(); i++) {
     offset = g.nodes_.size();
@@ -78,13 +49,8 @@ void create_unmatched_nodes(seq_graph& g, station_seq const& seq) {
   }
 }
 
-void create_edges(seq_graph& g) {
-  for (auto i = 0u; i < g.station_to_nodes_.size(); i++) {
-    connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i]);
-    if (i < g.station_to_nodes_.size() - 1) {
-      connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i + 1]);
-    }
-  }
+std::vector<latlng> find_route(latlng const& p1, latlng const& p2) {
+  return {p1, p2};
 }
 
 void connect_nodes(std::vector<station_p*>& station1,
@@ -103,35 +69,30 @@ void connect_nodes(std::vector<station_p*>& station1,
       }
 
       std::vector<latlng> polyline = find_route(n1->coords_, n2->coords_);
-      n1->edges_.emplace_back(n1, n2, polyline, 0, 2, calc_weight(polyline));
+      n1->edges_.emplace_back(n1, n2, polyline, 0, 2, length(polyline));
     }
   }
 }
 
-float calc_weight(std::vector<latlng> const& polyline) {
-  auto weight = 0;
-  for (auto i = 0u; i < polyline.size(); i++) {
-    if (i > 0) {
-      weight += geo_detail::distance_in_m(polyline[i - 1], polyline[i]);
+void create_edges(seq_graph& g) {
+  for (auto i = 0u; i < g.station_to_nodes_.size(); i++) {
+    connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i]);
+    if (i < g.station_to_nodes_.size() - 1) {
+      connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i + 1]);
     }
   }
-  return weight;
 }
 
-std::vector<latlng> find_route(latlng const& p1, latlng const& p2) {
-  return {p1, p2};
-}
+seq_graph build_seq_graph(station_seq const& seq,
+                          std::vector<match_seq> const& matches) {
+  seq_graph g;
+  g.station_to_nodes_.resize(seq.station_ids_.size());
 
-void connect_matches(std::vector<station_seq> const& sequences,
-                     std::vector<std::vector<match_seq>>& matches) {
-  for (auto i = 0u; i < sequences.size(); i++) {
-    if (matches[i].empty()) {
-      continue;
-    }
-    std::cout << "\n"
-              << "Sequence " << i;
-    build_graph(sequences[i], matches[i]);
-  }
+  create_nodes(g, matches);
+  create_unmatched_nodes(g, seq);
+  create_edges(g);
+
+  return g;
 }
 
 }  // namespace motis

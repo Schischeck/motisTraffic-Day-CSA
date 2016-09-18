@@ -1,14 +1,14 @@
 #pragma once
 
-#include "motis/core/common/geo.h"
+#include "motis/geo/polyline.h"
 
 #include "motis/routes/prepare/rel/relation_parser.h"
 
 namespace motis {
 namespace routes {
 
-std::vector<std::vector<latlng>> aggregate_polylines(
-    std::vector<relation> relations);
+std::vector<geo::polyline> aggregate_polylines(
+    std::vector<relation> /* COPY! */);
 
 }  // namespace routes
 }  // namespace motis

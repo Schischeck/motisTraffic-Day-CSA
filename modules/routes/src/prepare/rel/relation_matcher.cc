@@ -1,6 +1,11 @@
 #include "motis/routes/prepare/rel/relation_matcher.h"
 
+#include "motis/routes/prepare/rel/relation_parser.h"
+#include "motis/routes/prepare/rel/polyline_aggregator.h"
+
 #include "motis/core/common/logging.h"
+
+using namespace motis::geo;
 
 namespace motis {
 namespace routes {
@@ -91,6 +96,17 @@ void try_add_match(long first, long last, std::vector<latlng> const& polyline,
   matches.emplace_back(std::move(match));
   stations.clear();
 }
+
+std::vector<std::vector<match_seq>> match_osm_relations(
+    std::string const& osm_file, std::vector<station_seq> const& sequences,
+    std::map<std::string, std::vector<geo::latlng>> const&
+        additional_stop_positions) {
+  auto const relations = parse_relations(osm_file);
+  auto const polylines = aggregate_polylines(relations.relations_);
+
+  return match_sequences(polylines, sequences, additional_stop_positions);
+};
+
 
 }  // namespace motis
 }  // namespace routes

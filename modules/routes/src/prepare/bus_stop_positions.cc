@@ -2,8 +2,11 @@
 
 #include <iostream>
 
+#include "motis/geo/point_rtree.h"
+
 #include "motis/routes/prepare/osm_util.h"
-#include "motis/routes/prepare/point_rtree.h"
+
+using namespace motis::geo;
 
 namespace motis {
 namespace routes {

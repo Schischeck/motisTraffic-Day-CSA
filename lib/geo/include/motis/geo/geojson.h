@@ -1,21 +1,17 @@
 #pragma once
 
-#include "motis/routes/prepare/rel/polyline_aggregator.h"
-#include "motis/routes/prepare/rel/relation_parser.h"
-
-#include "motis/core/common/logging.h"
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/writer.h"
 
-using namespace rapidjson;
+#include "motis/geo/polyline.h"
 
 namespace motis {
-namespace routes {
+namespace geo {
 
-inline void write_geojson(std::vector<std::vector<latlng>> const& polylines) {
-  logging::scoped_timer("Exporting geojson");
-  FILE* fp = std::fopen("geo.json", "w");
+inline void dump_polylines(std::vector<polyline> const& polylines,
+                           const char* filename = "polylines.json") {
+  FILE* fp = std::fopen(filename, "w");
   char writeBuffer[65536];
 
   rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
@@ -49,14 +45,5 @@ inline void write_geojson(std::vector<std::vector<latlng>> const& polylines) {
   w.EndObject();
 }
 
-inline void do_something(std::string const& osm_file) {
-
-  auto relations = parse_relations(osm_file);
-
-  auto polylines = aggregate_polylines(relations.relations_);
-
-  write_geojson(polylines);
-}
-
-}  // namespace routes
+}  // namespace geo
 }  // namespace motis

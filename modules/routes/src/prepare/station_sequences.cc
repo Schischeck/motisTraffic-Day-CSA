@@ -4,8 +4,6 @@
 
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
-#include "motis/core/common/geo.h"
-
 #include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {

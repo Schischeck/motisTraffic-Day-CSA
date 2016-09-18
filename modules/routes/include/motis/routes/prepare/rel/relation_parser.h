@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "motis/core/common/geo.h"
+#include "motis/geo/latlng.h"
 
 namespace motis {
 namespace routes {
@@ -16,7 +16,7 @@ struct node {
 
   int64_t id_;
   bool resolved_;
-  latlng pos_;
+  geo::latlng pos_;
 };
 
 struct way {

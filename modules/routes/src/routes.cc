@@ -18,6 +18,7 @@ using namespace parser;
 using namespace motis::module;
 using namespace motis::osrm;
 using namespace motis::access;
+using namespace motis::geo;
 
 namespace motis {
 namespace routes {
