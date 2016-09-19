@@ -192,7 +192,7 @@ private:
 
   bool dominated_by_results(Label* label) {
     for (auto const& result : results_) {
-      if (result->dominates(*label)) {
+      if (result->dominates_terminal(*label)) {
         return true;
       }
     }

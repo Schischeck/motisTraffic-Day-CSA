@@ -251,10 +251,31 @@ int main(int argc, char* argv[]) {
     std::get<2>(pending_msgs[r2->id()]) = r2;
 
     for (auto const i : {q->id(), r1->id(), r2->id()}) {
-      if (analyze_result(i, pending_msgs[i], failed_queries, stats)) {
-        pending_msgs.erase(i);
-        break;
+      auto const it = pending_msgs.find(i);
+      if (it == end(pending_msgs)) {
+        continue;
       }
+
+      if (analyze_result(i, pending_msgs.at(i), failed_queries, stats)) {
+        pending_msgs.erase(i);
+      }
+    }
+  }
+
+  if (!pending_msgs.empty()) {
+    std::cout << "warning: " << pending_msgs.size()
+              << " unmatched queries/responses:\n";
+    for (auto const& m : pending_msgs) {
+      auto const& id = m.first;
+      auto const& v = m.second;
+
+      std::cout << "  id=" << id << ": "  //
+                << "query_set=" << std::boolalpha
+                << static_cast<bool>(std::get<0>(v)) << " "
+                << "res1_set=" << std::boolalpha
+                << static_cast<bool>(std::get<1>(v)) << " "
+                << "res2_set=" << std::boolalpha
+                << static_cast<bool>(std::get<2>(v)) << "\n";
     }
   }
 
@@ -263,3 +284,4 @@ int main(int argc, char* argv[]) {
             << "  #errors  = " << stats.mismatches_ << "/" << stats.total()
             << "\n";
 }
+
