@@ -35,27 +35,22 @@ struct label : public Data {
       return false;
     }
 
-    if (no_cost) {
-      l = *this;
-      l.pred_ = this;
-      l.edge_ = &e;
-      l.connection_ = nullptr;
-      return true;
-    } else {
-      auto ec = e.template get_edge_cost<Dir>(now_, connection_);
-      if (!ec.is_valid()) {
-        return false;
-      }
-
-      l = *this;
-      l.pred_ = this;
-      l.edge_ = &e;
-      l.connection_ = ec.connection_;
-      l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
-
-      Updater::update(l, ec, lb);
-      return !l.is_filtered();
+    auto ec = e.template get_edge_cost<Dir>(now_, connection_);
+    if (!ec.is_valid()) {
+      return false;
     }
+    if (no_cost) {
+      ec.time_ = 0;
+    }
+
+    l = *this;
+    l.pred_ = this;
+    l.edge_ = &e;
+    l.connection_ = ec.connection_;
+    l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
+
+    Updater::update(l, ec, lb);
+    return !l.is_filtered();
   }
 
   inline bool is_filtered() { return Filter::is_filtered(*this); }
