@@ -176,8 +176,8 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
     add_departure(mc, req, start.pos_, std::bind(appender, start_node, _1, _2));
     add_arrival(mc, req, end_pos, std::bind(appender, _1, end_node, _2));
   } else {
-    add_departure(mc, req, end_pos, std::bind(appender, _1, start_node, _2));
-    add_arrival(mc, req, start.pos_, std::bind(appender, end_node, _1, _2));
+    add_departure(mc, req, start.pos_, std::bind(appender, _1, start_node, _2));
+    add_arrival(mc, req, end_pos, std::bind(appender, end_node, _1, _2));
   }
 
   mc.create_and_finish(
