@@ -1,7 +1,7 @@
 #include "motis/routes/prepare/rel/relation_matcher.h"
 
-#include "motis/routes/prepare/rel/relation_parser.h"
 #include "motis/routes/prepare/rel/polyline_aggregator.h"
+#include "motis/routes/prepare/rel/relation_parser.h"
 
 #include "motis/core/common/logging.h"
 
@@ -10,23 +10,19 @@ using namespace motis::geo;
 namespace motis {
 namespace routes {
 
-std::vector<std::vector<match_seq>> match_sequences(
-    std::vector<std::vector<latlng>> const& polylines,
-    std::vector<station_seq> const& sequences,
-    std::map<std::string, std::vector<latlng>> const& bus_stops) {
-  std::vector<std::vector<match_seq>> result(sequences.size());
-
-  for (auto const& polyline : polylines) {
-    auto rtree = make_point_rtree(polyline, [&](auto&& c) {
-      return point_rtree::point{c.lng_, c.lat_};
-    });
-    for (auto i = 0u; i < sequences.size(); ++i) {
-      auto matches =
-          matches_on_seq(sequences[i], rtree, polyline, bus_stops, 100);
-      result[i].insert(end(result[i]), begin(matches), end(matches));
-    }
+void try_add_match(long first, long last, std::vector<latlng> const& polyline,
+                   std::vector<std::pair<size_t, size_t>>& stations,
+                   std::vector<match_seq>& matches) {
+  if (stations.size() < 2) {
+    stations.clear();
+    return;
   }
-  return result;
+  match_seq match;
+  match.stations_ = stations;
+  match.polyline_.insert(begin(match.polyline_), begin(polyline) + first,
+                         begin(polyline) + last + 1);
+  matches.emplace_back(std::move(match));
+  stations.clear();
 }
 
 std::vector<match_seq> matches_on_seq(
@@ -57,7 +53,7 @@ std::vector<match_seq> matches_on_seq(
     }
 
     if (close_nodes.empty()) {
-      try_add_match(first, last, polyline, stations, false, matches);
+      try_add_match(first, last, polyline, stations, matches);
       first = -1;
       continue;
     }
@@ -74,27 +70,30 @@ std::vector<match_seq> matches_on_seq(
     last = node;
 
     if (i == seq.coordinates_.size() - 1 && stations.size() == i) {
-      try_add_match(first, last, polyline, stations, true, matches);
+      try_add_match(first, last, polyline, stations, matches);
     }
   }
 
   return matches;
 }
 
-void try_add_match(long first, long last, std::vector<latlng> const& polyline,
-                   std::vector<std::pair<size_t, size_t>>& stations,
-                   bool full_match, std::vector<match_seq>& matches) {
-  if (stations.size() < 2) {
-    stations.clear();
-    return;
+std::vector<std::vector<match_seq>> match_sequences(
+    std::vector<std::vector<latlng>> const& polylines,
+    std::vector<station_seq> const& sequences,
+    std::map<std::string, std::vector<latlng>> const& bus_stops) {
+  std::vector<std::vector<match_seq>> result(sequences.size());
+
+  for (auto const& polyline : polylines) {
+    auto rtree = make_point_rtree(polyline, [&](auto&& c) {
+      return point_rtree::point{c.lng_, c.lat_};
+    });
+    for (auto i = 0u; i < sequences.size(); ++i) {
+      auto matches =
+          matches_on_seq(sequences[i], rtree, polyline, bus_stops, 100);
+      result[i].insert(end(result[i]), begin(matches), end(matches));
+    }
   }
-  match_seq match;
-  match.stations_ = stations;
-  match.polyline_.insert(begin(match.polyline_), begin(polyline) + first,
-                         begin(polyline) + last + 1);
-  match.full_match_ = full_match;
-  matches.emplace_back(std::move(match));
-  stations.clear();
+  return result;
 }
 
 std::vector<std::vector<match_seq>> match_osm_relations(
@@ -106,7 +105,6 @@ std::vector<std::vector<match_seq>> match_osm_relations(
 
   return match_sequences(polylines, sequences, additional_stop_positions);
 };
-
 
 }  // namespace motis
 }  // namespace routes

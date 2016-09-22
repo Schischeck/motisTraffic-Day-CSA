@@ -1,6 +1,7 @@
 #pragma once
 
 #include "motis/routes/prepare/rel/relation_matcher.h"
+#include "motis/routes/prepare/seq/routing_strategy.h"
 #include "motis/routes/prepare/seq/seq_graph.h"
 #include "motis/routes/prepare/station_sequences.h"
 

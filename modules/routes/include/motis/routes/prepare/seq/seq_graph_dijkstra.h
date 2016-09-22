@@ -49,7 +49,7 @@ struct seq_graph_dijkstra {
 
       auto const& node = graph_.nodes_[this_idx];
       for (auto const& link : node->edges_) {
-        size_t const new_dist = label.dist_ + link.length_;
+        size_t const new_dist = label.dist_ + link.weight_;
         size_t const to_idx = link.to_->idx_;
         if (new_dist < dists_[to_idx]) {
           dists_[to_idx] = new_dist;

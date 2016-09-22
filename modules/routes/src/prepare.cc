@@ -77,68 +77,69 @@ int main(int argc, char** argv) {
   auto const schedule = GetSchedule(schedule_buf.buf_);
 
   auto const sequences = load_station_sequences(schedule);
+
   auto const bus_stops = find_bus_stop_positions(schedule, opt.osm_);
 
   auto const rel_matches = match_osm_relations(opt.osm_, sequences, bus_stops);
 
-  // std::vector<match_seq> test_matches;
-  // station_seq seq;
-
-  // seq.station_ids_ = {"0", "1", "2", "3", "4", "5", "6"};
-  // seq.coordinates_ = {{1.0, 0.0}, {2.0, 0.0}, {3.0, 0.0}, {4.0, 0.0},
-  //                     {5.0, 0.0}, {6.0, 0.0}, {8.0, 0.0}};
-
-  // match_seq m1, m2, m3;
-  // m1.polyline_.emplace_back(1.0, 0.0);
-  // m1.polyline_.emplace_back(2.0, 0.0);
-  // m1.polyline_.emplace_back(3.0, 0.0);
-
-  // m1.stations_.emplace_back(0, 0);
-  // m1.stations_.emplace_back(1, 1);
-  // m1.stations_.emplace_back(2, 2);
-  // test_matches.push_back(m1);
-
-  // m3.polyline_.emplace_back(6.0, 0.0);
-  // m3.polyline_.emplace_back(7.0, 0.0);
-  // m3.stations_.emplace_back(4, 0);
-  // m3.stations_.emplace_back(5, 1);
-  // test_matches.push_back(m3);
-
-  // m2.polyline_.emplace_back(4.0, 1.0);
-  // m2.polyline_.emplace_back(5.0, 1.0);
-
-  // m2.stations_.emplace_back(2, 0);
-  // m2.stations_.emplace_back(3, 1);
-  // test_matches.push_back(m2);
-
-  //  build_graph(seq, test_matches);
-  //  connect_matches(sequences, matches);
-
-  std::vector<polyline> output;
-  for (auto const& match : rel_matches) {
-    for (auto const& m : match) {
-      output.push_back(m.polyline_);
-    }
-  }
-  dump_polylines(output);
-
-  auto seq_graph = build_seq_graph(sequences[1792], rel_matches[1792]);
-
-  for (auto& node : seq_graph.nodes_) {
-    std::cout << "\n"
-              << "station " << node->station_ << " " << node->idx_ << " : ";
-    for (auto const& edge : node->edges_) {
-      std::cout << edge.from_->station_ << "|" << edge.to_->station_ << " ";
+  for (auto i = 0u; i < rel_matches.size(); i++) {
+    if (rel_matches[i].size() > 1) {
+      std::cout << i << "|";
     }
   }
 
-  seq_graph_dijkstra dijkstra(seq_graph, {2}, {7});
+  //  auto const& g = build_seq_graph(sequences[26344], rel_matches[26344]);
+  //  auto const& g = build_seq_graph(sequences[26346], rel_matches[26346]);
+  auto const& g = build_seq_graph(sequences[26395], rel_matches[26395]);
+
+  std::cout << "\n Graph Nodes:" << g.nodes_.size();
+  std::cout << "\n Station Seq:" << sequences[26395].station_ids_.size();
+  std::cout << "\n Station to Node: " << g.station_to_nodes_.size();
+
+  auto index = 0;
+  for (auto const& s : g.station_to_nodes_) {
+    std::cout << "\nStation " << index << "|"
+              << sequences[26395].coordinates_[index].lat_ << ","
+              << sequences[26395].coordinates_[index].lng_ << ":";
+    for (auto const& n : s) {
+      std::cout << n->idx_;
+      for (auto const& edge : n->edges_) {
+        std::cout << "(" << edge.from_->idx_ << "|" << edge.to_->idx_
+                  << "|w:" << edge.weight_ << ") ";
+      }
+    }
+    index++;
+  }
+
+  std::cout << "\n Goals:";
+
+  for (auto const& n : g.goals_) {
+    std::cout << n << " ";
+  }
+
+  std::cout << "\n Inits:";
+
+  for (auto const& n : g.initials_) {
+    std::cout << n << " ";
+  }
+
+  seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
+  std::vector<std::vector<geo::latlng>> polylines;
   dijkstra.run();
-  std::vector<latlng> polyline;
-
-  for (auto const& e : dijkstra.get_links(7)) {
-    std::cout << "\n" << e->from_->station_ << "|" << e->to_->station_;
+  for (auto const& goal : g.goals_) {
+    std::vector<geo::latlng> line;
+    for (auto const& edge : dijkstra.get_links(goal)) {
+      std::cout << "\n"
+                << edge->from_->idx_ << "|" << edge->to_->idx_
+                << "|w:" << edge->weight_;
+      for (auto const& p : edge->p_) {
+        line.push_back(p);
+      }
+    }
+    polylines.push_back(line);
   }
+
+  dump_polylines(polylines);
 
   //  flatbuffers::FlatBufferBuilder fbb;
   //  fbb.Finish(

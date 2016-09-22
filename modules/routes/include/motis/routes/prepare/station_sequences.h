@@ -1,5 +1,6 @@
 #pragma once
 
+#include <set>
 #include <vector>
 
 #include "motis/geo/latlng.h"
@@ -25,6 +26,7 @@ struct station_seq {
 
   std::vector<std::string> station_ids_;
   std::vector<geo::latlng> coordinates_;
+  std::set<int> categories_;
 };
 
 std::vector<station_seq> load_station_sequences(motis::loader::Schedule const*);

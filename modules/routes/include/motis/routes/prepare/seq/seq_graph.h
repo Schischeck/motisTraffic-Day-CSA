@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "motis/geo/latlng.h"
 #include "motis/geo/polyline.h"
@@ -25,24 +25,19 @@ struct station_p {
 
 struct poly_edge {
 
-  poly_edge(station_p* from, station_p* to, geo::polyline p, int offset,
-            int length, float weight)
-      : from_(from),
-        to_(to),
-        p_(p),
-        offset_(offset),
-        length_(length),
-        weight_(weight){};
+  poly_edge(station_p* from, station_p* to, geo::polyline p, float weight)
+      : from_(from), to_(to), p_(p), weight_(weight){};
 
   station_p* from_;
   station_p* to_;
   geo::polyline p_;
-  int offset_;
-  int length_;
   float weight_;
 };
 
 struct seq_graph {
+  std::vector<std::size_t> initials_;
+  std::vector<std::size_t> goals_;
+  std::vector<node_ref> node_refs_;
   std::vector<std::unique_ptr<station_p>> nodes_;
   std::vector<std::vector<station_p*>> station_to_nodes_;
 };
