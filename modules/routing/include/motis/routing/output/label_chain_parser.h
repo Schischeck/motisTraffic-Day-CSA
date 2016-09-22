@@ -212,7 +212,10 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
 
             walk_arrival_di.get_reason(), walk_arrival_di.get_reason(),
 
-            last_con != nullptr);
+            last_con != nullptr &&
+                std::any_of(it, end(labels), [](Label const& l) {
+                  return l.edge_->type() == edge::ROUTE_EDGE;
+                }));
 
         transports.emplace_back(stop_index,
                                 static_cast<unsigned int>(stop_index) + 1,
