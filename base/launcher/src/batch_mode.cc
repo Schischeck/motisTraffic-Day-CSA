@@ -29,8 +29,7 @@ public:
       : ios_(ios),
         receiver_(receiver),
         in_(input_file_path),
-        out_(output_file_path),
-        next_query_id_(0) {
+        out_(output_file_path) {
     in_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   }
