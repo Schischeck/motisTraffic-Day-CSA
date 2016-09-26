@@ -24,7 +24,6 @@ parsed_relations parse_relations(std::string const& osm_file_) {
                                   "train",  "tram", "light_rail"};
 
   foreach_osm_relation(osm_file_, [&](auto&& relation) {
-    if (relation.id() != 4266219) return;
     auto const type = relation.get_value_by_key("type", "");
     if (std::none_of(begin(types), end(types),
                      [&](auto&& t) { return t == type; })) {

@@ -9,7 +9,7 @@ namespace routes {
 
 struct seq_graph_dijkstra {
   struct label {
-    label(size_t const idx, size_t const dist, poly_edge const* link)
+    label(size_t const idx, size_t const dist, seq_edge const* link)
         : idx_(idx), dist_(dist), link_(link) {}
 
     friend bool operator>(label const& a, label const& b) {
@@ -17,7 +17,7 @@ struct seq_graph_dijkstra {
     }
 
     size_t idx_, dist_;
-    poly_edge const* link_;
+    seq_edge const* link_;
   };
 
   seq_graph_dijkstra(seq_graph const& graph, std::vector<size_t> initial,
@@ -60,8 +60,8 @@ struct seq_graph_dijkstra {
     }
   }
 
-  std::vector<poly_edge const*> get_links(size_t const goal) const {
-    std::vector<poly_edge const*> result;
+  std::vector<seq_edge const*> get_links(size_t const goal) const {
+    std::vector<seq_edge const*> result;
 
     auto link = links_[goal];
     while (link != nullptr) {
@@ -79,7 +79,7 @@ struct seq_graph_dijkstra {
   std::priority_queue<label, std::vector<label>, std::greater<label>> pq_;
 
   std::vector<size_t> dists_;
-  std::vector<poly_edge const*> links_;
+  std::vector<seq_edge const*> links_;
 
   std::vector<size_t> goals_;
   std::vector<size_t> open_goals_;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "motis/geo/latlng.h"
 #include "motis/geo/polyline.h"
 
@@ -7,7 +9,10 @@ namespace motis {
 namespace routes {
 
 struct node_ref {
+  static constexpr auto kInvalidRef = std::numeric_limits<size_t>::max();
+
   node_ref() = default;
+  explicit node_ref(geo::latlng coords) : node_ref(coords, kInvalidRef) {}
   node_ref(geo::latlng coords, size_t id) : coords_(coords), id_(id) {}
 
   geo::latlng coords_;
@@ -34,11 +39,9 @@ struct stub_routing : routing_strategy {
 
   virtual std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
-
     std::vector<std::vector<routing_result>> result;
 
     for (auto const& f : from) {
-
       std::vector<routing_result> from_result;
 
       for (auto const& t : to) {
