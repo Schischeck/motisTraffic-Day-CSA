@@ -9,7 +9,7 @@
 
 #include "motis/core/common/transform_to_vec.h"
 
-// TODO refactor this to user geo::latlng
+// TODO refactor this to use geo::latlng
 
 namespace motis {
 namespace geo {
@@ -29,13 +29,10 @@ struct point_rtree {
 
   explicit point_rtree(rtree_t rtree) : rtree_(std::move(rtree)) {}
 
-  std::vector<size_t> in_radius(double lat, double lng,
-                                double max_radius) const {
-    return in_radius(lat, lng, 0, max_radius);
-  }
+  std::vector<std::pair<double, size_t>> in_radius_with_distance(
+      double const lat, double const lng, double const min_radius,
+      double const max_radius) const {
 
-  std::vector<size_t> in_radius(double lat, double lng, double min_radius,
-                                double max_radius) const {
     auto const query_point = point{lng, lat};
 
     std::vector<std::pair<double, size_t>> results;
@@ -50,7 +47,25 @@ struct point_rtree {
                  }));
 
     std::sort(begin(results), end(results));
-    return transform_to_vec(results, [](auto&& r) { return r.second; });
+    return results;
+  }
+
+  std::vector<std::pair<double, size_t>> in_radius_with_distance(
+      double const lat, double const lng, double const max_radius) const {
+    return in_radius_with_distance(lat, lng, 0, max_radius);
+  }
+
+  std::vector<size_t> in_radius(double const lat, double const lng,
+                                double const min_radius,
+                                double const max_radius) const {
+    return transform_to_vec(
+        in_radius_with_distance(lat, lng, min_radius, max_radius),
+        [](auto&& r) { return r.second; });
+  }
+
+  std::vector<size_t> in_radius(double const lat, double const lng,
+                                double const max_radius) const {
+    return in_radius(lat, lng, 0, max_radius);
   }
 
 private:

@@ -3,7 +3,7 @@
 #include "boost/geometry.hpp"
 
 #include "motis/geo/constants.h"
-#include "motis/geo/detail/register.h"
+#include "motis/geo/detail/register_latlng.h"
 
 namespace motis {
 namespace geo {
