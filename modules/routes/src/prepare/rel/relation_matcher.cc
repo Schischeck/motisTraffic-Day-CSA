@@ -1,7 +1,10 @@
 #include "motis/routes/prepare/rel/relation_matcher.h"
 
+#include <mutex>
+
 #include "motis/core/common/logging.h"
 
+#include "motis/routes/prepare/parallel_for.h"
 #include "motis/routes/prepare/rel/polyline_aggregator.h"
 #include "motis/routes/prepare/rel/relation_parser.h"
 #include "motis/routes/prepare/vector_utils.h"
@@ -85,16 +88,22 @@ std::vector<std::vector<match_seq>> match_sequences(
     std::map<std::string, std::vector<latlng>> const& bus_stops) {
   std::vector<std::vector<match_seq>> result(sequences.size());
 
-  for (auto const& polyline : polylines) {
+  std::mutex m;
+  parallel_for("match_polyline", polylines, 250, [&](auto const& polyline) {
     auto rtree = make_point_rtree(polyline, [&](auto&& c) {
       return point_rtree::point{c.lng_, c.lat_};
     });
-    for (auto i = 0u; i < sequences.size(); ++i) {
-      auto matches =
-          matches_on_seq(sequences[i], rtree, polyline, bus_stops, 200);
-      result[i].insert(end(result[i]), begin(matches), end(matches));
+
+    auto const matches = transform_to_vec(sequences, [&](auto const& seq) {
+      return matches_on_seq(seq, rtree, polyline, bus_stops, 200);
+    });
+
+    std::lock_guard<std::mutex> lock(m);
+    for (auto i = 0u; i < matches.size(); ++i) {
+      append(result[i], matches[i]);
     }
-  }
+  });
+
   return result;
 }
 

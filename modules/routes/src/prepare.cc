@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
-  auto const bus_stops = find_bus_stop_positions(schedule, opt.osm_);
+  auto const stop_positions = find_bus_stop_positions(schedule, opt.osm_);
 
   auto sequences = load_station_sequences(schedule);
 
@@ -97,23 +97,22 @@ int main(int argc, char** argv) {
               return true;
             }
 
-            if (std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
-                            [&](auto const& coord) {
-                              return !within(coord, extent_polygon);
-                            })) {
-              return true;
-            }
-
-            if (!(seq.station_ids_.front() == "8000068" ||
-                  seq.station_ids_.back() == "8000068")) {
-              return true;
-            }
+            // if (std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
+            //                 [&](auto const& coord) {
+            //                   return !within(coord, extent_polygon);
+            //                 })) {
+            //   return true;
+            // }
 
             return false;
           }),
       end(sequences));
 
-  auto const rel_matches = match_osm_relations(opt.osm_, sequences, bus_stops);
+  auto const rel_matches =
+      match_osm_relations(opt.osm_, sequences, stop_positions);
+
+  flatbuffers::FlatBufferBuilder fbb;
+  std::vector<flatbuffers::Offset<motis::routes::Route>> fbs_routes;
 
   for (auto i = 0u; i < sequences.size(); ++i) {
     auto const& seq = sequences[i];
@@ -154,75 +153,39 @@ int main(int argc, char** argv) {
       append(lines[edge->from_->station_idx_], edge->p_);
     }
 
-    std::stringstream ss;
-    ss << "debug/polyline." << seq.station_ids_.front() << "-"
-       << seq.station_ids_.back() << "." << i << ".json";
-    dump_polylines(lines, ss.str().c_str());
+    // std::stringstream ss;
+    // ss << "debug/polyline." << seq.station_ids_.front() << "-"
+    //    << seq.station_ids_.back() << "." << i << ".json";
+    // dump_polylines(lines, ss.str().c_str());
+
+    // flatbuffers output
+    auto fbs_stations = transform_to_vec(
+        seq.station_ids_,
+        [&](auto const& station_id) { return fbb.CreateString(station_id); });
+
+    std::vector<flatbuffers::Offset<Polyline>> fbs_lines;
+    for (auto const& line : lines) {
+      std::vector<double> flat_polyline;
+      for (auto const& latlng : line) {
+        flat_polyline.push_back(latlng.lat_);
+        flat_polyline.push_back(latlng.lng_);
+      }
+      fbs_lines.push_back(CreatePolyline(fbb, fbb.CreateVector(flat_polyline)));
+    }
+
+    std::vector<uint32_t> classes;
+    for (auto const& cat : seq.categories_) {
+      classes.push_back(cat);
+    }
+
+    fbs_routes.push_back(CreateRoute(fbb, fbb.CreateVector(fbs_stations),
+                                     fbb.CreateVector(classes),
+                                     fbb.CreateVector(fbs_lines)));
   }
+
+  fbb.Finish(CreateRoutesAuxiliary(fbb,
+                                   write_stop_positions(fbb, stop_positions),
+                                   fbb.CreateVector(fbs_routes)));
+  parser::file(opt.out_.c_str(), "w+")
+      .write(fbb.GetBufferPointer(), fbb.GetSize());
 }
-
-// for (auto i = 0u; i < rel_matches.size(); i++) {
-//   if (rel_matches[i].size() > 1) {
-//     std::cout << i << "|";
-//   }
-// }
-
-// //  auto const& g = build_seq_graph(sequences[26344], rel_matches[26344]);
-// //  auto const& g = build_seq_graph(sequences[26346], rel_matches[26346]);
-// auto const& g = build_seq_graph(sequences[26395], rel_matches[26395]);
-
-// std::cout << "\n Graph Nodes:" << g.nodes_.size();
-// std::cout << "\n Station Seq:" << sequences[26395].station_ids_.size();
-// std::cout << "\n Station to Node: " << g.station_to_nodes_.size();
-
-// auto index = 0;
-// for (auto const& s : g.station_to_nodes_) {
-//   std::cout << "\nStation " << index << "|"
-//             << sequences[26395].coordinates_[index].lat_ << ","
-//             << sequences[26395].coordinates_[index].lng_ << ":";
-//   for (auto const& n : s) {
-//     std::cout << n->idx_;
-//     for (auto const& edge : n->edges_) {
-//       std::cout << "(" << edge.from_->idx_ << "|" << edge.to_->idx_
-//                 << "|w:" << edge.weight_ << ") ";
-//     }
-//   }
-//   index++;
-// }
-
-// std::cout << "\n Goals:";
-
-// for (auto const& n : g.goals_) {
-//   std::cout << n << " ";
-// }
-
-// std::cout << "\n Inits:";
-
-// for (auto const& n : g.initials_) {
-//   std::cout << n << " ";
-// }
-
-// seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
-// std::vector<std::vector<geo::latlng>> polylines;
-// dijkstra.run();
-// for (auto const& goal : g.goals_) {
-//   std::vector<geo::latlng> line;
-//   for (auto const& edge : dijkstra.get_links(goal)) {
-//     std::cout << "\n"
-//               << edge->from_->idx_ << "|" << edge->to_->idx_
-//               << "|w:" << edge->weight_;
-//     for (auto const& p : edge->p_) {
-//       line.push_back(p);
-//     }
-//   }
-//   polylines.push_back(line);
-// }
-
-// dump_polylines(polylines);
-
-//  flatbuffers::FlatBufferBuilder fbb;
-//  fbb.Finish(
-//      CreateRoutesAuxiliary(fbb, write_stop_positions(fbb,
-//      stop_positions)));
-//  parser::file(opt.out_.c_str(), "w+")
-//      .write(fbb.GetBufferPointer(), fbb.GetSize());

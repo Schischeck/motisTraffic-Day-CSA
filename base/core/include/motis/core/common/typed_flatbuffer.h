@@ -12,11 +12,14 @@ struct typed_flatbuffer {
   typed_flatbuffer(size_t buffer_size, flatbuffers::unique_ptr_t buffer)
       : buffer_size_(buffer_size), buffer_(std::move(buffer)) {}
 
+  explicit typed_flatbuffer(size_t buffer_size)
+      : buffer_size_(buffer_size),
+        buffer_(reinterpret_cast<uint8_t*>(operator new[](buffer_size)),
+                std::default_delete<uint8_t[]>()) {}
+
   template <typename Buffer>
   typed_flatbuffer(size_t buffer_size, Buffer* buffer)
-      : buffer_size_(buffer_size),
-        buffer_(reinterpret_cast<uint8_t*>(operator new(buffer_size)),
-                std::default_delete<uint8_t>()) {
+      : typed_flatbuffer(buffer_size) {
     std::memcpy(buffer_.get(), buffer, buffer_size_);
   }
 

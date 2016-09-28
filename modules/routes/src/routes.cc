@@ -1,8 +1,6 @@
 #include "motis/routes/routes.h"
 
-#include "boost/filesystem.hpp"
-
-#include "parser/file.h"
+#include <memory>
 
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
@@ -10,11 +8,9 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
 
-#include "motis/routes/fbs/RoutesAuxiliary_generated.h"
+#include "motis/routes/auxiliary_data.h"
 
-namespace fs = boost::filesystem;
 using namespace flatbuffers;
-using namespace parser;
 using namespace motis::module;
 using namespace motis::osrm;
 using namespace motis::access;
@@ -23,31 +19,18 @@ using namespace motis::geo;
 namespace motis {
 namespace routes {
 
-routes::routes() : module("Routes", "routes") {
+routes::routes()
+    : module("Routes", "routes"), aux_(std::make_unique<auxiliary_data>()) {
   string_param(aux_file_, "routes-auxiliary.raw", "aux",
                "/path/to/routes-auxiliary.raw");
 };
 routes::~routes() = default;
 
 void routes::init(registry& r) {
-  if (fs::is_regular_file(aux_file_)) {
-    load_auxiliary_file();
-  }
+  aux_->load(aux_file_);
 
   r.register_op("/routes/id_train",
                 [this](msg_ptr const& m) { return id_train_routes(m); });
-}
-
-void routes::load_auxiliary_file() {
-  auto const buf = file(aux_file_.c_str(), "r").content();
-  auto const aux_content = GetRoutesAuxiliary(buf.buf_);
-
-  for (auto const& s : *aux_content->bus_stop_positions()) {
-    extra_bus_stop_positions_.emplace(
-        s->station_id()->str(), transform_to_vec(*s->positions(), [](auto&& p) {
-          return latlng{p->lat(), p->lng()};
-        }));
-  }
 }
 
 msg_ptr routes::id_train_routes(msg_ptr const& msg) {
@@ -58,6 +41,20 @@ msg_ptr routes::id_train_routes(msg_ptr const& msg) {
                              t->time(), t->target_station_id()->str(),
                              t->target_time(), t->line_id()->str());
 
+  auto const prepared = resolve_prepared_route(sched, trp);
+  if (prepared) {
+    auto const& msg = *prepared;
+
+    auto copy = std::make_shared<message>(msg->size());
+    // copy->buffer_size_ = msg->size();
+    // copy->buffer_ = flatbuffers::unique_ptr_t(
+    //     reinterpret_cast<uint8_t*>(operator new(msg->size())),
+    //     std::default_delete<uint8_t>());
+    std::memcpy(copy->buffer_.get(), msg->data(), msg->size());
+
+    return copy;
+  }
+
   switch (trip_section{trp, 0}.fcon().clasz_) {
     case MOTIS_STR:
     case MOTIS_BUS:  //
@@ -65,6 +62,18 @@ msg_ptr routes::id_train_routes(msg_ptr const& msg) {
     default:  //
       return resolve_route_stub(sched, trp);
   }
+}
+
+boost::optional<msg_ptr> routes::resolve_prepared_route(schedule const& sched,
+                                                        trip const* trp) {
+  auto const seq = transform_to_vec(
+      access::stops(trp),
+      [&sched](auto const& stop) { return stop.get_station(sched).eva_nr_; });
+  auto const clasz = trip_section{trp, 0}.fcon().clasz_;
+
+  auto it = aux_->prepared_routes_.find({seq, clasz});
+  return it != end(aux_->prepared_routes_) ? it->second
+                                           : boost::optional<msg_ptr>{};
 }
 
 msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
@@ -77,8 +86,8 @@ msg_ptr routes::trip_to_osrm_request(schedule const& sched, trip const* trp) {
     std::vector<motis::Position> pos;
     pos.emplace_back(station.lat(), station.lng());
 
-    auto it = extra_bus_stop_positions_.find(station.eva_nr_);
-    if (it != end(extra_bus_stop_positions_)) {
+    auto it = aux_->extra_stop_positions_.find(station.eva_nr_);
+    if (it != end(aux_->extra_stop_positions_)) {
       for (auto const& p : it->second) {
         pos.emplace_back(p.lat_, p.lng_);
       }

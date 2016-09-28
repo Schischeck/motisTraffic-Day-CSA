@@ -1,0 +1,11 @@
+namespace motis.routes;
+
+table Polyline {
+  coordinates: [double];
+}
+
+table Route {
+  station_ids: [string];
+  classes: [uint];
+  segments: [Polyline];
+}
