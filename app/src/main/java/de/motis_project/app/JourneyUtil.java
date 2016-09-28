@@ -1,6 +1,13 @@
 package de.motis_project.app;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v4.util.LongSparseArray;
+import android.view.View;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +18,47 @@ import motis.MoveWrapper;
 import motis.Transport;
 
 public class JourneyUtil {
+    public static final LongSparseArray<Integer> colors = new LongSparseArray<>();
+
+    static {
+        colors.put(0, R.color.colorPrimary);
+        colors.put(1, R.color.colorPrimaryDark);
+        colors.put(2, R.color.colorPrimaryLight);
+        colors.put(3, R.color.teal_500);
+    }
+
+    public static final LongSparseArray<Integer> icons = new LongSparseArray<>();
+
+    static {
+        icons.put(0, R.drawable.ic_directions_railway_black_24dp);
+        icons.put(1, R.drawable.ic_directions_railway_black_24dp);
+        icons.put(2, R.drawable.ic_directions_railway_black_24dp);
+        icons.put(3, R.drawable.ic_directions_railway_black_24dp);
+    }
+
+    public static int getColor(Context c, long clasz) {
+        int id = colors.get(clasz, R.color.colorAccent);
+        return ContextCompat.getColor(c, id);
+    }
+
+    public static int getIcon(Context c, long clasz) {
+        return icons.get(clasz, R.drawable.ic_directions_bus_black_24dp);
+    }
+
+    public static void tintBackground(Context context, TextView view, long clasz) {
+        Drawable bg = DrawableCompat.wrap(view.getBackground());
+        DrawableCompat.setTint(bg.mutate(), JourneyUtil.getColor(context, clasz));
+        view.setBackground(bg);
+    }
+
+    public static void tintBackground(Context context, View view, long clasz) {
+        view.setBackgroundColor(JourneyUtil.getColor(context, clasz));
+    }
+
+    public static void setIcon(Context context, TextView view, long clasz) {
+        view.setCompoundDrawablesWithIntrinsicBounds(JourneyUtil.getIcon(context, clasz), 0, 0, 0);
+    }
+
     public static class Section {
         public final int from, to;
 

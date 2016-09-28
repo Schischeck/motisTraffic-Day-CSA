@@ -1,5 +1,6 @@
 package de.motis_project.app.detail;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +48,12 @@ public class TransportHeader {
         layout = inflater.inflate(R.layout.detail_transport_header, parent, false);
         ButterKnife.bind(this, layout);
 
-        Transport transport = JourneyUtil.getTransport(con, nextSection);
+        Context context = inflater.getContext();
+        long clasz = JourneyUtil.getTransport(con, nextSection).clasz();
+        JourneyUtil.tintBackground(context, transportName, clasz);
+        JourneyUtil.setIcon(context, transportName, clasz);
+
+        Transport transport = JourneyUtil.getTransport(con, prevSection);
         if (transport != null) {
             transportName.setText(Str.san(transport.name()));
         }

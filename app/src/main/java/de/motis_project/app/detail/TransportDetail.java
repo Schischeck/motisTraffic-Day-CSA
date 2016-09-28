@@ -31,6 +31,9 @@ public class TransportDetail {
     @BindView(R.id.detail_transport_direction)
     TextView direction;
 
+    @BindView(R.id.detail_transport_vertline)
+    View line;
+
     TransportDetail(Connection con,
                     JourneyUtil.Section section,
                     ViewGroup parent,
@@ -42,6 +45,9 @@ public class TransportDetail {
         station.setText(stop.station().name());
 
         time.setText(TimeUtil.formatTime(stop.departure().scheduleTime()));
+
+        long clasz = JourneyUtil.getTransport(con, section).clasz();
+        JourneyUtil.tintBackground(inflater.getContext(), line, clasz);
 
         String dir = getDirection(con, section);
         if (dir.isEmpty()) {

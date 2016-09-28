@@ -6,8 +6,7 @@
     android:layout_height="55dp"
     android:orientation="horizontal"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:showIn="@layout/detail">
+    android:paddingRight="@dimen/activity_horizontal_margin">
 
     <FrameLayout
         android:layout_width="10dp"
@@ -15,6 +14,7 @@
         android:layout_marginLeft="12dp">
 
         <View
+            android:id="@+id/detail_transport_stops_vertline"
             android:layout_width="4dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"

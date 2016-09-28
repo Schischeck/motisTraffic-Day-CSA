@@ -15,6 +15,7 @@
         >
 
         <View
+            android:id="@+id/detail_transport_vertline"
             android:layout_width="4dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"

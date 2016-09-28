@@ -13,6 +13,7 @@
         android:layout_marginLeft="12dp">
 
         <View
+            android:id="@+id/detail_transport_target_station_vertline"
             android:layout_width="4dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"

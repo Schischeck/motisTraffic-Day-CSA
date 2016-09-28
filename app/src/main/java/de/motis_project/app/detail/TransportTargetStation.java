@@ -25,12 +25,18 @@ public class TransportTargetStation {
     @BindView(R.id.detail_transport_target_station)
     TextView targetStation;
 
+    @BindView(R.id.detail_transport_target_station_vertline)
+    View line;
+
     TransportTargetStation(Connection con,
                            JourneyUtil.Section section,
                            ViewGroup parent,
                            LayoutInflater inflater) {
         layout = inflater.inflate(R.layout.detail_transport_target_stop, parent, false);
         ButterKnife.bind(this, layout);
+
+        long clasz = JourneyUtil.getTransport(con, section).clasz();
+        JourneyUtil.tintBackground(inflater.getContext(), line, clasz);
 
         Stop stop = con.stops(section.to);
 

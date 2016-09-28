@@ -1,5 +1,6 @@
 package de.motis_project.app.detail;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,11 @@ public class FirstTransportHeader {
         ButterKnife.bind(this, layout);
 
         transportName.setText(getTransportName(con));
+
+        Context context = inflater.getContext();
+        long clasz = JourneyUtil.getTransport(con, JourneyUtil.getSections(con).get(0)).clasz();
+        JourneyUtil.tintBackground(context, transportName, clasz);
+        JourneyUtil.setIcon(context, transportName, clasz);
 
         String trackName = getTrackName(con);
         if (trackName == null || trackName.isEmpty()) {

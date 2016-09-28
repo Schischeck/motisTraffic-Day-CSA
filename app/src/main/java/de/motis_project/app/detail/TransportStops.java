@@ -40,6 +40,9 @@ public class TransportStops {
     @BindView(R.id.detail_transport_stops_summary)
     TextView summary;
 
+    @BindView(R.id.detail_transport_stops_vertline)
+    View line;
+
     @BindDrawable(R.drawable.ic_expand_less_black_24dp)
     Drawable less;
 
@@ -53,6 +56,8 @@ public class TransportStops {
         layout = inflater.inflate(R.layout.detail_transport_stops, parent, false);
         ButterKnife.bind(this, layout);
 
+        long clasz = JourneyUtil.getTransport(con, section).clasz();
+        JourneyUtil.tintBackground(inflater.getContext(), line, clasz);
 
         long dep = con.stops(section.from).departure().scheduleTime();
         long arr = con.stops(section.to).arrival().scheduleTime();
