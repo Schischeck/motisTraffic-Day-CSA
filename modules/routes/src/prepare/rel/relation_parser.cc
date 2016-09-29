@@ -47,7 +47,10 @@ parsed_relations parse_relations(std::string const& osm_file_) {
         return result.way_mem_.back().get();
       }));
     }
-    result.relations_.emplace_back(relation.id(), std::move(ways));
+
+    auto t = std::string("railway") == type ? relation::type::RAILWAY
+                                            : relation::type::UNKNOWN;
+    result.relations_.emplace_back(relation.id(), t, std::move(ways));
   });
 
   std::string platform = "platform";

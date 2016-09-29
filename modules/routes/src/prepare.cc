@@ -88,24 +88,31 @@ int main(int argc, char** argv) {
 
   auto const extent_polygon = read_poly_file(opt.extent_);
   sequences.erase(
-      std::remove_if(
-          begin(sequences), end(sequences),
-          [&](auto const& seq) {
-            if (seq.categories_.empty() ||
-                std::none_of(begin(seq.categories_), end(seq.categories_),
-                             [](auto const& cat) { return cat < 6; })) {
-              return true;
-            }
+      std::remove_if(begin(sequences), end(sequences),
+                     [&](auto const& seq) {
+                       if (seq.categories_.empty() ||
+                           std::none_of(
+                               begin(seq.categories_), end(seq.categories_),
+                               [](auto const& cat) { return cat < 6; })) {
+                         return true;
+                       }
 
-            // if (std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
-            //                 [&](auto const& coord) {
-            //                   return !within(coord, extent_polygon);
-            //                 })) {
-            //   return true;
-            // }
+                       // if (std::any_of(begin(seq.coordinates_),
+                       // end(seq.coordinates_),
+                       //                 [&](auto const& coord) {
+                       //                   return !within(coord,
+                       //                   extent_polygon);
+                       //                 })) {
+                       //   return true;
+                       // }
 
-            return false;
-          }),
+                       // if (seq.station_ids_.front() != "8000105" ||
+                       //     seq.station_ids_.back() != "8000126") {
+                       //   return true;
+                       // }
+
+                       return false;
+                     }),
       end(sequences));
 
   auto const rel_matches =

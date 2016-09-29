@@ -31,10 +31,13 @@ struct way {
 };
 
 struct relation {
-  relation(int64_t id, std::vector<way*> ways)
-      : id_(id), ways_(std::move(ways)) {}
+  enum class type { UNKNOWN, RAILWAY };
+
+  relation(int64_t id, type t, std::vector<way*> ways)
+      : id_(id), type_(t), ways_(std::move(ways)) {}
 
   int64_t id_;
+  type type_;
   std::vector<way*> ways_;
 };
 
