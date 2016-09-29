@@ -46,6 +46,13 @@ struct parsed_relations {
   std::vector<std::unique_ptr<way>> way_mem_;
 };
 
+bool operator==(relation::type const t, int const clasz) {
+  switch (t) {
+    case relation::type::RAILWAY: return clasz < 6;
+    default: return clasz >= 6;
+  };
+}
+
 parsed_relations parse_relations(std::string const& osm_file);
 
 }  // namespace routes

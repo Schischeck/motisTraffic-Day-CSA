@@ -83,14 +83,14 @@ std::vector<match_seq> matches_on_seq(
 }
 
 std::vector<std::vector<match_seq>> match_sequences(
-    std::vector<std::vector<latlng>> const& polylines,
+    std::vector<aggregated_polyline> const& aps,
     std::vector<station_seq> const& sequences,
     std::map<std::string, std::vector<latlng>> const& bus_stops) {
   std::vector<std::vector<match_seq>> result(sequences.size());
 
   std::mutex m;
-  parallel_for("match_polyline", polylines, 250, [&](auto const& polyline) {
-    auto rtree = make_point_rtree(polyline, [&](auto&& c) {
+  parallel_for("match_polyline", aps, 250, [&](auto const& ap) {
+    auto rtree = make_point_rtree(ap.polyline_, [&](auto&& c) {
       return point_rtree::point{c.lng_, c.lat_};
     });
 

@@ -20,8 +20,8 @@ parsed_relations parse_relations(std::string const& osm_file_) {
   std::map<int64_t, std::vector<node*>> pending_nodes_;
 
   std::vector<std::string> types{"route", "public_transport"};
-  std::vector<std::string> routes{"subway", "bus",  "railway",
-                                  "train",  "tram", "light_rail"};
+  std::vector<std::string> rail_routes{"railway", "train", "light_rail"};
+  std::vector<std::string> other_routes{"subway", "bus", "tram"};
 
   foreach_osm_relation(osm_file_, [&](auto&& relation) {
     auto const type = relation.get_value_by_key("type", "");
@@ -31,8 +31,11 @@ parsed_relations parse_relations(std::string const& osm_file_) {
     }
 
     auto const route = relation.get_value_by_key("route", "");
-    if (std::none_of(begin(routes), end(routes),
-                     [&](auto&& r) { return r == route; })) {
+    auto const is_rail = std::any_of(begin(rail_routes), end(rail_routes),
+                                     [&](auto&& r) { return r == route; });
+
+    if (!is_rail && std::none_of(begin(other_routes), end(other_routes),
+                                 [&](auto&& r) { return r == route; })) {
       return;
     }
 
@@ -48,8 +51,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
       }));
     }
 
-    auto t = std::string("railway") == type ? relation::type::RAILWAY
-                                            : relation::type::UNKNOWN;
+    auto t = is_rail ? relation::type::RAILWAY : relation::type::UNKNOWN;
     result.relations_.emplace_back(relation.id(), t, std::move(ways));
   });
 

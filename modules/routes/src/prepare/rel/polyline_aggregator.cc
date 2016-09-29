@@ -191,20 +191,12 @@ void aggregate_ways(Fun appender, std::set<size_t>& visited,
   }
 }
 
-std::vector<polyline> aggregate_polylines(
-    std::vector<relation> const& relations) {
+std::vector<aggregated_polyline> aggregate_polylines(
+    std::vector<relation>& relations) {
   scoped_timer timer("aggregate polylines");
 
-  std::mutex m;
-  std::vector<polyline> polylines;
-  auto appender = [&](polyline&& p) {
-    std::lock_guard<std::mutex> lock(m);
-    polylines.emplace_back(p);
-  };
-
-  parallel_for("aggregate polylines", relations, 250, [&](relation rel) {
+  for (auto& rel : relations) {
     auto& ways = rel.ways_;
-
     for (auto& way : ways) {
       for (auto& node : way->nodes_) {
         if (!node.resolved_) {
@@ -213,17 +205,25 @@ std::vector<polyline> aggregate_polylines(
       }
     }
 
-    ways.erase(std::remove_if(begin(ways), end(ways),
-                              [](auto const& w) {
-                                return !w->resolved_ || w->nodes_.size() < 2;
-                              }),
-               end(ways));
+    erase_if(ways, [](auto const& w) {
+      return !w->resolved_ || w->nodes_.size() < 2;
+    });
+  }
 
-    auto dists = distance_matrix(ways);
+  std::mutex m;
+  std::vector<aggregated_polyline> polylines;
+
+  parallel_for("aggregate polylines", relations, 250, [&](relation const& rel) {
+    auto dists = distance_matrix(rel.ways_);
     auto visited = std::set<size_t>{};
 
-    aggregate_ways(appender, visited, ways, dists, true);
-    aggregate_ways(appender, visited, ways, dists, false);
+    auto appender = [&](polyline&& p) {
+      std::lock_guard<std::mutex> lock(m);
+      polylines.emplace_back(&rel, std::move(p));
+    };
+
+    aggregate_ways(appender, visited, rel.ways_, dists, true);
+    aggregate_ways(appender, visited, rel.ways_, dists, false);
   });
 
   return polylines;
