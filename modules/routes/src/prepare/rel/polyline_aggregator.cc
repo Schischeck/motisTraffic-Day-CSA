@@ -150,12 +150,7 @@ size_t extract_polyline(polyline& line, std::set<size_t>& visited,
   bool forward = start_forward;
 
   size_t count = 0;
-  while (true) {
-    auto next = find_next(distances[2 * idx + (forward ? 0 : 1)]);
-    if (!next) {
-      return count;
-    }
-
+  while (auto const next = find_next(distances[2 * idx + (forward ? 0 : 1)])) {
     idx = *next / 2;
     forward = (*next % 2) != 0;
 
@@ -164,7 +159,7 @@ size_t extract_polyline(polyline& line, std::set<size_t>& visited,
     ++count;
   }
 
-  assert(false);  // !?
+  return count;
 }
 
 template <typename Fun>
