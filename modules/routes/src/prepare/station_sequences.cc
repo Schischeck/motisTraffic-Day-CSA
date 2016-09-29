@@ -5,17 +5,22 @@
 #include <vector>
 
 #include "motis/core/common/get_or_create.h"
+#include "motis/core/common/logging.h"
+
 #include "motis/loader/classes.h"
 
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
+using namespace motis::logging;
+
 namespace motis {
 namespace routes {
 
 std::vector<station_seq> load_station_sequences(
     motis::loader::Schedule const* sched) {
+  scoped_timer timer("loading station sequences");
   std::vector<station_seq> result;
 
   auto const& mapping = loader::class_mapping();

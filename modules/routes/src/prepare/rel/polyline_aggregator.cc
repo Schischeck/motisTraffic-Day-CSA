@@ -2,11 +2,17 @@
 
 #include <iostream>
 #include <limits>
+#include <mutex>
 #include <set>
 
 #include "boost/optional.hpp"
 
+#include "motis/core/common/logging.h"
+
+#include "motis/routes/prepare/parallel_for.h"
+
 using namespace motis::geo;
+using namespace motis::logging;
 
 namespace motis {
 namespace routes {
@@ -125,8 +131,9 @@ std::pair<std::vector<latlng>, size_t> extract_polyline(
   assert(false);  // !?
 }
 
-void aggregate_ways(std::vector<std::vector<latlng>>& polylines,
-                    std::set<size_t>& visited, std::vector<way*> const& ways,
+template <typename Fun>
+void aggregate_ways(Fun appender, std::set<size_t>& visited,
+                    std::vector<way*> const& ways,
                     std::vector<std::vector<double>> const& matrix,
                     bool forward) {
   for (auto i = 0u; i < ways.size(); ++i) {
@@ -149,16 +156,23 @@ void aggregate_ways(std::vector<std::vector<latlng>>& polylines,
     }
 
     visited.insert(result.second);
-    polylines.emplace_back(std::move(result.first));
+    appender(std::move(result.first));
   }
 }
 
-std::vector<std::vector<latlng>> aggregate_polylines(
-    std::vector<relation> relations) {
+std::vector<polyline> aggregate_polylines(
+    std::vector<relation> const& relations) {
+  scoped_timer timer("aggregate polylines");
 
-  std::vector<std::vector<latlng>> polylines;
-  for (auto& relation : relations) {
-    auto& ways = relation.ways_;
+  std::mutex m;
+  std::vector<polyline> polylines;
+  auto appender = [&](polyline&& p) {
+    std::lock_guard<std::mutex> lock(m);
+    polylines.emplace_back(p);
+  };
+
+  parallel_for("aggregate polylines", relations, 250, [&](relation rel) {
+    auto& ways = rel.ways_;
 
     for (auto& way : ways) {
       for (auto& node : way->nodes_) {
@@ -177,9 +191,9 @@ std::vector<std::vector<latlng>> aggregate_polylines(
     auto dists = distance_matrix(ways);
     auto visited = std::set<size_t>{};
 
-    aggregate_ways(polylines, visited, ways, dists, true);
-    aggregate_ways(polylines, visited, ways, dists, false);
-  }
+    aggregate_ways(appender, visited, ways, dists, true);
+    aggregate_ways(appender, visited, ways, dists, false);
+  });
 
   return polylines;
 }

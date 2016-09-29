@@ -46,10 +46,6 @@ msg_ptr routes::id_train_routes(msg_ptr const& msg) {
     auto const& msg = *prepared;
 
     auto copy = std::make_shared<message>(msg->size());
-    // copy->buffer_size_ = msg->size();
-    // copy->buffer_ = flatbuffers::unique_ptr_t(
-    //     reinterpret_cast<uint8_t*>(operator new(msg->size())),
-    //     std::default_delete<uint8_t>());
     std::memcpy(copy->buffer_.get(), msg->data(), msg->size());
 
     return copy;

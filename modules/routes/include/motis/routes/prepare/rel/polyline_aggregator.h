@@ -7,8 +7,7 @@
 namespace motis {
 namespace routes {
 
-std::vector<geo::polyline> aggregate_polylines(
-    std::vector<relation> /* COPY! */);
+std::vector<geo::polyline> aggregate_polylines(std::vector<relation> const&);
 
 }  // namespace routes
 }  // namespace motis
