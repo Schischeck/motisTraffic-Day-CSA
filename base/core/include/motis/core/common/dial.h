@@ -7,16 +7,12 @@
 namespace motis {
 
 template <typename T, std::size_t MaxBucket,
-          typename GetBucketFn,  // GetBucketFn(T) -> size_t <= MaxBucket
-          typename CompareFn,  // CompareFn(T const& a, T const& b) -> bool
-          bool Sort = true  // if false, then CompareFn won't be used
+          typename GetBucketFn  // GetBucketFn(T) -> size_t <= MaxBucket
           >
 class dial {
 public:
-  explicit dial(GetBucketFn get_bucket = GetBucketFn(),
-                CompareFn cmp = CompareFn())
+  explicit dial(GetBucketFn get_bucket = GetBucketFn())
       : get_bucket_(std::forward<GetBucketFn>(get_bucket)),
-        cmp_(std::forward<CompareFn>(cmp)),
         current_bucket_(0),
         size_(0),
         buckets_(MaxBucket + 1) {}
@@ -26,16 +22,8 @@ public:
     auto const dist = get_bucket_(el);
     assert(dist <= MaxBucket);
 
-    auto& bucket = buckets_[dist];
-    if (Sort) {
-      bucket.emplace(std::lower_bound(begin(bucket), end(bucket), el, cmp_),
-                     std::forward<El>(el));
-    } else {
-      bucket.emplace_back(std::forward<El>(el));
-    }
-
+    buckets_[dist].emplace_back(std::forward<El>(el));
     current_bucket_ = std::min(current_bucket_, dist);
-
     ++size_;
   }
 
@@ -66,7 +54,6 @@ private:
   }
 
   GetBucketFn get_bucket_;
-  CompareFn cmp_;
   std::size_t current_bucket_;
   std::size_t size_;
   std::vector<std::vector<T>> buckets_;
