@@ -22,5 +22,7 @@ struct latlng {
 
 double distance(latlng const&, latlng const&);
 
+double bearing(latlng const&, latlng const&);
+
 }  // namespace geo
 }  // namespace motis
