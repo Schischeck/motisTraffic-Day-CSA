@@ -7,6 +7,8 @@
 
 #include "motis/geo/latlng.h"
 
+#include "motis/routes/prepare/source_spec.h"
+
 namespace motis {
 namespace routes {
 
@@ -31,13 +33,10 @@ struct way {
 };
 
 struct relation {
-  enum class type { UNKNOWN, RAILWAY };
+  relation(source_spec source, std::vector<way*> ways)
+      : source_(std::move(source)), ways_(std::move(ways)) {}
 
-  relation(int64_t id, type t, std::vector<way*> ways)
-      : id_(id), type_(t), ways_(std::move(ways)) {}
-
-  int64_t id_;
-  type type_;
+  source_spec source_;
   std::vector<way*> ways_;
 };
 
@@ -45,13 +44,6 @@ struct parsed_relations {
   std::vector<relation> relations_;
   std::vector<std::unique_ptr<way>> way_mem_;
 };
-
-bool operator==(relation::type const t, int const clasz) {
-  switch (t) {
-    case relation::type::RAILWAY: return clasz < 6;
-    default: return clasz >= 6;
-  };
-}
 
 parsed_relations parse_relations(std::string const& osm_file);
 

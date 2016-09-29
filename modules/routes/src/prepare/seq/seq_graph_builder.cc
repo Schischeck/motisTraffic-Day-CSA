@@ -5,9 +5,14 @@ using namespace motis::geo;
 namespace motis {
 namespace routes {
 
-void add_matches(seq_graph& g, std::vector<match_seq> const& matches) {
+void add_matches(seq_graph& g, source_spec::category const& category,
+                 std::vector<match_seq> const& matches) {
   auto& nodes = g.nodes_;
   for (auto const& m : matches) {
+    if(m.source_.category_ != category) {
+      continue;
+    }
+
     for (auto j = 0u; j < m.stations_.size(); ++j) {
       auto const station = m.stations_[j];
       auto const node_idx = g.nodes_.size();
@@ -82,12 +87,13 @@ void create_edges(seq_graph& g, routing_strategy& strategy) {
   }
 }
 
-seq_graph build_seq_graph(station_seq const& seq,
+seq_graph build_seq_graph(source_spec::category const& category,
+                          station_seq const& seq,
                           std::vector<match_seq> const& matches,
                           routing_strategy& strategy) {
   seq_graph g{seq.station_ids_.size()};
 
-  add_matches(g, matches);
+  add_matches(g, category, matches);
   add_close_nodes(g, seq, strategy);
   create_edges(g, strategy);
 

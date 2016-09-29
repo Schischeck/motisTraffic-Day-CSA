@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 
   auto sequences = load_station_sequences(schedule);
 
-  auto const extent_polygon = read_poly_file(opt.extent_);
+  // auto const extent_polygon = read_poly_file(opt.extent_);
   sequences.erase(
       std::remove_if(begin(sequences), end(sequences),
                      [&](auto const& seq) {
@@ -127,67 +127,63 @@ int main(int argc, char** argv) {
 
     std::cout << "\nusing " << relations.size() << "relations";
 
-    stub_routing strategy{seq};
-    auto const g = build_seq_graph(seq, relations, strategy);
-
-    dump_seq_graph(g);
-
-    seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
-    dijkstra.run();
-
-    for (auto const& goal : g.goals_) {
-      std::cout << '\n' << dijkstra.get_distance(goal);
-    }
-
-    auto best_goal_it =
-        std::min_element(begin(g.goals_), end(g.goals_),
-                         [&](auto const& lhs_idx_, auto const& rhs_idx_) {
-                           return dijkstra.get_distance(lhs_idx_) <
-                                  dijkstra.get_distance(rhs_idx_);
-                         });
-    if (best_goal_it == end(g.goals_)) {
-      std::cout << "\n no result";
-      continue;
-    }
-
-    std::cout << '\n' << dijkstra.get_distance(*best_goal_it);
-
-    std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
-    for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
-      std::cout << "\n"
-                << edge->from_->idx_ << " -> " << edge->to_->idx_ << "("
-                << edge->weight_ << ")";
-      append(lines[edge->from_->station_idx_], edge->p_);
-    }
-
-    // std::stringstream ss;
-    // ss << "debug/polyline." << seq.station_ids_.front() << "-"
-    //    << seq.station_ids_.back() << "." << i << ".json";
-    // dump_polylines(lines, ss.str().c_str());
-
-    // flatbuffers output
     auto fbs_stations = transform_to_vec(
         seq.station_ids_,
         [&](auto const& station_id) { return fbb.CreateString(station_id); });
 
-    std::vector<flatbuffers::Offset<Polyline>> fbs_lines;
-    for (auto const& line : lines) {
-      std::vector<double> flat_polyline;
-      for (auto const& latlng : line) {
-        flat_polyline.push_back(latlng.lat_);
-        flat_polyline.push_back(latlng.lng_);
+    for (auto const& category_group : category_groups(seq.categories_)) {
+      stub_routing strategy{seq};
+      auto const g =
+          build_seq_graph(category_group.first, seq, relations, strategy);
+
+      seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
+      dijkstra.run();
+
+      // for (auto const& goal : g.goals_) {
+      //   std::cout << '\n' << dijkstra.get_distance(goal);
+      // }
+
+      auto best_goal_it =
+          std::min_element(begin(g.goals_), end(g.goals_),
+                           [&](auto const& lhs_idx_, auto const& rhs_idx_) {
+                             return dijkstra.get_distance(lhs_idx_) <
+                                    dijkstra.get_distance(rhs_idx_);
+                           });
+      if (best_goal_it == end(g.goals_)) {
+        std::cout << "\n no result";
+        continue;
       }
-      fbs_lines.push_back(CreatePolyline(fbb, fbb.CreateVector(flat_polyline)));
-    }
 
-    std::vector<uint32_t> classes;
-    for (auto const& cat : seq.categories_) {
-      classes.push_back(cat);
-    }
+      std::cout << '\n' << dijkstra.get_distance(*best_goal_it);
 
-    fbs_routes.push_back(CreateRoute(fbb, fbb.CreateVector(fbs_stations),
-                                     fbb.CreateVector(classes),
-                                     fbb.CreateVector(fbs_lines)));
+      std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
+      for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
+        // std::cout << "\n"
+        //           << edge->from_->idx_ << " -> " << edge->to_->idx_ << "("
+        //           << edge->weight_ << ")";
+        append(lines[edge->from_->station_idx_], edge->p_);
+      }
+
+      // std::stringstream ss;
+      // ss << "debug/polyline." << seq.station_ids_.front() << "-"
+      //    << seq.station_ids_.back() << "." << i << ".json";
+      // dump_polylines(lines, ss.str().c_str());
+
+      std::vector<flatbuffers::Offset<Polyline>> fbs_lines;
+      for (auto const& line : lines) {
+        std::vector<double> flat_polyline;
+        for (auto const& latlng : line) {
+          flat_polyline.push_back(latlng.lat_);
+          flat_polyline.push_back(latlng.lng_);
+        }
+        fbs_lines.push_back(
+            CreatePolyline(fbb, fbb.CreateVector(flat_polyline)));
+      }
+
+      fbs_routes.push_back(CreateRoute(fbb, fbb.CreateVector(fbs_stations),
+                                       fbb.CreateVector(category_group.second),
+                                       fbb.CreateVector(fbs_lines)));
+    }
   }
 
   fbb.Finish(CreateRoutesAuxiliary(fbb,

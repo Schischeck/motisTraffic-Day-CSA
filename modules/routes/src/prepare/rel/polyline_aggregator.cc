@@ -13,6 +13,7 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/routes/prepare/parallel_for.h"
+#include "motis/routes/prepare/vector_utils.h"
 
 using namespace motis::geo;
 using namespace motis::logging;
@@ -192,23 +193,8 @@ void aggregate_ways(Fun appender, std::set<size_t>& visited,
 }
 
 std::vector<aggregated_polyline> aggregate_polylines(
-    std::vector<relation>& relations) {
+    std::vector<relation> const& relations) {
   scoped_timer timer("aggregate polylines");
-
-  for (auto& rel : relations) {
-    auto& ways = rel.ways_;
-    for (auto& way : ways) {
-      for (auto& node : way->nodes_) {
-        if (!node.resolved_) {
-          std::cout << "missing node" << node.id_ << std::endl;
-        }
-      }
-    }
-
-    erase_if(ways, [](auto const& w) {
-      return !w->resolved_ || w->nodes_.size() < 2;
-    });
-  }
 
   std::mutex m;
   std::vector<aggregated_polyline> polylines;
@@ -219,7 +205,7 @@ std::vector<aggregated_polyline> aggregate_polylines(
 
     auto appender = [&](polyline&& p) {
       std::lock_guard<std::mutex> lock(m);
-      polylines.emplace_back(&rel, std::move(p));
+      polylines.emplace_back(rel.source_, std::move(p));
     };
 
     aggregate_ways(appender, visited, rel.ways_, dists, true);

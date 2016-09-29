@@ -5,6 +5,7 @@
 #include "motis/core/common/transform_to_vec.h"
 
 #include "motis/routes/prepare/osm_util.h"
+#include "motis/routes/prepare/vector_utils.h"
 
 using namespace motis::logging;
 
@@ -51,8 +52,9 @@ parsed_relations parse_relations(std::string const& osm_file_) {
       }));
     }
 
-    auto t = is_rail ? relation::type::RAILWAY : relation::type::UNKNOWN;
-    result.relations_.emplace_back(relation.id(), t, std::move(ways));
+    auto cat = is_rail ? source_spec::category::RAILWAY
+                       : source_spec::category::UNKNOWN;
+    result.relations_.push_back({{relation.id(), cat}, ways});
   });
 
   std::string platform = "platform";
@@ -86,6 +88,22 @@ parsed_relations parse_relations(std::string const& osm_file_) {
       }
     }
   });
+
+  // post processing
+  for (auto& rel : result.relations_) {
+    auto& ways = rel.ways_;
+    for (auto& way : ways) {
+      for (auto& node : way->nodes_) {
+        if (!node.resolved_) {
+          std::cout << "missing node" << node.id_ << std::endl;
+        }
+      }
+    }
+
+    erase_if(ways, [](auto const& w) {
+      return !w->resolved_ || w->nodes_.size() < 2;
+    });
+  }
 
   return result;
 }
