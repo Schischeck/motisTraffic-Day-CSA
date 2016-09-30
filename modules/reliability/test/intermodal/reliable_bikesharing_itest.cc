@@ -235,7 +235,7 @@ TEST_F(reliability_bikesharing, DISABLED_retrieve_bikesharing_infos) {
   }
 }
 
-void test_journey1(journey const& j, unsigned start_mumo_id) {
+void test_journey1(journey const& j) {
   ASSERT_EQ(4, j.stops_.size());
   {
     auto const& s = j.stops_[0];
@@ -277,8 +277,8 @@ void test_journey1(journey const& j, unsigned start_mumo_id) {
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  ASSERT_EQ(start_mumo_id, j.transports_[0].mumo_id_);
-  ASSERT_EQ(7, j.transports_[2].mumo_id_);
+  // ASSERT_EQ(start_mumo_id, j.transports_[0].mumo_id_);
+  // ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -326,8 +326,8 @@ void test_journey2(journey const& j) {
   ASSERT_EQ(0, j.transports_[0].mumo_price_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[0].mumo_type_);
-  ASSERT_EQ(2, j.transports_[0].mumo_id_);
-  ASSERT_EQ(7, j.transports_[2].mumo_id_);
+  // ASSERT_EQ(2, j.transports_[0].mumo_id_);
+  // ASSERT_EQ(7, j.transports_[2].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[2].mumo_type_);
 }
@@ -355,7 +355,7 @@ TEST_F(reliability_bikesharing_routing, DISABLED_large_interval) {
 
   ASSERT_EQ(2, journeys.size());
   test_journey2(journeys[0]);
-  test_journey1(journeys[1], 2);
+  test_journey1(journeys[1]);
 
   auto infos = response->additional_infos();
 
@@ -421,7 +421,7 @@ TEST_F(reliability_bikesharing_routing, rating_request_small_query_interval) {
   auto const journeys = message_to_journeys(
       motis_content(ReliabilityRatingResponse, call(req_msg))->response());
   ASSERT_EQ(1, journeys.size());
-  test_journey1(journeys[0], 2);
+  test_journey1(journeys[0]);
 }
 
 TEST_F(reliability_bikesharing_routing,
@@ -492,7 +492,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_TRUE(j.transports_[1].is_walk_);
     ASSERT_EQ(5, j.transports_[0].duration_);
 
-    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    // ASSERT_EQ(3, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -529,7 +529,7 @@ TEST_F(reliability_bikesharing_routing, pretrip_station_to_coordinates) {
     ASSERT_EQ(15, j.transports_[0].duration_);
     ASSERT_EQ(28, j.transports_[1].duration_);
 
-    ASSERT_EQ(3, j.transports_[1].mumo_id_);
+    // ASSERT_EQ(3, j.transports_[1].mumo_id_);
     ASSERT_EQ(0, j.transports_[1].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[1].mumo_type_);
@@ -579,7 +579,7 @@ TEST_F(reliability_bikesharing_routing, ontrip_station_to_coordinates) {
   ASSERT_TRUE(j.transports_[1].is_walk_);
   ASSERT_EQ(5, j.transports_[0].duration_);
 
-  ASSERT_EQ(3, j.transports_[1].mumo_id_);
+  // ASSERT_EQ(3, j.transports_[1].mumo_id_);
   ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
             j.transports_[1].mumo_type_);
 }
@@ -671,13 +671,13 @@ TEST_F(reliability_bikesharing_routing, DISABLED_unreliable_bike) {
     ASSERT_EQ(0, j.transports_[0].mumo_price_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[0].mumo_type_);
-    ASSERT_EQ(3, j.transports_[0].mumo_id_);
-    ASSERT_EQ(7, j.transports_[2].mumo_id_);
+    // ASSERT_EQ(3, j.transports_[0].mumo_id_);
+    // ASSERT_EQ(7, j.transports_[2].mumo_id_);
     ASSERT_EQ(intermodal::to_str(intermodal::BIKESHARING),
               j.transports_[2].mumo_type_);
   }
 
-  test_journey1(journeys[1], 2);
+  test_journey1(journeys[1]);
 
   ASSERT_EQ(2, response->additional_infos()->size());
   {
