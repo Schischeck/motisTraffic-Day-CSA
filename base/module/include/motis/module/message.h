@@ -65,13 +65,12 @@ inline flatbuffers::Offset<TableType> motis_copy_table_(
   return flatbuffers::Offset<TableType>(
       flatbuffers::CopyTable(fbb, message::get_schema(),
                              *message::get_objectref(table_name),
-                             *(flatbuffers::Table*)src)
+                             *(flatbuffers::Table*)src)  // NOLINT
           .o);
 }
 
-#define motis_copy_table(table_type, target_builder, src)                   \
-  motis::module::motis_copy_table_<table_type>(target_builder, #table_type, \
-                                               (void*)src)  // NOLINT
+#define motis_copy_table(table_type, target_builder, src) \
+  motis::module::motis_copy_table_<table_type>(target_builder, #table_type, src)
 
 }  // namespace module
 }  // namespace motis
