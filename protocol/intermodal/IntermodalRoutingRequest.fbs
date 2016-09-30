@@ -32,8 +32,13 @@ table Walk {
   max_duration: int;
 }
 
+table Bike {
+  max_duration: int;
+}
+
 union Mode {
-  Walk
+  Walk,
+  Bike
 }
 
 table ModeWrapper {
@@ -66,7 +71,7 @@ table ModeWrapper {
 //       "mode_type": "Walk",
 //       "mode": { "max_duration": 900 }
 //     }],
-//     "search_type": "SingleCriterionForward"
+//     "search_type": "SingleCriterion"
 //   }
 // }
 table IntermodalRoutingRequest {

@@ -3,9 +3,12 @@
 #include <functional>
 
 #include "motis/core/common/constants.h"
+#include "motis/core/journey/journeys_to_message.h"
+#include "motis/core/journey/message_to_journeys.h"
 #include "motis/module/context/motis_call.h"
 
 #include "motis/intermodal/error.h"
+#include "motis/intermodal/mumo_edge.h"
 
 #include "motis/protocol/Message_generated.h"
 
@@ -37,7 +40,7 @@ msg_ptr make_geo_request(Position const* pos, double radius) {
 
 msg_ptr make_osrm_request(Position const* pos,
                           Vector<Offset<Station>> const* stations,
-                          char const* profile, Direction direction) {
+                          std::string const& profile, Direction direction) {
   std::vector<Position> many;
   for (auto const* station : *stations) {
     many.push_back(*station->pos());
@@ -54,33 +57,47 @@ msg_ptr make_osrm_request(Position const* pos,
 }
 
 template <typename Fn>
-void add_departure(message_creator& mc, IntermodalRoutingRequest const* req,
-                   Position const* start_pos, Fn appender) {
+void osrm_edges(Position const* pos, int max_dur, int max_dist,
+                mumo_type const type, Direction direction, Fn appender) {
+  auto geo_msg = motis_call(make_geo_request(pos, max_dist))->val();
+  auto geo_resp = motis_content(LookupGeoStationResponse, geo_msg);
+  auto stations = geo_resp->stations();
+
+  auto osrm_msg =
+      motis_call(make_osrm_request(pos, stations, to_string(type), direction))
+          ->val();
+  auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
+
+  for (auto i = 0ul; i < stations->size(); ++i) {
+    auto const dur = osrm_resp->costs()->Get(i)->duration();
+    if (dur > max_dur) {
+      continue;
+    }
+
+    appender(stations->Get(i)->id()->str(), dur / 60, type);
+  }
+}
+
+template <typename Fn>
+void make_deps(IntermodalRoutingRequest const* req, Position const* pos,
+               Fn appender) {
+  constexpr auto kDir = Direction_Forward;
+
   for (auto const& wrapper : *req->start_modes()) {
     switch (wrapper->mode_type()) {
       case Mode_Walk: {
         auto max_dur =
             reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
         auto max_dist = max_dur * WALK_SPEED;
+        osrm_edges(pos, max_dur, max_dist, mumo_type::FOOT, kDir, appender);
 
-        auto geo_msg = motis_call(make_geo_request(start_pos, max_dist))->val();
-        auto geo_resp = motis_content(LookupGeoStationResponse, geo_msg);
-        auto stations = geo_resp->stations();
+      } break;
+      case Mode_Bike: {
+        auto max_dur =
+            reinterpret_cast<Bike const*>(wrapper->mode())->max_duration();
+        auto max_dist = max_dur * BIKE_SPEED;
+        osrm_edges(pos, max_dur, max_dist, mumo_type::BIKE, kDir, appender);
 
-        auto osrm_msg = motis_call(make_osrm_request(start_pos, stations,
-                                                     "foot", Direction_Forward))
-                            ->val();
-        auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
-
-        for (auto i = 0ul; i < stations->size(); ++i) {
-          auto const walk_dur = osrm_resp->costs()->Get(i)->duration();
-          if (walk_dur > max_dur) {
-            continue;
-          }
-
-          appender(mc.CreateString(stations->Get(i)->id()->str()),
-                   walk_dur / 60);
-        }
       } break;
       default: throw std::system_error(error::unknown_mode);
     }
@@ -88,33 +105,25 @@ void add_departure(message_creator& mc, IntermodalRoutingRequest const* req,
 }
 
 template <typename Fn>
-void add_arrival(message_creator& mc, IntermodalRoutingRequest const* req,
-                 Position const* end_pos, Fn appender) {
+void make_arrs(IntermodalRoutingRequest const* req, Position const* pos,
+               Fn appender) {
+  constexpr auto kDir = Direction_Backward;
+
   for (auto const& wrapper : *req->destination_modes()) {
     switch (wrapper->mode_type()) {
       case Mode_Walk: {
         auto max_dur =
             reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
         auto max_dist = max_dur * WALK_SPEED;
+        osrm_edges(pos, max_dur, max_dist, mumo_type::FOOT, kDir, appender);
 
-        auto geo_msg = motis_call(make_geo_request(end_pos, max_dist))->val();
-        auto geo_resp = motis_content(LookupGeoStationResponse, geo_msg);
-        auto stations = geo_resp->stations();
+      } break;
+      case Mode_Bike: {
+        auto max_dur =
+            reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
+        auto max_dist = max_dur * BIKE_SPEED;
+        osrm_edges(pos, max_dur, max_dist, mumo_type::BIKE, kDir, appender);
 
-        auto osrm_msg = motis_call(make_osrm_request(end_pos, stations, "foot",
-                                                     Direction_Backward))
-                            ->val();
-        auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
-
-        for (auto i = 0ul; i < stations->size(); ++i) {
-          auto const walk_dur = osrm_resp->costs()->Get(i)->duration();
-          if (walk_dur > max_dur) {
-            continue;
-          }
-
-          appender(mc.CreateString(stations->Get(i)->id()->str()),
-                   walk_dur / 60);
-        }
       } break;
       default: throw std::system_error(error::unknown_mode);
     }
@@ -154,31 +163,78 @@ query_start get_query_start(message_creator& mc,
   return qs;
 }
 
+msg_ptr postprocess_response(msg_ptr response_msg, Position const* start_pos,
+                             Position const* dest_pos, SearchDir const dir) {
+  auto routing_response = motis_content(RoutingResponse, response_msg);
+  auto journeys = message_to_journeys(routing_response);
+
+  message_creator mc;
+  std::vector<Offset<Connection>> processed_connections_journeys_;
+  for (auto& journey : journeys) {
+    auto& stops = journey.stops_;
+    if (stops.size() < 2) {
+      continue;
+    }
+
+    auto& start = (dir == SearchDir_Forward) ? stops.front() : stops.back();
+    start.lat_ = start_pos->lat();
+    start.lng_ = start_pos->lng();
+
+    auto& dest = (dir == SearchDir_Forward) ? stops.back() : stops.front();
+    dest.lat_ = dest_pos->lat();
+    dest.lng_ = dest_pos->lng();
+
+    for (auto& t : journey.transports_) {
+      if (!t.is_walk_ || t.mumo_id_ < 0) {
+        continue;
+      }
+
+      t.mumo_type_ = to_string(static_cast<mumo_type>(t.mumo_id_));
+      t.mumo_id_ = 0;
+    }
+  }
+
+  mc.create_and_finish(
+      MsgContent_IntermodalRoutingResponse,
+      CreateIntermodalRoutingResponse(
+          mc,
+          mc.CreateVector(transform_to_vec(
+              journeys, [&mc](auto const& j) { return to_connection(mc, j); })))
+          .Union());
+
+  return make_msg(mc);
+}
+
 msg_ptr intermodal::route(msg_ptr const& msg) {
   auto const req = motis_content(IntermodalRoutingRequest, msg);
   message_creator mc;
 
   auto const start = get_query_start(mc, req);
-  auto const* end_pos = req->destination();
+  auto const* dest_pos = req->destination();
 
-  std::vector<Offset<AdditionalEdgeWrapper>> edges;
-  auto appender = [&](auto&& from, auto&& to, unsigned dur) {
-    edges.push_back(CreateAdditionalEdgeWrapper(
-        mc, AdditionalEdge_MumoEdge,
-        CreateMumoEdge(mc, from, to, dur, 0, 0).Union()));
+  auto appender = [](auto& vec, auto const& from, auto const& to,
+                     auto const dur, mumo_type const type) {
+    vec.emplace_back(from, to, dur, type);
   };
 
-  auto const start_node = mc.CreateString(STATION_START);
-  auto const end_node = mc.CreateString(STATION_END);
+  std::vector<mumo_edge> deps;
+  std::vector<mumo_edge> arrs;
 
   using namespace std::placeholders;
   if (req->search_dir() == SearchDir_Forward) {
-    add_departure(mc, req, start.pos_, std::bind(appender, start_node, _1, _2));
-    add_arrival(mc, req, end_pos, std::bind(appender, _1, end_node, _2));
+    make_deps(req, start.pos_,
+              std::bind(appender, std::ref(deps), STATION_START, _1, _2, _3));
+    make_arrs(req, dest_pos,
+              std::bind(appender, std::ref(arrs), _1, STATION_END, _2, _3));
   } else {
-    add_departure(mc, req, start.pos_, std::bind(appender, _1, start_node, _2));
-    add_arrival(mc, req, end_pos, std::bind(appender, end_node, _1, _2));
+    make_deps(req, start.pos_,
+              std::bind(appender, std::ref(deps), _1, STATION_START, _2, _3));
+    make_arrs(req, dest_pos,
+              std::bind(appender, std::ref(arrs), STATION_END, _1, _2, _3));
   }
+
+  remove_intersection(deps, arrs, req->search_dir());
+  auto edges = write_edges(mc, deps, arrs);
 
   mc.create_and_finish(
       MsgContent_RoutingRequest,
@@ -190,7 +246,9 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
                            mc.CreateVector(edges))
           .Union(),
       "/routing");
-  return motis_call(make_msg(mc))->val();
+
+  auto resp = motis_call(make_msg(mc))->val();
+  return postprocess_response(resp, start.pos_, dest_pos, req->search_dir());
 }
 
 }  // namespace intermodal
