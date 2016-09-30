@@ -9,6 +9,7 @@
 
 #include "motis/intermodal/error.h"
 #include "motis/intermodal/mumo_edge.h"
+#include "motis/intermodal/query_bounds.h"
 
 #include "motis/protocol/Message_generated.h"
 
@@ -29,142 +30,8 @@ void intermodal::init(motis::module::registry& r) {
   r.register_op("/intermodal", [this](msg_ptr const& m) { return route(m); });
 }
 
-msg_ptr make_geo_request(Position const* pos, double radius) {
-  message_creator mc;
-  mc.create_and_finish(
-      MsgContent_LookupGeoStationRequest,
-      CreateLookupGeoStationRequest(mc, pos, 0, radius).Union(),
-      "/lookup/geo_station");
-  return make_msg(mc);
-}
-
-msg_ptr make_osrm_request(Position const* pos,
-                          Vector<Offset<Station>> const* stations,
-                          std::string const& profile, Direction direction) {
-  std::vector<Position> many;
-  for (auto const* station : *stations) {
-    many.push_back(*station->pos());
-  }
-
-  message_creator mc;
-  mc.create_and_finish(
-      MsgContent_OSRMOneToManyRequest,
-      CreateOSRMOneToManyRequest(mc, mc.CreateString(profile), direction, pos,
-                                 mc.CreateVectorOfStructs(many))
-          .Union(),
-      "/osrm/one_to_many");
-  return make_msg(mc);
-}
-
-template <typename Fn>
-void osrm_edges(Position const* pos, int max_dur, int max_dist,
-                mumo_type const type, Direction direction, Fn appender) {
-  auto geo_msg = motis_call(make_geo_request(pos, max_dist))->val();
-  auto geo_resp = motis_content(LookupGeoStationResponse, geo_msg);
-  auto stations = geo_resp->stations();
-
-  auto osrm_msg =
-      motis_call(make_osrm_request(pos, stations, to_string(type), direction))
-          ->val();
-  auto osrm_resp = motis_content(OSRMOneToManyResponse, osrm_msg);
-
-  for (auto i = 0ul; i < stations->size(); ++i) {
-    auto const dur = osrm_resp->costs()->Get(i)->duration();
-    if (dur > max_dur) {
-      continue;
-    }
-
-    appender(stations->Get(i)->id()->str(), dur / 60, type);
-  }
-}
-
-template <typename Fn>
-void make_deps(IntermodalRoutingRequest const* req, Position const* pos,
-               Fn appender) {
-  constexpr auto kDir = Direction_Forward;
-
-  for (auto const& wrapper : *req->start_modes()) {
-    switch (wrapper->mode_type()) {
-      case Mode_Walk: {
-        auto max_dur =
-            reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
-        auto max_dist = max_dur * WALK_SPEED;
-        osrm_edges(pos, max_dur, max_dist, mumo_type::FOOT, kDir, appender);
-
-      } break;
-      case Mode_Bike: {
-        auto max_dur =
-            reinterpret_cast<Bike const*>(wrapper->mode())->max_duration();
-        auto max_dist = max_dur * BIKE_SPEED;
-        osrm_edges(pos, max_dur, max_dist, mumo_type::BIKE, kDir, appender);
-
-      } break;
-      default: throw std::system_error(error::unknown_mode);
-    }
-  }
-}
-
-template <typename Fn>
-void make_arrs(IntermodalRoutingRequest const* req, Position const* pos,
-               Fn appender) {
-  constexpr auto kDir = Direction_Backward;
-
-  for (auto const& wrapper : *req->destination_modes()) {
-    switch (wrapper->mode_type()) {
-      case Mode_Walk: {
-        auto max_dur =
-            reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
-        auto max_dist = max_dur * WALK_SPEED;
-        osrm_edges(pos, max_dur, max_dist, mumo_type::FOOT, kDir, appender);
-
-      } break;
-      case Mode_Bike: {
-        auto max_dur =
-            reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
-        auto max_dist = max_dur * BIKE_SPEED;
-        osrm_edges(pos, max_dur, max_dist, mumo_type::BIKE, kDir, appender);
-
-      } break;
-      default: throw std::system_error(error::unknown_mode);
-    }
-  }
-}
-
-struct query_start {
-  Start type_;
-  Offset<void> transformed_;
-  Position const* pos_;
-};
-
-query_start get_query_start(message_creator& mc,
-                            IntermodalRoutingRequest const* req) {
-  query_start qs;
-  auto start_station = CreateInputStation(mc, mc.CreateString(STATION_START),
-                                          mc.CreateString(STATION_START));
-  switch (req->start_type()) {
-    case IntermodalStart_IntermodalOntripStart: {
-      auto start = reinterpret_cast<IntermodalOntripStart const*>(req->start());
-      qs.type_ = Start_OntripStationStart;
-      qs.transformed_ =
-          CreateOntripStationStart(mc, start_station, start->departure_time())
-              .Union();
-      qs.pos_ = start->position();
-    } break;
-    case IntermodalStart_IntermodalPretripStart: {
-      auto start =
-          reinterpret_cast<IntermodalPretripStart const*>(req->start());
-      qs.type_ = Start_PretripStart;
-      qs.transformed_ =
-          CreatePretripStart(mc, start_station, start->interval()).Union();
-      qs.pos_ = start->position();
-    } break;
-    default: throw std::system_error(error::unknown_start);
-  }
-  return qs;
-}
-
-msg_ptr postprocess_response(msg_ptr response_msg, Position const* start_pos,
-                             Position const* dest_pos, SearchDir const dir) {
+msg_ptr postprocess_response(msg_ptr response_msg, query_start const& q_start,
+                             query_dest const& q_dest, SearchDir const dir) {
   auto routing_response = motis_content(RoutingResponse, response_msg);
   auto journeys = message_to_journeys(routing_response);
 
@@ -176,13 +43,17 @@ msg_ptr postprocess_response(msg_ptr response_msg, Position const* start_pos,
       continue;
     }
 
-    auto& start = (dir == SearchDir_Forward) ? stops.front() : stops.back();
-    start.lat_ = start_pos->lat();
-    start.lng_ = start_pos->lng();
+    if (q_start.is_intermodal_) {
+      auto& start = (dir == SearchDir_Forward) ? stops.front() : stops.back();
+      start.lat_ = q_start.pos_.lat_;
+      start.lng_ = q_start.pos_.lng_;
+    }
 
-    auto& dest = (dir == SearchDir_Forward) ? stops.back() : stops.front();
-    dest.lat_ = dest_pos->lat();
-    dest.lng_ = dest_pos->lng();
+    if (q_dest.is_intermodal_) {
+      auto& dest = (dir == SearchDir_Forward) ? stops.back() : stops.front();
+      dest.lat_ = q_dest.pos_.lat_;
+      dest.lng_ = q_dest.pos_.lng_;
+    }
 
     for (auto& t : journey.transports_) {
       if (!t.is_walk_ || t.mumo_id_ < 0) {
@@ -209,8 +80,8 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
   auto const req = motis_content(IntermodalRoutingRequest, msg);
   message_creator mc;
 
-  auto const start = get_query_start(mc, req);
-  auto const* dest_pos = req->destination();
+  auto const start = parse_query_start(mc, req);
+  auto const dest = parse_query_dest(mc, req);
 
   auto appender = [](auto& vec, auto const& from, auto const& to,
                      auto const dur, mumo_type const type) {
@@ -222,15 +93,23 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
 
   using namespace std::placeholders;
   if (req->search_dir() == SearchDir_Forward) {
-    make_deps(req, start.pos_,
-              std::bind(appender, std::ref(deps), STATION_START, _1, _2, _3));
-    make_arrs(req, dest_pos,
-              std::bind(appender, std::ref(arrs), _1, STATION_END, _2, _3));
+    if (start.is_intermodal_) {
+      make_starts(req, start.pos_, std::bind(appender, std::ref(deps),  //
+                                             STATION_START, _1, _2, _3));
+    }
+    if (dest.is_intermodal_) {
+      make_dests(req, dest.pos_, std::bind(appender, std::ref(arrs),  //
+                                           _1, STATION_END, _2, _3));
+    }
   } else {
-    make_deps(req, start.pos_,
-              std::bind(appender, std::ref(deps), _1, STATION_START, _2, _3));
-    make_arrs(req, dest_pos,
-              std::bind(appender, std::ref(arrs), STATION_END, _1, _2, _3));
+    if (start.is_intermodal_) {
+      make_starts(req, start.pos_, std::bind(appender, std::ref(deps),  //
+                                             _1, STATION_START, _2, _3));
+    }
+    if (dest.is_intermodal_) {
+      make_dests(req, dest.pos_, std::bind(appender, std::ref(arrs),  //
+                                           STATION_END, _1, _2, _3));
+    }
   }
 
   remove_intersection(deps, arrs, req->search_dir());
@@ -238,9 +117,7 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
 
   mc.create_and_finish(
       MsgContent_RoutingRequest,
-      CreateRoutingRequest(mc, start.type_, start.transformed_,
-                           CreateInputStation(mc, mc.CreateString(STATION_END),
-                                              mc.CreateString(STATION_END)),
+      CreateRoutingRequest(mc, start.start_type_, start.start_, dest.station_,
                            req->search_type(), req->search_dir(),
                            mc.CreateVector(std::vector<Offset<Via>>{}),
                            mc.CreateVector(edges))
@@ -248,7 +125,7 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
       "/routing");
 
   auto resp = motis_call(make_msg(mc))->val();
-  return postprocess_response(resp, start.pos_, dest_pos, req->search_dir());
+  return postprocess_response(resp, start, dest, req->search_dir());
 }
 
 }  // namespace intermodal

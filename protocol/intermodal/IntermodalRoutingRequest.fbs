@@ -5,6 +5,11 @@ include "routing/RoutingRequest.fbs";
 
 namespace motis.intermodal;
 
+table InputPosition {
+  lat: double;
+  lng: double;
+}
+
 // ----------------------------------------------------------------------------
 // Intermodal Start
 // ----------------------------------------------------------------------------
@@ -21,7 +26,19 @@ table IntermodalPretripStart {
 
 union IntermodalStart {
   IntermodalOntripStart,
-  IntermodalPretripStart
+  IntermodalPretripStart,
+  routing.OntripTrainStart,
+  routing.OntripStationStart,
+  routing.PretripStart
+}
+
+// ----------------------------------------------------------------------------
+// Intermodal Destination
+// ----------------------------------------------------------------------------
+
+union IntermodalDestination {
+  routing.InputStation,
+  InputPosition
 }
 
 // ----------------------------------------------------------------------------
@@ -77,7 +94,7 @@ table ModeWrapper {
 table IntermodalRoutingRequest {
   start: IntermodalStart;
   start_modes: [ModeWrapper];
-  destination: motis.Position;
+  destination: IntermodalDestination;
   destination_modes: [ModeWrapper];
   search_type: routing.SearchType;
   search_dir: routing.SearchDir;

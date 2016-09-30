@@ -1,5 +1,8 @@
 #pragma once
+
 #include <vector>
+
+#include "geo/latlng.h"
 
 #include "motis/core/schedule/time.h"
 
@@ -28,6 +31,14 @@ struct mumo_edge {
   duration duration_;
   mumo_type type_;
 };
+
+using appender_fun =
+    std::function<void(std::string const&, duration const, mumo_type const)>;
+
+void make_starts(IntermodalRoutingRequest const*, geo::latlng const&,
+                 appender_fun const&);
+void make_dests(IntermodalRoutingRequest const*, geo::latlng const&,
+                appender_fun const&);
 
 void remove_intersection(std::vector<mumo_edge>& starts,
                          std::vector<mumo_edge> const& destinations,
