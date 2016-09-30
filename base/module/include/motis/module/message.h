@@ -1,6 +1,7 @@
 #pragma once
 
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/reflection.h"
 
 #include "motis/protocol/Message_generated.h"
 
@@ -32,6 +33,9 @@ struct message : public typed_flatbuffer<Message> {
   int id() const { return get()->id(); }
 
   std::string to_json() const;
+
+  static reflection::Schema const& get_schema();
+  static reflection::Object const* get_objectref(char const* name);
 };
 
 typedef std::shared_ptr<message> msg_ptr;
@@ -54,6 +58,20 @@ inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
 
 #define motis_content(content_type, msg) \
   motis::module::motis_content_<content_type>(msg, MsgContent_##content_type)
+
+template <typename TableType>
+inline flatbuffers::Offset<TableType> motis_copy_table_(
+    flatbuffers::FlatBufferBuilder& fbb, char const* table_name, void* src) {
+  return flatbuffers::Offset<TableType>(
+      flatbuffers::CopyTable(fbb, message::get_schema(),
+                             *message::get_objectref(table_name),
+                             *(flatbuffers::Table*)src)
+          .o);
+}
+
+#define motis_copy_table(table_type, target_builder, src)                   \
+  motis::module::motis_copy_table_<table_type>(target_builder, #table_type, \
+                                               (void*)src)  // NOLINT
 
 }  // namespace module
 }  // namespace motis
