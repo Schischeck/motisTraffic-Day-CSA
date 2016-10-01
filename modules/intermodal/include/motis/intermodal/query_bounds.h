@@ -11,8 +11,6 @@
 namespace motis {
 namespace intermodal {
 
-struct IntermodalRoutingRequest;
-
 struct query_start {
   query_start(routing::Start const start_type,
               flatbuffers::Offset<void> const start)
@@ -36,7 +34,7 @@ query_start parse_query_start(flatbuffers::FlatBufferBuilder&,
                               IntermodalRoutingRequest const*);
 
 struct query_dest {
-  query_dest(flatbuffers::Offset<routing::InputStation> const station)
+  explicit query_dest(flatbuffers::Offset<routing::InputStation> const station)
       : station_(station), is_intermodal_(false) {}
 
   query_dest(flatbuffers::Offset<routing::InputStation> const station,

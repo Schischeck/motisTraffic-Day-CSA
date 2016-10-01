@@ -53,7 +53,8 @@ query_dest parse_query_dest(FlatBufferBuilder& fbb,
                             IntermodalRoutingRequest const* req) {
   switch (req->destination_type()) {
     case IntermodalDestination_InputStation:
-      return motis_copy_table(InputStation, fbb, req->destination());
+      return query_dest{
+          motis_copy_table(InputStation, fbb, req->destination())};
 
     case IntermodalDestination_InputPosition: {
       auto pos = reinterpret_cast<InputPosition const*>(req->destination());

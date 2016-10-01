@@ -19,13 +19,13 @@ inline int to_int(mumo_type const type) {
 
 inline std::string to_string(mumo_type const type) {
   char const* strs[] = {"foot", "bike"};
-  return strs[to_int(type)];
+  return strs[to_int(type)]; // NOLINT
 }
 
 struct mumo_edge {
-  mumo_edge(std::string const& from, std::string const& to, duration const d,
+  mumo_edge(std::string from, std::string to, duration const d,
             mumo_type const type)
-      : from_(from), to_(to), duration_(d), type_(type) {}
+      : from_(std::move(from)), to_(std::move(to)), duration_(d), type_(type) {}
 
   std::string from_, to_;
   duration duration_;
@@ -48,5 +48,5 @@ std::vector<flatbuffers::Offset<routing::AdditionalEdgeWrapper>> write_edges(
     flatbuffers::FlatBufferBuilder& fbb, std::vector<mumo_edge> const& starts,
     std::vector<mumo_edge> const& destinations);
 
-}  // namespace motis
+}  // namespace intermodal
 }  // namespace motis
