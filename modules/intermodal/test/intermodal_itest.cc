@@ -28,8 +28,8 @@ using motis::test::schedule::simple_realtime::get_ris_message;
 namespace motis {
 namespace intermodal {
 
-struct intermodal : public motis_instance_test {
-  intermodal()
+struct intermodal_itest : public motis_instance_test {
+  intermodal_itest()
       : motis::test::motis_instance_test(dataset_opt,
                                          {"intermodal", "routing", "lookup"}) {
     instance_->register_op("/osrm/one_to_many", [](msg_ptr const& msg) {
@@ -52,10 +52,8 @@ struct intermodal : public motis_instance_test {
   }
 };
 
-TEST_F(intermodal, integration) {
-  // auto const start_pos = Position{49.403567, 8.675442};  // Heidelberg Hbf
-  // auto const dest_pos = latlng{49.681329, 8.616717};  // Bensheim
-  //  Heidelberg Hbf -> Bensheim ( 2015-11-24 13:30:00 )
+TEST_F(intermodal_itest, forward) {
+  //  Heidelberg Hbf -> Bensheim ( departure: 2015-11-24 13:30:00 )
   auto json = R"(
     {
       "destination": {
@@ -66,17 +64,21 @@ TEST_F(intermodal, integration) {
       "content": {
         "start_type": "IntermodalOntripStart",
         "start": {
-          "position": { "lat": 49.403567, "lng": 8.675442},
+          "position": { "lat": 49.4047178, "lng": 8.6768716},
           "departure_time": 1448368200
         },
         "start_modes": [{
-          "mode_type": "Walk",
-          "mode": { "max_duration": 60 }
+          "mode_type": "Foot",
+          "mode": { "max_duration": 600 }
         }],
-        "destination": { "lat": 49.681329, "lng": 8.616717},
+        "destination_type": "InputPosition",
+        "destination": { "lat": 49.6801332, "lng": 8.6200666},
         "destination_modes":  [{
-          "mode_type": "Walk",
-          "mode": { "max_duration": 60 }
+          "mode_type": "Foot",
+          "mode": { "max_duration": 600 }
+        },{
+          "mode_type": "Bike",
+          "mode": { "max_duration": 600 }
         }],
         "search_type": "SingleCriterion"
       }
@@ -87,83 +89,148 @@ TEST_F(intermodal, integration) {
   auto content = motis_content(IntermodalRoutingResponse, res);
 
   ASSERT_EQ(1, content->connections()->size());
+  auto const& stops = content->connections()->Get(0)->stops();
 
-  // auto journeys =
-  // message_to_journeys(motis_content(IntermodalRoutingResponse, res));
+  ASSERT_EQ(5, stops->size());
+
+  auto const& start = stops->Get(0);
+  EXPECT_STREQ(STATION_START, start->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.4047178, start->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.6768716, start->station()->pos()->lng());
+
+  auto const& first_station = stops->Get(1);
+  EXPECT_STREQ("8000156", first_station->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.403567, first_station->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.675442, first_station->station()->pos()->lng());
+
+  auto const& last_station = stops->Get(3);
+  EXPECT_STREQ("8000031", last_station->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.681329, last_station->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.616717, last_station->station()->pos()->lng());
+
+  auto const& end = stops->Get(4);
+  EXPECT_STREQ(STATION_END, end->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.6801332, end->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.6200666, end->station()->pos()->lng());
+
+  auto const& transports = content->connections()->Get(0)->transports();
+  ASSERT_EQ(3, transports->size());
+
+  ASSERT_EQ(Move_Walk, transports->Get(0)->move_type());
+  ASSERT_STREQ("foot",
+               reinterpret_cast<motis::Walk const*>(transports->Get(0)->move())
+                   ->mumo_type()
+                   ->c_str());
+
+  ASSERT_EQ(Move_Walk, transports->Get(0)->move_type());
+  ASSERT_STREQ("bike",
+               reinterpret_cast<motis::Walk const*>(transports->Get(2)->move())
+                   ->mumo_type()
+                   ->c_str());
 }
 
-// msg_ptr routing_request() const {
-//   auto const interval = Interval(unix_time(1355), unix_time(1355));
-//   message_creator mc;
-//   mc.create_and_finish(
-//       MsgContent_RoutingRequest,
-//       CreateRoutingRequest(
-//           mc, Start_PretripStart,
-//           CreatePretripStart(mc,
-//                              CreateInputStation(mc,
-//                              mc.CreateString("8000260"),
-//                                                 mc.CreateString("")),
-//                              &interval)
-//               .Union(),
-//           CreateInputStation(mc, mc.CreateString("8000208"),
-//                              mc.CreateString("")),
-//           SearchType_SingleCriterion, SearchDir_Forward,
-//           mc.CreateVector(std::vector<Offset<Via>>()),
-//           mc.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
-//           .Union(),
-//       "/routing");
-//   return make_msg(mc);
-// }
+TEST_F(intermodal_itest, backward) {
+  //  Heidelberg Hbf -> Bensheim ( arrival: 2015-11-24 14:30:00 )
+  auto json = R"(
+    {
+      "destination": {
+        "type": "Module",
+        "target": "/intermodal"
+      },
+      "content_type": "IntermodalRoutingRequest",
+      "content": {
+        "start_type": "IntermodalOntripStart",
+        "start": {
+          "position": { "lat": 49.6801332, "lng": 8.6200666 },
+          "departure_time": 1448371800
+        },
+        "start_modes": [{
+          "mode_type": "Foot",
+          "mode": { "max_duration": 600 }
+        }],
+        "destination_type": "InputPosition",
+        "destination": { "lat": 49.4047178, "lng": 8.6768716 },
+        "destination_modes":  [{
+          "mode_type": "Foot",
+          "mode": { "max_duration": 600 }
+        }],
+        "search_type": "SingleCriterion",
+        "search_dir": "Backward"
+      }
+    }
+  )";
 
-// TEST_F(intermodal, finds_annotated_connections) {
-//   publish(get_ris_message(sched()));
-//   publish(make_no_msg("/ris/system_time_changed"));
-//   auto res = call(routing_request());
-//   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
+  auto res = call(make_msg(json));
+  auto content = motis_content(IntermodalRoutingResponse, res);
 
-//   ASSERT_EQ(1, journeys.size());
-//   auto j = journeys[0];
+  ASSERT_EQ(1, content->connections()->size());
+  auto const& stops = content->connections()->Get(0)->stops();
 
-//   // ICE 628
-//   auto s0 = j.stops_[0];  // Wuerzburg
-//   EXPECT_EQ("8000260", s0.eva_no_);
-//   EXPECT_EQ(0, s0.arrival_.schedule_timestamp_);
-//   EXPECT_EQ(0, s0.arrival_.timestamp_);
-//   EXPECT_EQ(unix_time(1355), s0.departure_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1355), s0.departure_.timestamp_);
+  ASSERT_EQ(5, stops->size());
 
-//   auto s1 = j.stops_[1];  // Aschaffenburg
-//   EXPECT_EQ(unix_time(1436), s1.departure_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1437), s1.departure_.timestamp_);
+  auto const& start = stops->Get(0);
+  EXPECT_STREQ(STATION_END, start->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.4047178, start->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.6768716, start->station()->pos()->lng());
 
-//   auto s2 = j.stops_[2];  // Frankfurt(Main)Hbf
-//   EXPECT_EQ(unix_time(1504), s2.arrival_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1505), s2.arrival_.timestamp_);
-//   EXPECT_EQ(unix_time(1510), s2.departure_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1510), s2.departure_.timestamp_);
+  auto const& first_station = stops->Get(1);
+  EXPECT_STREQ("8000156", first_station->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.403567, first_station->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.675442, first_station->station()->pos()->lng());
 
-//   auto s3 = j.stops_[3];  // Frankfurt(M) Flughafe
-//   EXPECT_EQ(unix_time(1525), s3.departure_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1530), s3.departure_.timestamp_);
+  auto const& last_station = stops->Get(3);
+  EXPECT_STREQ("8000031", last_station->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.681329, last_station->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.616717, last_station->station()->pos()->lng());
 
-//   // walk
-//   auto s4 = j.stops_[4];  // Koeln Messe/Deutz Gl.1
-//   EXPECT_EQ(unix_time(1619), s4.departure_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1619), s4.departure_.timestamp_);
+  auto const& end = stops->Get(4);
+  EXPECT_STREQ(STATION_START, end->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.6801332, end->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.6200666, end->station()->pos()->lng());
+}
 
-//   auto s5 = j.stops_[5];  // Koeln Messe/Deutz
-//   EXPECT_EQ(unix_time(1620), s5.arrival_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1620), s5.arrival_.timestamp_);
+TEST_F(intermodal_itest, not_so_intermodal) {
+  //  Heidelberg Hbf -> Bensheim ( departure: 2015-11-24 13:30:00 )
+  auto json = R"(
+    {
+      "destination": {
+        "type": "Module",
+        "target": "/intermodal"
+      },
+      "content_type": "IntermodalRoutingRequest",
+      "content": {
+        "start_type": "OntripStationStart",
+        "start": {
+          "station": { "id": "8000156", "name": "" },
+          "departure_time": 1448368200
+        },
+        "start_modes": [],
+        "destination_type": "InputStation",
+        "destination": { "id": "8000031", "name": "" },
+        "destination_modes": [],
+        "search_type": "SingleCriterion"
+      }
+    }
+  )";
 
-//   // RE 10958
-//   EXPECT_EQ(unix_time(1633), s5.departure_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1633), s5.departure_.timestamp_);
+  auto res = call(make_msg(json));
+  auto content = motis_content(IntermodalRoutingResponse, res);
 
-//   auto s7 = j.stops_[7];  // Koeln-Ehrenfeld
-//   EXPECT_EQ("8000208", s7.eva_no_);
-//   EXPECT_EQ(unix_time(1651), s7.arrival_.schedule_timestamp_);
-//   EXPECT_EQ(unix_time(1651), s7.arrival_.timestamp_);
-// }
+  ASSERT_EQ(1, content->connections()->size());
+  auto const& stops = content->connections()->Get(0)->stops();
+
+  ASSERT_EQ(3, stops->size());
+
+  auto const& first_station = stops->Get(0);
+  EXPECT_STREQ("8000156", first_station->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.403567, first_station->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.675442, first_station->station()->pos()->lng());
+
+  auto const& last_station = stops->Get(2);
+  EXPECT_STREQ("8000031", last_station->station()->id()->c_str());
+  EXPECT_FLOAT_EQ(49.681329, last_station->station()->pos()->lat());
+  EXPECT_FLOAT_EQ(8.616717, last_station->station()->pos()->lng());
+}
 
 }  // namespace intermodal
 }  // namespace motis

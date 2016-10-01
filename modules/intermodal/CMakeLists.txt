@@ -9,6 +9,7 @@ target_link_libraries(motis-intermodal
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   motis-module
+  motis-core
   geo
 )
 

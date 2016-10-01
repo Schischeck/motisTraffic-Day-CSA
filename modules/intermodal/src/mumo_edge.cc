@@ -74,9 +74,9 @@ void make_edges(Vector<Offset<ModeWrapper>> const* modes, latlng const& pos,
                 Direction const osrm_direction, appender_fun const& appender) {
   for (auto const& wrapper : *modes) {
     switch (wrapper->mode_type()) {
-      case Mode_Walk: {
+      case Mode_Foot: {
         auto max_dur =
-            reinterpret_cast<Walk const*>(wrapper->mode())->max_duration();
+            reinterpret_cast<Foot const*>(wrapper->mode())->max_duration();
         auto max_dist = max_dur * WALK_SPEED;
         osrm_edges(pos, max_dur, max_dist, mumo_type::FOOT, osrm_direction,
                    appender);

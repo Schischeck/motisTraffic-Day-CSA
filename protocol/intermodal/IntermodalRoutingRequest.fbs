@@ -45,7 +45,7 @@ union IntermodalDestination {
 // Intermodal Mode
 // ----------------------------------------------------------------------------
 
-table Walk {
+table Foot {
   max_duration: int;
 }
 
@@ -54,7 +54,7 @@ table Bike {
 }
 
 union Mode {
-  Walk,
+  Foot,
   Bike
 }
 
@@ -80,12 +80,12 @@ table ModeWrapper {
 //       "departure_time": 1468998000
 //     },
 //     "start_modes": [{
-//       "mode_type": "Walk",
+//       "mode_type": "Foot",
 //       "mode": { "max_duration": 900 }
 //     }],
 //     "destination": { "lat": 50.1095955, "lng": 8.6692976},
 //     "destination_modes":  [{
-//       "mode_type": "Walk",
+//       "mode_type": "Foot",
 //       "mode": { "max_duration": 900 }
 //     }],
 //     "search_type": "SingleCriterion"
