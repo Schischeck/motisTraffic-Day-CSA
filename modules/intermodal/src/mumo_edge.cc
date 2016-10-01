@@ -147,5 +147,5 @@ std::vector<Offset<AdditionalEdgeWrapper>> write_edges(
   return edges;
 }
 
-}  // namespace motis
+}  // namespace intermodal
 }  // namespace motis

@@ -19,7 +19,7 @@ inline int to_int(mumo_type const type) {
 
 inline std::string to_string(mumo_type const type) {
   char const* strs[] = {"foot", "bike"};
-  return strs[to_int(type)]; // NOLINT
+  return strs[to_int(type)];  // NOLINT
 }
 
 struct mumo_edge {
