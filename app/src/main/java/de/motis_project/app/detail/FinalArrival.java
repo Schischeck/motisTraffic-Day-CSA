@@ -16,8 +16,8 @@ import motis.Connection;
 import motis.EventInfo;
 import motis.Stop;
 
-public class FinalArrival {
-    View layout;
+public class FinalArrival implements DetailViewHolder {
+    private View layout;
 
     @BindString(R.string.track)
     String track;
@@ -50,5 +50,10 @@ public class FinalArrival {
             arrivalTrack.setText(String.format(track, arrTrackStr));
         }
         // TODO(felix) arrival time delay
+    }
+
+    @Override
+    public View getView() {
+        return layout;
     }
 }

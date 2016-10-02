@@ -13,8 +13,8 @@ import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.Stop;
 
-public class TransportTargetStation {
-    View layout;
+public class TransportTargetStation implements DetailViewHolder {
+    private View layout;
 
     @BindView(R.id.detail_transport_target_station_arr_time)
     TextView arrivalTime;
@@ -43,5 +43,10 @@ public class TransportTargetStation {
         arrivalTime.setText(TimeUtil.formatTime(stop.arrival().scheduleTime()));
         // TODO(felix) arrivalDelay.setText(...);
         targetStation.setText(stop.station().name());
+    }
+
+    @Override
+    public View getView() {
+        return layout;
     }
 }

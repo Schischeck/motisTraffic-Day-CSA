@@ -16,8 +16,8 @@ import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.Transport;
 
-public class TransportHeader {
-    View layout;
+public class TransportHeader implements DetailViewHolder {
+    private View layout;
 
     @BindString(R.string.arrival_short)
     String arrivalShort;
@@ -60,15 +60,29 @@ public class TransportHeader {
 
         long arr = con.stops(prevSection.to).arrival().scheduleTime();
         long dep = con.stops(nextSection.from).departure().scheduleTime();
-        String duration = TimeUtil.formatDuration((dep - arr) / 60);
-        interchangeInfo.setText(
-                String.format(interchange, arrivalShort + " " + trackShort + ", " + duration));
+        String durationStr = TimeUtil.formatDuration((dep - arr) / 60);
+        String arrTrackName = con.stops(prevSection.to).arrival().track();
+        System.out.println("arrTrackName = " + arrTrackName);
+        System.out.println("durationStr = " + durationStr);
+        if (arrTrackName == null || arrTrackName.isEmpty()) {
+            interchangeInfo.setText(String.format(interchange, durationStr));
+        } else {
+            arrTrackName = arrivalShort + " " +  trackShort + " " + arrTrackName;
+            System.out.println(durationStr);
+            interchangeInfo.setText(
+                    String.format(interchange, arrTrackName + ", " + durationStr));
+        }
 
-        String trackName = con.stops(nextSection.from).departure().track();
-        if (trackName == null || trackName.isEmpty()) {
+        String depTrackName = con.stops(nextSection.from).departure().track();
+        if (depTrackName == null || depTrackName.isEmpty()) {
             depTrack.setVisibility(View.GONE);
         } else {
-            depTrack.setText(String.format(track, trackName));
+            depTrack.setText(String.format(track, depTrackName));
         }
+    }
+
+    @Override
+    public View getView() {
+        return layout;
     }
 }

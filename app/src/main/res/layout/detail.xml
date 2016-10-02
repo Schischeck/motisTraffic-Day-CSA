@@ -20,8 +20,6 @@
             android:paddingBottom="@dimen/activity_vertical_margin"
             android:paddingTop="@dimen/activity_vertical_margin">
 
-            <include layout="@layout/detail_transport_header"/>
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -195,80 +193,6 @@
                             android:textColor="@color/abc_secondary_text_material_light"/>
 
 
-                    </LinearLayout>
-                </FrameLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:orientation="horizontal"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin">
-
-                <FrameLayout
-                    android:layout_width="10dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="12dp">
-
-                    <View
-                        android:layout_width="10dp"
-                        android:layout_height="10dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/rounded_corner_accent"/>
-
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:background="@color/colorAccent"/>
-                </FrameLayout>
-
-                <FrameLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:layout_marginRight="@dimen/activity_horizontal_margin"
-                    >
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:gravity="center_vertical"
-                            android:text="14:35"
-                            android:textColor="@color/abc_primary_text_material_light"
-                            android:textStyle="bold"/>
-
-                        <TextView
-                            android:id="@+id/textView18"
-                            android:layout_width="40dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="10dp"
-                            android:gravity="center_vertical|center_horizontal"
-                            android:maxLines="1"
-                            android:text="+5"
-                            android:textColor="@color/colorAccent"
-                            android:textStyle="bold"
-                            android:visibility="visible"
-                            />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_gravity="center_vertical"
-                            android:ellipsize="end"
-                            android:gravity="center_vertical"
-                            android:maxLines="2"
-                            android:paddingStart="9dp"
-                            android:text="Groß-Umstadt Pfälzer Schloss"
-                            android:textColor="@color/abc_primary_text_material_light"
-                            android:textStyle="bold"/>
                     </LinearLayout>
                 </FrameLayout>
 

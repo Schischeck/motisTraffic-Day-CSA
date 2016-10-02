@@ -130,4 +130,12 @@ public class JourneyUtil {
         }
         return null;
     }
+
+    public static String getTransportName(Connection c, Section s) {
+        Transport transport = JourneyUtil.getTransport(c, s);
+        if (transport == null) {
+            return "";
+        }
+        return Str.san(transport.name());
+    }
 }

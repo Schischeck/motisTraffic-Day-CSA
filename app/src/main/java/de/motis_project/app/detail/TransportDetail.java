@@ -16,8 +16,8 @@ import motis.Connection;
 import motis.Stop;
 import motis.Transport;
 
-public class TransportDetail {
-    View layout;
+public class TransportDetail implements DetailViewHolder {
+    private View layout;
 
     @BindView(R.id.detail_transport_dep_station)
     TextView station;
@@ -60,5 +60,10 @@ public class TransportDetail {
     private static String getDirection(Connection con, JourneyUtil.Section s) {
         Transport transport = JourneyUtil.getTransport(con, s);
         return (transport == null) ? "" : Str.san(transport.direction());
+    }
+
+    @Override
+    public View getView() {
+        return layout;
     }
 }

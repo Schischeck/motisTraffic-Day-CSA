@@ -3,7 +3,6 @@ package de.motis_project.app.detail;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -16,13 +15,12 @@ import java.util.Date;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
 import motis.Connection;
 
-public class JourneyDetail extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity {
     private Connection con;
 
     @BindString(R.string.transfer)
@@ -69,36 +67,17 @@ public class JourneyDetail extends AppCompatActivity {
 
         ButterKnife.bind(this);
         initHeader();
+        create();
+    }
 
-        LayoutInflater inflater = getLayoutInflater();
-        journeyDetails.addView(
-                new FirstTransportHeader(con, journeyDetails, inflater).layout, 0);
-        journeyDetails.addView(
-                new TransportDetail(
-                        con, JourneyUtil.getSections(con).get(0), journeyDetails,
-                        inflater).layout, 1);
+    void create() {
+        TransportBuilder.setConnection(getLayoutInflater(), journeyDetails, con);
+    }
 
-        journeyDetails.addView(
-                new TransportStops(
-                        con, JourneyUtil.getSections(con).get(0), journeyDetails,
-                        inflater).layout, 2);
-
-        /*
-        journeyDetails.addView(
-                new TransportTargetStation(
-                        con, JourneyUtil.getSections(con).get(0), journeyDetails,
-                        inflater).layout, 3);
-                        */
-        journeyDetails.addView(
-                new TransportTargetStation(
-                        con, JourneyUtil.getSections(con).get(0), journeyDetails,
-                        inflater).layout, 3);
-
-        journeyDetails.addView(
-                new TransportHeader(
-                        con, JourneyUtil.getSections(con).get(0),
-                        JourneyUtil.getSections(con).get(1), journeyDetails,
-                        inflater).layout, 4);
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        create();
     }
 
     @Override

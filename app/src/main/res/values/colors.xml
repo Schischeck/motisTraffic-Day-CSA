@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Indigo / Pink -->
+    <!--
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#283593</color>
     <color name="colorPrimaryLight">#7986CB</color>
     <color name="colorAccent">#ff4081</color>
+    -->
+
+    <!-- Blue Grey / Light Green-->
+    <color name="colorPrimary">#607D8B</color>
+    <color name="colorPrimaryDark">#37474F</color>
+    <color name="colorPrimaryLight">#78909C</color>
+    <color name="colorAccent">#8BC34A</color>
+
     <color name="color_white_semitransparent">#88FFFFFF</color>
     <color name="color_back_semitransparent">#AA000000</color>
     <color name="grey_200">#FFCCCCCC</color>

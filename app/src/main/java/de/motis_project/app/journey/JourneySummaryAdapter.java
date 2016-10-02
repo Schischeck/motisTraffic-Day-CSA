@@ -16,7 +16,7 @@ import java.util.Map;
 
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
-import de.motis_project.app.detail.JourneyDetail;
+import de.motis_project.app.detail.DetailActivity;
 import de.motis_project.app.io.Status;
 import de.motis_project.app.lib.StickyHeaderAdapter;
 import motis.Connection;
@@ -132,7 +132,7 @@ public class JourneySummaryAdapter
             @Override
             public void onClick(View view) {
                 Status.get().setConnection(con);
-                view.getContext().startActivity(new Intent(view.getContext(), JourneyDetail.class));
+                view.getContext().startActivity(new Intent(view.getContext(), DetailActivity.class));
             }
         });
     }

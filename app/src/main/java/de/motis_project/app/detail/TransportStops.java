@@ -16,8 +16,8 @@ import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
 
-public class TransportStops {
-    View layout;
+public class TransportStops implements DetailViewHolder {
+    private View layout;
 
     @BindString(R.string.detail_transport_stops_summary)
     String summaryTemplate;
@@ -90,5 +90,10 @@ public class TransportStops {
             upper.setImageDrawable(less);
             lower.setImageDrawable(more);
         }
+    }
+
+    @Override
+    public View getView() {
+        return layout;
     }
 }
