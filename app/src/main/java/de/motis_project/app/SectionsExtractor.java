@@ -33,7 +33,7 @@ public class SectionsExtractor {
         return sections;
     }
 
-    static int getNextSectionBegin(int i, List<Range> walks) {
+    private static int getNextSectionBegin(int i, List<Range> walks) {
         for (Range walk : walks) {
             if (walk.from == i) {
                 return walk.to;
