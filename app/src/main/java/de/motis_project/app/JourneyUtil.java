@@ -69,6 +69,15 @@ public class JourneyUtil {
             this.from = from;
             this.to = to;
         }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj != null && obj instanceof Section) {
+                Section other = (Section) obj;
+                return other.from == this.from && other.to == this.to;
+            }
+            return false;
+        }
     }
 
     public static class DisplayTransport {

@@ -6,7 +6,8 @@
     android:layout_height="55dp"
     android:orientation="horizontal"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin">
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:id="@+id/detail_transport_stops">
 
     <FrameLayout
         android:layout_width="10dp"

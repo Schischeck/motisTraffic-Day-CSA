@@ -11,13 +11,18 @@ import butterknife.BindDrawable;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
 
 public class TransportStops implements DetailViewHolder {
-    private View layout;
+    private final JourneyUtil.Section section;
+    private final View layout;
+    private DetailActivity activity;
+
+    private final boolean expanded;
 
     @BindString(R.string.detail_transport_stops_summary)
     String summaryTemplate;
@@ -49,10 +54,18 @@ public class TransportStops implements DetailViewHolder {
     @BindDrawable(R.drawable.ic_expand_more_black_24dp)
     Drawable more;
 
+    @OnClick(R.id.detail_transport_stops)
+    void onClick() {
+        toggleExpand();
+    }
+
     TransportStops(Connection con,
                    JourneyUtil.Section section,
                    ViewGroup parent,
-                   LayoutInflater inflater) {
+                   LayoutInflater inflater, boolean expanded) {
+        this.section = section;
+        this.expanded = expanded;
+        activity = (DetailActivity) inflater.getContext();
         layout = inflater.inflate(R.layout.detail_transport_stops, parent, false);
         ButterKnife.bind(this, layout);
 
@@ -70,19 +83,26 @@ public class TransportStops implements DetailViewHolder {
         } else {
             summary.setText(
                     String.format(summaryTemplate,
-                                  numStops,
-                                  numStops == 1 ? stop : stops,
-                                  durationString));
+                            numStops,
+                            numStops == 1 ? stop : stops,
+                            durationString));
         }
 
-        setExpanded(numStops != 0, false);
+        setupIcon(numStops != 0);
     }
 
-    void setExpanded(boolean visible, boolean expanded) {
+    void toggleExpand() {
+        if (expanded) {
+            activity.create();
+        } else {
+            activity.expandSection(section);
+        }
+    }
+
+    void setupIcon(boolean visible) {
         int visibility = visible ? View.VISIBLE : View.INVISIBLE;
         upper.setVisibility(visibility);
         lower.setVisibility(visibility);
-
         if (expanded) {
             upper.setImageDrawable(more);
             lower.setImageDrawable(less);

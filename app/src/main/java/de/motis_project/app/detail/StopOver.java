@@ -12,6 +12,7 @@ import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.Str;
 import de.motis_project.app.TimeUtil;
+import motis.Connection;
 import motis.EventInfo;
 import motis.Stop;
 
@@ -33,9 +34,14 @@ public class StopOver implements DetailViewHolder {
     @BindView(R.id.detail_stopover_bullet)
     View bullet;
 
-    StopOver(Stop stop, ViewGroup parent, LayoutInflater inflater) {
+    StopOver(Connection con, JourneyUtil.Section section, Stop stop, ViewGroup parent, LayoutInflater inflater) {
         layout = inflater.inflate(R.layout.detail_stopover, parent, false);
         ButterKnife.bind(this, layout);
+
+        Context context = inflater.getContext();
+        long clasz = JourneyUtil.getTransport(con, section).clasz();
+        JourneyUtil.setBackgroundColor(context, line, clasz);
+        JourneyUtil.tintBackground(context, bullet, clasz);
 
         EventInfo ev = stop.departure();
 

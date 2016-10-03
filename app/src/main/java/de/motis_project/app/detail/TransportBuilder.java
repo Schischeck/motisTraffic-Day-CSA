@@ -12,7 +12,8 @@ public class TransportBuilder {
     public static void setConnection(
             LayoutInflater inflater,
             ViewGroup journeyDetails,
-            Connection con) {
+            Connection con,
+            JourneyUtil.Section expanded) {
         journeyDetails.removeAllViews();
 
         JourneyUtil.printJourney(con);
@@ -23,7 +24,8 @@ public class TransportBuilder {
             boolean isLast = (i == sections.size() - 1);
             JourneyUtil.Section section = sections.get(i);
             JourneyUtil.Section prevSection = isFirst ? null : sections.get(i - 1);
-            addTransport(inflater, journeyDetails, con, prevSection, section, isFirst, isLast);
+            boolean expand = section.equals(expanded);
+            addTransport(inflater, journeyDetails, con, prevSection, section, isFirst, isLast, expand);
         }
     }
 
@@ -33,7 +35,7 @@ public class TransportBuilder {
             Connection con,
             JourneyUtil.Section prevSection,
             JourneyUtil.Section section,
-            boolean isFirst, boolean isLast) {
+            boolean isFirst, boolean isLast, boolean expand) {
         if (isFirst) {
             journeyDetails.addView(
                     new FirstTransportHeader(con, section, journeyDetails, inflater).getView(), 0);
@@ -44,7 +46,12 @@ public class TransportBuilder {
 
         journeyDetails.addView(new TransportDetail(con, section, journeyDetails, inflater).getView());
 
-        journeyDetails.addView(new TransportStops(con, section, journeyDetails, inflater).getView());
+        journeyDetails.addView(new TransportStops(con, section, journeyDetails, inflater, expand).getView());
+        if (expand) {
+            for (int i = section.from + 1; i < section.to; i++) {
+                journeyDetails.addView(new StopOver(con, section, con.stops(i), journeyDetails, inflater).getView());
+            }
+        }
 
         if (isLast) {
             journeyDetails.addView(new FinalArrival(con, section, journeyDetails, inflater).getView());
