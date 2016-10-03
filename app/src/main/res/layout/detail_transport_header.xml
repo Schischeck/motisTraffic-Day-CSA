@@ -6,8 +6,7 @@
     android:layout_height="25dp"
     android:orientation="horizontal"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:showIn="@layout/detail">
+    android:paddingRight="@dimen/activity_horizontal_margin">
 
     <TextView
         style="@style/JourneySection"

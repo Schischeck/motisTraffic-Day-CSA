@@ -15,6 +15,8 @@ public class TransportBuilder {
             Connection con) {
         journeyDetails.removeAllViews();
 
+        JourneyUtil.printJourney(con);
+
         List<JourneyUtil.Section> sections = JourneyUtil.getSections(con);
         for (int i = 0; i < sections.size(); i++) {
             boolean isFirst = (i == 0);

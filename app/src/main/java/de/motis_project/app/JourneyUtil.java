@@ -15,7 +15,10 @@ import java.util.List;
 import motis.Connection;
 import motis.Move;
 import motis.MoveWrapper;
+import motis.Range;
 import motis.Transport;
+import motis.Trip;
+import motis.Walk;
 
 public class JourneyUtil {
     public static final LongSparseArray<Integer> colors = new LongSparseArray<>();
@@ -45,13 +48,13 @@ public class JourneyUtil {
         return icons.get(clasz, R.drawable.ic_directions_bus_black_24dp);
     }
 
-    public static void tintBackground(Context context, TextView view, long clasz) {
+    public static void tintBackground(Context context, View view, long clasz) {
         Drawable bg = DrawableCompat.wrap(view.getBackground());
         DrawableCompat.setTint(bg.mutate(), JourneyUtil.getColor(context, clasz));
         view.setBackground(bg);
     }
 
-    public static void tintBackground(Context context, View view, long clasz) {
+    public static void setBackgroundColor(Context context, View view, long clasz) {
         view.setBackgroundColor(JourneyUtil.getColor(context, clasz));
     }
 
@@ -137,5 +140,42 @@ public class JourneyUtil {
             return "";
         }
         return Str.san(transport.name());
+    }
+
+    public static void printJourney(Connection con) {
+        System.out.println("Stops:");
+        for (int stopIdx = 0; stopIdx  < con.stopsLength(); ++stopIdx) {
+            String sectionEnd = con.stops(stopIdx).interchange() || stopIdx == con.stopsLength() - 1 ? " [section end]" : "";
+            System.out.println("  " + stopIdx + ": " + con.stops(stopIdx).station().name() + sectionEnd);
+        }
+
+        System.out.println("Transports:");
+        for (int trIdx = 0; trIdx  < con.transportsLength(); ++trIdx) {
+            System.out.print("  " + trIdx + ": ");
+            switch (con.transports(trIdx).moveType()) {
+                case Move.Transport: {
+                    Transport tr = new Transport();
+                    con.transports(trIdx).move(tr);
+                    System.out.print(" from=" + tr.range().from() + ", to=" + tr.range().to());
+                    System.out.println(" | transport " + tr.name());
+                    break;
+                }
+
+                case Move.Walk: {
+                    Walk tr = new Walk();
+                    con.transports(trIdx).move(tr);
+                    System.out.print(" from=" + tr.range().from() + ", to=" + tr.range().to());
+                    System.out.println(" | walk");
+                    break;
+                }
+            }
+        }
+
+        System.out.println("Trips:");
+        for (int trpIdx = 0; trpIdx < con.tripsLength(); ++trpIdx) {
+            Trip trp = con.trips(trpIdx);
+            Range range = trp.range();
+            System.out.println("  trip [" + range.from() + ", " + range.to() + "]: " + trp.id().trainNr());
+        }
     }
 }

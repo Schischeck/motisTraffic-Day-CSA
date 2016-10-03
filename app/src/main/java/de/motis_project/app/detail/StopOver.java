@@ -1,5 +1,6 @@
 package de.motis_project.app.detail;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.Str;
 import de.motis_project.app.TimeUtil;
@@ -24,6 +26,12 @@ public class StopOver implements DetailViewHolder {
 
     @BindView(R.id.detail_stopover_stop_time)
     TextView stopTime;
+
+    @BindView(R.id.detail_stopover_vertline)
+    View line;
+
+    @BindView(R.id.detail_stopover_bullet)
+    View bullet;
 
     StopOver(Stop stop, ViewGroup parent, LayoutInflater inflater) {
         layout = inflater.inflate(R.layout.detail_stopover, parent, false);

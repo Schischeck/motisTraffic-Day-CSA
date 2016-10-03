@@ -57,7 +57,7 @@ public class TransportStops implements DetailViewHolder {
         ButterKnife.bind(this, layout);
 
         long clasz = JourneyUtil.getTransport(con, section).clasz();
-        JourneyUtil.tintBackground(inflater.getContext(), line, clasz);
+        JourneyUtil.setBackgroundColor(inflater.getContext(), line, clasz);
 
         long dep = con.stops(section.from).departure().scheduleTime();
         long arr = con.stops(section.to).arrival().scheduleTime();

@@ -47,7 +47,7 @@ public class TransportDetail implements DetailViewHolder {
         time.setText(TimeUtil.formatTime(stop.departure().scheduleTime()));
 
         long clasz = JourneyUtil.getTransport(con, section).clasz();
-        JourneyUtil.tintBackground(inflater.getContext(), line, clasz);
+        JourneyUtil.setBackgroundColor(inflater.getContext(), line, clasz);
 
         String dir = getDirection(con, section);
         if (dir.isEmpty()) {

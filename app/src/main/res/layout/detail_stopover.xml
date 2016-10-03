@@ -6,8 +6,7 @@
     android:layout_height="55dp"
     android:orientation="horizontal"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    tools:showIn="@layout/detail">
+    android:paddingRight="@dimen/activity_horizontal_margin">
 
     <FrameLayout
         android:layout_width="10dp"
@@ -15,12 +14,14 @@
         android:layout_marginLeft="12dp">
 
         <View
+            android:id="@+id/detail_stopover_vertline"
             android:layout_width="10dp"
             android:layout_height="10dp"
             android:layout_gravity="center"
             android:background="@drawable/rounded_corner_primary"/>
 
         <View
+            android:id="@+id/detail_stopover_bullet"
             android:layout_width="4dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"

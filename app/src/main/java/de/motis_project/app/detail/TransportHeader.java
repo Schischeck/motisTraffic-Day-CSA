@@ -42,24 +42,24 @@ public class TransportHeader implements DetailViewHolder {
 
     TransportHeader(Connection con,
                     JourneyUtil.Section prevSection,
-                    JourneyUtil.Section nextSection,
+                    JourneyUtil.Section section,
                     ViewGroup parent,
                     LayoutInflater inflater) {
         layout = inflater.inflate(R.layout.detail_transport_header, parent, false);
         ButterKnife.bind(this, layout);
 
         Context context = inflater.getContext();
-        long clasz = JourneyUtil.getTransport(con, nextSection).clasz();
+        long clasz = JourneyUtil.getTransport(con, section).clasz();
         JourneyUtil.tintBackground(context, transportName, clasz);
         JourneyUtil.setIcon(context, transportName, clasz);
 
-        Transport transport = JourneyUtil.getTransport(con, prevSection);
+        Transport transport = JourneyUtil.getTransport(con, section);
         if (transport != null) {
             transportName.setText(Str.san(transport.name()));
         }
 
         long arr = con.stops(prevSection.to).arrival().scheduleTime();
-        long dep = con.stops(nextSection.from).departure().scheduleTime();
+        long dep = con.stops(section.from).departure().scheduleTime();
         String durationStr = TimeUtil.formatDuration((dep - arr) / 60);
         String arrTrackName = con.stops(prevSection.to).arrival().track();
         System.out.println("arrTrackName = " + arrTrackName);
@@ -73,7 +73,7 @@ public class TransportHeader implements DetailViewHolder {
                     String.format(interchange, arrTrackName + ", " + durationStr));
         }
 
-        String depTrackName = con.stops(nextSection.from).departure().track();
+        String depTrackName = con.stops(section.from).departure().track();
         if (depTrackName == null || depTrackName.isEmpty()) {
             depTrack.setVisibility(View.GONE);
         } else {
