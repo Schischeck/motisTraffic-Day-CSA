@@ -96,15 +96,7 @@ public class JourneyUtil {
     }
 
     public static List<Section> getSections(Connection con) {
-        int lastSectionEnd = 0;
-        List<Section> sections = new ArrayList<>();
-        for (int i = 0; i < con.stopsLength(); i++) {
-            if (con.stops(i).interchange() || i == con.stopsLength() - 1) {
-                sections.add(new Section(lastSectionEnd, i));
-                lastSectionEnd = i;
-            }
-        }
-        return sections;
+        return SectionsExtractor.getSections(con);
     }
 
     public static List<DisplayTransport> getTransports(Connection con) {
