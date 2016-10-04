@@ -22,4 +22,7 @@
     <color name="list_seperator">@color/grey_200</color>
     <color name="primary_text_color">@color/abc_primary_text_material_dark</color>
     <color name="secondary_text_color">@color/abc_secondary_text_material_dark</color>
+
+    <color name="sbahn">#006F35</color>
+    <color name="ubahn">#025CA0</color>
 </resources>
