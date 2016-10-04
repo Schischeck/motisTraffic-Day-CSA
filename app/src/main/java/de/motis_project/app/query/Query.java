@@ -109,4 +109,6 @@ public class Query {
         outState.putInt(HOUR, getHour());
         outState.putInt(MINUTE, getMinute());
     }
+
+    public boolean isComplete() { return !getFromId().isEmpty() && !getToId().isEmpty();  }
 }

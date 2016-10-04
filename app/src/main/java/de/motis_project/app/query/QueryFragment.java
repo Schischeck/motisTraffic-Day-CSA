@@ -56,13 +56,17 @@ public class QueryFragment extends Fragment
     @BindView(R.id.connection_list)
     JourneyListView journeyListView;
 
+    @BindView(R.id.connection_list_empty)
+    View journeyListEmptyView;
+
+    @BindView(R.id.connection_list_query_incomplete)
+    View queryIncompleteView;
+
     public QueryFragment() {
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        System.out.println("QueryFragment.onCreateView");
-
         View view = inflater.inflate(R.layout.query_fragment, container, false);
         ButterKnife.bind(this, view);
 
@@ -70,6 +74,8 @@ public class QueryFragment extends Fragment
                 savedInstanceState,
                 getContext().getSharedPreferences("route", Context.MODE_PRIVATE));
         journeyListView.query = query;
+        journeyListView.setEmptyListView(journeyListEmptyView);
+        journeyListView.setQueryIncompleteView(queryIncompleteView);
 
         Date d = query.getTime();
         updateTimeDisplay(query.isArrival(), d);

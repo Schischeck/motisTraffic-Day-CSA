@@ -22,8 +22,11 @@
     <string name="interchange">%s Umstieg</string>
     <string name="track_short">Gl.</string>
 
+    <string name="name">Keine </string>
+
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="title_activity_journay_detail">Detailansicht</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="query_not_valid">Bitte geben Sie Start und Ziel an.</string>
 </resources>
