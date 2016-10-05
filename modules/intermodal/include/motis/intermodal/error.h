@@ -7,10 +7,7 @@ namespace motis {
 namespace intermodal {
 
 namespace error {
-enum error_code_t {
-  ok = 0,
-  unknown_mode = 1
-};
+enum error_code_t { ok = 0, unknown_mode = 1 };
 }  // namespace error
 
 class error_category_impl : public std::error_category {
