@@ -1,9 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <limits>
 
-#include "motis/geo/latlng.h"
-#include "motis/geo/polyline.h"
+#include "geo/latlng.h"
+#include "geo/polyline.h"
 
 namespace motis {
 namespace routes {

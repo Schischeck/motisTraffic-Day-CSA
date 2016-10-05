@@ -3,7 +3,7 @@
 #include <set>
 #include <vector>
 
-#include "motis/geo/latlng.h"
+#include "geo/latlng.h"
 
 namespace motis {
 

@@ -8,14 +8,13 @@
 
 #include "boost/optional.hpp"
 
-#include "motis/geo/geojson.h"
-
 #include "motis/core/common/logging.h"
 
+#include "motis/routes/prepare/geojson.h"
 #include "motis/routes/prepare/parallel_for.h"
 #include "motis/routes/prepare/vector_utils.h"
 
-using namespace motis::geo;
+using namespace geo;
 using namespace motis::logging;
 
 namespace motis {

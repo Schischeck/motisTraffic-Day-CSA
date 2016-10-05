@@ -1,10 +1,10 @@
 #pragma once
 
+#include <map>
 #include <vector>
 
-#include "motis/geo/latlng.h"
-#include "motis/geo/point_rtree.h"
-#include "motis/geo/polyline.h"
+#include "geo/latlng.h"
+#include "geo/polyline.h"
 
 #include "motis/routes/prepare/source_spec.h"
 #include "motis/routes/prepare/station_sequences.h"

@@ -12,7 +12,7 @@
 
 using namespace flatbuffers;
 using namespace parser;
-using namespace motis::geo;
+using namespace geo;
 using namespace motis::module;
 
 namespace motis {

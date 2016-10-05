@@ -12,7 +12,7 @@
 // TODO refactor this to use geo::latlng
 
 namespace motis {
-namespace geo {
+namespace routes {
 
 struct point_rtree {
   using cs = boost::geometry::cs::spherical_equatorial<boost::geometry::degree>;
@@ -102,5 +102,5 @@ point_rtree make_point_rtree(C const& container, F fun) {
       })}};
 }
 
-}  // namespace geo
+}  // namespace routes
 }  // namespace motis

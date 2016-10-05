@@ -3,7 +3,7 @@
 #include <map>
 #include <string>
 
-#include "motis/geo/latlng.h"
+#include "geo/latlng.h"
 
 #include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"

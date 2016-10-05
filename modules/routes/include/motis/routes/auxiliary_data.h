@@ -5,7 +5,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "motis/geo/latlng.h"
+#include "geo/latlng.h"
 
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/common/hash_map.h"

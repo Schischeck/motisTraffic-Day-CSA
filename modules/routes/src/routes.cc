@@ -14,7 +14,7 @@ using namespace flatbuffers;
 using namespace motis::module;
 using namespace motis::osrm;
 using namespace motis::access;
-using namespace motis::geo;
+using namespace geo;
 
 namespace motis {
 namespace routes {

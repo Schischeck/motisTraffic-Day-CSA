@@ -11,7 +11,7 @@
 #include "motis/routes/prepare/rail/geojson.h"
 
 using namespace motis::logging;
-using namespace motis::geo;
+using namespace geo;
 
 namespace motis {
 namespace routes {

@@ -6,15 +6,16 @@
 
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
+#include "geo/polygon.h"
 #include "parser/file.h"
 
-#include "motis/geo/geojson.h"
-#include "motis/geo/polygon.h"
+#include "motis/core/common/transform_to_vec.h"
 
 #include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
 #include "motis/routes/prepare/bus_stop_positions.h"
+#include "motis/routes/prepare/geojson.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
 #include "motis/routes/prepare/seq/seq_graph_builder.h"
 #include "motis/routes/prepare/seq/seq_graph_dijkstra.h"
@@ -31,7 +32,7 @@ using namespace parser;
 using namespace motis;
 using namespace motis::loader;
 using namespace motis::routes;
-using namespace motis::geo;
+using namespace geo;
 
 struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",

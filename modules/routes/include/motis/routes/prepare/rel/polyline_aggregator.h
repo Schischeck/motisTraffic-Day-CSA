@@ -1,6 +1,6 @@
 #pragma once
 
-#include "motis/geo/polyline.h"
+#include "geo/polyline.h"
 
 #include "motis/routes/prepare/rel/relation_parser.h"
 

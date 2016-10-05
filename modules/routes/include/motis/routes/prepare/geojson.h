@@ -4,12 +4,12 @@
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/writer.h"
 
-#include "motis/geo/polyline.h"
+#include "geo/polyline.h"
 
 namespace motis {
-namespace geo {
+namespace routes {
 
-inline void dump_polylines(std::vector<polyline> const& polylines,
+inline void dump_polylines(std::vector<geo::polyline> const& polylines,
                            const char* filename = "polylines.json") {
   FILE* fp = std::fopen(filename, "w");
   char writeBuffer[65536];
@@ -45,5 +45,5 @@ inline void dump_polylines(std::vector<polyline> const& polylines,
   w.EndObject();
 }
 
-}  // namespace geo
+}  // namespace routes
 }  // namespace motis

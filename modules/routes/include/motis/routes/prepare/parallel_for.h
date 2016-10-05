@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <atomic>
 #include <thread>
 
@@ -14,7 +15,7 @@ inline void parallel_for(std::string const& desc, std::vector<T> const& jobs,
   std::atomic<size_t> counter(0);
   std::vector<std::thread> threads;
   for (auto i = 0u; i < std::thread::hardware_concurrency(); ++i) {
-  // for (auto i = 0u; i < 1; ++i) {
+    // for (auto i = 0u; i < 1; ++i) {
     threads.emplace_back([&]() {
       while (true) {
         auto const idx = counter.fetch_add(1);

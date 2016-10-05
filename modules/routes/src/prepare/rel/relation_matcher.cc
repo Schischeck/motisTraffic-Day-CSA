@@ -5,11 +5,12 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/routes/prepare/parallel_for.h"
+#include "motis/routes/prepare/point_rtree.h"
 #include "motis/routes/prepare/rel/polyline_aggregator.h"
 #include "motis/routes/prepare/rel/relation_parser.h"
 #include "motis/routes/prepare/vector_utils.h"
 
-using namespace motis::geo;
+using namespace geo;
 using namespace motis::logging;
 
 namespace motis {

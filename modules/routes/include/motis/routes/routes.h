@@ -9,7 +9,7 @@
 
 #include "motis/module/module.h"
 
-#include "motis/geo/latlng.h"
+#include "geo/latlng.h"
 
 namespace motis {
 namespace routes {

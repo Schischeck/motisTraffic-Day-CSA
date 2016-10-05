@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "motis/geo/latlng.h"
+#include "geo/latlng.h"
 
 #include "motis/routes/prepare/source_spec.h"
 

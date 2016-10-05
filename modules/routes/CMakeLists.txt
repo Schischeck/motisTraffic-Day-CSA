@@ -50,8 +50,8 @@ target_link_libraries(routes-prepare
   ${ZLIB_LIBRARIES}
   expat
   motis-loader
-  motis-lib-geo
   conf
+  geo
 )
 
 set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

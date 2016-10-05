@@ -1,6 +1,8 @@
 #include "motis/routes/prepare/seq/seq_graph_builder.h"
 
-using namespace motis::geo;
+#include "motis/core/common/transform_to_vec.h"
+
+using namespace geo;
 
 namespace motis {
 namespace routes {
@@ -9,7 +11,7 @@ void add_matches(seq_graph& g, source_spec::category const& category,
                  std::vector<match_seq> const& matches) {
   auto& nodes = g.nodes_;
   for (auto const& m : matches) {
-    if(m.source_.category_ != category) {
+    if (m.source_.category_ != category) {
       continue;
     }
 
