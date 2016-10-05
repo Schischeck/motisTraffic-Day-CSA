@@ -5,6 +5,11 @@ include "routing/RoutingRequest.fbs";
 
 namespace motis.intermodal;
 
+table InputPosition {
+  lat: double;
+  lng: double;
+}
+
 // ----------------------------------------------------------------------------
 // Intermodal Start
 // ----------------------------------------------------------------------------
@@ -21,19 +26,36 @@ table IntermodalPretripStart {
 
 union IntermodalStart {
   IntermodalOntripStart,
-  IntermodalPretripStart
+  IntermodalPretripStart,
+  routing.OntripTrainStart,
+  routing.OntripStationStart,
+  routing.PretripStart
+}
+
+// ----------------------------------------------------------------------------
+// Intermodal Destination
+// ----------------------------------------------------------------------------
+
+union IntermodalDestination {
+  routing.InputStation,
+  InputPosition
 }
 
 // ----------------------------------------------------------------------------
 // Intermodal Mode
 // ----------------------------------------------------------------------------
 
-table Walk {
+table Foot {
+  max_duration: int;
+}
+
+table Bike {
   max_duration: int;
 }
 
 union Mode {
-  Walk
+  Foot,
+  Bike
 }
 
 table ModeWrapper {
@@ -58,21 +80,21 @@ table ModeWrapper {
 //       "departure_time": 1468998000
 //     },
 //     "start_modes": [{
-//       "mode_type": "Walk",
+//       "mode_type": "Foot",
 //       "mode": { "max_duration": 900 }
 //     }],
 //     "destination": { "lat": 50.1095955, "lng": 8.6692976},
 //     "destination_modes":  [{
-//       "mode_type": "Walk",
+//       "mode_type": "Foot",
 //       "mode": { "max_duration": 900 }
 //     }],
-//     "search_type": "SingleCriterionForward"
+//     "search_type": "SingleCriterion"
 //   }
 // }
 table IntermodalRoutingRequest {
   start: IntermodalStart;
   start_modes: [ModeWrapper];
-  destination: motis.Position;
+  destination: IntermodalDestination;
   destination_modes: [ModeWrapper];
   search_type: routing.SearchType;
   search_dir: routing.SearchDir;

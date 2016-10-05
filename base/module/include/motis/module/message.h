@@ -61,7 +61,8 @@ inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
 
 template <typename TableType>
 inline flatbuffers::Offset<TableType> motis_copy_table_(
-    flatbuffers::FlatBufferBuilder& fbb, char const* table_name, void* src) {
+    flatbuffers::FlatBufferBuilder& fbb, char const* table_name,
+    void const* src) {
   return flatbuffers::Offset<TableType>(
       flatbuffers::CopyTable(fbb, message::get_schema(),
                              *message::get_objectref(table_name),
