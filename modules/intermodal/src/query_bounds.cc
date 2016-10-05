@@ -1,5 +1,7 @@
 #include "motis/intermodal/query_bounds.h"
 
+#include "parser/util.h"
+
 #include "motis/module/message.h"
 
 #include "motis/intermodal/error.h"
@@ -45,7 +47,7 @@ query_start parse_query_start(FlatBufferBuilder& fbb,
       return {Start_PretripStart,
               motis_copy_table(PretripStart, fbb, req->start()).Union()};
 
-    default: throw std::system_error(error::unknown_start);
+    default: verify(false, "invalid query start");
   }
 }
 
@@ -63,7 +65,7 @@ query_dest parse_query_dest(FlatBufferBuilder& fbb,
       return {end_station, {pos->lat(), pos->lng()}};
 
     } break;
-    default: throw std::system_error(error::unknown_destination);
+    default: verify(false, "invalid query dest");
   }
 }
 
