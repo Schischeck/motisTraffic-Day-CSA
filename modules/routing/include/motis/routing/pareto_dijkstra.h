@@ -220,7 +220,7 @@ private:
 
   station_node const* goal_;
   std::vector<std::vector<Label*>> node_labels_;
-  dial<Label*, Label::MAX_BUCKET, get_bucket, compare_labels, true> queue_;
+  dial<Label*, Label::MAX_BUCKET, get_bucket> queue_;
   std::vector<Label*> equals_;
   hash_map<node const*, std::vector<edge>> additional_edges_;
   std::vector<Label*> results_;

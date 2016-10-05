@@ -17,8 +17,10 @@ class node;
 
 struct ev_key {
   ev_key() : route_edge_(nullptr), lcon_idx_(0), ev_type_(event_type::DEP) {}
-  ev_key(edge const* route_edge, std::size_t lcon_idx, event_type type)
-      : route_edge_(route_edge), lcon_idx_(lcon_idx), ev_type_(type) {}
+  ev_key(trip::route_edge route_edge, std::size_t lcon_idx, event_type type)
+      : route_edge_(std::move(route_edge)),
+        lcon_idx_(lcon_idx),
+        ev_type_(type) {}
 
   friend bool operator==(ev_key const& lhs, const ev_key& rhs) {
     return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) ==
@@ -30,7 +32,8 @@ struct ev_key {
            std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.ev_type_);
   }
 
-  bool valid() const { return route_edge_ != nullptr; }
+  bool valid() const { return route_edge_.valid(); }
+  operator bool() const { return valid(); }
 
   bool is_arrival() const { return ev_type_ == event_type::ARR; }
   bool is_departure() const { return ev_type_ == event_type::DEP; }
@@ -49,13 +52,13 @@ struct ev_key {
     return ev_type_ == event_type::DEP ? lcon()->d_time_ : lcon()->a_time_;
   }
 
-  uint32_t get_station_idx() const {
-    return (ev_type_ == event_type::DEP ? route_edge_->from_ : route_edge_->to_)
-        ->get_station()
-        ->id_;
+  node* get_node() const {
+    return ev_type_ == event_type::DEP ? route_edge_->from_ : route_edge_->to_;
   }
 
-  edge const* route_edge_;
+  uint32_t get_station_idx() const { return get_node()->get_station()->id_; }
+
+  trip::route_edge route_edge_;
   std::size_t lcon_idx_;
   event_type ev_type_;
 };

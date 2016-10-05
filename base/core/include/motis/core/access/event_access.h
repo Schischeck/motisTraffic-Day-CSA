@@ -1,6 +1,7 @@
 #pragma once
 
 #include "motis/core/schedule/event.h"
+#include "motis/core/access/edge_access.h"
 #include "motis/core/access/time_access.h"
 
 namespace motis {
