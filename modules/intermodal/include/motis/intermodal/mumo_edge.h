@@ -18,7 +18,7 @@ inline int to_int(mumo_type const type) {
 }
 
 inline std::string to_string(mumo_type const type) {
-  char const* strs[] = {"foot", "bike"};
+  static char const* strs[] = {"foot", "bike"};
   return strs[to_int(type)];  // NOLINT
 }
 
@@ -45,7 +45,8 @@ void remove_intersection(std::vector<mumo_edge>& starts,
                          routing::SearchDir const);
 
 std::vector<flatbuffers::Offset<routing::AdditionalEdgeWrapper>> write_edges(
-    flatbuffers::FlatBufferBuilder& fbb, std::vector<mumo_edge> const& starts,
+    flatbuffers::FlatBufferBuilder& fbb,  //
+    std::vector<mumo_edge> const& starts,
     std::vector<mumo_edge> const& destinations);
 
 }  // namespace intermodal

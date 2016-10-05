@@ -25,7 +25,8 @@ query_start parse_query_start(FlatBufferBuilder& fbb,
           CreateOntripStationStart(fbb, start_station, start->departure_time())
               .Union(),
           {start->position()->lat(), start->position()->lng()}};
-    } break;
+      break;
+    }
 
     case IntermodalStart_IntermodalPretripStart: {
       auto start =
@@ -33,7 +34,8 @@ query_start parse_query_start(FlatBufferBuilder& fbb,
       return {Start_PretripStart,
               CreatePretripStart(fbb, start_station, start->interval()).Union(),
               {start->position()->lat(), start->position()->lng()}};
-    } break;
+      break;
+    }
 
     case IntermodalStart_OntripTrainStart:
       return {Start_OntripTrainStart,
@@ -63,8 +65,9 @@ query_dest parse_query_dest(FlatBufferBuilder& fbb,
       auto end_station = CreateInputStation(fbb, fbb.CreateString(STATION_END),
                                             fbb.CreateString(STATION_END));
       return {end_station, {pos->lat(), pos->lng()}};
+      break;
+    }
 
-    } break;
     default: verify(false, "invalid query dest");
   }
 }

@@ -30,13 +30,13 @@ void intermodal::init(motis::module::registry& r) {
   r.register_op("/intermodal", [this](msg_ptr const& m) { return route(m); });
 }
 
-msg_ptr postprocess_response(msg_ptr response_msg, query_start const& q_start,
+msg_ptr postprocess_response(msg_ptr const& response_msg,
+                             query_start const& q_start,
                              query_dest const& q_dest, SearchDir const dir) {
   auto routing_response = motis_content(RoutingResponse, response_msg);
   auto journeys = message_to_journeys(routing_response);
 
   message_creator mc;
-  std::vector<Offset<Connection>> processed_connections_journeys_;
   for (auto& journey : journeys) {
     auto& stops = journey.stops_;
     if (stops.size() < 2) {

@@ -80,16 +80,18 @@ void make_edges(Vector<Offset<ModeWrapper>> const* modes, latlng const& pos,
         auto max_dist = max_dur * WALK_SPEED;
         osrm_edges(pos, max_dur, max_dist, mumo_type::FOOT, osrm_direction,
                    appender);
+        break;
+      }
 
-      } break;
       case Mode_Bike: {
         auto max_dur =
             reinterpret_cast<Bike const*>(wrapper->mode())->max_duration();
         auto max_dist = max_dur * BIKE_SPEED;
         osrm_edges(pos, max_dur, max_dist, mumo_type::BIKE, osrm_direction,
                    appender);
+        break;
+      }
 
-      } break;
       default: throw std::system_error(error::unknown_mode);
     }
   }
