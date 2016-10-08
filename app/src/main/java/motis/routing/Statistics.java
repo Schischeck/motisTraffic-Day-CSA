@@ -23,17 +23,17 @@ public final class Statistics extends Struct {
   public long labelsPoppedUntilFirstResult() { return (long)bb.getInt(bb_pos + 36) & 0xFFFFFFFFL; }
   public long labelsPoppedAfterLastResult() { return (long)bb.getInt(bb_pos + 40) & 0xFFFFFFFFL; }
   public long priorityQueueMaxSize() { return (long)bb.getInt(bb_pos + 44) & 0xFFFFFFFFL; }
-  public long travelTimeLB() { return (long)bb.getInt(bb_pos + 48) & 0xFFFFFFFFL; }
-  public long transfersLB() { return (long)bb.getInt(bb_pos + 52) & 0xFFFFFFFFL; }
+  public long travelTimeLb() { return (long)bb.getInt(bb_pos + 48) & 0xFFFFFFFFL; }
+  public long transfersLb() { return (long)bb.getInt(bb_pos + 52) & 0xFFFFFFFFL; }
   public long totalCalculationTime() { return (long)bb.getInt(bb_pos + 56) & 0xFFFFFFFFL; }
   public long paretoDijkstra() { return (long)bb.getInt(bb_pos + 60) & 0xFFFFFFFFL; }
 
-  public static int createStatistics(FlatBufferBuilder builder, boolean maxLabelQuit, long labelsCreated, long startLabelCount, long labelsPopped, long labelsEqualsPopped, long labelsFiltered, long labelsDominatedByResults, long labelsDominatedByFormerLabels, long labelsDominatedByLaterLabels, long labelsPoppedUntilFirstResult, long labelsPoppedAfterLastResult, long priorityQueueMaxSize, long travelTimeLB, long transfersLB, long totalCalculationTime, long paretoDijkstra) {
+  public static int createStatistics(FlatBufferBuilder builder, boolean maxLabelQuit, long labelsCreated, long startLabelCount, long labelsPopped, long labelsEqualsPopped, long labelsFiltered, long labelsDominatedByResults, long labelsDominatedByFormerLabels, long labelsDominatedByLaterLabels, long labelsPoppedUntilFirstResult, long labelsPoppedAfterLastResult, long priorityQueueMaxSize, long travelTimeLb, long transfersLb, long totalCalculationTime, long paretoDijkstra) {
     builder.prep(4, 64);
     builder.putInt((int)paretoDijkstra);
     builder.putInt((int)totalCalculationTime);
-    builder.putInt((int)transfersLB);
-    builder.putInt((int)travelTimeLB);
+    builder.putInt((int)transfersLb);
+    builder.putInt((int)travelTimeLb);
     builder.putInt((int)priorityQueueMaxSize);
     builder.putInt((int)labelsPoppedAfterLastResult);
     builder.putInt((int)labelsPoppedUntilFirstResult);

@@ -15,16 +15,24 @@ public final class LookupScheduleInfoResponse extends Table {
 
   public String name() { int o = __offset(4); return o != 0 ? __string(o + bb_pos) : null; }
   public ByteBuffer nameAsByteBuffer() { return __vector_as_bytebuffer(4, 1); }
+  public long begin() { int o = __offset(6); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public long end() { int o = __offset(8); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
 
   public static int createLookupScheduleInfoResponse(FlatBufferBuilder builder,
-      int nameOffset) {
-    builder.startObject(1);
+      int nameOffset,
+      long begin,
+      long end) {
+    builder.startObject(3);
+    LookupScheduleInfoResponse.addEnd(builder, end);
+    LookupScheduleInfoResponse.addBegin(builder, begin);
     LookupScheduleInfoResponse.addName(builder, nameOffset);
     return LookupScheduleInfoResponse.endLookupScheduleInfoResponse(builder);
   }
 
-  public static void startLookupScheduleInfoResponse(FlatBufferBuilder builder) { builder.startObject(1); }
+  public static void startLookupScheduleInfoResponse(FlatBufferBuilder builder) { builder.startObject(3); }
   public static void addName(FlatBufferBuilder builder, int nameOffset) { builder.addOffset(0, nameOffset, 0); }
+  public static void addBegin(FlatBufferBuilder builder, long begin) { builder.addLong(1, begin, 0); }
+  public static void addEnd(FlatBufferBuilder builder, long end) { builder.addLong(2, end, 0); }
   public static int endLookupScheduleInfoResponse(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
