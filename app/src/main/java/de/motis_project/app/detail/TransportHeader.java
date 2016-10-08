@@ -53,10 +53,7 @@ public class TransportHeader implements DetailViewHolder {
         JourneyUtil.tintBackground(context, transportName, clasz);
         JourneyUtil.setIcon(context, transportName, clasz);
 
-        Transport transport = JourneyUtil.getTransport(con, section);
-        if (transport != null) {
-            transportName.setText(Str.san(transport.name()));
-        }
+        transportName.setText(JourneyUtil.getTransportName(con, section));
 
         long arr = con.stops(prevSection.to).arrival().scheduleTime();
         long dep = con.stops(section.from).departure().scheduleTime();

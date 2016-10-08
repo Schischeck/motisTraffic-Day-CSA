@@ -90,8 +90,13 @@ public class JourneyUtil {
         public final String shortName;
 
         public DisplayTransport(Transport t) {
-            longName = t.name();
-            shortName = getShortName(t);
+            if (useLineId(t)) {
+                longName = t.lineId();
+                shortName = t.lineId();
+            } else {
+                longName = t.name();
+                shortName = getShortName(t);
+            }
             clasz = t.clasz();
         }
 
@@ -105,6 +110,10 @@ public class JourneyUtil {
             } else {
                 return t.lineId();
             }
+        }
+
+        private static boolean useLineId(Transport t) {
+            return t.clasz() == 5 || t.clasz() == 6;
         }
     }
 
@@ -140,22 +149,22 @@ public class JourneyUtil {
     }
 
     public static String getTransportName(Connection c, Section s) {
-        Transport transport = JourneyUtil.getTransport(c, s);
-        if (transport == null) {
+        Transport t = JourneyUtil.getTransport(c, s);
+        if (t == null) {
             return "";
         }
-        return Str.san(transport.name());
+        return DisplayTransport.useLineId(t) ? Str.san(t.lineId()) : Str.san(t.name());
     }
 
     public static void printJourney(Connection con) {
         System.out.println("Stops:");
-        for (int stopIdx = 0; stopIdx  < con.stopsLength(); ++stopIdx) {
+        for (int stopIdx = 0; stopIdx < con.stopsLength(); ++stopIdx) {
             String sectionEnd = con.stops(stopIdx).interchange() || stopIdx == con.stopsLength() - 1 ? " [section end]" : "";
             System.out.println("  " + stopIdx + ": " + con.stops(stopIdx).station().name() + sectionEnd);
         }
 
         System.out.println("Transports:");
-        for (int trIdx = 0; trIdx  < con.transportsLength(); ++trIdx) {
+        for (int trIdx = 0; trIdx < con.transportsLength(); ++trIdx) {
             System.out.print("  " + trIdx + ": ");
             switch (con.transports(trIdx).moveType()) {
                 case Move.Transport: {
