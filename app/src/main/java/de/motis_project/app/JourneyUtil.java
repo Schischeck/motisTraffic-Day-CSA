@@ -24,12 +24,16 @@ public class JourneyUtil {
     public static final LongSparseArray<Integer> colors = new LongSparseArray<>();
 
     static {
-        colors.put(0, R.color.colorPrimary);
-        colors.put(1, R.color.colorPrimaryDark);
-        colors.put(2, R.color.colorPrimaryLight);
-        colors.put(3, R.color.teal_500);
-        colors.put(5, R.color.sbahn);
-        colors.put(6, R.color.ubahn);
+        colors.put(0, R.color.md_purple500);
+        colors.put(1, R.color.md_pink500);
+        colors.put(2, R.color.md_indigo900);
+        colors.put(3, R.color.md_red500);
+        colors.put(4, R.color.md_red500);
+        colors.put(5, R.color.md_green500);
+        colors.put(6, R.color.md_indigo500);
+        colors.put(7, R.color.md_orange500);
+        colors.put(8, R.color.md_orange500);
+        colors.put(9, R.color.md_grey500);
     }
 
     public static final LongSparseArray<Integer> icons = new LongSparseArray<>();
@@ -39,8 +43,10 @@ public class JourneyUtil {
         icons.put(1, R.drawable.ic_directions_railway_black_24dp);
         icons.put(2, R.drawable.ic_directions_railway_black_24dp);
         icons.put(3, R.drawable.ic_directions_railway_black_24dp);
+        icons.put(4, R.drawable.ic_directions_railway_black_24dp);
         icons.put(5, R.drawable.sbahn);
         icons.put(6, R.drawable.ubahn);
+        icons.put(7, R.drawable.tram);
     }
 
     public static int getColor(Context c, long clasz) {
