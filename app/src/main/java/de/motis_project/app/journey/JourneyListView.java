@@ -24,6 +24,7 @@ import de.motis_project.app.io.Status;
 import de.motis_project.app.lib.StickyHeaderDecoration;
 import de.motis_project.app.query.Query;
 import motis.Connection;
+import motis.lookup.LookupScheduleInfoResponse;
 import motis.routing.RoutingResponse;
 import rx.Observable;
 import rx.Subscription;
@@ -187,6 +188,25 @@ public class JourneyListView
                     }
                 });
         subscriptions.add(sub);
+
+        Subscription sub1 = Status.get().getServer()
+                .scheduleInfo()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<LookupScheduleInfoResponse>() {
+                    @Override
+                    public void call(LookupScheduleInfoResponse res) {
+                        System.out.println("SCHEDULE BEGIN: " + TimeUtil.formatDate(res.begin()));
+                        System.out.println("SCHEDULE END:   " + TimeUtil.formatDate(res.end()));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        System.out.println("GET SERVER INFO FAILED");
+                    }
+                });
+        subscriptions.add(sub1);
     }
 
     public void notifyDestroy() {
