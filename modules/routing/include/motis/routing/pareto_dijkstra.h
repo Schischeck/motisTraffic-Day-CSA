@@ -32,7 +32,7 @@ struct pareto_dijkstra {
                   hash_map<node const*, std::vector<edge>> additional_edges,
                   LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
-        node_labels_(node_count),
+        node_labels_(*label_store.get_node_labels<Label>(node_count)),
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
@@ -219,7 +219,7 @@ private:
   }
 
   station_node const* goal_;
-  std::vector<std::vector<Label*>> node_labels_;
+  std::vector<std::vector<Label*>>& node_labels_;
   dial<Label*, Label::MAX_BUCKET, get_bucket> queue_;
   std::vector<Label*> equals_;
   hash_map<node const*, std::vector<edge>> additional_edges_;

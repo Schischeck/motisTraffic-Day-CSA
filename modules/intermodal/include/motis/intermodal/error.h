@@ -7,7 +7,7 @@ namespace motis {
 namespace intermodal {
 
 namespace error {
-enum error_code_t { ok = 0, unknown_start = 1, unknown_mode = 2 };
+enum error_code_t { ok = 0, unknown_mode = 1 };
 }  // namespace error
 
 class error_category_impl : public std::error_category {
@@ -17,7 +17,6 @@ public:
   std::string message(int ev) const noexcept override {
     switch (ev) {
       case error::ok: return "intermodal: no error";
-      case error::unknown_start: return "intermodal: unknown start type";
       case error::unknown_mode: return "intermodal: unknown mode";
       default: return "intermodal: unkown error";
     }
