@@ -12,6 +12,7 @@ import motis.DestinationType;
 import motis.Interval;
 import motis.Message;
 import motis.MotisError;
+import motis.MotisNoMessage;
 import motis.MsgContent;
 import motis.guesser.StationGuesserRequest;
 import motis.routing.InputStation;
@@ -69,6 +70,20 @@ public class MessageBuilder {
                 b, Destination.createDestination(
                         b, DestinationType.Module, b.createString("/routing")),
                 MsgContent.RoutingRequest, routingRequest, ssid));
+
+        return Snappy.compress(b.sizedByteArray());
+    }
+
+    public static byte[] scheduleInfo(int ssid) {
+        FlatBufferBuilder b = new FlatBufferBuilder();
+
+        MotisNoMessage.startMotisNoMessage(b);
+        int noMsg = MotisNoMessage.endMotisNoMessage(b);
+
+        b.finish(Message.createMessage(
+                b, Destination.createDestination(
+                        b, DestinationType.Module, b.createString("/lookup/schedule_info")),
+                MsgContent.MotisNoMessage, noMsg, ssid));
 
         return Snappy.compress(b.sizedByteArray());
     }

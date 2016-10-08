@@ -13,6 +13,7 @@ import motis.Message;
 import motis.MotisError;
 import motis.MsgContent;
 import motis.guesser.StationGuesserResponse;
+import motis.lookup.LookupScheduleInfoResponse;
 import motis.routing.RoutingResponse;
 import rx.Observable;
 import rx.Subscriber;
@@ -132,5 +133,13 @@ public class MotisServer extends Server {
                 MsgContent.RoutingResponse,
                 new RoutingResponse(),
                 id));
+    }
+
+    public Observable<LookupScheduleInfoResponse> scheduleInfo() {
+        final int id = ++nextMsgId;
+        return Observable.create(new ResponseSubscription<>(
+                MessageBuilder.scheduleInfo(id),
+                MsgContent.LookupScheduleInfoResponse,
+                new LookupScheduleInfoResponse(), id));
     }
 }
