@@ -5,6 +5,9 @@ import android.support.annotation.NonNull;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import motis.EventInfo;
+import motis.TimestampReason;
+
 public class TimeUtil {
     static StringBuffer durationBuf = new StringBuffer();
 
@@ -43,5 +46,23 @@ public class TimeUtil {
         return SimpleDateFormat
                 .getDateInstance(java.text.DateFormat.SHORT)
                 .format(date);
+    }
+
+    public static String delayString(EventInfo ev) {
+        if (ev.reason() == TimestampReason.SCHEDULE) {
+            return "";
+        }
+
+        long diffSeconds = ev.time() - ev.scheduleTime();
+        long diffMinutes = diffSeconds / 60;
+        if (diffMinutes >= 0) {
+            return "+" + Long.toString(diffMinutes);
+        } else {
+            return Long.toString(diffMinutes);
+        }
+    }
+
+    public static boolean delay(EventInfo ev) {
+        return (ev.time() - ev.scheduleTime()) > 0;
     }
 }

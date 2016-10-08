@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 
 import butterknife.BindString;
 import butterknife.BindView;
@@ -23,6 +24,8 @@ import motis.Connection;
 
 public class DetailActivity extends AppCompatActivity {
     private Connection con;
+
+    private HashSet<JourneyUtil.Section> expandedSections = new HashSet<>();
 
     @BindString(R.string.transfer)
     String transfer;
@@ -72,7 +75,7 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     void create() {
-        TransportBuilder.setConnection(getLayoutInflater(), journeyDetails, con, null);
+        TransportBuilder.setConnection(getLayoutInflater(), journeyDetails, con, expandedSections);
     }
 
     @Override
@@ -126,7 +129,12 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     public void expandSection(JourneyUtil.Section section) {
-        TransportBuilder.setConnection(getLayoutInflater(), journeyDetails, con, section);
+        expandedSections.add(section);
+        create();
     }
 
+    public void contractSection(JourneyUtil.Section section) {
+        expandedSections.remove(section);
+        create();
+    }
 }

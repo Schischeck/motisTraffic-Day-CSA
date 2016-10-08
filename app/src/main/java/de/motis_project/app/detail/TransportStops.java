@@ -20,8 +20,8 @@ import motis.Connection;
 public class TransportStops implements DetailViewHolder {
     private final JourneyUtil.Section section;
     private final View layout;
-    private DetailActivity activity;
 
+    private DetailActivity activity;
     private final boolean expanded;
 
     @BindString(R.string.detail_transport_stops_summary)
@@ -93,7 +93,7 @@ public class TransportStops implements DetailViewHolder {
 
     void toggleExpand() {
         if (expanded) {
-            activity.create();
+            activity.contractSection(section);
         } else {
             activity.expandSection(section);
         }

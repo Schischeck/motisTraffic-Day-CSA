@@ -3,6 +3,7 @@ package de.motis_project.app.detail;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
+import java.util.HashSet;
 import java.util.List;
 
 import de.motis_project.app.JourneyUtil;
@@ -13,7 +14,7 @@ public class TransportBuilder {
             LayoutInflater inflater,
             ViewGroup journeyDetails,
             Connection con,
-            JourneyUtil.Section expanded) {
+            HashSet<JourneyUtil.Section> expanded) {
         journeyDetails.removeAllViews();
 
         JourneyUtil.printJourney(con);
@@ -24,7 +25,7 @@ public class TransportBuilder {
             boolean isLast = (i == sections.size() - 1);
             JourneyUtil.Section section = sections.get(i);
             JourneyUtil.Section prevSection = isFirst ? null : sections.get(i - 1);
-            boolean expand = section.equals(expanded);
+            boolean expand = expanded.contains(section);
             addTransport(inflater, journeyDetails, con, prevSection, section, isFirst, isLast, expand);
         }
     }

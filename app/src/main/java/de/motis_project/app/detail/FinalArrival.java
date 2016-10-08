@@ -61,7 +61,7 @@ public class FinalArrival implements DetailViewHolder {
         } else {
             arrivalTrack.setText(String.format(track, arrTrackStr));
         }
-        // TODO(felix) arrival time delay
+        // TODO(felix) arrival time delayString
     }
 
     @Override

@@ -88,6 +88,11 @@ public class JourneyUtil {
             }
             return false;
         }
+
+        @Override
+        public int hashCode() {
+            return from * 1000 + to;
+        }
     }
 
     public static class DisplayTransport {

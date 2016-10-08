@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
@@ -34,6 +35,12 @@ public class StopOver implements DetailViewHolder {
     @BindView(R.id.detail_stopover_bullet)
     View bullet;
 
+    @BindColor(R.color.md_red500)
+    int colorRed;
+
+    @BindColor(R.color.md_green500)
+    int colorGreen;
+
     StopOver(Connection con, JourneyUtil.Section section, Stop stop, ViewGroup parent, LayoutInflater inflater) {
         layout = inflater.inflate(R.layout.detail_stopover, parent, false);
         ButterKnife.bind(this, layout);
@@ -47,7 +54,9 @@ public class StopOver implements DetailViewHolder {
 
         stopName.setText(Str.san(stop.station().name()));
         stopTime.setText(TimeUtil.formatTime(ev.scheduleTime()));
-        // TODO(felix) delay.setText();
+
+        delay.setText(TimeUtil.delayString(stop.departure()));
+        delay.setTextColor(TimeUtil.delay(stop.departure()) ? colorRed : colorGreen);
     }
 
     @Override
