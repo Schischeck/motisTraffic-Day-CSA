@@ -9,9 +9,9 @@
     -->
 
     <!-- Blue Grey / Light Green-->
-    <color name="colorPrimary">#607D8B</color>
-    <color name="colorPrimaryDark">#37474F</color>
-    <color name="colorPrimaryLight">#78909C</color>
+    <color name="colorPrimary">#78909C</color>
+    <color name="colorPrimaryDark">#607D8B</color>
+    <color name="colorPrimaryLight">#90A4AE</color>
     <color name="colorAccent">#8BC34A</color>
 
     <color name="color_white_semitransparent">#88FFFFFF</color>

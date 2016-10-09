@@ -90,7 +90,6 @@ public class JourneyListView
             } else {
                 emptyListView.setVisibility(View.GONE);
                 JourneyListView.this.setVisibility(View.VISIBLE);
-                JourneyListView.this.layoutManager.scrollToPosition(1);
             }
         }
     };
