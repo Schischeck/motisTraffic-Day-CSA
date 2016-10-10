@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
@@ -18,6 +19,7 @@ import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.EventInfo;
+import motis.TimestampReason;
 
 public class JourneyViewHolder extends RecyclerView.ViewHolder {
     private final LayoutInflater inflater;
@@ -39,6 +41,12 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
 
     @BindView(R.id.transports)
     LinearLayout transports;
+
+    @BindColor(R.color.delayed)
+    int colorRed;
+
+    @BindColor(R.color.ontime)
+    int colorGreen;
 
     final boolean bound;
 
@@ -67,6 +75,13 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
 
         arrSchedTime.setText(TimeUtil.formatTime(arr.scheduleTime()));
         arrTime.setText(TimeUtil.formatTime(arr.time()));
+
+        if (dep.reason() != TimestampReason.SCHEDULE) {
+            depTime.setTextColor(TimeUtil.delay(arr) ? colorRed : colorGreen);
+        }
+        if (arr.reason() != TimestampReason.SCHEDULE) {
+            arrTime.setTextColor(TimeUtil.delay(arr) ? colorRed : colorGreen);
+        }
 
         transports.removeAllViews();
         addTransportViews(JourneyUtil.getTransports(con));

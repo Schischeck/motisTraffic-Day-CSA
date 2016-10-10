@@ -55,8 +55,8 @@ public class TransportHeader implements DetailViewHolder {
 
         transportName.setText(JourneyUtil.getTransportName(con, section));
 
-        long arr = con.stops(prevSection.to).arrival().scheduleTime();
-        long dep = con.stops(section.from).departure().scheduleTime();
+        long arr = con.stops(prevSection.to).arrival().time();
+        long dep = con.stops(section.from).departure().time();
         String durationStr = TimeUtil.formatDuration((dep - arr) / 60);
         String arrTrackName = con.stops(prevSection.to).arrival().track();
         System.out.println("arrTrackName = " + arrTrackName);
