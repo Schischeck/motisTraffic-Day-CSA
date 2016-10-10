@@ -77,7 +77,7 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         arrTime.setText(TimeUtil.formatTime(arr.time()));
 
         if (dep.reason() != TimestampReason.SCHEDULE) {
-            depTime.setTextColor(TimeUtil.delay(arr) ? colorRed : colorGreen);
+            depTime.setTextColor(TimeUtil.delay(dep) ? colorRed : colorGreen);
         }
         if (arr.reason() != TimestampReason.SCHEDULE) {
             arrTime.setTextColor(TimeUtil.delay(arr) ? colorRed : colorGreen);
