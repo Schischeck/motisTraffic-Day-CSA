@@ -14,6 +14,7 @@ import de.motis_project.app.R;
 import de.motis_project.app.Str;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
+import motis.EventInfo;
 import motis.Transport;
 
 public class TransportHeader implements DetailViewHolder {
@@ -24,6 +25,9 @@ public class TransportHeader implements DetailViewHolder {
 
     @BindString(R.string.interchange)
     String interchange;
+
+    @BindString(R.string.walk)
+    String walk;
 
     @BindString(R.string.track_short)
     String trackShort;
@@ -55,22 +59,24 @@ public class TransportHeader implements DetailViewHolder {
 
         transportName.setText(JourneyUtil.getTransportName(con, section));
 
-        long arr = con.stops(prevSection.to).arrival().time();
-        long dep = con.stops(section.from).departure().time();
-        String durationStr = TimeUtil.formatDuration((dep - arr) / 60);
-        String arrTrackName = con.stops(prevSection.to).arrival().track();
-        System.out.println("arrTrackName = " + arrTrackName);
-        System.out.println("durationStr = " + durationStr);
+        EventInfo arr = con.stops(prevSection.to).arrival();
+        EventInfo dep = con.stops(section.from).departure();
+        long arrTime = arr.time();
+        long depTime = dep.time();
+        String arrTrackName = arr.track();
+        String durationStr = TimeUtil.formatDuration((depTime - arrTime) / 60);
+        boolean isWalk = prevSection.to != section.from;
+
         if (arrTrackName == null || arrTrackName.isEmpty()) {
-            interchangeInfo.setText(String.format(interchange, durationStr));
+            interchangeInfo.setText(String.format(isWalk ? walk : interchange, durationStr));
         } else {
-            arrTrackName = arrivalShort + " " +  trackShort + " " + arrTrackName;
+            arrTrackName = arrivalShort + " " + trackShort + " " + arrTrackName;
             System.out.println(durationStr);
             interchangeInfo.setText(
-                    String.format(interchange, arrTrackName + ", " + durationStr));
+                    String.format(isWalk ? walk : interchange, arrTrackName + ", " + durationStr));
         }
 
-        String depTrackName = con.stops(section.from).departure().track();
+        String depTrackName = dep.track();
         if (depTrackName == null || depTrackName.isEmpty()) {
             depTrack.setVisibility(View.GONE);
         } else {
