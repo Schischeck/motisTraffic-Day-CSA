@@ -30,6 +30,9 @@ public class TransportStops implements DetailViewHolder {
     @BindString(R.string.detail_transport_stops_summary_no_stopover)
     String summaryNoStopoverTemplate;
 
+    @BindString(R.string.detail_transport_stops_summary_duration)
+    String summaryNoDurationTemplate;
+
     @BindString(R.string.stop)
     String stop;
 
@@ -75,7 +78,8 @@ public class TransportStops implements DetailViewHolder {
         long dep = con.stops(section.from).departure().scheduleTime();
         long arr = con.stops(section.to).arrival().scheduleTime();
         long durationMinutes = (arr - dep) / 60;
-        String durationString = TimeUtil.formatDuration(durationMinutes);
+        String durationString = durationMinutes == 0 ? "" : String.format(summaryNoDurationTemplate,
+                TimeUtil.formatDuration(durationMinutes));
         int numStops = section.to - section.from - 1;
         if (numStops == 0) {
             summary.setText(
