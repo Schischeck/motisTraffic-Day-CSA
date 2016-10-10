@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import butterknife.BindColor;
 import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -16,6 +17,7 @@ import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.EventInfo;
 import motis.Stop;
+import motis.TimestampReason;
 
 public class FinalArrival implements DetailViewHolder {
     private View layout;
@@ -37,6 +39,18 @@ public class FinalArrival implements DetailViewHolder {
 
     @BindView(R.id.detail_transport_final_arrival_bullet)
     View bullet;
+
+    @BindView(R.id.detail_final_arrival_delay_placeholder)
+    View delayPlaceholder;
+
+    @BindView(R.id.detail_final_arrival_delay)
+    TextView delay;
+
+    @BindColor(R.color.delayed)
+    int colorRed;
+
+    @BindColor(R.color.ontime)
+    int colorGreen;
 
     FinalArrival(Connection con,
                  JourneyUtil.Section section,
@@ -61,7 +75,14 @@ public class FinalArrival implements DetailViewHolder {
         } else {
             arrivalTrack.setText(String.format(track, arrTrackStr));
         }
-        // TODO(felix) arrival time delayString
+
+        if (arr.reason() == TimestampReason.SCHEDULE) {
+            delayPlaceholder.setVisibility(View.VISIBLE);
+        } else {
+            delay.setText(TimeUtil.delayString(arr));
+            delay.setTextColor(TimeUtil.delay(arr) ? colorRed : colorGreen);
+            delay.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

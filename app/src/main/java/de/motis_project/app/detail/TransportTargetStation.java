@@ -5,13 +5,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
+import motis.EventInfo;
 import motis.Stop;
+import motis.TimestampReason;
 
 public class TransportTargetStation implements DetailViewHolder {
     private View layout;
@@ -28,6 +31,12 @@ public class TransportTargetStation implements DetailViewHolder {
     @BindView(R.id.detail_transport_target_station_vertline)
     View line;
 
+    @BindColor(R.color.delayed)
+    int colorRed;
+
+    @BindColor(R.color.ontime)
+    int colorGreen;
+
     TransportTargetStation(Connection con,
                            JourneyUtil.Section section,
                            ViewGroup parent,
@@ -41,8 +50,12 @@ public class TransportTargetStation implements DetailViewHolder {
         Stop stop = con.stops(section.to);
 
         arrivalTime.setText(TimeUtil.formatTime(stop.arrival().scheduleTime()));
-        // TODO(felix) arrivalDelay.setText(...);
         targetStation.setText(stop.station().name());
+
+        EventInfo arr = stop.arrival();
+        arrivalDelay.setText(TimeUtil.delayString(arr));
+        arrivalDelay.setTextColor(TimeUtil.delay(arr) ? colorRed : colorGreen);
+        arrivalDelay.setVisibility(View.VISIBLE);
     }
 
     @Override

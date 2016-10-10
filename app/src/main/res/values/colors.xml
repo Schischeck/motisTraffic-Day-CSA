@@ -26,6 +26,9 @@
     <color name="sbahn">#006F35</color>
     <color name="ubahn">#025CA0</color>
 
+    <color name="delayed">@color/md_red500</color>
+    <color name="ontime">@color/md_green500</color>
+
     <color name="tud_1a">#5D85C3</color>
     <color name="tud_2a">#009CDA</color>
     <color name="tud_3a">#50B695</color>

@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import butterknife.BindColor;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
@@ -13,7 +14,9 @@ import de.motis_project.app.R;
 import de.motis_project.app.Str;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
+import motis.EventInfo;
 import motis.Stop;
+import motis.TimestampReason;
 import motis.Transport;
 
 public class TransportDetail implements DetailViewHolder {
@@ -25,6 +28,9 @@ public class TransportDetail implements DetailViewHolder {
     @BindView(R.id.detail_transport_dep_time)
     TextView time;
 
+    @BindView(R.id.detail_transpot_dep_delay)
+    TextView delay;
+
     @BindView(R.id.detail_transport_direction_container)
     LinearLayout directionContainer;
 
@@ -33,6 +39,12 @@ public class TransportDetail implements DetailViewHolder {
 
     @BindView(R.id.detail_transport_vertline)
     View line;
+
+    @BindColor(R.color.delayed)
+    int colorRed;
+
+    @BindColor(R.color.ontime)
+    int colorGreen;
 
     TransportDetail(Connection con,
                     JourneyUtil.Section section,
@@ -55,6 +67,10 @@ public class TransportDetail implements DetailViewHolder {
         } else {
             direction.setText(dir);
         }
+
+        EventInfo dep = stop.departure();
+        delay.setText(TimeUtil.delayString(dep));
+        delay.setTextColor(TimeUtil.delay(dep) ? colorRed : colorGreen);
     }
 
     private static String getDirection(Connection con, JourneyUtil.Section s) {

@@ -35,10 +35,10 @@ public class StopOver implements DetailViewHolder {
     @BindView(R.id.detail_stopover_bullet)
     View bullet;
 
-    @BindColor(R.color.md_red500)
+    @BindColor(R.color.delayed)
     int colorRed;
 
-    @BindColor(R.color.md_green500)
+    @BindColor(R.color.ontime)
     int colorGreen;
 
     StopOver(Connection con, JourneyUtil.Section section, Stop stop, ViewGroup parent, LayoutInflater inflater) {
