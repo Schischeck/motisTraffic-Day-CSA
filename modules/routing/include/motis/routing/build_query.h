@@ -4,6 +4,7 @@
 #include <string>
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/time_access.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/conv/trip_conv.h"
@@ -16,6 +17,12 @@
 
 namespace motis {
 namespace routing {
+
+inline void verify_timestamp(schedule const& sched, time_t t) {
+  if (t < external_schedule_begin(sched) || t >= external_schedule_end(sched)) {
+    throw std::system_error(error::journey_date_not_in_schedule);
+  }
+}
 
 inline station_node const* get_station_node(schedule const& sched,
                                             InputStation const* input_station) {
@@ -64,7 +71,10 @@ inline search_query build_query(schedule const& sched,
 
   switch (req->start_type()) {
     case Start_PretripStart: {
-      auto start = reinterpret_cast<PretripStart const*>(req->start());
+      auto const start = reinterpret_cast<PretripStart const*>(req->start());
+      verify_timestamp(sched, start->interval()->begin());
+      verify_timestamp(sched, start->interval()->end());
+
       q.from_ = get_station_node(sched, start->station());
       q.interval_begin_ = unix_to_motistime(sched, start->interval()->begin());
       q.interval_end_ = unix_to_motistime(sched, start->interval()->end());
@@ -73,6 +83,8 @@ inline search_query build_query(schedule const& sched,
 
     case Start_OntripStationStart: {
       auto start = reinterpret_cast<OntripStationStart const*>(req->start());
+      verify_timestamp(sched, start->departure_time());
+
       q.from_ = get_station_node(sched, start->station());
       q.interval_begin_ = unix_to_motistime(sched, start->departure_time());
       q.interval_end_ = INVALID_TIME;
