@@ -1,6 +1,7 @@
 package de.motis_project.app.journey;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
@@ -8,6 +9,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -69,6 +71,8 @@ public class JourneyListView
     private static final int HOUR_IN_MS = 60 * MINUTE_IN_MS;
     private static final int SEARCH_INTERVAL_MS = 2 * HOUR_IN_MS;
 
+    private int FLOATING_HEADER_HEIGHT;
+
     public Query query;
     private Date intervalBegin, intervalEnd;
 
@@ -90,6 +94,9 @@ public class JourneyListView
             } else {
                 emptyListView.setVisibility(View.GONE);
                 JourneyListView.this.setVisibility(View.VISIBLE);
+                Resources r = getResources();
+                int offset = r.getDimensionPixelSize(R.dimen.journey_list_floating_header_height);
+                layoutManager.scrollToPositionWithOffset(1,offset);
             }
         }
     };
