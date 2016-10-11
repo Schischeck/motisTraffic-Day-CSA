@@ -12,7 +12,7 @@ struct stop {
   stop(unsigned int index, unsigned int station_id, unsigned int a_track,
        unsigned int d_track, time a_time, time d_time, time a_sched_time,
        time d_sched_time, timestamp_reason a_reason, timestamp_reason d_reason,
-       bool interchange)
+       bool leave, bool enter)
       : index_(index),
         station_id_(station_id),
         a_track_(a_track),
@@ -23,7 +23,8 @@ struct stop {
         d_sched_time_(d_sched_time),
         a_reason_(a_reason),
         d_reason_(d_reason),
-        interchange_(interchange) {}
+        leave_(leave),
+        enter_(enter) {}
 
   unsigned int index_;
   unsigned int station_id_;
@@ -31,7 +32,7 @@ struct stop {
   time a_time_, d_time_;
   time a_sched_time_, d_sched_time_;
   timestamp_reason a_reason_, d_reason_;
-  bool interchange_;
+  bool leave_, enter_;
 };
 
 }  // namespace intermediate
