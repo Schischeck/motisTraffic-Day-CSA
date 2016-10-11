@@ -69,7 +69,7 @@ lineReader.on('close', function() {
     if (src.type === 'module') {
       processed = compileJsModule(content, {}, src.file);
     } else if (src.type === 'riot/tag') {
-      processed = riot.compile(content, true);
+      processed = riot.compile(content);
     } else if (src.type === 'js') {
       processed = content;
     }
