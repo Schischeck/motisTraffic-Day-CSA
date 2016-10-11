@@ -250,12 +250,12 @@ public class JourneyListView
                             layoutManager.scrollToPosition(newData.size() + 1);
                         }
 
-                        infiniteScroll.notifyLoadFinished(newData.size());
+                        infiniteScroll.notifyLoadBeforeFinished(newData.size());
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-                        infiniteScroll.notifyLoadFinished();
+                        infiniteScroll.notifyLoadBeforeFinished();
                         if (t instanceof MotisErrorException) {
                             adapter.setDisplayErrorBefore(true, ((MotisErrorException) t).code);
                         }
@@ -292,12 +292,12 @@ public class JourneyListView
                         adapter.recalculateHeaders();
                         stickyHeaderDecorator.clearHeaderCache();
 
-                        infiniteScroll.notifyLoadFinished();
+                        infiniteScroll.notifyLoadAfterFinished();
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
-                        infiniteScroll.notifyLoadFinished();
+                        infiniteScroll.notifyLoadAfterFinished();
                         if (t instanceof MotisErrorException) {
                             adapter.setDisplayErrorAfter(true, ((MotisErrorException) t).code);
                         }

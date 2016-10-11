@@ -13,6 +13,9 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     private final LinearLayoutManager layoutManager;
     private final Loader loader;
 
+    private boolean loadingBefore = false;
+    private boolean loadingAfter = false;
+
     InfiniteScroll(Loader loader, LinearLayoutManager layoutManager) {
         this.loader = loader;
         this.layoutManager = layoutManager;
@@ -29,24 +32,46 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
 
     private void onScrolled(int first) {
         synchronized (layoutManager) {
-            int last = layoutManager.findLastVisibleItemPosition();
-            if (last == layoutManager.getItemCount() - 1) {
-                loader.loadAfter();
-                return;
+            if (!loadingAfter) {
+                int last = layoutManager.findLastVisibleItemPosition();
+                if (last == layoutManager.getItemCount() - 1) {
+                    loadingAfter = true;
+                    loader.loadAfter();
+                    return;
+                }
             }
-
-            if (first == 0) {
-                loader.loadBefore();
-                return;
+            if (!loadingBefore) {
+                if (first == 0) {
+                    loadingBefore = true;
+                    loader.loadBefore();
+                    return;
+                }
             }
         }
     }
 
-    public void notifyLoadFinished(int firstVisible) {
+    public void notifyLoadBeforeFinished(int firstVisible) {
         onScrolled(firstVisible);
+        loadingBefore = false;
+    }
+
+    public void notifyLoadBeforeFinished() {
+        onScrolled();
+        loadingBefore = false;
+    }
+
+    public void notifyLoadAfterFinished(int firstVisible) {
+        onScrolled(firstVisible);
+        loadingAfter = false;
+    }
+
+    public void notifyLoadAfterFinished() {
+        onScrolled();
+        loadingAfter = false;
     }
 
     public void notifyLoadFinished() {
-        onScrolled();
+        notifyLoadAfterFinished();
+        notifyLoadBeforeFinished();
     }
 }
