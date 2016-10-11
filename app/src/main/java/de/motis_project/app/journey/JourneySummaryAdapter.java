@@ -24,6 +24,7 @@ import motis.Connection;
 public class JourneySummaryAdapter
         extends RecyclerView.Adapter<JourneyViewHolder>
         implements StickyHeaderAdapter<JourneyViewHolder> {
+
     private static class HeaderMapping {
         private final Map<Date, Integer> map = new HashMap<>();
 
@@ -59,6 +60,14 @@ public class JourneySummaryAdapter
 
     private final int VIEW_TYPE_LOADING_SPINNER = 0;
     private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
+    private final int VIEW_TYPE_ERROR_BEFORE = 2;
+    private final int VIEW_TYPE_ERROR_AFTER = 3;
+
+
+    private boolean displayErrorBefore = false;
+    private boolean displayErrorAfter = false;
+    private int loadBeforeErrorCode = 0;
+    private int loadAfterError = 0;
 
     private final List<Connection> data;
 
@@ -71,11 +80,13 @@ public class JourneySummaryAdapter
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0 || position == getItemCount() - 1) {
-            return VIEW_TYPE_LOADING_SPINNER;
-        } else {
-            return VIEW_TYPE_JOURNEY_PREVIEW;
+        if (position == 0) {
+            return displayErrorBefore ? VIEW_TYPE_ERROR_BEFORE : VIEW_TYPE_LOADING_SPINNER;
         }
+        if (position == getItemCount() - 1) {
+            return displayErrorAfter ? VIEW_TYPE_ERROR_AFTER : VIEW_TYPE_LOADING_SPINNER;
+        }
+        return VIEW_TYPE_JOURNEY_PREVIEW;
     }
 
     @Override
@@ -86,17 +97,16 @@ public class JourneySummaryAdapter
 
         switch (viewType) {
             case VIEW_TYPE_JOURNEY_PREVIEW:
-                return new JourneyViewHolder(
-                        true,
-                        inflater.inflate(
-                                R.layout.journey_list_item,
-                                parent, false), inflater);
+                return new JourneySummaryViewHolder(parent, inflater);
             case VIEW_TYPE_LOADING_SPINNER:
                 return new JourneyViewHolder(
-                        false,
                         inflater.inflate(
                                 R.layout.journey_loading_spinner,
-                                parent, false), inflater);
+                                parent, false), null);
+            case VIEW_TYPE_ERROR_BEFORE:
+                return new JourneyErrorViewHolder(parent, inflater, loadBeforeErrorCode);
+            case VIEW_TYPE_ERROR_AFTER:
+                return new JourneyErrorViewHolder(parent, inflater, loadAfterError);
             default:
                 throw new RuntimeException("unknown view type");
         }
@@ -127,8 +137,9 @@ public class JourneySummaryAdapter
         }
 
         final Connection con = data.get(index);
-        viewHolder.setConnection(con);
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+        JourneySummaryViewHolder jsvh = (JourneySummaryViewHolder) viewHolder;
+        jsvh.setConnection(con);
+        jsvh.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Status.get().setConnection(con);
@@ -142,7 +153,7 @@ public class JourneySummaryAdapter
         Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View header = inflater.inflate(R.layout.journey_header_item, parent, false);
-        return new JourneyViewHolder(false, header, inflater);
+        return new JourneyViewHolder(header, null);
     }
 
     @Override
@@ -170,6 +181,26 @@ public class JourneySummaryAdapter
 
     public void recalculateHeaders() {
         headerMapping = new HeaderMapping(data);
+    }
+
+    public void setDisplayErrorBefore(boolean error, int errorCode) {
+        displayErrorBefore = error;
+        loadBeforeErrorCode = errorCode;
+        notifyItemChanged(0);
+    }
+
+    public void setDisplayErrorAfter(boolean error, int errorCode) {
+        displayErrorAfter = error;
+        loadAfterError = errorCode;
+        notifyItemChanged(getItemCount() - 1);
+    }
+
+    public boolean getDisplayErrorBefore() {
+        return displayErrorBefore;
+    }
+
+    public boolean getDisplayErrorAfter() {
+        return displayErrorAfter;
     }
 
 }

@@ -23,6 +23,7 @@ import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
+import de.motis_project.app.io.error.MotisErrorException;
 import de.motis_project.app.lib.StickyHeaderDecoration;
 import de.motis_project.app.query.Query;
 import motis.Connection;
@@ -96,7 +97,7 @@ public class JourneyListView
                 JourneyListView.this.setVisibility(View.VISIBLE);
                 Resources r = getResources();
                 int offset = r.getDimensionPixelSize(R.dimen.journey_list_floating_header_height);
-                layoutManager.scrollToPositionWithOffset(1,offset);
+                layoutManager.scrollToPositionWithOffset(1, offset);
             }
         }
     };
@@ -142,12 +143,13 @@ public class JourneyListView
         intervalEnd = new Date(intervalBegin.getTime() + SEARCH_INTERVAL_MS);
 
         data.clear();
+        adapter.setDisplayErrorAfter(false, 0);
+        adapter.setDisplayErrorBefore(false, 0);
         adapter.recalculateHeaders();
         adapter.notifyDataSetChanged();
 
         final Date searchIntervalBegin = new Date(intervalBegin.getTime());
         final Date searchIntervalEnd = new Date(intervalEnd.getTime());
-        infiniteScroll.notifyLoadStart();
         route(searchIntervalBegin, searchIntervalEnd, new Action1<RoutingResponse>() {
             @Override
             public void call(RoutingResponse res) {
@@ -163,36 +165,28 @@ public class JourneyListView
                 stickyHeaderDecorator.clearHeaderCache();
                 adapter.notifyDataSetChanged();
             }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable t) {
+                if (t instanceof MotisErrorException) {
+                    MotisErrorException mee = (MotisErrorException) t;
+                    if (mee.code == 4) {
+                        System.out.println("requested interval not in schedule");
+                    }
+                }
+            }
         });
     }
 
     public void route(Date searchIntervalBegin, Date searchIntervalEnd,
-                      Action1 action) {
+                      Action1 action, Action1<Throwable> errorAction) {
         Subscription sub = Status.get().getServer()
                 .route(query.getFromId(), query.getToId(),
                         query.isArrival(),
                         searchIntervalBegin, searchIntervalEnd)
-                .retryWhen(
-                        new Func1<Observable<? extends Throwable>, Observable<?>>() {
-                            @Override
-                            public Observable<?> call(Observable<? extends Throwable> attempts) {
-                                return attempts.flatMap(new Func1<Throwable, Observable<?>>() {
-                                    @Override
-                                    public Observable<?> call(Throwable throwable) {
-                                        return Observable.timer(1, TimeUnit.SECONDS);
-                                    }
-                                });
-                            }
-                        })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(action, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        System.out.println("RETRY?!");
-                    }
-                });
+                .subscribe(action, errorAction);
         subscriptions.add(sub);
 
         Subscription sub1 = Status.get().getServer()
@@ -221,6 +215,10 @@ public class JourneyListView
 
     @Override
     public void loadBefore() {
+        if (adapter.getDisplayErrorBefore()) {
+            return;
+        }
+
         final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime() - MINUTE_IN_MS);
 
@@ -249,11 +247,24 @@ public class JourneyListView
 
                         infiniteScroll.notifyLoadFinished(newData.size());
                     }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable t) {
+                        infiniteScroll.notifyLoadFinished();
+                        if (t instanceof MotisErrorException) {
+                            MotisErrorException mee = (MotisErrorException) t;
+                            adapter.setDisplayErrorBefore(true, mee.code);
+                        }
+                    }
                 });
     }
 
     @Override
     public void loadAfter() {
+        if (adapter.getDisplayErrorAfter()) {
+            return;
+        }
+
         final Date searchIntervalBegin = new Date(intervalEnd.getTime() + MINUTE_IN_MS);
         final Date searchIntervalEnd = new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
@@ -278,6 +289,18 @@ public class JourneyListView
                         stickyHeaderDecorator.clearHeaderCache();
 
                         infiniteScroll.notifyLoadFinished();
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable t) {
+                        infiniteScroll.notifyLoadFinished();
+                        if (t instanceof MotisErrorException) {
+                            MotisErrorException mee = (MotisErrorException) t;
+                            if (mee.code == 4) {
+                                System.out.println("requested interval not in schedule");
+                                adapter.setDisplayErrorAfter(true, mee.code);
+                            }
+                        }
                     }
                 });
     }
