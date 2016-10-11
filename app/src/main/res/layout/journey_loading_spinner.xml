@@ -11,4 +11,4 @@
     android:layout_marginTop="5dp"
     android:layout_weight="1"
     wheel:matProg_barColor="@color/colorAccent"
-    wheel:matProg_progressIndeterminate="true"/>
+    wheel:matProg_progressIndeterminate="true">
