@@ -28,15 +28,17 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     }
 
     private void onScrolled(int first) {
-        int last = layoutManager.findLastVisibleItemPosition();
-        if (last == layoutManager.getItemCount() - 1) {
-            loader.loadAfter();
-            return;
-        }
+        synchronized (layoutManager) {
+            int last = layoutManager.findLastVisibleItemPosition();
+            if (last == layoutManager.getItemCount() - 1) {
+                loader.loadAfter();
+                return;
+            }
 
-        if (first == 0) {
-            loader.loadBefore();
-            return;
+            if (first == 0) {
+                loader.loadBefore();
+                return;
+            }
         }
     }
 
