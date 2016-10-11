@@ -77,6 +77,7 @@ public class JourneyListView
 
     private View emptyListView;
     private View queryIncompleteView;
+    private ServerErrorView serverErrorView;
 
     private final SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
@@ -88,10 +89,12 @@ public class JourneyListView
         @Override
         public void onChanged() {
             if ((adapter == null || adapter.getItemCount() == 2) && emptyListView != null) {
-                emptyListView.setVisibility(View.VISIBLE);
                 JourneyListView.this.setVisibility(View.GONE);
+                serverErrorView.setVisibility(View.GONE);
+                emptyListView.setVisibility(View.VISIBLE);
             } else {
                 emptyListView.setVisibility(View.GONE);
+                serverErrorView.setVisibility(View.GONE);
                 JourneyListView.this.setVisibility(View.VISIBLE);
                 Resources r = getResources();
                 int offset = r.getDimensionPixelOffset(R.dimen.journey_list_floating_header_height);
@@ -127,12 +130,15 @@ public class JourneyListView
     public void notifyQueryChanged() {
         if (queryIncompleteView != null) {
             if (!query.isComplete()) {
-                queryIncompleteView.setVisibility(View.VISIBLE);
                 emptyListView.setVisibility(View.GONE);
+                serverErrorView.setVisibility(View.GONE);
                 this.setVisibility(View.GONE);
+                queryIncompleteView.setVisibility(View.VISIBLE);
                 return;
             } else {
                 queryIncompleteView.setVisibility(View.GONE);
+                emptyListView.setVisibility(View.GONE);
+                serverErrorView.setVisibility(View.GONE);
                 this.setVisibility(View.VISIBLE);
             }
         }
@@ -167,11 +173,12 @@ public class JourneyListView
             @Override
             public void call(Throwable t) {
                 if (t instanceof MotisErrorException) {
-                    MotisErrorException mee = (MotisErrorException) t;
-                    if (mee.code == 4) {
-                        System.out.println("requested interval not in schedule");
-                    }
+                    serverErrorView.setErrorCode(((MotisErrorException) t).code);
                 }
+                queryIncompleteView.setVisibility(View.GONE);
+                emptyListView.setVisibility(View.GONE);
+                serverErrorView.setVisibility(View.VISIBLE);
+                JourneyListView.this.setVisibility(View.GONE);
             }
         });
     }
@@ -250,8 +257,7 @@ public class JourneyListView
                     public void call(Throwable t) {
                         infiniteScroll.notifyLoadFinished();
                         if (t instanceof MotisErrorException) {
-                            MotisErrorException mee = (MotisErrorException) t;
-                            adapter.setDisplayErrorBefore(true, mee.code);
+                            adapter.setDisplayErrorBefore(true, ((MotisErrorException) t).code);
                         }
                     }
                 });
@@ -293,11 +299,7 @@ public class JourneyListView
                     public void call(Throwable t) {
                         infiniteScroll.notifyLoadFinished();
                         if (t instanceof MotisErrorException) {
-                            MotisErrorException mee = (MotisErrorException) t;
-                            if (mee.code == 4) {
-                                System.out.println("requested interval not in schedule");
-                                adapter.setDisplayErrorAfter(true, mee.code);
-                            }
+                            adapter.setDisplayErrorAfter(true, ((MotisErrorException) t).code);
                         }
                     }
                 });
@@ -320,6 +322,10 @@ public class JourneyListView
 
     public void setQueryIncompleteView(View v) {
         this.queryIncompleteView = v;
+    }
+
+    public void setServerErrorView(ServerErrorView v) {
+        this.serverErrorView = v;
     }
 
     private void logResponse(RoutingResponse res, Date intervalBegin, Date intervalEnd,

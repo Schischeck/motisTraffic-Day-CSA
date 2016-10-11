@@ -26,6 +26,7 @@ import butterknife.OnTouch;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.journey.JourneyListView;
+import de.motis_project.app.journey.ServerErrorView;
 
 public class QueryFragment extends Fragment
         implements android.app.DatePickerDialog.OnDateSetListener, TimePickerDialogFragment.ChangeListener {
@@ -62,6 +63,9 @@ public class QueryFragment extends Fragment
     @BindView(R.id.connection_list_query_incomplete)
     View queryIncompleteView;
 
+    @BindView(R.id.connection_list_server_error)
+    ServerErrorView serverErrorView;
+
     public QueryFragment() {
     }
 
@@ -76,6 +80,7 @@ public class QueryFragment extends Fragment
         journeyListView.query = query;
         journeyListView.setEmptyListView(journeyListEmptyView);
         journeyListView.setQueryIncompleteView(queryIncompleteView);
+        journeyListView.setServerErrorView(serverErrorView);
 
         Date d = query.getTime();
         updateTimeDisplay(query.isArrival(), d);

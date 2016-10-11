@@ -10,15 +10,16 @@ import android.widget.TextView;
 import java.util.HashSet;
 import java.util.Set;
 
+import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.OnClick;
 import de.motis_project.app.R;
 
 public class JourneyErrorViewHolder extends JourneyViewHolder {
 
-    private static SparseArray<String> messages = new SparseArray<>();
+    public static final SparseArray<String> messages = new SparseArray<>();
 
-    private static Set<Integer> retryableCodes = new HashSet<>();
+    public static final Set<Integer> retryableCodes = new HashSet<>();
 
     static {
         messages.put(4, "Zeitraum nicht im Fahrplan");
@@ -34,12 +35,15 @@ public class JourneyErrorViewHolder extends JourneyViewHolder {
     void onClick() {
     }
 
+    @BindString(R.string.server_error)
+    String default_message;
+
     public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int errorCode) {
         super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
 
         if (retryableCodes.contains(errorCode)) {
             retryButton.setVisibility(View.VISIBLE);
         }
-        messageView.setText(messages.get(errorCode, "Es ist ein Fehler aufgetreten"));
+        messageView.setText(messages.get(errorCode, default_message));
     }
 }

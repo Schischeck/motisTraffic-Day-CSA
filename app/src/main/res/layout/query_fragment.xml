@@ -192,6 +192,15 @@
             android:id="@+id/connection_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
+
+        <de.motis_project.app.journey.ServerErrorView
+            android:id="@+id/connection_list_server_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/server_error"
+            android:layout_gravity="center"
+            android:gravity="center"/>
+
     </FrameLayout>
 
 
