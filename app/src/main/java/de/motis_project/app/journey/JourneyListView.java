@@ -72,8 +72,6 @@ public class JourneyListView
     private static final int HOUR_IN_MS = 60 * MINUTE_IN_MS;
     private static final int SEARCH_INTERVAL_MS = 2 * HOUR_IN_MS;
 
-    private int FLOATING_HEADER_HEIGHT;
-
     public Query query;
     private Date intervalBegin, intervalEnd;
 
@@ -96,7 +94,7 @@ public class JourneyListView
                 emptyListView.setVisibility(View.GONE);
                 JourneyListView.this.setVisibility(View.VISIBLE);
                 Resources r = getResources();
-                int offset = r.getDimensionPixelSize(R.dimen.journey_list_floating_header_height);
+                int offset = r.getDimensionPixelOffset(R.dimen.journey_list_floating_header_height);
                 layoutManager.scrollToPositionWithOffset(1, offset);
             }
         }
