@@ -26,7 +26,7 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
         onScrolled();
     }
 
-    private void onScrolled() {
+    public void onScrolled() {
         onScrolled(layoutManager.findFirstVisibleItemPosition());
     }
 

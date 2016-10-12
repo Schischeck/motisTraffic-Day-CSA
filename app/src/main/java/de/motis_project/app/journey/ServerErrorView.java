@@ -13,6 +13,9 @@ public class ServerErrorView extends TextView {
     @BindString(R.string.server_error)
     String default_message;
 
+    @BindString(R.string.empty_response)
+    String emptyResponseMessage;
+
     public ServerErrorView(Context context) {
         super(context);
         ButterKnife.bind(this);
@@ -26,5 +29,9 @@ public class ServerErrorView extends TextView {
     public void setErrorCode(int ec) {
         String msg = JourneyErrorViewHolder.messages.get(ec, default_message);
         setText(msg);
+    }
+
+    public void setEmptyResponse() {
+        setText(emptyResponseMessage);
     }
 }

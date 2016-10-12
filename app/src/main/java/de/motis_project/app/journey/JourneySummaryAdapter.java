@@ -18,6 +18,7 @@ import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.detail.DetailActivity;
 import de.motis_project.app.io.Status;
+import de.motis_project.app.io.error.MotisErrorException;
 import de.motis_project.app.lib.StickyHeaderAdapter;
 import motis.Connection;
 
@@ -58,16 +59,24 @@ public class JourneySummaryAdapter
         }
     }
 
-    private final int VIEW_TYPE_LOADING_SPINNER = 0;
-    private final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
-    private final int VIEW_TYPE_ERROR_BEFORE = 2;
-    private final int VIEW_TYPE_ERROR_AFTER = 3;
+    private static final int VIEW_TYPE_LOADING_SPINNER = 0;
+    private static final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
+    private static final int VIEW_TYPE_ERROR_BEFORE = 2;
+    private static final int VIEW_TYPE_ERROR_AFTER = 3;
 
+    // Error State
+    final static int ERROR_TYPE_NO_ERROR = 0;
+    final static int ERROR_TYPE_MOTIS_ERROR = 1;
+    final static int ERROR_TYPE_OTHER = 2;
 
-    private boolean displayErrorBefore = false;
-    private boolean displayErrorAfter = false;
-    private int loadBeforeErrorCode = 0;
-    private int loadAfterError = 0;
+    private int errorTypeBefore = ERROR_TYPE_NO_ERROR;
+    private int errorTypeAfter = ERROR_TYPE_NO_ERROR;
+
+    private MotisErrorException motisErrorBefore;
+    private MotisErrorException motisErrorAfter;
+
+    private int otherErrorMsgBefore;
+    private int otherErrorMsgAfter;
 
     private final List<Connection> data;
 
@@ -81,10 +90,10 @@ public class JourneySummaryAdapter
     @Override
     public int getItemViewType(int position) {
         if (position == 0) {
-            return displayErrorBefore ? VIEW_TYPE_ERROR_BEFORE : VIEW_TYPE_LOADING_SPINNER;
+            return errorTypeBefore != ERROR_TYPE_NO_ERROR ? VIEW_TYPE_ERROR_BEFORE : VIEW_TYPE_LOADING_SPINNER;
         }
         if (position == getItemCount() - 1) {
-            return displayErrorAfter ? VIEW_TYPE_ERROR_AFTER : VIEW_TYPE_LOADING_SPINNER;
+            return errorTypeAfter != ERROR_TYPE_NO_ERROR ? VIEW_TYPE_ERROR_AFTER : VIEW_TYPE_LOADING_SPINNER;
         }
         return VIEW_TYPE_JOURNEY_PREVIEW;
     }
@@ -104,9 +113,17 @@ public class JourneySummaryAdapter
                                 R.layout.journey_loading_spinner,
                                 parent, false), null);
             case VIEW_TYPE_ERROR_BEFORE:
-                return new JourneyErrorViewHolder(parent, inflater, loadBeforeErrorCode);
+                if (errorTypeBefore == ERROR_TYPE_MOTIS_ERROR) {
+                    return new JourneyErrorViewHolder(parent, inflater, motisErrorBefore);
+                } else {
+                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgBefore);
+                }
             case VIEW_TYPE_ERROR_AFTER:
-                return new JourneyErrorViewHolder(parent, inflater, loadAfterError);
+                if (errorTypeAfter == ERROR_TYPE_MOTIS_ERROR) {
+                    return new JourneyErrorViewHolder(parent, inflater, motisErrorAfter);
+                } else {
+                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgAfter);
+                }
             default:
                 throw new RuntimeException("unknown view type");
         }
@@ -183,24 +200,52 @@ public class JourneySummaryAdapter
         headerMapping = new HeaderMapping(data);
     }
 
-    public void setDisplayErrorBefore(boolean error, int errorCode) {
-        displayErrorBefore = error;
-        loadBeforeErrorCode = errorCode;
+    public void setLoadBeforeError(MotisErrorException error) {
+        if (error == null) {
+            errorTypeBefore = ERROR_TYPE_NO_ERROR;
+            return;
+        }
+        errorTypeBefore = ERROR_TYPE_MOTIS_ERROR;
+        motisErrorBefore = error;
         notifyItemChanged(0);
     }
 
-    public void setDisplayErrorAfter(boolean error, int errorCode) {
-        displayErrorAfter = error;
-        loadAfterError = errorCode;
+    public void setLoadAfterError(MotisErrorException error) {
+        if (error == null) {
+            errorTypeAfter = ERROR_TYPE_NO_ERROR;
+            return;
+        }
+        errorTypeAfter = ERROR_TYPE_MOTIS_ERROR;
+        motisErrorAfter = error;
         notifyItemChanged(getItemCount() - 1);
     }
 
-    public boolean getDisplayErrorBefore() {
-        return displayErrorBefore;
+    public void setLoadBeforeError(int msg) {
+        if (msg == 0) {
+            errorTypeBefore = ERROR_TYPE_NO_ERROR;
+            return;
+        }
+        errorTypeBefore = ERROR_TYPE_OTHER;
+        otherErrorMsgBefore = msg;
+        notifyItemChanged(0);
     }
 
-    public boolean getDisplayErrorAfter() {
-        return displayErrorAfter;
+    public void setLoadAfterError(int msg) {
+        if (msg == 0) {
+            errorTypeAfter = ERROR_TYPE_NO_ERROR;
+            return;
+        }
+        errorTypeAfter = ERROR_TYPE_OTHER;
+        otherErrorMsgAfter = msg;
+        notifyItemChanged(getItemCount() - 1);
+    }
+
+    public int getErrorStateBefore() {
+        return errorTypeBefore;
+    }
+
+    public int getErrorStateAfter() {
+        return errorTypeAfter;
     }
 
 }

@@ -155,7 +155,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <com.pnikosis.materialishprogress.ProgressWheel xmlns:wheel="http://schemas.android.com/apk/res-auto"
-                                                        android:id="@+id/connection_list_empty"
+                                                        android:id="@+id/connection_list_request_pending"
                                                         android:layout_width="match_parent"
                                                         android:layout_height="80dp"
                                                         android:layout_gravity="center"

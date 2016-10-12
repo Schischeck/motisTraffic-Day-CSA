@@ -7,11 +7,8 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SnapHelper;
 import android.util.AttributeSet;
-import android.util.TypedValue;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -19,7 +16,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
@@ -31,11 +27,9 @@ import de.motis_project.app.query.Query;
 import motis.Connection;
 import motis.lookup.LookupScheduleInfoResponse;
 import motis.routing.RoutingResponse;
-import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
-import rx.functions.Func1;
 import rx.internal.util.SubscriptionList;
 import rx.schedulers.Schedulers;
 
@@ -77,9 +71,12 @@ public class JourneyListView
     public Query query;
     private Date intervalBegin, intervalEnd;
 
-    private View emptyListView;
+    private View requestPendingView;
     private View queryIncompleteView;
     private ServerErrorView serverErrorView;
+
+    boolean serverError = false;
+    boolean initialRequestPending = true;
 
     private final SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
@@ -90,14 +87,8 @@ public class JourneyListView
     private final AdapterDataObserver emptyListObserver = new AdapterDataObserver() {
         @Override
         public void onChanged() {
-            if ((adapter == null || adapter.getItemCount() == 2) && emptyListView != null) {
-                JourneyListView.this.setVisibility(View.GONE);
-                serverErrorView.setVisibility(View.GONE);
-                emptyListView.setVisibility(View.VISIBLE);
-            } else {
-                emptyListView.setVisibility(View.GONE);
-                serverErrorView.setVisibility(View.GONE);
-                JourneyListView.this.setVisibility(View.VISIBLE);
+            updateVisibility();
+            if (adapter.getItemCount() < 2) {
                 Resources r = getResources();
                 int offset = r.getDimensionPixelOffset(R.dimen.journey_list_floating_header_height);
                 layoutManager.scrollToPositionWithOffset(1, offset);
@@ -130,38 +121,31 @@ public class JourneyListView
     }
 
     public void notifyQueryChanged() {
-        if (queryIncompleteView != null) {
-            if (!query.isComplete()) {
-                emptyListView.setVisibility(View.GONE);
-                serverErrorView.setVisibility(View.GONE);
-                this.setVisibility(View.GONE);
-                queryIncompleteView.setVisibility(View.VISIBLE);
-                return;
-            } else {
-                queryIncompleteView.setVisibility(View.GONE);
-                emptyListView.setVisibility(View.GONE);
-                serverErrorView.setVisibility(View.GONE);
-                this.setVisibility(View.VISIBLE);
-            }
-        }
-
-        intervalBegin = query.getTime();
-        intervalEnd = new Date(intervalBegin.getTime() + SEARCH_INTERVAL_MS);
-
+        serverError = false;
+        initialRequestPending = true;
         data.clear();
-        adapter.setDisplayErrorAfter(false, 0);
-        adapter.setDisplayErrorBefore(false, 0);
+        adapter.setLoadAfterError(null);
+        adapter.setLoadBeforeError(null);
         adapter.recalculateHeaders();
         adapter.notifyDataSetChanged();
 
+        intervalBegin = query.getTime();
+        intervalEnd = new Date(intervalBegin.getTime() + SEARCH_INTERVAL_MS);
         final Date searchIntervalBegin = new Date(intervalBegin.getTime());
         final Date searchIntervalEnd = new Date(intervalEnd.getTime());
         infiniteScroll.setLoading();
+        updateVisibility();
         route(searchIntervalBegin, searchIntervalEnd, new Action1<RoutingResponse>() {
             @Override
             public void call(RoutingResponse res) {
+                initialRequestPending = false;
                 infiniteScroll.notifyLoadFinished();
                 logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
+
+                if (res.connectionsLength() == 0) {
+                    serverError = true;
+                    serverErrorView.setEmptyResponse();
+                }
 
                 data.clear();
                 for (int i = 0; i < res.connectionsLength(); i++) {
@@ -171,17 +155,18 @@ public class JourneyListView
                 adapter.recalculateHeaders();
                 stickyHeaderDecorator.clearHeaderCache();
                 adapter.notifyDataSetChanged();
+                updateVisibility();
             }
         }, new Action1<Throwable>() {
             @Override
             public void call(Throwable t) {
+                initialRequestPending = false;
+                infiniteScroll.notifyLoadFinished();
+                serverError = true;
                 if (t instanceof MotisErrorException) {
                     serverErrorView.setErrorCode(((MotisErrorException) t).code);
                 }
-                queryIncompleteView.setVisibility(View.GONE);
-                emptyListView.setVisibility(View.GONE);
-                serverErrorView.setVisibility(View.VISIBLE);
-                JourneyListView.this.setVisibility(View.GONE);
+                updateVisibility();
             }
         });
     }
@@ -223,7 +208,7 @@ public class JourneyListView
 
     @Override
     public void loadBefore() {
-        if (adapter.getDisplayErrorBefore()) {
+        if (adapter.getErrorStateBefore() != JourneySummaryAdapter.ERROR_TYPE_NO_ERROR) {
             return;
         }
 
@@ -254,21 +239,26 @@ public class JourneyListView
                         }
 
                         infiniteScroll.notifyLoadBeforeFinished(newData.size());
+                        if (res.connectionsLength() == 0) {
+                            infiniteScroll.onScrolled();
+                        }
+                        updateVisibility();
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
                         infiniteScroll.notifyLoadBeforeFinished();
                         if (t instanceof MotisErrorException) {
-                            adapter.setDisplayErrorBefore(true, ((MotisErrorException) t).code);
+                            adapter.setLoadBeforeError((MotisErrorException) t);
                         }
+                        updateVisibility();
                     }
                 });
     }
 
     @Override
     public void loadAfter() {
-        if (adapter.getDisplayErrorAfter()) {
+        if (adapter.getErrorStateAfter() != JourneySummaryAdapter.ERROR_TYPE_NO_ERROR) {
             return;
         }
 
@@ -280,6 +270,10 @@ public class JourneyListView
                     @Override
                     public void call(RoutingResponse res) {
                         logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
+
+                        if (res.connectionsLength() == 0) {
+                            //adapter.setLoadAfterError(R.string.empty_response);
+                        }
 
                         List<Connection> newData = new ArrayList<>(res.connectionsLength());
                         for (int i = 0; i < res.connectionsLength(); ++i) {
@@ -294,16 +288,20 @@ public class JourneyListView
                         adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
                         adapter.recalculateHeaders();
                         stickyHeaderDecorator.clearHeaderCache();
-
                         infiniteScroll.notifyLoadAfterFinished();
+                        if (res.connectionsLength() == 0) {
+                            infiniteScroll.onScrolled();
+                        }
+                        updateVisibility();
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
                         infiniteScroll.notifyLoadAfterFinished();
                         if (t instanceof MotisErrorException) {
-                            adapter.setDisplayErrorAfter(true, ((MotisErrorException) t).code);
+                            adapter.setLoadAfterError((MotisErrorException) t);
                         }
+                        updateVisibility();
                     }
                 });
     }
@@ -319,8 +317,8 @@ public class JourneyListView
         });
     }
 
-    public void setEmptyListView(View v) {
-        this.emptyListView = v;
+    public void setRequestPendingView(View v) {
+        this.requestPendingView = v;
     }
 
     public void setQueryIncompleteView(View v) {
@@ -359,4 +357,34 @@ public class JourneyListView
         }
     }
 
+    private void updateVisibility() {
+        if (!query.isComplete()) {
+            this.setVisibility(View.GONE);
+            requestPendingView.setVisibility(View.GONE);
+            queryIncompleteView.setVisibility(View.VISIBLE);
+            serverErrorView.setVisibility(View.GONE);
+            return;
+        }
+
+        if (initialRequestPending) {
+            this.setVisibility(View.GONE);
+            requestPendingView.setVisibility(View.VISIBLE);
+            queryIncompleteView.setVisibility(View.GONE);
+            serverErrorView.setVisibility(View.GONE);
+            return;
+        }
+
+        if (serverError) {
+            this.setVisibility(View.GONE);
+            requestPendingView.setVisibility(View.GONE);
+            queryIncompleteView.setVisibility(View.GONE);
+            serverErrorView.setVisibility(View.VISIBLE);
+            return;
+        }
+
+        this.setVisibility(View.VISIBLE);
+        requestPendingView.setVisibility(View.GONE);
+        queryIncompleteView.setVisibility(View.GONE);
+        serverErrorView.setVisibility(View.GONE);
+    }
 }

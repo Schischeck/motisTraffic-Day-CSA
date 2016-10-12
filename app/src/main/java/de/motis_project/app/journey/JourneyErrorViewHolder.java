@@ -14,6 +14,7 @@ import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.OnClick;
 import de.motis_project.app.R;
+import de.motis_project.app.io.error.MotisErrorException;
 
 public class JourneyErrorViewHolder extends JourneyViewHolder {
 
@@ -38,12 +39,17 @@ public class JourneyErrorViewHolder extends JourneyViewHolder {
     @BindString(R.string.server_error)
     String default_message;
 
-    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int errorCode) {
+    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, MotisErrorException mee) {
         super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
 
-        if (retryableCodes.contains(errorCode)) {
+        if (retryableCodes.contains(mee.code)) {
             retryButton.setVisibility(View.VISIBLE);
         }
-        messageView.setText(messages.get(errorCode, default_message));
+        messageView.setText(messages.get(mee.code, default_message));
+    }
+
+    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int msg) {
+        super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
+        messageView.setText(inflater.getContext().getText(msg));
     }
 }

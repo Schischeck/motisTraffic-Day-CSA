@@ -57,8 +57,8 @@ public class QueryFragment extends Fragment
     @BindView(R.id.connection_list)
     JourneyListView journeyListView;
 
-    @BindView(R.id.connection_list_empty)
-    View journeyListEmptyView;
+    @BindView(R.id.connection_list_request_pending)
+    View requestPendingView;
 
     @BindView(R.id.connection_list_query_incomplete)
     View queryIncompleteView;
@@ -78,7 +78,7 @@ public class QueryFragment extends Fragment
                 savedInstanceState,
                 getContext().getSharedPreferences("route", Context.MODE_PRIVATE));
         journeyListView.query = query;
-        journeyListView.setEmptyListView(journeyListEmptyView);
+        journeyListView.setRequestPendingView(requestPendingView);
         journeyListView.setQueryIncompleteView(queryIncompleteView);
         journeyListView.setServerErrorView(serverErrorView);
 
