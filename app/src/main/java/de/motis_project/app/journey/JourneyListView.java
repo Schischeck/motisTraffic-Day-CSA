@@ -7,7 +7,9 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SnapHelper;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -154,6 +156,7 @@ public class JourneyListView
 
         final Date searchIntervalBegin = new Date(intervalBegin.getTime());
         final Date searchIntervalEnd = new Date(intervalEnd.getTime());
+        infiniteScroll.setLoading();
         route(searchIntervalBegin, searchIntervalEnd, new Action1<RoutingResponse>() {
             @Override
             public void call(RoutingResponse res) {

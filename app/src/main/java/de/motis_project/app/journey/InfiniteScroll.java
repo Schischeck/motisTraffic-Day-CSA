@@ -34,7 +34,7 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
         synchronized (layoutManager) {
             if (!loadingAfter) {
                 int last = layoutManager.findLastVisibleItemPosition();
-                if (last == layoutManager.getItemCount() - 1) {
+                if (last != RecyclerView.NO_POSITION && last == layoutManager.getItemCount() - 1) {
                     loadingAfter = true;
                     loader.loadAfter();
                     return;
@@ -73,5 +73,10 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     public void notifyLoadFinished() {
         notifyLoadAfterFinished();
         notifyLoadBeforeFinished();
+    }
+
+    public void setLoading() {
+        loadingAfter = true;
+        loadingBefore = true;
     }
 }
