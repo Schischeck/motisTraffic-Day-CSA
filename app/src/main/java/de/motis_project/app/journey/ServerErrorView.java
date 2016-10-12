@@ -7,6 +7,8 @@ import android.widget.TextView;
 import butterknife.BindString;
 import butterknife.ButterKnife;
 import de.motis_project.app.R;
+import de.motis_project.app.io.error.MotisErrorException;
+import motis.lookup.LookupScheduleInfoResponse;
 
 public class ServerErrorView extends TextView {
 
@@ -15,6 +17,9 @@ public class ServerErrorView extends TextView {
 
     @BindString(R.string.empty_response)
     String emptyResponseMessage;
+
+    @BindString(R.string.schedule_range)
+    String scheduleRangeTemplate;
 
     public ServerErrorView(Context context) {
         super(context);
@@ -26,9 +31,9 @@ public class ServerErrorView extends TextView {
         ButterKnife.bind(this);
     }
 
-    public void setErrorCode(int ec) {
-        String msg = JourneyErrorViewHolder.messages.get(ec, default_message);
-        setText(msg);
+    public void setErrorCode(MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
+        setText(JourneyErrorViewHolder
+                .buildMessage(mee, default_message, scheduleInfo, scheduleRangeTemplate));
     }
 
     public void setEmptyResponse() {

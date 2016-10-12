@@ -21,6 +21,11 @@ import de.motis_project.app.io.Status;
 import de.motis_project.app.io.error.MotisErrorException;
 import de.motis_project.app.lib.StickyHeaderAdapter;
 import motis.Connection;
+import motis.lookup.LookupScheduleInfoResponse;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class JourneySummaryAdapter
         extends RecyclerView.Adapter<JourneyViewHolder>
@@ -64,7 +69,6 @@ public class JourneySummaryAdapter
     private static final int VIEW_TYPE_ERROR_BEFORE = 2;
     private static final int VIEW_TYPE_ERROR_AFTER = 3;
 
-    // Error State
     final static int ERROR_TYPE_NO_ERROR = 0;
     final static int ERROR_TYPE_MOTIS_ERROR = 1;
     final static int ERROR_TYPE_OTHER = 2;
@@ -78,6 +82,8 @@ public class JourneySummaryAdapter
     private int otherErrorMsgBefore;
     private int otherErrorMsgAfter;
 
+    public LookupScheduleInfoResponse scheduleRange;
+
     private final List<Connection> data;
 
     private HeaderMapping headerMapping;
@@ -85,6 +91,7 @@ public class JourneySummaryAdapter
     public JourneySummaryAdapter(List<Connection> d) {
         data = d;
         recalculateHeaders();
+        getServerScheduleRange();
     }
 
     @Override
@@ -114,15 +121,15 @@ public class JourneySummaryAdapter
                                 parent, false), null);
             case VIEW_TYPE_ERROR_BEFORE:
                 if (errorTypeBefore == ERROR_TYPE_MOTIS_ERROR) {
-                    return new JourneyErrorViewHolder(parent, inflater, motisErrorBefore);
+                    return new JourneyErrorViewHolder(parent, inflater, motisErrorBefore, scheduleRange);
                 } else {
-                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgBefore);
+                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgBefore, scheduleRange);
                 }
             case VIEW_TYPE_ERROR_AFTER:
                 if (errorTypeAfter == ERROR_TYPE_MOTIS_ERROR) {
-                    return new JourneyErrorViewHolder(parent, inflater, motisErrorAfter);
+                    return new JourneyErrorViewHolder(parent, inflater, motisErrorAfter, scheduleRange);
                 } else {
-                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgAfter);
+                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgAfter, scheduleRange);
                 }
             default:
                 throw new RuntimeException("unknown view type");
@@ -246,6 +253,28 @@ public class JourneySummaryAdapter
 
     public int getErrorStateAfter() {
         return errorTypeAfter;
+    }
+
+
+    public void getServerScheduleRange() {
+        Subscription sub1 = Status.get().getServer()
+                .scheduleInfo()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<LookupScheduleInfoResponse>() {
+                    @Override
+                    public void call(LookupScheduleInfoResponse res) {
+                        scheduleRange = res;
+                        System.out.println("SCHEDULE BEGIN: " + TimeUtil.formatDate(res.begin()));
+                        System.out.println("SCHEDULE END:   " + TimeUtil.formatDate(res.end()));
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        throwable.printStackTrace();
+                        System.out.println("GET SERVER INFO FAILED");
+                    }
+                });
     }
 
 }

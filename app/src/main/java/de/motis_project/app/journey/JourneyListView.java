@@ -164,7 +164,7 @@ public class JourneyListView
                 infiniteScroll.notifyLoadFinished();
                 serverError = true;
                 if (t instanceof MotisErrorException) {
-                    serverErrorView.setErrorCode(((MotisErrorException) t).code);
+                    serverErrorView.setErrorCode((MotisErrorException) t, adapter.scheduleRange);
                 }
                 updateVisibility();
             }
@@ -270,10 +270,6 @@ public class JourneyListView
                     @Override
                     public void call(RoutingResponse res) {
                         logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
-
-                        if (res.connectionsLength() == 0) {
-                            //adapter.setLoadAfterError(R.string.empty_response);
-                        }
 
                         List<Connection> newData = new ArrayList<>(res.connectionsLength());
                         for (int i = 0; i < res.connectionsLength(); ++i) {

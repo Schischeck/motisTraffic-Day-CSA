@@ -14,14 +14,15 @@ import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.OnClick;
 import de.motis_project.app.R;
+import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.error.MotisErrorException;
+import motis.lookup.LookupScheduleInfoResponse;
 
 public class JourneyErrorViewHolder extends JourneyViewHolder {
 
-    public static final SparseArray<String> messages = new SparseArray<>();
+    private static final SparseArray<String> messages = new SparseArray<>();
 
-    public static final Set<Integer> retryableCodes = new HashSet<>();
-
+    //TODO(Simon): more messages
     static {
         messages.put(4, "Zeitraum nicht im Fahrplan");
     }
@@ -37,19 +38,34 @@ public class JourneyErrorViewHolder extends JourneyViewHolder {
     }
 
     @BindString(R.string.server_error)
-    String default_message;
+    String defaultMessage;
 
-    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, MotisErrorException mee) {
+    @BindString(R.string.schedule_range)
+    String scheduleRangeTemplate;
+
+    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
         super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
-
-        if (retryableCodes.contains(mee.code)) {
-            retryButton.setVisibility(View.VISIBLE);
-        }
-        messageView.setText(messages.get(mee.code, default_message));
+        messageView.setText(buildMessage(mee, scheduleInfo));
     }
 
-    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int msg) {
+    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int msgId, LookupScheduleInfoResponse scheduleInfo) {
         super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
-        messageView.setText(inflater.getContext().getText(msg));
+        messageView.setText(inflater.getContext().getText(msgId));
+    }
+
+    private String buildMessage(MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
+        return buildMessage(mee, defaultMessage, scheduleInfo, scheduleRangeTemplate);
+    }
+
+    public static String buildMessage(MotisErrorException mee,
+                                      String defaultMessage,
+                                      LookupScheduleInfoResponse scheduleInfo,
+                                      String scheduleRangeTemplate) {
+        String msg = messages.get(mee.code, defaultMessage);
+        if (mee.code == 4 && scheduleInfo != null) {
+            msg += "\n" + String.format(scheduleRangeTemplate, TimeUtil.formatDate(scheduleInfo.begin()),
+                    TimeUtil.formatDate(scheduleInfo.end()));
+        }
+        return msg;
     }
 }
