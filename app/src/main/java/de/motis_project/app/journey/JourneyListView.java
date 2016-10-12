@@ -181,25 +181,6 @@ public class JourneyListView
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(action, errorAction);
         subscriptions.add(sub);
-
-        Subscription sub1 = Status.get().getServer()
-                .scheduleInfo()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<LookupScheduleInfoResponse>() {
-                    @Override
-                    public void call(LookupScheduleInfoResponse res) {
-                        System.out.println("SCHEDULE BEGIN: " + TimeUtil.formatDate(res.begin()));
-                        System.out.println("SCHEDULE END:   " + TimeUtil.formatDate(res.end()));
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        System.out.println("GET SERVER INFO FAILED");
-                    }
-                });
-        subscriptions.add(sub1);
     }
 
     public void notifyDestroy() {
