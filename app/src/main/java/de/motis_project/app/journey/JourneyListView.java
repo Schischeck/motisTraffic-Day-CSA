@@ -68,6 +68,8 @@ public class JourneyListView
     private static final int HOUR_IN_MS = 60 * MINUTE_IN_MS;
     private static final int SEARCH_INTERVAL_MS = 2 * HOUR_IN_MS;
 
+    private int STICKY_HEADER_SCROLL_OFFSET;
+
     public Query query;
     private Date intervalBegin, intervalEnd;
 
@@ -84,17 +86,6 @@ public class JourneyListView
     private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
     private final StickyHeaderDecoration stickyHeaderDecorator = new StickyHeaderDecoration(adapter);
-    private final AdapterDataObserver emptyListObserver = new AdapterDataObserver() {
-        @Override
-        public void onChanged() {
-            updateVisibility();
-            if (adapter.getItemCount() < 2) {
-                Resources r = getResources();
-                int offset = r.getDimensionPixelOffset(R.dimen.journey_list_floating_header_height);
-                layoutManager.scrollToPositionWithOffset(1, offset);
-            }
-        }
-    };
 
     public JourneyListView(Context context) {
         super(context);
@@ -113,11 +104,13 @@ public class JourneyListView
 
     private void init() {
         setAdapter(adapter);
-        adapter.registerAdapterDataObserver(emptyListObserver);
         addOnScrollListener(infiniteScroll);
         addItemDecoration(new SimpleDividerItemDecoration(getContext()));
         addItemDecoration(stickyHeaderDecorator);
         setLayoutManager(layoutManager);
+
+        Resources r = getResources();
+        STICKY_HEADER_SCROLL_OFFSET = r.getDimensionPixelOffset(R.dimen.journey_list_floating_header_height);
     }
 
     public void notifyQueryChanged() {
@@ -155,6 +148,8 @@ public class JourneyListView
                 adapter.recalculateHeaders();
                 stickyHeaderDecorator.clearHeaderCache();
                 adapter.notifyDataSetChanged();
+                layoutManager.scrollToPositionWithOffset(1, STICKY_HEADER_SCROLL_OFFSET);
+
                 updateVisibility();
             }
         }, new Action1<Throwable>() {
