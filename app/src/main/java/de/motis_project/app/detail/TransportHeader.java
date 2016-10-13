@@ -61,11 +61,16 @@ public class TransportHeader implements DetailViewHolder {
 
         EventInfo arr = con.stops(prevSection.to).arrival();
         EventInfo dep = con.stops(section.from).departure();
+        EventInfo walkArr = con.stops(section.from).arrival();
         long arrTime = arr.time();
         long depTime = dep.time();
+        long walkArrTime = walkArr.time();
         String arrTrackName = arr.track();
-        String durationStr = TimeUtil.formatDuration((depTime - arrTime) / 60);
+
         boolean isWalk = prevSection.to != section.from;
+
+        long duration = ((isWalk ? walkArrTime : depTime) - arrTime) / 60;
+        String durationStr = TimeUtil.formatDuration(duration);
 
         if (arrTrackName == null || arrTrackName.isEmpty()) {
             interchangeInfo.setText(String.format(isWalk ? walk : interchange, durationStr));
