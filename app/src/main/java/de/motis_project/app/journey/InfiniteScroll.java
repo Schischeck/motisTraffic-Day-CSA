@@ -4,6 +4,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 public class InfiniteScroll extends RecyclerView.OnScrollListener {
+
     public interface Loader {
         void loadBefore();
 
@@ -11,19 +12,23 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     }
 
     private final LinearLayoutManager layoutManager;
+    private final JourneySummaryAdapter adapter;
     private final Loader loader;
 
     private boolean loadingBefore = false;
     private boolean loadingAfter = false;
 
-    InfiniteScroll(Loader loader, LinearLayoutManager layoutManager) {
+    InfiniteScroll(Loader loader, LinearLayoutManager layoutManager, JourneySummaryAdapter adapter) {
         this.loader = loader;
         this.layoutManager = layoutManager;
+        this.adapter = adapter;
     }
 
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        onScrolled();
+        if (dy != 0) {
+            onScrolled();
+        }
     }
 
     public void onScrolled() {
@@ -31,10 +36,11 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     }
 
     private void onScrolled(int first) {
+        System.out.println("InfiniteScroll.onScrolled");
         synchronized (layoutManager) {
             if (!loadingAfter) {
                 int last = layoutManager.findLastVisibleItemPosition();
-                if (last != RecyclerView.NO_POSITION && last == layoutManager.getItemCount() - 1) {
+                if (last != RecyclerView.NO_POSITION && adapter.getItemViewType(last) == JourneySummaryAdapter.VIEW_TYPE_LOADING_SPINNER) {
                     loadingAfter = true;
                     loader.loadAfter();
                     return;
@@ -51,23 +57,23 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     }
 
     public void notifyLoadBeforeFinished(int firstVisible) {
-        onScrolled(firstVisible);
         loadingBefore = false;
+        onScrolled(firstVisible);
     }
 
     public void notifyLoadBeforeFinished() {
-        onScrolled();
         loadingBefore = false;
+        onScrolled();
     }
 
     public void notifyLoadAfterFinished(int firstVisible) {
-        onScrolled(firstVisible);
         loadingAfter = false;
+        onScrolled(firstVisible);
     }
 
     public void notifyLoadAfterFinished() {
-        onScrolled();
         loadingAfter = false;
+        onScrolled();
     }
 
     public void notifyLoadFinished() {

@@ -64,10 +64,10 @@ public class JourneySummaryAdapter
         }
     }
 
-    private static final int VIEW_TYPE_LOADING_SPINNER = 0;
-    private static final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
-    private static final int VIEW_TYPE_ERROR_BEFORE = 2;
-    private static final int VIEW_TYPE_ERROR_AFTER = 3;
+    public static final int VIEW_TYPE_LOADING_SPINNER = 0;
+    public static final int VIEW_TYPE_JOURNEY_PREVIEW = 1;
+    public static final int VIEW_TYPE_ERROR_BEFORE = 2;
+    public static final int VIEW_TYPE_ERROR_AFTER = 3;
 
     final static int ERROR_TYPE_NO_ERROR = 0;
     final static int ERROR_TYPE_MOTIS_ERROR = 1;

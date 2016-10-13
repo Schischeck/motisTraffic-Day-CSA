@@ -83,8 +83,8 @@ public class JourneyListView
     private final SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
     private final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-    private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager);
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
+    private final InfiniteScroll infiniteScroll = new InfiniteScroll(this, layoutManager, adapter);
     private final StickyHeaderDecoration stickyHeaderDecorator = new StickyHeaderDecoration(adapter);
 
     public JourneyListView(Context context) {
@@ -132,7 +132,7 @@ public class JourneyListView
             @Override
             public void call(RoutingResponse res) {
                 initialRequestPending = false;
-                infiniteScroll.notifyLoadFinished();
+
                 logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
 
                 if (res.connectionsLength() == 0) {
@@ -149,7 +149,7 @@ public class JourneyListView
                 stickyHeaderDecorator.clearHeaderCache();
                 adapter.notifyDataSetChanged();
                 layoutManager.scrollToPositionWithOffset(1, STICKY_HEADER_SCROLL_OFFSET);
-
+                infiniteScroll.notifyLoadFinished();
                 updateVisibility();
             }
         }, new Action1<Throwable>() {
