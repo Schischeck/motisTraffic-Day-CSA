@@ -55,9 +55,10 @@
                 android:textStyle="bold" />
 
             <FrameLayout
-                android:layout_width="50dp"
+                android:layout_width="40dp"
                 android:layout_height="25dp"
-                android:layout_gravity="center_vertical">
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="10dp">
 
                 <View
                     android:id="@+id/detail_final_arrival_delay_placeholder"
@@ -67,7 +68,7 @@
                     android:layout_marginLeft="4dp"
                     android:layout_marginRight="4dp"
                     android:background="@color/grey_200"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/detail_final_arrival_delay"
@@ -78,7 +79,7 @@
                     android:maxLines="1"
                     android:textColor="@color/colorAccent"
                     android:textStyle="bold"
-                    android:visibility="gone"/>
+                    android:visibility="gone" />
             </FrameLayout>
 
 
@@ -91,6 +92,7 @@
                 android:freezesText="true"
                 android:gravity="center_vertical"
                 android:maxLines="2"
+                android:paddingLeft="9dp"
                 android:textColor="@color/abc_primary_text_material_light"
                 android:textStyle="bold" />
 
