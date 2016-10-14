@@ -5,9 +5,18 @@ import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Widgets.Map as Map
+import Widgets.Connections as Connections
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Html.App as App
+import Date
+import Date.Extra.Create exposing (dateFromFields)
+
+
+remoteAddress : String
+remoteAddress =
+    "http://localhost:8081"
 
 
 main =
@@ -31,6 +40,7 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , map : Map.Model
+    , connections : Connections.Model
     }
 
 
@@ -46,13 +56,14 @@ init =
         ( mapModel, mapCmd ) =
             Map.init
     in
-        ( { fromLocation = Typeahead.init
-          , toLocation = Typeahead.init
+        ( { fromLocation = Typeahead.init remoteAddress "Luisenplatz, Darmstadt"
+          , toLocation = Typeahead.init remoteAddress "Frankfurt(Main)Hbf"
           , fromTransports = TagList.init
           , toTransports = TagList.init
           , date = dateModel
           , time = timeModel
           , map = mapModel
+          , connections = Connections.init remoteAddress
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -75,6 +86,8 @@ type Msg
     | DateUpdate Calendar.Msg
     | TimeUpdate TimeInput.Msg
     | MapUpdate Map.Msg
+    | ConnectionsUpdate Connections.Msg
+    | SearchConnections
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -115,6 +128,38 @@ update msg model =
 
         TimeUpdate msg' ->
             ( { model | time = TimeInput.update msg' model.time }, Cmd.none )
+
+        ConnectionsUpdate msg' ->
+            let
+                ( m, c ) =
+                    Connections.update msg' model.connections
+            in
+                ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
+
+        SearchConnections ->
+            let
+                ( m, c ) =
+                    Connections.update
+                        (Connections.Search
+                            { from = model.fromLocation.input
+                            , to = model.toLocation.input
+                            , date = (combineDateTime model.date.date model.time.date)
+                            }
+                        )
+                        model.connections
+            in
+                ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
+
+
+combineDateTime : Date.Date -> Date.Date -> Date.Date
+combineDateTime date time =
+    dateFromFields (Date.year date)
+        (Date.month date)
+        (Date.day date)
+        (Date.hour time)
+        (Date.minute time)
+        (Date.second time)
+        (Date.millisecond time)
 
 
 
@@ -163,5 +208,14 @@ view model =
                         [ App.map TimeUpdate (TimeInput.view model.time) ]
                     ]
                 ]
+            , div []
+                [ a
+                    [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
+                    , onClick SearchConnections
+                    ]
+                    [ text "Search" ]
+                ]
+            , div [ id "connections" ]
+                [ App.map ConnectionsUpdate (Connections.view model.connections) ]
             ]
         ]

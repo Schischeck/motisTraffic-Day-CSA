@@ -1,4 +1,4 @@
-#search, #header {
+#search, #header, #connections {
   padding: 16px;
 }
 
@@ -39,6 +39,7 @@
   transition: .4s ease all;
   width: 650px;
   height: 640px;
+  overflow-y: auto;
 }
 
 #map {
@@ -48,4 +49,17 @@
   width: 100%;
   height: 100%;
   z-index: 0;
+}
+
+.connection {
+  border: 1px solid #cccccc;
+  margin-top: 20px;
+}
+
+.connections .header div {
+  font-weight: bold;
+}
+
+.all-stops {
+  margin-top: 10px;
 }

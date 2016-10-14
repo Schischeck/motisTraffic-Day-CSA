@@ -14,9 +14,9 @@ import Http as Http
 import Task as Task
 
 
-remoteAddress : String
-remoteAddress =
-    "http://localhost:8081"
+-- remoteAddress : String
+-- remoteAddress =
+--     "http://localhost:8081"
 
 
 
@@ -29,6 +29,7 @@ type alias Model =
     , selected : Int
     , visible : Bool
     , inputWidget : Input.Model
+    , remoteAddress : String
     }
 
 
@@ -117,7 +118,7 @@ command msg model =
     case msg of
         InputChange str ->
             if String.length str > 2 then
-                requestSuggestions str
+                requestSuggestions model.remoteAddress str
             else
                 Cmd.none
 
@@ -210,13 +211,14 @@ view icon model =
 -- INIT
 
 
-init : Model
-init =
+init : String -> String -> Model
+init remoteAddress initialValue =
     { suggestions = []
-    , input = ""
+    , input = initialValue
     , selected = 0
     , visible = False
     , inputWidget = Input.init
+    , remoteAddress = remoteAddress
     }
 
 
@@ -243,8 +245,8 @@ generateRequest input =
         ]
 
 
-requestSuggestions : String -> Cmd Msg
-requestSuggestions input =
+requestSuggestions : String -> String -> Cmd Msg
+requestSuggestions remoteAddress input =
     Http.send Http.defaultSettings
         { verb = "POST"
         , headers = [ ( "Content-Type", "application/json" ) ]
