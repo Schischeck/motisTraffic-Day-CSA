@@ -18,12 +18,16 @@ public final class RoutingResponse extends Table {
   public motis.Connection connections(int j) { return connections(new motis.Connection(), j); }
   public motis.Connection connections(motis.Connection obj, int j) { int o = __offset(6); return o != 0 ? obj.__init(__indirect(__vector(o) + j * 4), bb) : null; }
   public int connectionsLength() { int o = __offset(6); return o != 0 ? __vector_len(o) : 0; }
+  public long intervalBegin() { int o = __offset(8); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
+  public long intervalEnd() { int o = __offset(10); return o != 0 ? bb.getLong(o + bb_pos) : 0; }
 
-  public static void startRoutingResponse(FlatBufferBuilder builder) { builder.startObject(2); }
+  public static void startRoutingResponse(FlatBufferBuilder builder) { builder.startObject(4); }
   public static void addStatistics(FlatBufferBuilder builder, int statisticsOffset) { builder.addStruct(0, statisticsOffset, 0); }
   public static void addConnections(FlatBufferBuilder builder, int connectionsOffset) { builder.addOffset(1, connectionsOffset, 0); }
   public static int createConnectionsVector(FlatBufferBuilder builder, int[] data) { builder.startVector(4, data.length, 4); for (int i = data.length - 1; i >= 0; i--) builder.addOffset(data[i]); return builder.endVector(); }
   public static void startConnectionsVector(FlatBufferBuilder builder, int numElems) { builder.startVector(4, numElems, 4); }
+  public static void addIntervalBegin(FlatBufferBuilder builder, long intervalBegin) { builder.addLong(2, intervalBegin, 0); }
+  public static void addIntervalEnd(FlatBufferBuilder builder, long intervalEnd) { builder.addLong(3, intervalEnd, 0); }
   public static int endRoutingResponse(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;

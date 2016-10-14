@@ -50,7 +50,8 @@ public class MessageBuilder {
             int ssid,
             String fromId, String toId,
             boolean isArrival,
-            Date intervalBegin, Date intervalEnd) {
+            Date intervalBegin, Date intervalEnd,
+            int min_connection_count) {
         FlatBufferBuilder b = new FlatBufferBuilder();
 
         String startStationId = isArrival ? toId : fromId;
@@ -64,6 +65,7 @@ public class MessageBuilder {
                         b, b.createString(targetStationId), b.createString("")),
                 SearchType.Default,
                 isArrival ? SearchDir.Backward : SearchDir.Forward,
+                min_connection_count,
                 RoutingRequest.createViaVector(b, new int[]{}),
                 RoutingRequest.createAdditionalEdgesVector(b, new int[]{}));
         b.finish(Message.createMessage(

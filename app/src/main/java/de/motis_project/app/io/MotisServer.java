@@ -125,11 +125,13 @@ public class MotisServer extends Server {
     public Observable<RoutingResponse> route(
             String fromId, String toId,
             boolean isArrival,
-            Date intervalBegin, Date intervalEnd) {
+            Date intervalBegin, Date intervalEnd,
+            int min_connection_count) {
         final int id = ++nextMsgId;
         return Observable.create(new ResponseSubscription<>(
                 MessageBuilder.route(id, fromId, toId, isArrival,
-                                     intervalBegin, intervalEnd),
+                                     intervalBegin, intervalEnd,
+                                     min_connection_count),
                 MsgContent.RoutingResponse,
                 new RoutingResponse(),
                 id));

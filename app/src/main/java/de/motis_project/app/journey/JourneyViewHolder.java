@@ -8,7 +8,6 @@ import android.view.View;
 import butterknife.ButterKnife;
 
 public class JourneyViewHolder extends RecyclerView.ViewHolder {
-
     final LayoutInflater inflater;
 
     public JourneyViewHolder(View view, @Nullable LayoutInflater inflater) {
@@ -16,5 +15,4 @@ public class JourneyViewHolder extends RecyclerView.ViewHolder {
         this.inflater = inflater;
         ButterKnife.bind(this, view);
     }
-
 }
