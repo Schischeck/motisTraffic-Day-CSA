@@ -25,7 +25,6 @@ import de.motis_project.app.io.error.MotisErrorException;
 import de.motis_project.app.lib.StickyHeaderDecoration;
 import de.motis_project.app.query.Query;
 import motis.Connection;
-import motis.lookup.LookupScheduleInfoResponse;
 import motis.routing.RoutingResponse;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -128,7 +127,7 @@ public class JourneyListView
         final Date searchIntervalEnd = new Date(intervalEnd.getTime());
         infiniteScroll.setLoading();
         updateVisibility();
-        route(searchIntervalBegin, searchIntervalEnd, new Action1<RoutingResponse>() {
+        route(searchIntervalBegin, searchIntervalEnd, 5, new Action1<RoutingResponse>() {
             @Override
             public void call(RoutingResponse res) {
                 initialRequestPending = false;
@@ -167,11 +166,13 @@ public class JourneyListView
     }
 
     public void route(Date searchIntervalBegin, Date searchIntervalEnd,
+                      int min_connection_count,
                       Action1 action, Action1<Throwable> errorAction) {
         Subscription sub = Status.get().getServer()
                 .route(query.getFromId(), query.getToId(),
-                        query.isArrival(),
-                        searchIntervalBegin, searchIntervalEnd)
+                       query.isArrival(),
+                       searchIntervalBegin, searchIntervalEnd,
+                       min_connection_count)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(action, errorAction);
@@ -191,36 +192,36 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime() - MINUTE_IN_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd,
-                new Action1<RoutingResponse>() {
-                    @Override
-                    public void call(RoutingResponse res) {
-                        logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
+        route(searchIntervalBegin, searchIntervalEnd, 0,
+              new Action1<RoutingResponse>() {
+                  @Override
+                  public void call(RoutingResponse res) {
+                      logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
 
-                        List<Connection> newData = new ArrayList<>(res.connectionsLength());
-                        for (int i = 0; i < res.connectionsLength(); ++i) {
-                            newData.add(res.connections(i));
-                        }
+                      List<Connection> newData = new ArrayList<>(res.connectionsLength());
+                      for (int i = 0; i < res.connectionsLength(); ++i) {
+                          newData.add(res.connections(i));
+                      }
 
-                        sortConnections(newData);
+                      sortConnections(newData);
 
-                        intervalBegin = searchIntervalBegin;
-                        data.addAll(0, newData);
+                      intervalBegin = searchIntervalBegin;
+                      data.addAll(0, newData);
 
-                        adapter.recalculateHeaders();
-                        stickyHeaderDecorator.clearHeaderCache();
-                        adapter.notifyItemRangeInserted(1, newData.size());
-                        if (layoutManager.findFirstVisibleItemPosition() == 0) {
-                            layoutManager.scrollToPosition(newData.size() + 1);
-                        }
+                      adapter.recalculateHeaders();
+                      stickyHeaderDecorator.clearHeaderCache();
+                      adapter.notifyItemRangeInserted(1, newData.size());
+                      if (layoutManager.findFirstVisibleItemPosition() == 0) {
+                          layoutManager.scrollToPosition(newData.size() + 1);
+                      }
 
-                        infiniteScroll.notifyLoadBeforeFinished(newData.size());
-                        if (res.connectionsLength() == 0) {
-                            infiniteScroll.onScrolled();
-                        }
-                        updateVisibility();
-                    }
-                }, new Action1<Throwable>() {
+                      infiniteScroll.notifyLoadBeforeFinished(newData.size());
+                      if (res.connectionsLength() == 0) {
+                          infiniteScroll.onScrolled();
+                      }
+                      updateVisibility();
+                  }
+              }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
                         infiniteScroll.notifyLoadBeforeFinished();
@@ -241,32 +242,32 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalEnd.getTime() + MINUTE_IN_MS);
         final Date searchIntervalEnd = new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd,
-                new Action1<RoutingResponse>() {
-                    @Override
-                    public void call(RoutingResponse res) {
-                        logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
+        route(searchIntervalBegin, searchIntervalEnd, 0,
+              new Action1<RoutingResponse>() {
+                  @Override
+                  public void call(RoutingResponse res) {
+                      logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
 
-                        List<Connection> newData = new ArrayList<>(res.connectionsLength());
-                        for (int i = 0; i < res.connectionsLength(); ++i) {
-                            newData.add(res.connections(i));
-                        }
+                      List<Connection> newData = new ArrayList<>(res.connectionsLength());
+                      for (int i = 0; i < res.connectionsLength(); ++i) {
+                          newData.add(res.connections(i));
+                      }
 
-                        sortConnections(newData);
+                      sortConnections(newData);
 
-                        intervalEnd = searchIntervalEnd;
-                        int oldDisplayItemCount = adapter.getItemCount();
-                        data.addAll(newData);
-                        adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
-                        adapter.recalculateHeaders();
-                        stickyHeaderDecorator.clearHeaderCache();
-                        infiniteScroll.notifyLoadAfterFinished();
-                        if (res.connectionsLength() == 0) {
-                            infiniteScroll.onScrolled();
-                        }
-                        updateVisibility();
-                    }
-                }, new Action1<Throwable>() {
+                      intervalEnd = searchIntervalEnd;
+                      int oldDisplayItemCount = adapter.getItemCount();
+                      data.addAll(newData);
+                      adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
+                      adapter.recalculateHeaders();
+                      stickyHeaderDecorator.clearHeaderCache();
+                      infiniteScroll.notifyLoadAfterFinished();
+                      if (res.connectionsLength() == 0) {
+                          infiniteScroll.onScrolled();
+                      }
+                      updateVisibility();
+                  }
+              }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable t) {
                         infiniteScroll.notifyLoadAfterFinished();
@@ -304,12 +305,12 @@ public class JourneyListView
     private void logResponse(RoutingResponse res, Date intervalBegin, Date intervalEnd,
                              String type) {
         System.out.println(new StringBuilder().append(type).append("  ").append("Routing from ")
-                .append(TimeUtil.formatDate(intervalBegin)).append(", ")
-                .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
-                .append(TimeUtil.formatDate(intervalEnd)).append(", ")
-                .append(TimeUtil.formatTime(intervalEnd))
+                                   .append(TimeUtil.formatDate(intervalBegin)).append(", ")
+                                   .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
+                                   .append(TimeUtil.formatDate(intervalEnd)).append(", ")
+                                   .append(TimeUtil.formatTime(intervalEnd))
 
-        );
+                          );
         for (int i = 0; i < res.connectionsLength(); i++) {
             Connection con = res.connections(i);
             Date depTime = new Date(con.stops(0).departure().scheduleTime() * 1000);
