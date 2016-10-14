@@ -28,7 +28,6 @@ struct pareto_dijkstra {
   };
 
   pareto_dijkstra(int node_count, station_node const* goal,
-                  std::vector<Label*> const& start_labels,
                   hash_map<node const*, std::vector<edge>> additional_edges,
                   LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
@@ -36,7 +35,9 @@ struct pareto_dijkstra {
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
-        max_labels_(label_store.size() / sizeof(Label) - 1000) {
+        max_labels_(label_store.size() / sizeof(Label) - 1000) {}
+
+  void add_start_labels(std::vector<Label*> const& start_labels) {
     for (auto const& l : start_labels) {
       if (!l->is_filtered()) {
         node_labels_[l->get_node()->id_].emplace_back(l);

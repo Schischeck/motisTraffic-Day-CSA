@@ -80,7 +80,9 @@ msg_ptr routing::route(msg_ptr const& msg) {
                                              res.journeys_,
                                              [&](journey const& j) {
                                                return to_connection(fbb, j);
-                                             })))
+                                             })),
+                            motis_to_unixtime(sched, res.interval_begin_),
+                            motis_to_unixtime(sched, res.interval_end_))
           .Union());
   return make_msg(fbb);
 }

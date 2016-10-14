@@ -107,6 +107,7 @@ table RoutingRequest {
   destination:InputStation;
   search_type:SearchType;
   search_dir:SearchDir;
+  min_connection_count:uint;
   via:[Via];
   additional_edges:[AdditionalEdgeWrapper];
 }

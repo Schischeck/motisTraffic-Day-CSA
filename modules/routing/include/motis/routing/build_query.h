@@ -18,8 +18,18 @@
 namespace motis {
 namespace routing {
 
+inline std::string to_string(time_t t) {
+  auto const s = std::string(std::ctime(&t));
+  return s.substr(0, s.size() - 1);
+}
+
 inline void verify_timestamp(schedule const& sched, time_t t) {
   if (t < external_schedule_begin(sched) || t >= external_schedule_end(sched)) {
+    auto const schedule_begin = external_schedule_begin(sched);
+    auto const schedule_end = external_schedule_end(sched);
+    LOG(logging::error) << "query timestamp not in schedule: " << to_string(t)
+                        << " [" << to_string(schedule_begin) << ", "
+                        << to_string(schedule_end) << "]";
     throw std::system_error(error::journey_date_not_in_schedule);
   }
 }
@@ -104,6 +114,7 @@ inline search_query build_query(schedule const& sched,
     case Start_NONE: assert(false);
   }
 
+  q.min_journey_count_ = req->min_connection_count();
   q.sched_ = &sched;
   q.to_ = get_station_node(sched, req->destination());
   q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
