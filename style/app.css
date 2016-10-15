@@ -67,8 +67,9 @@
 .train-box {
   color: white;
   padding: 4px;
-  margin: 2px;
+  margin: 4px;
   border-radius: 8px;
+  display: inline-block;
 }
 
 .train-class-0 {

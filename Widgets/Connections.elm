@@ -240,31 +240,16 @@ connectionsView : Model -> Html Msg
 connectionsView model =
     div [ class "connections" ]
         ([ div [ class "pure-g header" ]
-            [ div [ class "pure-u-8-24" ]
-                [ text "Station" ]
-            , div [ class "pure-u-5-24" ]
+            [ div [ class "pure-u-5-24" ]
                 [ text "Time" ]
             , div [ class "pure-u-4-24" ]
                 [ text "Duration" ]
-            , div [ class "pure-u-3-24" ]
-                [ text "Interch." ]
-            , div [ class "pure-u-4-24" ]
-                [ text "Categories" ]
+            , div [ class "pure-u-15-24" ]
+                [ text "Trains" ]
             ]
          ]
             ++ (List.map connectionView model.connections)
         )
-
-
-allStopsView : Connection -> Html Msg
-allStopsView c =
-    let
-        stopView : Stop -> Html Msg
-        stopView stop =
-            li [] [ text stop.station.name ]
-    in
-        div [ class "all-stops" ]
-            [ ul [] (List.map stopView c.stops) ]
 
 
 trainsView : Connection -> Html Msg
@@ -273,7 +258,7 @@ trainsView c =
         trains =
             groupTrains c
     in
-        div [ class "trains" ] <| List.map trainView trains
+        div [ class "train-list" ] <| List.map trainView trains
 
 
 trainIcon : Int -> String
@@ -309,41 +294,36 @@ trainIcon class =
 
 trainView : Train -> Html Msg
 trainView train =
-    span [ class "train" ] <|
-        (List.map
-            (\t ->
-                span [ class <| "train-box train-class-" ++ (toString t.class) ]
+    let
+        transport =
+            List.head train.transports
+    in
+        case transport of
+            Just t ->
+                div [ class <| "train-box train-class-" ++ (toString t.class) ]
                     [ Svg.svg
                         [ Svg.Attributes.class "train-icon" ]
                         [ Svg.use [ xlinkHref <| "icons.svg#" ++ (trainIcon t.class) ] [] ]
                     , text <| transportName t
                     ]
-            )
-            train.transports
-        )
+
+            Nothing ->
+                div [ class "train-box train-class-0" ] [ text "???" ]
 
 
 connectionView : Connection -> Html Msg
 connectionView c =
     div [ class "connection" ]
         [ div [ class "pure-g" ]
-            [ div [ class "pure-u-8-24" ]
-                [ div [] [ text (Maybe.map (.station >> .name) (List.head c.stops) |> Maybe.withDefault "?") ]
-                , div [] [ text (Maybe.map (.station >> .name) (last c.stops) |> Maybe.withDefault "?") ]
-                ]
-            , div [ class "pure-u-5-24" ]
+            [ div [ class "pure-u-5-24" ]
                 [ div [] [ text (Maybe.map formatTime (departureTime c) |> Maybe.withDefault "?") ]
                 , div [] [ text (Maybe.map formatTime (arrivalTime c) |> Maybe.withDefault "?") ]
                 ]
             , div [ class "pure-u-4-24" ]
                 [ div [] [ text (Maybe.map durationText (duration c) |> Maybe.withDefault "?") ] ]
-            , div [ class "pure-u-3-24" ]
-                [ div [] [ text <| toString <| interchanges c ] ]
-            , div [ class "pure-u-4-24" ]
-                [ div [] [ text <| String.join ", " (transportCategories c |> Set.toList) ] ]
+            , div [ class "pure-u-15-24" ]
+                [ trainsView c ]
             ]
-        , trainsView c
-        , allStopsView c
         ]
 
 
