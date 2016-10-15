@@ -135,6 +135,8 @@ public class JourneyListView
         updateVisibility();
         route(searchIntervalBegin, searchIntervalEnd, 5, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
+            intervalBegin = new Date(res.intervalBegin() * 1000);
+            intervalEnd = new Date(res.intervalEnd() * 1000);
 
             initialRequestPending = false;
 

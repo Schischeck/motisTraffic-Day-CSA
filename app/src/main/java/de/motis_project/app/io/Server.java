@@ -61,6 +61,7 @@ public class Server extends WebSocketAdapter {
         if (!isConnected()) {
             throw new DisconnectedException();
         }
+        ws.sendPing();
         ws.sendBinary(msg);
     }
 
@@ -74,19 +75,21 @@ public class Server extends WebSocketAdapter {
 
     private void scheduleConnect() {
         try {
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        connect();
-                    } catch (IOException e) {
-                        scheduleConnect();
-                    }
+            handler.postDelayed(() -> {
+                try {
+                    connect();
+                } catch (IOException e) {
+                    scheduleConnect();
                 }
             }, RECONNECT_INTERVAL);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onPongFrame(WebSocket websocket, WebSocketFrame frame) throws Exception {
+        System.out.println("Server.onPongFrame");
     }
 
     @Override

@@ -7,7 +7,6 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
 
     public interface Loader {
         void loadBefore();
-
         void loadAfter();
     }
 
