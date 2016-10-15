@@ -78,7 +78,7 @@ public class JourneyListView
     boolean serverError = false;
     boolean initialRequestPending = true;
 
-    private final SubscriptionList subscriptions = new SubscriptionList();
+    private SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
     private final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
@@ -112,6 +112,9 @@ public class JourneyListView
     }
 
     public void notifyQueryChanged() {
+        subscriptions.unsubscribe();
+        subscriptions = new SubscriptionList();
+
         serverError = false;
         initialRequestPending = true;
         data.clear();
@@ -286,9 +289,7 @@ public class JourneyListView
                                    .append(TimeUtil.formatDate(intervalBegin)).append(", ")
                                    .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
                                    .append(TimeUtil.formatDate(intervalEnd)).append(", ")
-                                   .append(TimeUtil.formatTime(intervalEnd))
-
-                          );
+                                   .append(TimeUtil.formatTime(intervalEnd)));
         for (int i = 0; i < res.connectionsLength(); i++) {
             Connection con = res.connections(i);
             Date depTime = new Date(con.stops(0).departure().scheduleTime() * 1000);
