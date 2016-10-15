@@ -127,41 +127,37 @@ public class JourneyListView
         final Date searchIntervalEnd = new Date(intervalEnd.getTime());
         infiniteScroll.setLoading();
         updateVisibility();
-        route(searchIntervalBegin, searchIntervalEnd, 5, new Action1<RoutingResponse>() {
-            @Override
-            public void call(RoutingResponse res) {
-                initialRequestPending = false;
+        route(searchIntervalBegin, searchIntervalEnd, 5, resObj -> {
+            RoutingResponse res = (RoutingResponse) resObj;
 
-                logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
+            initialRequestPending = false;
 
-                if (res.connectionsLength() == 0) {
-                    serverError = true;
-                    serverErrorView.setEmptyResponse();
-                }
+            logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
 
-                data.clear();
-                for (int i = 0; i < res.connectionsLength(); i++) {
-                    data.add(res.connections(i));
-                }
-                sortConnections(data);
-                adapter.recalculateHeaders();
-                stickyHeaderDecorator.clearHeaderCache();
-                adapter.notifyDataSetChanged();
-                layoutManager.scrollToPositionWithOffset(1, STICKY_HEADER_SCROLL_OFFSET);
-                infiniteScroll.notifyLoadFinished();
-                updateVisibility();
-            }
-        }, new Action1<Throwable>() {
-            @Override
-            public void call(Throwable t) {
-                initialRequestPending = false;
-                infiniteScroll.notifyLoadFinished();
+            if (res.connectionsLength() == 0) {
                 serverError = true;
-                if (t instanceof MotisErrorException) {
-                    serverErrorView.setErrorCode((MotisErrorException) t, adapter.scheduleRange);
-                }
-                updateVisibility();
+                serverErrorView.setEmptyResponse();
             }
+
+            data.clear();
+            for (int i = 0; i < res.connectionsLength(); i++) {
+                data.add(res.connections(i));
+            }
+            sortConnections(data);
+            adapter.recalculateHeaders();
+            stickyHeaderDecorator.clearHeaderCache();
+            adapter.notifyDataSetChanged();
+            layoutManager.scrollToPositionWithOffset(1, STICKY_HEADER_SCROLL_OFFSET);
+            infiniteScroll.notifyLoadFinished();
+            updateVisibility();
+        }, t -> {
+            initialRequestPending = false;
+            infiniteScroll.notifyLoadFinished();
+            serverError = true;
+            if (t instanceof MotisErrorException) {
+                serverErrorView.setErrorCode((MotisErrorException) t, adapter.scheduleRange);
+            }
+            updateVisibility();
         });
     }
 
@@ -192,45 +188,40 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime() - MINUTE_IN_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd, 0,
-              new Action1<RoutingResponse>() {
-                  @Override
-                  public void call(RoutingResponse res) {
-                      logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
+        route(searchIntervalBegin, searchIntervalEnd, 0, resObj -> {
+            RoutingResponse res = (RoutingResponse) resObj;
 
-                      List<Connection> newData = new ArrayList<>(res.connectionsLength());
-                      for (int i = 0; i < res.connectionsLength(); ++i) {
-                          newData.add(res.connections(i));
-                      }
+            logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
 
-                      sortConnections(newData);
+            List<Connection> newData = new ArrayList<>(res.connectionsLength());
+            for (int i = 0; i < res.connectionsLength(); ++i) {
+                newData.add(res.connections(i));
+            }
 
-                      intervalBegin = searchIntervalBegin;
-                      data.addAll(0, newData);
+            sortConnections(newData);
 
-                      adapter.recalculateHeaders();
-                      stickyHeaderDecorator.clearHeaderCache();
-                      adapter.notifyItemRangeInserted(1, newData.size());
-                      if (layoutManager.findFirstVisibleItemPosition() == 0) {
-                          layoutManager.scrollToPosition(newData.size() + 1);
-                      }
+            intervalBegin = searchIntervalBegin;
+            data.addAll(0, newData);
 
-                      infiniteScroll.notifyLoadBeforeFinished(newData.size());
-                      if (res.connectionsLength() == 0) {
-                          infiniteScroll.onScrolled();
-                      }
-                      updateVisibility();
-                  }
-              }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable t) {
-                        infiniteScroll.notifyLoadBeforeFinished();
-                        if (t instanceof MotisErrorException) {
-                            adapter.setLoadBeforeError((MotisErrorException) t);
-                        }
-                        updateVisibility();
-                    }
-                });
+            adapter.recalculateHeaders();
+            stickyHeaderDecorator.clearHeaderCache();
+            adapter.notifyItemRangeInserted(1, newData.size());
+            if (layoutManager.findFirstVisibleItemPosition() == 0) {
+                layoutManager.scrollToPosition(newData.size() + 1);
+            }
+
+            infiniteScroll.notifyLoadBeforeFinished(newData.size());
+            if (res.connectionsLength() == 0) {
+                infiniteScroll.onScrolled();
+            }
+            updateVisibility();
+        }, t -> {
+            infiniteScroll.notifyLoadBeforeFinished();
+            if (t instanceof MotisErrorException) {
+                adapter.setLoadBeforeError((MotisErrorException) t);
+            }
+            updateVisibility();
+        });
     }
 
     @Override
@@ -242,41 +233,35 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalEnd.getTime() + MINUTE_IN_MS);
         final Date searchIntervalEnd = new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd, 0,
-              new Action1<RoutingResponse>() {
-                  @Override
-                  public void call(RoutingResponse res) {
-                      logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
+        route(searchIntervalBegin, searchIntervalEnd, 0, resObj -> {
+            RoutingResponse res = (RoutingResponse) resObj;
+            logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
 
-                      List<Connection> newData = new ArrayList<>(res.connectionsLength());
-                      for (int i = 0; i < res.connectionsLength(); ++i) {
-                          newData.add(res.connections(i));
-                      }
+            List<Connection> newData = new ArrayList<>(res.connectionsLength());
+            for (int i = 0; i < res.connectionsLength(); ++i) {
+                newData.add(res.connections(i));
+            }
 
-                      sortConnections(newData);
+            sortConnections(newData);
 
-                      intervalEnd = searchIntervalEnd;
-                      int oldDisplayItemCount = adapter.getItemCount();
-                      data.addAll(newData);
-                      adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
-                      adapter.recalculateHeaders();
-                      stickyHeaderDecorator.clearHeaderCache();
-                      infiniteScroll.notifyLoadAfterFinished();
-                      if (res.connectionsLength() == 0) {
-                          infiniteScroll.onScrolled();
-                      }
-                      updateVisibility();
-                  }
-              }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable t) {
-                        infiniteScroll.notifyLoadAfterFinished();
-                        if (t instanceof MotisErrorException) {
-                            adapter.setLoadAfterError((MotisErrorException) t);
-                        }
-                        updateVisibility();
-                    }
-                });
+            intervalEnd = searchIntervalEnd;
+            int oldDisplayItemCount = adapter.getItemCount();
+            data.addAll(newData);
+            adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
+            adapter.recalculateHeaders();
+            stickyHeaderDecorator.clearHeaderCache();
+            infiniteScroll.notifyLoadAfterFinished();
+            if (res.connectionsLength() == 0) {
+                infiniteScroll.onScrolled();
+            }
+            updateVisibility();
+        }, t -> {
+            infiniteScroll.notifyLoadAfterFinished();
+            if (t instanceof MotisErrorException) {
+                adapter.setLoadAfterError((MotisErrorException) t);
+            }
+            updateVisibility();
+        });
     }
 
     private void sortConnections(List<Connection> data) {
