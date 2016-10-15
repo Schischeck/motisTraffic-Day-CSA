@@ -63,3 +63,50 @@
 .all-stops {
   margin-top: 10px;
 }
+
+.train-box {
+  color: white;
+  padding: 4px;
+  margin: 2px;
+  border-radius: 8px;
+}
+
+.train-class-0 {
+  background-color: #9c27b0;
+}
+
+.train-class-1 {
+  background-color: #e91e63;
+}
+
+.train-class-2 {
+  background-color: #1a237e;
+}
+
+.train-class-3, .train-class-4 {
+  background-color: #f44336;
+}
+
+.train-class-5 {
+  background-color: #4caf50;
+}
+
+.train-class-6 {
+  background-color: #3f51b5;
+}
+
+.train-class-7, .train-class-8 {
+  background-color: #ff9800;
+}
+
+.train-class-9 {
+  background-color: #9e9e9e;
+}
+
+.train-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}

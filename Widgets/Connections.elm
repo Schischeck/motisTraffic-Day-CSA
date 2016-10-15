@@ -1,9 +1,11 @@
 module Widgets.Connections exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, div, ul, li, text)
+import Html exposing (Html, div, ul, li, text, span)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (lazy)
+import Svg
+import Svg.Attributes exposing (xlinkHref)
 import String
 import Set exposing (Set)
 import Json.Encode as Encode
@@ -24,6 +26,12 @@ type alias Model =
     { loading : Bool
     , remoteAddress : String
     , connections : List Connection
+    }
+
+
+type alias Train =
+    { stops : List Stop
+    , transports : List TransportInfo
     }
 
 
@@ -128,7 +136,76 @@ durationText delta =
 
 interchanges : Connection -> Int
 interchanges connection =
-    List.length <| List.filter .interchange connection.stops
+    Basics.max 0 ((List.length <| List.filter .enter connection.stops) - 1)
+
+
+transportsForRange : Connection -> Int -> Int -> List TransportInfo
+transportsForRange connection from to =
+    let
+        checkMove : Move -> Maybe TransportInfo
+        checkMove move =
+            case move of
+                Transport transport ->
+                    if transport.range.from < to && transport.range.to > from then
+                        Just transport
+                    else
+                        Nothing
+
+                Walk _ ->
+                    Nothing
+    in
+        List.filterMap checkMove connection.transports
+
+
+groupTrains : Connection -> List Train
+groupTrains connection =
+    let
+        indexedStops : List ( Int, Stop )
+        indexedStops =
+            List.indexedMap (,) connection.stops
+
+        add_stop : List Train -> Stop -> List Train
+        add_stop trains stop =
+            case List.head trains of
+                Just train ->
+                    { train | stops = stop :: train.stops }
+                        :: (List.tail trains |> Maybe.withDefault [])
+
+                Nothing ->
+                    -- should not happen
+                    Debug.log "groupTrains: add_stop empty list" []
+
+        finish_train : List Train -> Int -> Int -> List Train
+        finish_train trains start_idx end_idx =
+            case List.head trains of
+                Just train ->
+                    { train | transports = transportsForRange connection start_idx end_idx }
+                        :: (List.tail trains |> Maybe.withDefault [])
+
+                Nothing ->
+                    -- should not happen
+                    Debug.log "groupTrains: finish_train empty list" []
+
+        group : ( Int, Stop ) -> ( List Train, Bool, Int ) -> ( List Train, Bool, Int )
+        group ( idx, stop ) ( trains, in_train, end_idx ) =
+            let
+                ( trains', in_train', end_idx' ) =
+                    if stop.enter then
+                        ( finish_train (add_stop trains stop) idx end_idx, False, -1 )
+                    else
+                        ( trains, in_train, end_idx )
+            in
+                if stop.leave then
+                    ( add_stop ((Train [] []) :: trains') stop, True, idx )
+                else if in_train then
+                    ( add_stop trains' stop, in_train', end_idx' )
+                else
+                    ( trains', in_train', end_idx' )
+
+        ( trains, _, _ ) =
+            List.foldr group ( [], False, -1 ) indexedStops
+    in
+        trains
 
 
 transportCategories : Connection -> Set String
@@ -144,6 +221,19 @@ transportCategories connection =
                     Nothing
     in
         List.filterMap category connection.transports |> Set.fromList
+
+
+useLineId : Int -> Bool
+useLineId class =
+    class == 5 || class == 6
+
+
+transportName : TransportInfo -> String
+transportName transport =
+    if useLineId transport.class then
+        transport.line_id
+    else
+        transport.name
 
 
 connectionsView : Model -> Html Msg
@@ -177,6 +267,62 @@ allStopsView c =
             [ ul [] (List.map stopView c.stops) ]
 
 
+trainsView : Connection -> Html Msg
+trainsView c =
+    let
+        trains =
+            groupTrains c
+    in
+        div [ class "trains" ] <| List.map trainView trains
+
+
+trainIcon : Int -> String
+trainIcon class =
+    case class of
+        0 ->
+            "train"
+
+        1 ->
+            "train"
+
+        2 ->
+            "train"
+
+        3 ->
+            "train"
+
+        4 ->
+            "train"
+
+        5 ->
+            "sbahn"
+
+        6 ->
+            "ubahn"
+
+        7 ->
+            "tram"
+
+        _ ->
+            "bus"
+
+
+trainView : Train -> Html Msg
+trainView train =
+    span [ class "train" ] <|
+        (List.map
+            (\t ->
+                span [ class <| "train-box train-class-" ++ (toString t.class) ]
+                    [ Svg.svg
+                        [ Svg.Attributes.class "train-icon" ]
+                        [ Svg.use [ xlinkHref <| "icons.svg#" ++ (trainIcon t.class) ] [] ]
+                    , text <| transportName t
+                    ]
+            )
+            train.transports
+        )
+
+
 connectionView : Connection -> Html Msg
 connectionView c =
     div [ class "connection" ]
@@ -196,6 +342,7 @@ connectionView c =
             , div [ class "pure-u-4-24" ]
                 [ div [] [ text <| String.join ", " (transportCategories c |> Set.toList) ] ]
             ]
+        , trainsView c
         , allStopsView c
         ]
 

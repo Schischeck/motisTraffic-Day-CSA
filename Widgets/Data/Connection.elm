@@ -16,7 +16,8 @@ type alias Stop =
     { station : Station
     , arrival : EventInfo
     , departure : EventInfo
-    , interchange : Bool
+    , leave : Bool
+    , enter : Bool
     }
 
 
@@ -56,6 +57,7 @@ type Move
 type alias TransportInfo =
     { range : Range
     , category_name : String
+    , class : Int
     , train_nr : Maybe Int
     , line_id : String
     , name : String
@@ -104,7 +106,8 @@ decodeStop =
         |: ("station" := decodeStation)
         |: ("arrival" := decodeEventInfo)
         |: ("departure" := decodeEventInfo)
-        |: ("interchange" := Decode.bool |> withDefault False)
+        |: ("leave" := Decode.bool |> withDefault False)
+        |: ("enter" := Decode.bool |> withDefault False)
 
 
 decodeStation : Decode.Decoder Station
@@ -154,6 +157,7 @@ decodeTransportInfo =
     Decode.succeed TransportInfo
         |: ("range" := decodeRange)
         |: ("category_name" := Decode.string)
+        |: ("clasz" := Decode.int |> withDefault 0)
         |: ("train_nr" := Decode.int |> Decode.maybe)
         |: ("line_id" := Decode.string)
         |: ("name" := Decode.string)
