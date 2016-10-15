@@ -13,7 +13,6 @@ import android.view.View;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -262,13 +261,10 @@ public class JourneyListView
     }
 
     private void sortConnections(List<Connection> data) {
-        Collections.sort(data, new Comparator<Connection>() {
-            @Override
-            public int compare(Connection a, Connection b) {
-                long depA = a.stops(0).departure().scheduleTime();
-                long depB = b.stops(0).departure().scheduleTime();
-                return Long.compare(depA, depB);
-            }
+        Collections.sort(data, (a, b) -> {
+            long depA = a.stops(0).departure().scheduleTime();
+            long depB = b.stops(0).departure().scheduleTime();
+            return Long.compare(depA, depB);
         });
     }
 

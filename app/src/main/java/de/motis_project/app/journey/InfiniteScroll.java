@@ -66,11 +66,6 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
         onScrolled();
     }
 
-    public void notifyLoadAfterFinished(int firstVisible) {
-        loadingAfter = false;
-        onScrolled(firstVisible);
-    }
-
     public void notifyLoadAfterFinished() {
         loadingAfter = false;
         onScrolled();

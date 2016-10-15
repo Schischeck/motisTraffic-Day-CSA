@@ -22,9 +22,7 @@ import de.motis_project.app.io.error.MotisErrorException;
 import de.motis_project.app.lib.StickyHeaderAdapter;
 import motis.Connection;
 import motis.lookup.LookupScheduleInfoResponse;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class JourneySummaryAdapter
@@ -227,26 +225,6 @@ public class JourneySummaryAdapter
         notifyItemChanged(getItemCount() - 1);
     }
 
-    public void setLoadBeforeError(int msg) {
-        if (msg == 0) {
-            errorTypeBefore = ERROR_TYPE_NO_ERROR;
-            return;
-        }
-        errorTypeBefore = ERROR_TYPE_OTHER;
-        otherErrorMsgBefore = msg;
-        notifyItemChanged(0);
-    }
-
-    public void setLoadAfterError(int msg) {
-        if (msg == 0) {
-            errorTypeAfter = ERROR_TYPE_NO_ERROR;
-            return;
-        }
-        errorTypeAfter = ERROR_TYPE_OTHER;
-        otherErrorMsgAfter = msg;
-        notifyItemChanged(getItemCount() - 1);
-    }
-
     public int getErrorStateBefore() {
         return errorTypeBefore;
     }
@@ -257,23 +235,18 @@ public class JourneySummaryAdapter
 
 
     public void getServerScheduleRange() {
-        Subscription sub1 = Status.get().getServer()
+        // TODO(simon) save and cancel subscription? leak?
+        Status.get().getServer()
                 .scheduleInfo()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<LookupScheduleInfoResponse>() {
-                    @Override
-                    public void call(LookupScheduleInfoResponse res) {
-                        scheduleRange = res;
-                        System.out.println("SCHEDULE BEGIN: " + TimeUtil.formatDate(res.begin()));
-                        System.out.println("SCHEDULE END:   " + TimeUtil.formatDate(res.end()));
-                    }
-                }, new Action1<Throwable>() {
-                    @Override
-                    public void call(Throwable throwable) {
-                        throwable.printStackTrace();
-                        System.out.println("GET SERVER INFO FAILED");
-                    }
+                .subscribe(res -> {
+                    scheduleRange = res;
+                    System.out.println("SCHEDULE BEGIN: " + TimeUtil.formatDate(res.begin()));
+                    System.out.println("SCHEDULE END:   " + TimeUtil.formatDate(res.end()));
+                }, throwable -> {
+                    throwable.printStackTrace();
+                    System.out.println("GET SERVER INFO FAILED");
                 });
     }
 
