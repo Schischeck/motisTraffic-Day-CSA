@@ -36,7 +36,6 @@ public class InfiniteScroll extends RecyclerView.OnScrollListener {
     }
 
     private void onScrolled(int first) {
-        System.out.println("InfiniteScroll.onScrolled");
         synchronized (layoutManager) {
             if (!loadingAfter) {
                 int last = layoutManager.findLastVisibleItemPosition();

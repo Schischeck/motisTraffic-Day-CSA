@@ -289,9 +289,7 @@ public class JourneyListView
                                    .append(TimeUtil.formatDate(intervalBegin)).append(", ")
                                    .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
                                    .append(TimeUtil.formatDate(intervalEnd)).append(", ")
-                                   .append(TimeUtil.formatTime(intervalEnd))
-
-                          );
+                                   .append(TimeUtil.formatTime(intervalEnd)));
         for (int i = 0; i < res.connectionsLength(); i++) {
             Connection con = res.connections(i);
             Date depTime = new Date(con.stops(0).departure().scheduleTime() * 1000);
