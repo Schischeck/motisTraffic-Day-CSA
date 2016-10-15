@@ -171,9 +171,9 @@ public class JourneyListView
                       Action1 action, Action1<Throwable> errorAction) {
         Subscription sub = Status.get().getServer()
                 .route(query.getFromId(), query.getToId(),
-                       query.isArrival(),
-                       searchIntervalBegin, searchIntervalEnd,
-                       min_connection_count)
+                        query.isArrival(),
+                        searchIntervalBegin, searchIntervalEnd,
+                        min_connection_count)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(action, errorAction);
@@ -294,10 +294,10 @@ public class JourneyListView
     private void logResponse(RoutingResponse res, Date intervalBegin, Date intervalEnd,
                              String type) {
         System.out.println(new StringBuilder().append(type).append("  ").append("Routing from ")
-                                   .append(TimeUtil.formatDate(intervalBegin)).append(", ")
-                                   .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
-                                   .append(TimeUtil.formatDate(intervalEnd)).append(", ")
-                                   .append(TimeUtil.formatTime(intervalEnd)));
+                .append(TimeUtil.formatDate(intervalBegin)).append(", ")
+                .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
+                .append(TimeUtil.formatDate(intervalEnd)).append(", ")
+                .append(TimeUtil.formatTime(intervalEnd)));
         for (int i = 0; i < res.connectionsLength(); i++) {
             Connection con = res.connections(i);
             Date depTime = new Date(con.stops(0).departure().scheduleTime() * 1000);
