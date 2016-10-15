@@ -78,7 +78,7 @@ public class JourneyListView
     boolean serverError = false;
     boolean initialRequestPending = true;
 
-    private final SubscriptionList subscriptions = new SubscriptionList();
+    private SubscriptionList subscriptions = new SubscriptionList();
     private final List<Connection> data = new ArrayList<>();
     private final LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
     private final JourneySummaryAdapter adapter = new JourneySummaryAdapter(data);
@@ -112,6 +112,9 @@ public class JourneyListView
     }
 
     public void notifyQueryChanged() {
+        subscriptions.unsubscribe();
+        subscriptions = new SubscriptionList();
+
         serverError = false;
         initialRequestPending = true;
         data.clear();
