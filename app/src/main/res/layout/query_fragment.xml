@@ -1,10 +1,10 @@
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_gravity="left|top"
-    android:orientation="vertical">
+                                                 xmlns:app="http://schemas.android.com/apk/res-auto"
+                                                 xmlns:tools="http://schemas.android.com/tools"
+                                                 android:layout_width="match_parent"
+                                                 android:layout_height="match_parent"
+                                                 android:layout_gravity="left|top"
+                                                 android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="wrap_content"
@@ -36,12 +36,12 @@
                     android:singleLine="true"
                     android:textColor="@color/colorPrimaryDark"
                     android:textColorHint="@color/color_white_semitransparent"
-                    tools:ignore="Deprecated" />
+                    tools:ignore="Deprecated"/>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:background="#D0D0D0" />
+                    android:background="#D0D0D0"/>
 
                 <EditText
                     android:id="@+id/dest_input"
@@ -56,12 +56,12 @@
                     android:singleLine="true"
                     android:textColor="@color/colorPrimaryDark"
                     android:textColorHint="@color/color_white_semitransparent"
-                    tools:ignore="Deprecated" />
+                    tools:ignore="Deprecated"/>
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:background="#D0D0D0" />
+                    android:background="#D0D0D0"/>
             </LinearLayout>
 
             <android.support.design.widget.FloatingActionButton
@@ -72,7 +72,7 @@
                 android:layout_marginRight="24dp"
                 android:src="@drawable/ic_swap_vert_black_24dp"
                 android:tint="@android:color/white"
-                app:fabSize="mini" />
+                app:fabSize="mini"/>
 
         </android.support.design.widget.CoordinatorLayout>
 
@@ -103,7 +103,7 @@
                     android:layout_gravity="center"
                     android:scaleType="fitXY"
                     android:src="@drawable/ic_date_range_black_24dp"
-                    android:tint="@color/colorPrimaryDark" />
+                    android:tint="@color/colorPrimaryDark"/>
 
                 <TextView
                     android:id="@+id/date_text"
@@ -113,7 +113,7 @@
                     android:freezesText="true"
                     android:gravity="center_vertical"
                     android:paddingLeft="15dp"
-                    android:textColor="@color/colorPrimaryDark" />
+                    android:textColor="@color/colorPrimaryDark"/>
 
             </LinearLayout>
 
@@ -132,7 +132,7 @@
                     android:layout_gravity="center"
                     android:scaleType="fitXY"
                     android:src="@drawable/ic_query_build_black_24"
-                    android:tint="@color/colorPrimaryDark" />
+                    android:tint="@color/colorPrimaryDark"/>
 
                 <TextView
                     android:id="@+id/time_text"
@@ -142,62 +142,66 @@
                     android:freezesText="true"
                     android:gravity="center_vertical"
                     android:paddingLeft="15dp"
-                    android:textColor="@color/colorPrimaryDark" />
+                    android:textColor="@color/colorPrimaryDark"/>
 
             </LinearLayout>
         </LinearLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.NestedScrollView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center"
+        android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center">
+        <com.pnikosis.materialishprogress.ProgressWheel xmlns:wheel="http://schemas.android.com/apk/res-auto"
+                                                        android:id="@+id/connection_list_request_pending"
+                                                        android:layout_width="match_parent"
+                                                        android:layout_height="80dp"
+                                                        android:layout_gravity="center"
+                                                        wheel:matProg_barColor="@color/colorAccent"
+                                                        wheel:matProg_fillRadius="false"
+                                                        wheel:matProg_progressIndeterminate="true"/>
 
-            <com.pnikosis.materialishprogress.ProgressWheel xmlns:wheel="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/connection_list_request_pending"
+        <LinearLayout
+            android:id="@+id/connection_list_query_incomplete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
-                android:layout_gravity="center"
-                wheel:matProg_barColor="@color/colorAccent"
-                wheel:matProg_fillRadius="false"
-                wheel:matProg_progressIndeterminate="true" />
+                android:src="@drawable/ic_place_black_24dp"
+                android:tint="@color/colorPrimaryDark"/>
 
-            <LinearLayout
-                android:id="@+id/connection_list_query_incomplete"
+            <TextView
+                style="@style/TextAppearance.AppCompat.Large"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:paddingLeft="@dimen/activity_horizontal_margin"
-                    android:paddingRight="@dimen/activity_horizontal_margin"
-                    android:text="@string/query_not_valid" />
-            </LinearLayout>
-
-            <de.motis_project.app.journey.JourneyListView
-                android:id="@+id/connection_list"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <de.motis_project.app.journey.ServerErrorView
-                android:id="@+id/connection_list_server_error"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
                 android:gravity="center"
-                android:text="@string/server_error" />
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:text="@string/query_not_valid"
+                android:textColor="@color/colorPrimaryDark"/>
+        </LinearLayout>
 
-        </FrameLayout>
-    </android.support.v4.widget.NestedScrollView>
+        <de.motis_project.app.journey.JourneyListView
+            android:id="@+id/connection_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <de.motis_project.app.journey.ServerErrorView
+            android:id="@+id/connection_list_server_error"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="@string/server_error"
+            android:layout_gravity="center"
+            android:gravity="center"/>
+
+    </FrameLayout>
+
+
 </android.support.design.widget.CoordinatorLayout>
