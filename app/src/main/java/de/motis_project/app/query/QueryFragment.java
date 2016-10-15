@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -66,6 +67,9 @@ public class QueryFragment extends Fragment
     @BindView(R.id.connection_list_server_error)
     ServerErrorView serverErrorView;
 
+    @BindView(R.id.query_appbar_layout)
+    AppBarLayout appbarlayout;
+
     public QueryFragment() {
     }
 
@@ -81,6 +85,7 @@ public class QueryFragment extends Fragment
         journeyListView.setRequestPendingView(requestPendingView);
         journeyListView.setQueryIncompleteView(queryIncompleteView);
         journeyListView.setServerErrorView(serverErrorView);
+        journeyListView.setAppBarLayout(appbarlayout);
 
         Date d = query.getTime();
         updateTimeDisplay(query.isArrival(), d);

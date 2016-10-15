@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.support.design.widget.AppBarLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -74,6 +75,7 @@ public class JourneyListView
     private View requestPendingView;
     private View queryIncompleteView;
     private ServerErrorView serverErrorView;
+    private AppBarLayout appBarLayout;
 
     boolean serverError = false;
     boolean initialRequestPending = true;
@@ -112,6 +114,8 @@ public class JourneyListView
     }
 
     public void notifyQueryChanged() {
+        appBarLayout.setExpanded(true, true);
+
         subscriptions.unsubscribe();
         subscriptions = new SubscriptionList();
 
@@ -281,6 +285,10 @@ public class JourneyListView
 
     public void setServerErrorView(ServerErrorView v) {
         this.serverErrorView = v;
+    }
+
+    public void setAppBarLayout(AppBarLayout appBarLayout) {
+        this.appBarLayout = appBarLayout;
     }
 
     private void logResponse(RoutingResponse res, Date intervalBegin, Date intervalEnd,
