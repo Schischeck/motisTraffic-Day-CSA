@@ -1,11 +1,7 @@
 package de.motis_project.app.journey;
 
 import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -14,7 +10,6 @@ import java.util.List;
 
 import butterknife.BindColor;
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
@@ -23,6 +18,12 @@ import motis.EventInfo;
 import motis.TimestampReason;
 
 public class JourneySummaryViewHolder extends JourneyViewHolder {
+    enum ViewMode {
+        LONG,
+        SHORT,
+        OFF
+    }
+
     @BindView(R.id.dep_sched_time)
     TextView depSchedTime;
 
@@ -47,13 +48,12 @@ public class JourneySummaryViewHolder extends JourneyViewHolder {
     @BindColor(R.color.ontime)
     int colorGreen;
 
-
     public JourneySummaryViewHolder(ViewGroup parent, LayoutInflater inflater) {
         super(inflater.inflate(R.layout.journey_list_item, parent, false), inflater);
     }
 
-    void setConnection(Connection con) {
 
+    void setConnection(Connection con) {
         EventInfo dep = con.stops(0).departure();
         EventInfo arr = con.stops(con.stopsLength() - 1).arrival();
 
@@ -78,17 +78,18 @@ public class JourneySummaryViewHolder extends JourneyViewHolder {
     }
 
     void addTransportViews(List<JourneyUtil.DisplayTransport> transports) {
+        ViewMode viewMode = getViewMode(transports);
         for (int i = 0; i < transports.size(); i++) {
             JourneyUtil.DisplayTransport t = transports.get(i);
             TextView view = (TextView) inflater.inflate(R.layout.journey_item_transport_train,
-                    this.transports, false);
+                                                        this.transports, false);
 
             Context context = inflater.getContext();
             JourneyUtil.tintBackground(context, view, t.clasz);
             JourneyUtil.setIcon(context, view, t.clasz);
 
-            if (transports.size() < 6) {
-                view.setText(transports.size() > 3 ? t.shortName : t.longName);
+            if (viewMode != ViewMode.OFF) {
+                view.setText(viewMode == ViewMode.SHORT ? t.shortName : t.longName);
             }
             this.transports.addView(view);
 
@@ -99,5 +100,23 @@ public class JourneySummaryViewHolder extends JourneyViewHolder {
                         false));
             }
         }
+    }
+
+    static private ViewMode getViewMode(List<JourneyUtil.DisplayTransport> transports) {
+        if (getTextLengthSum(transports, ViewMode.LONG) <= 21) {
+            return ViewMode.LONG;
+        } else if (getTextLengthSum(transports, ViewMode.SHORT) <= 21) {
+            return ViewMode.SHORT;
+        } else {
+            return ViewMode.OFF;
+        }
+    }
+
+    static private int getTextLengthSum(List<JourneyUtil.DisplayTransport> transports, ViewMode mode) {
+        StringBuffer buf = new StringBuffer();
+        for (JourneyUtil.DisplayTransport t : transports) {
+            buf.append(mode == ViewMode.LONG ? t.longName : t.shortName);
+        }
+        return buf.toString().length();
     }
 }
