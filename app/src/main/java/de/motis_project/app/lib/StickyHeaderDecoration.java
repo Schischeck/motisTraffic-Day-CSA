@@ -17,21 +17,25 @@
 // Source: https://github.com/edubarr/header-decor
 // 2016-08-07: modified to not draw a margin
 // 2016-10-15: removed cache, consider layout margin of items for header placement
+// 2016-10-16: use layout manager to get adapter positions
 
 package de.motis_project.app.lib;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.LongSparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 
 public class StickyHeaderDecoration extends RecyclerView.ItemDecoration {
 
-    private StickyHeaderAdapter mAdapter;
+    private final StickyHeaderAdapter adapter;
+    private final LongSparseArray<RecyclerView.ViewHolder> headerCache = new LongSparseArray<>();
 
     public StickyHeaderDecoration(StickyHeaderAdapter adapter) {
-        mAdapter = adapter;
+        this.adapter = adapter;
     }
 
     @Override
@@ -48,86 +52,102 @@ public class StickyHeaderDecoration extends RecyclerView.ItemDecoration {
         outRect.set(0, headerHeight, 0, 0);
     }
 
+    public void clearCache() {
+        headerCache.clear();
+    }
+
     private boolean hasHeader(int position) {
         if (position == 0) {
             return true;
         }
 
         int previous = position - 1;
-        return mAdapter.getHeaderId(position) != mAdapter.getHeaderId(previous);
+        return adapter.getHeaderId(position) != adapter.getHeaderId(previous);
     }
 
     private RecyclerView.ViewHolder getHeader(RecyclerView parent, int position) {
-        final RecyclerView.ViewHolder holder = mAdapter.onCreateHeaderViewHolder(parent);
-        final View header = holder.itemView;
+        final long key = adapter.getHeaderId(position);
 
-        mAdapter.onBindHeaderViewHolder(holder, position);
+        RecyclerView.ViewHolder cachedHeader = headerCache.get(key, null);
+        if (cachedHeader != null) {
+            return cachedHeader;
+        } else {
+            final RecyclerView.ViewHolder holder = adapter.onCreateHeaderViewHolder(parent);
+            final View header = holder.itemView;
 
-        int widthSpec = View.MeasureSpec.makeMeasureSpec(
-                parent.getWidth(), View.MeasureSpec.EXACTLY);
-        int heightSpec = View.MeasureSpec.makeMeasureSpec(
-                parent.getHeight(), View.MeasureSpec.UNSPECIFIED);
+            adapter.onBindHeaderViewHolder(holder, position);
 
-        int childWidth = ViewGroup.getChildMeasureSpec(
-                widthSpec, 0, header.getLayoutParams().width);
-        int childHeight = ViewGroup.getChildMeasureSpec(
-                heightSpec, 0, header.getLayoutParams().height);
+            int widthSpec = View.MeasureSpec.makeMeasureSpec(
+                    parent.getWidth(), View.MeasureSpec.EXACTLY);
+            int heightSpec = View.MeasureSpec.makeMeasureSpec(
+                    parent.getHeight(), View.MeasureSpec.UNSPECIFIED);
 
-        header.measure(childWidth, childHeight);
-        header.layout(0, 0, header.getMeasuredWidth(), header.getMeasuredHeight());
+            int childWidth = ViewGroup.getChildMeasureSpec(
+                    widthSpec, 0, header.getLayoutParams().width);
+            int childHeight = ViewGroup.getChildMeasureSpec(
+                    heightSpec, 0, header.getLayoutParams().height);
 
-        return holder;
-    }
+            header.measure(childWidth, childHeight);
+            header.layout(0, 0, header.getMeasuredWidth(), header.getMeasuredHeight());
 
-    @Override
-    public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
-        final int count = parent.getChildCount();
+            headerCache.put(key, holder);
 
-        for (int layoutPos = 0; layoutPos < count; layoutPos++) {
-            final View child = parent.getLayoutManager().getChildAt(layoutPos);
-            final int adapterPos = parent.getChildAdapterPosition(child);
-            if (adapterPos != RecyclerView.NO_POSITION && (layoutPos == 0 || hasHeader(adapterPos))) {
-                View header = getHeader(parent, adapterPos).itemView;
-                c.save();
-                c.translate(0, getHeaderTop(parent, child, header, adapterPos, layoutPos));
-                header.draw(c);
-                c.restore();
-            }
+            return holder;
         }
     }
 
-    private int getHeaderTop(
-            RecyclerView parent, View child, View header, int adapterPos, int layoutPos) {
+    int getHeaderYPos(RecyclerView recyclerView, int i) {
+        RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(i);
+        if (holder == null) {
+            return -1;
+        }
+
+        View child = holder.itemView;
+        View header = getHeader(recyclerView, i).itemView;
+
         RecyclerView.LayoutParams params =
                 (RecyclerView.LayoutParams) child.getLayoutParams();
         int headerOffset = params.topMargin + header.getHeight();
-        int top = ((int) child.getY()) - headerOffset;
 
-        if (layoutPos == 0) {
-            final int count = parent.getChildCount();
-            final long currentId = mAdapter.getHeaderId(adapterPos);
+        return ((int) child.getY()) - headerOffset;
+    }
 
-            for (int i = 1; i < count; i++) {
-                View childHere = parent.getLayoutManager().getChildAt(i);
-                int adapterPosHere = parent.getChildAdapterPosition(childHere);
-                if (adapterPosHere != RecyclerView.NO_POSITION) {
-                    long nextId = mAdapter.getHeaderId(adapterPosHere);
-                    if (nextId != currentId) {
-                        final View next = childHere;
-                        final int offset = ((int) next.getY()) -
-                                (headerOffset + getHeader(parent, adapterPosHere).itemView.getHeight());
-                        if (offset < 0) {
-                            return offset;
-                        } else {
-                            break;
-                        }
+    @Override
+    public void onDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.State state) {
+        final LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+        final int from = layoutManager.findFirstVisibleItemPosition();
+        final int to = layoutManager.findLastVisibleItemPosition();
+
+        if (from == RecyclerView.NO_POSITION || to == RecyclerView.NO_POSITION) {
+            return;
+        }
+
+        for (int i = from; i <= to; ++i) {
+            if (!hasHeader(i) && i != from) {
+                continue;
+            }
+
+            int top = Math.max(0, getHeaderYPos(recyclerView, i));
+            if (i == from) {
+                int headerHeight = getHeader(recyclerView, i).itemView.getHeight();
+                for (int j = from + 1; j <= to; ++j) {
+                    if (!hasHeader(j)) {
+                        continue;
                     }
+
+                    int yPos = getHeaderYPos(recyclerView, j);
+                    yPos -= headerHeight;
+                    if (yPos < 0) {
+                        top = yPos;
+                    }
+                    break;
                 }
             }
 
-            top = Math.max(0, top);
+            c.save();
+            c.translate(0, top);
+            getHeader(recyclerView, i).itemView.draw(c);
+            c.restore();
         }
-
-        return top;
     }
 }

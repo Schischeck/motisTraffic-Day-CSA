@@ -125,6 +125,7 @@ public class JourneyListView
         adapter.setLoadAfterError(null);
         adapter.setLoadBeforeError(null);
         adapter.recalculateHeaders();
+        stickyHeaderDecorator.clearCache();
         adapter.notifyDataSetChanged();
 
         intervalBegin = query.getTime();
@@ -153,6 +154,7 @@ public class JourneyListView
             }
             sortConnections(data);
             adapter.recalculateHeaders();
+            stickyHeaderDecorator.clearCache();
             adapter.notifyDataSetChanged();
             layoutManager.scrollToPositionWithOffset(1, STICKY_HEADER_SCROLL_OFFSET);
             infiniteScroll.notifyLoadFinished();
@@ -211,6 +213,7 @@ public class JourneyListView
             data.addAll(0, newData);
 
             adapter.recalculateHeaders();
+            stickyHeaderDecorator.clearCache();
             adapter.notifyItemRangeInserted(1, newData.size());
             if (layoutManager.findFirstVisibleItemPosition() == 0) {
                 layoutManager.scrollToPosition(newData.size() + 1);
@@ -255,6 +258,7 @@ public class JourneyListView
             data.addAll(newData);
             adapter.notifyItemRangeInserted(oldDisplayItemCount - 1, newData.size());
             adapter.recalculateHeaders();
+            stickyHeaderDecorator.clearCache();
             infiniteScroll.notifyLoadAfterFinished();
             if (res.connectionsLength() == 0) {
                 infiniteScroll.onScrolled();
