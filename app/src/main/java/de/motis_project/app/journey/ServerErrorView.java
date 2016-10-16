@@ -21,6 +21,10 @@ public class ServerErrorView extends TextView {
     @BindString(R.string.schedule_range)
     String scheduleRangeTemplate;
 
+    @BindString(R.string.routing_error)
+    String routingErrorMessage;
+
+
     public ServerErrorView(Context context) {
         super(context);
         ButterKnife.bind(this);
@@ -33,7 +37,7 @@ public class ServerErrorView extends TextView {
 
     public void setErrorCode(MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
         setText(JourneyErrorViewHolder
-                .buildMessage(mee, default_message, scheduleInfo, scheduleRangeTemplate));
+                .buildMessage(mee, scheduleInfo, scheduleRangeTemplate, routingErrorMessage));
     }
 
     public void setEmptyResponse() {
