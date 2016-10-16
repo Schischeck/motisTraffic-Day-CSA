@@ -94,6 +94,8 @@ public class Server extends WebSocketAdapter {
 
     @Override
     public void onBinaryMessage(WebSocket ws, byte[] buf) throws Exception {
+        System.out.println("Server.onBinaryMessage");
+
         Message msg = MessageBuilder.decode(buf);
 
         if (msg.contentType() == MsgContent.MotisError) {
