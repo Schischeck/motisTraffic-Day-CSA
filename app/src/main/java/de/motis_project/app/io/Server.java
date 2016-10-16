@@ -114,6 +114,7 @@ public class Server extends WebSocketAdapter {
     public void onConnected(WebSocket websocket,
                             Map<String, List<String>> headers)
             throws Exception {
+        System.out.println("Server.onConnected");
         synchronized (listeners) {
             for (Listener l : listeners) {
                 l.onConnect();
@@ -126,6 +127,7 @@ public class Server extends WebSocketAdapter {
                                WebSocketFrame serverCloseFrame,
                                WebSocketFrame clientCloseFrame,
                                boolean closedByServer) throws Exception {
+        System.out.println("Server.onDisconnected");
         synchronized (listeners) {
             for (Listener l : listeners) {
                 l.onDisconnect();
