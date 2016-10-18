@@ -27,7 +27,7 @@ import Widgets.ConnectionDetails as ConnectionDetails
 type alias Model =
     { loading : Bool
     , remoteAddress : String
-    , connections : List Connection
+    , journeys : List Journey
     }
 
 
@@ -65,13 +65,7 @@ updateModel msg model =
         ReceiveResponse json ->
             { model
                 | loading = False
-                , connections =
-                    case connectionsFromJson json of
-                        Just c ->
-                            c
-
-                        Nothing ->
-                            []
+                , journeys = Maybe.withDefault [] (journeysFromJson json)
             }
 
 
@@ -101,19 +95,15 @@ connectionsView model =
                 [ text "Trains" ]
             ]
          ]
-            ++ (List.map connectionView model.connections)
+            ++ (List.map connectionView model.journeys)
         )
 
 
-trainsView : Connection -> Html Msg
-trainsView c =
-    let
-        trains =
-            groupTrains c
-    in
-        div [ class "train-list" ] <|
-            List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
-                List.map trainView trains
+trainsView : Journey -> Html Msg
+trainsView j =
+    div [ class "train-list" ] <|
+        List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
+            List.map trainView j.trains
 
 
 trainView : Train -> Html Msg
@@ -135,28 +125,28 @@ trainView train =
                 div [ class "train-box train-class-0" ] [ text "???" ]
 
 
-connectionView : Connection -> Html Msg
-connectionView c =
+connectionView : Journey -> Html Msg
+connectionView j =
     div [ class "connection" ]
         [ div [ class "pure-g" ]
             [ div [ class "pure-u-5-24" ]
                 [ div []
-                    [ text (Maybe.map formatTime (departureTime c) |> Maybe.withDefault "?")
+                    [ text (Maybe.map formatTime (departureTime j.connection) |> Maybe.withDefault "?")
                     , text " "
-                    , Maybe.map delay (departureEvent c) |> Maybe.withDefault (text "")
+                    , Maybe.map delay (departureEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 , div []
-                    [ text (Maybe.map formatTime (arrivalTime c) |> Maybe.withDefault "?")
+                    [ text (Maybe.map formatTime (arrivalTime j.connection) |> Maybe.withDefault "?")
                     , text " "
-                    , Maybe.map delay (arrivalEvent c) |> Maybe.withDefault (text "")
+                    , Maybe.map delay (arrivalEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 ]
             , div [ class "pure-u-4-24" ]
-                [ div [] [ text (Maybe.map durationText (duration c) |> Maybe.withDefault "?") ] ]
+                [ div [] [ text (Maybe.map durationText (duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-15-24" ]
-                [ trainsView c ]
+                [ trainsView j ]
             ]
-        , ConnectionDetails.view (groupTrains c)
+        , ConnectionDetails.view j.trains
         ]
 
 
@@ -164,7 +154,7 @@ view : Model -> Html Msg
 view model =
     if model.loading then
         text "Loading..."
-    else if List.isEmpty model.connections then
+    else if List.isEmpty model.journeys then
         text "No connections found."
     else
         lazy connectionsView model
@@ -180,7 +170,7 @@ init : String -> Model
 init remoteAddress =
     { loading = False
     , remoteAddress = remoteAddress
-    , connections = []
+    , journeys = []
     }
 
 
@@ -272,21 +262,32 @@ responseReader res =
             NoOp
 
 
-connectionsFromJson : String -> Maybe (List Connection)
-connectionsFromJson json =
+journeysFromJson : String -> Maybe (List Journey)
+journeysFromJson json =
     let
         response =
             Decode.decodeString decodeRoutingResponse json
 
+        toJourney : Connection -> Journey
+        toJourney connection =
+            { connection = connection
+            , trains = groupTrains connection
+            }
+
         _ =
             case response of
-                Ok _ ->
-                    Debug.log "connectionsFromJson" "OK"
-
                 Err e ->
-                    Debug.log "connectionsFromJson" e
+                    Debug.log "journeysFromJson" e
+
+                _ ->
+                    ""
     in
-        response |> Result.toMaybe
+        case response of
+            Ok connections ->
+                Just <| List.map toJourney connections
+
+            Err _ ->
+                Nothing
 
 
 (=>) : a -> b -> ( a, b )

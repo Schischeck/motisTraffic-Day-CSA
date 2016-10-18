@@ -11,9 +11,26 @@ import Svg.Attributes exposing (xlinkHref)
 import Widgets.Data.Connection exposing (..)
 
 
+type alias Journey =
+    { connection : Connection
+    , trains : List Train
+    }
+
+
 type alias Train =
     { stops : List Stop
     , transports : List TransportInfo
+    }
+
+
+type EventType
+    = Departure
+    | Arrival
+
+
+type alias InterchangeInfo =
+    { previousArrival : Maybe EventInfo
+    , walk : Bool
     }
 
 
@@ -262,17 +279,6 @@ delay event =
 
             Nothing ->
                 span [ class "delay" ] []
-
-
-type EventType
-    = Departure
-    | Arrival
-
-
-type alias InterchangeInfo =
-    { previousArrival : Maybe EventInfo
-    , walk : Bool
-    }
 
 
 trainsWithInterchangeInfo : List Train -> List ( Train, InterchangeInfo )
