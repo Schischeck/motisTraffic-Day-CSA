@@ -128,7 +128,7 @@ groupTrains connection =
             in
                 if stop.leave then
                     ( add_stop ((Train [] []) :: trains') stop, True, idx )
-                else if in_train then
+                else if in_train' then
                     ( add_stop trains' stop, in_train', end_idx' )
                 else
                     ( trains', in_train', end_idx' )
@@ -269,14 +269,13 @@ type EventType
     | Arrival
 
 
-type alias TrainWithInterchangeInfo =
-    { train : Train
-    , previousArrival : Maybe EventInfo
+type alias InterchangeInfo =
+    { previousArrival : Maybe EventInfo
     , walk : Bool
     }
 
 
-trainsWithInterchangeInfo : List Train -> List TrainWithInterchangeInfo
+trainsWithInterchangeInfo : List Train -> List ( Train, InterchangeInfo )
 trainsWithInterchangeInfo trains =
     let
         arrival : Train -> Maybe EventInfo
@@ -294,22 +293,24 @@ trainsWithInterchangeInfo trains =
             in
                 arrivalStation /= departureStation
 
-        foldTrains : Train -> List TrainWithInterchangeInfo -> List TrainWithInterchangeInfo
+        foldTrains : Train -> List ( Train, InterchangeInfo ) -> List ( Train, InterchangeInfo )
         foldTrains train list =
             case (last list) of
-                Just lastTrain ->
+                Just ( lastTrain, _ ) ->
                     list
-                        ++ [ { train = train
-                             , previousArrival = (arrival lastTrain.train)
-                             , walk = hasWalk lastTrain.train train
-                             }
+                        ++ [ ( train
+                             , { previousArrival = (arrival lastTrain)
+                               , walk = hasWalk lastTrain train
+                               }
+                             )
                            ]
 
                 Nothing ->
-                    [ { train = train
-                      , previousArrival = Nothing
-                      , walk = False
-                      }
+                    [ ( train
+                      , { previousArrival = Nothing
+                        , walk = False
+                        }
+                      )
                     ]
     in
         List.foldl foldTrains [] trains

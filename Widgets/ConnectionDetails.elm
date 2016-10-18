@@ -67,9 +67,9 @@ stopView eventType stop =
             ]
 
 
-trainTopLine : TrainWithInterchangeInfo -> String
-trainTopLine train =
-    case train.previousArrival of
+trainTopLine : ( Train, InterchangeInfo ) -> String
+trainTopLine ( train, ic ) =
+    case ic.previousArrival of
         Just pa ->
             let
                 prevArrivalTime : Maybe Date
@@ -78,24 +78,42 @@ trainTopLine train =
 
                 departureTime : Maybe Date
                 departureTime =
-                    (List.head train.train.stops) `Maybe.andThen` (.departure >> .schedule_time)
+                    (List.head train.stops) `Maybe.andThen` (.departure >> .schedule_time)
+
+                arrivalTime : Maybe Date
+                arrivalTime =
+                    (List.head train.stops) `Maybe.andThen` (.arrival >> .schedule_time)
 
                 d : Maybe DeltaRecord
                 d =
-                    Maybe.map2 Duration.diff departureTime prevArrivalTime
-            in
-                "Ankunft Gleis " ++ pa.track ++ ", " ++ (Maybe.map durationText d |> Maybe.withDefault "?") ++ " Umstieg"
+                    if ic.walk then
+                        Maybe.map2 Duration.diff arrivalTime prevArrivalTime
+                    else
+                        Maybe.map2 Duration.diff departureTime prevArrivalTime
 
-        -- TODO: Walk
+                dText =
+                    Maybe.map durationText d |> Maybe.withDefault "?"
+
+                icText =
+                    if ic.walk then
+                        dText ++ " Fußweg"
+                    else
+                        dText ++ " Umstieg"
+            in
+                if String.isEmpty pa.track then
+                    icText
+                else
+                    "Ankunft Gleis " ++ pa.track ++ ", " ++ icText
+
         Nothing ->
             ""
 
 
-trainDetail : TrainWithInterchangeInfo -> Html msg
-trainDetail train =
+trainDetail : ( Train, InterchangeInfo ) -> Html msg
+trainDetail ( train, ic ) =
     let
         transport =
-            List.head train.train.transports
+            List.head train.transports
 
         foldStops : Stop -> List (Html msg) -> List (Html msg)
         foldStops stop result =
@@ -107,7 +125,13 @@ trainDetail train =
                     (stopView Departure stop) :: result
 
         departureStop =
-            List.head train.train.stops
+            List.head train.stops
+
+        departureTrack =
+            (Maybe.map (.departure >> .track) departureStop |> Maybe.withDefault "")
+
+        topLine =
+            trainTopLine ( train, ic )
     in
         case transport of
             Just t ->
@@ -115,12 +139,18 @@ trainDetail train =
                     [ div [ class "left-border" ] []
                     , div [ class "top-border" ] []
                     , (trainBox t)
-                    , div [ class "train-top-line" ]
-                        [ span [] [ text (trainTopLine train) ] ]
-                    , div [ class "train-dep-track" ]
-                        [ text <| "Gleis " ++ (Maybe.map (.departure >> .track) departureStop |> Maybe.withDefault "?") ]
+                    , if String.isEmpty topLine then
+                        text ""
+                      else
+                        div [ class "train-top-line" ]
+                            [ span [] [ text topLine ] ]
+                    , if String.isEmpty departureTrack then
+                        text ""
+                      else
+                        div [ class "train-dep-track" ]
+                            [ text <| "Gleis " ++ departureTrack ]
                     ]
-                        ++ (List.foldr foldStops [] train.train.stops)
+                        ++ (List.foldr foldStops [] train.stops)
 
             Nothing ->
                 text ""
