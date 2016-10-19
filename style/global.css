@@ -13,7 +13,10 @@ html, button, input, select, textarea,
   font-family: 'Material Icons';
   font-style: normal;
   font-weight: 400;
-  src: local('Material Icons'), local('material-icons'), url(fonts/material-icons.woff) format('woff');
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url(fonts/MaterialIcons-Regular.woff2) format('woff2'),
+       url(fonts/MaterialIcons-Regular.woff) format('woff');
 }
 
 .icon {

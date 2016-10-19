@@ -262,19 +262,22 @@
   display: inline-block;
 }
 
-.train-detail .stop .station {
-
-}
-
 .connection-details {
   margin: 10px;
+}
+
+.connection-info {
+  background: #76909B;
+  color: #fff;
+  margin: -10px -10px 10px -10px;
+  padding: 10px;
 }
 
 .back {
   cursor: pointer;
   background: #ccc;
+  color: #000;
   font-size: 16px;
-  margin: 5px 0 10px 0;
   padding: 10px;
   border-radius: 8px;
   display: inline-block;
@@ -282,4 +285,18 @@
 
 .back i {
   vertical-align: middle;
+}
+
+.connection-info .summary {
+  margin-top: 5px;
+}
+
+.connection-info .duration i, .connection-info .interchanges i {
+  vertical-align: middle;
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+.connection-info .duration {
+  margin-right: 20px;
 }

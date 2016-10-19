@@ -79,13 +79,46 @@ view (Config { internalMsg, closeMsg }) state =
         trainsView =
             List.map3 (trainDetail internalMsg) trains indices state.expanded
     in
-        div [ class "connection-details" ] <|
-            (div [ onClick closeMsg, class "back" ]
-                [ i [ class "icon" ] [ text "navigate_before" ]
-                , text "Back to results"
+        div [ class "connection-details" ]
+            [ connectionInfoView closeMsg state.journey.connection
+            , div [] trainsView
+            ]
+
+
+connectionInfoView : msg -> Connection -> Html msg
+connectionInfoView closeMsg connection =
+    div [ class "connection-info" ]
+        [ div [ class "pure-g" ]
+            [ div [ class "pure-u-5-24 connection-times" ]
+                [ div [ onClick closeMsg, class "back" ]
+                    [ i [ class "icon" ] [ text "navigate_before" ]
+                    , text "Zurück"
+                    ]
                 ]
-            )
-                :: trainsView
+            , div [ class "pure-u-3-24 connection-times" ]
+                [ div [ class "connection-departure" ]
+                    [ text (Maybe.map formatTime (departureTime connection) |> Maybe.withDefault "?")
+                    ]
+                , div [ class "connection-arrival" ]
+                    [ text (Maybe.map formatTime (arrivalTime connection) |> Maybe.withDefault "?")
+                    ]
+                ]
+            , div [ class "pure-u-16-24" ]
+                [ div [] [ text (Maybe.map (.station >> .name) (List.head connection.stops) |> Maybe.withDefault "?") ]
+                , div [] [ text (Maybe.map (.station >> .name) (last connection.stops) |> Maybe.withDefault "?") ]
+                , div [ class "summary" ]
+                    [ span [ class "duration" ]
+                        [ i [ class "icon" ] [ text "schedule" ]
+                        , text (Maybe.map durationText (duration connection) |> Maybe.withDefault "?")
+                        ]
+                    , span [ class "interchanges" ]
+                        [ i [ class "icon" ] [ text "transfer_within_a_station" ]
+                        , text <| (toString (interchanges connection)) ++ " Umstiege"
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
 
 stopView : EventType -> Stop -> Html msg
