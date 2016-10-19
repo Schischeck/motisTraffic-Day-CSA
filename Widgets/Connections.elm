@@ -34,7 +34,7 @@ type alias Model =
 type Config msg
     = Config
         { internalMsg : Msg -> msg
-        , selectMsg : Journey -> msg
+        , selectMsg : Int -> msg
         }
 
 
@@ -102,7 +102,7 @@ connectionsView config model =
                 [ text "Trains" ]
             ]
          ]
-            ++ (List.map (connectionView config) model.journeys)
+            ++ (List.indexedMap (connectionView config) model.journeys)
         )
 
 
@@ -132,9 +132,9 @@ trainView train =
                 div [ class "train-box train-class-0" ] [ text "???" ]
 
 
-connectionView : Config msg -> Journey -> Html msg
-connectionView (Config { internalMsg, selectMsg }) j =
-    div [ class "connection", onClick (selectMsg j) ]
+connectionView : Config msg -> Int -> Journey -> Html msg
+connectionView (Config { internalMsg, selectMsg }) idx j =
+    div [ class "connection", onClick (selectMsg idx) ]
         [ div [ class "pure-g" ]
             [ div [ class "pure-u-5-24 connection-times" ]
                 [ div [ class "connection-departure" ]

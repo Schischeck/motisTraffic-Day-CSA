@@ -226,8 +226,28 @@
   margin-bottom: 1em;
 }
 
-.train-detail .stop:last-of-type {
+.train-detail .last-stop .stop {
   margin-bottom: 0;
+}
+
+.train-detail .intermediate-stops-toggle {
+  margin-bottom: 1em;
+  margin-left: 2em;
+  cursor: pointer;
+  color: #888;
+}
+
+.train-detail .intermediate-stops-toggle i {
+  vertical-align: middle;
+  width: 1.5em;
+}
+
+.train-detail .intermediate-stops.collapsed {
+  display: none;
+}
+
+.train-detail .intermediate-stops.expanded {
+  display: block;
 }
 
 .train-detail .stop .time {

@@ -1,4 +1,4 @@
-module Widgets.ConnectionDetails exposing (State, Config(..), view)
+module Widgets.ConnectionDetails exposing (State, Config(..), Msg, view, init, update)
 
 import Html exposing (Html, div, ul, li, text, span, i)
 import Html.Attributes exposing (..)
@@ -20,43 +20,72 @@ import Widgets.ConnectionUtil exposing (..)
 
 
 type alias State =
-    Journey
+    { journey : Journey
+    , expanded : List Bool
+    }
 
 
 type Config msg
     = Config
-        { internalMsg : State -> msg
+        { internalMsg : Msg -> msg
         , closeMsg : msg
         }
 
 
+init : Journey -> State
+init journey =
+    { journey = journey
+    , expanded = List.repeat (List.length journey.trains) False
+    }
 
-{--
+
 type Msg
-    = NoOp
+    = ToggleExpand Int
 
 
-init : List Train -> Model
-init trains =
-    { trains = trains }
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> State -> ( State, Cmd Msg )
 update msg model =
-    model ! []
---}
+    case msg of
+        ToggleExpand idx ->
+            { model | expanded = (toggle model.expanded idx) } ! []
+
+
+toggle : List Bool -> Int -> List Bool
+toggle list idx =
+    case list of
+        x :: xs ->
+            if idx == 0 then
+                (not x) :: xs
+            else
+                x :: (toggle xs (idx - 1))
+
+        [] ->
+            []
+
+
+
 -- VIEW
 
 
 view : Config msg -> State -> Html msg
-view (Config { internalMsg, closeMsg }) journey =
-    div [ class "connection-details" ] <|
-        (div [ onClick closeMsg, class "back" ]
-            [ i [ class "icon" ] [ text " navigate_before" ]
-            , text "Back to results"
-            ]
-        )
-            :: (List.map trainDetail (trainsWithInterchangeInfo journey.trains))
+view (Config { internalMsg, closeMsg }) state =
+    let
+        trains =
+            trainsWithInterchangeInfo state.journey.trains
+
+        indices =
+            [0..List.length trains - 1]
+
+        trainsView =
+            List.map3 (trainDetail internalMsg) trains indices state.expanded
+    in
+        div [ class "connection-details" ] <|
+            (div [ onClick closeMsg, class "back" ]
+                [ i [ class "icon" ] [ text "navigate_before" ]
+                , text "Back to results"
+                ]
+            )
+                :: trainsView
 
 
 stopView : EventType -> Stop -> Html msg
@@ -118,20 +147,11 @@ trainTopLine ( train, ic ) =
             ""
 
 
-trainDetail : ( Train, InterchangeInfo ) -> Html msg
-trainDetail ( train, ic ) =
+trainDetail : (Msg -> msg) -> ( Train, InterchangeInfo ) -> Int -> Bool -> Html msg
+trainDetail internalMsg ( train, ic ) idx expanded =
     let
         transport =
             List.head train.transports
-
-        foldStops : Stop -> List (Html msg) -> List (Html msg)
-        foldStops stop result =
-            case result of
-                [] ->
-                    [ stopView Arrival stop ]
-
-                _ ->
-                    (stopView Departure stop) :: result
 
         departureStop =
             List.head train.stops
@@ -139,8 +159,40 @@ trainDetail ( train, ic ) =
         departureTrack =
             (Maybe.map (.departure >> .track) departureStop |> Maybe.withDefault "")
 
+        arrivalStop =
+            last train.stops
+
+        intermediateStops =
+            train.stops |> List.drop 1 |> dropEnd 1
+
+        hasIntermediateStops =
+            not (List.isEmpty intermediateStops)
+
         topLine =
             trainTopLine ( train, ic )
+
+        duration =
+            Maybe.map2 Duration.diff
+                (arrivalStop `Maybe.andThen` (.arrival >> .schedule_time))
+                (departureStop `Maybe.andThen` (.departure >> .schedule_time))
+
+        durationStr =
+            Maybe.map durationText duration |> Maybe.withDefault "?"
+
+        expandIcon =
+            if hasIntermediateStops then
+                if expanded then
+                    "expand_less"
+                else
+                    "expand_more"
+            else
+                ""
+
+        intermediateText =
+            if hasIntermediateStops then
+                "Fahrt " ++ (toString (List.length intermediateStops)) ++ " Stationen"
+            else
+                "Fahrt ohne Zwischenhalt"
     in
         case transport of
             Just t ->
@@ -158,8 +210,23 @@ trainDetail ( train, ic ) =
                       else
                         div [ class "train-dep-track" ]
                             [ text <| "Gleis " ++ departureTrack ]
+                    , div [ class "first-stop" ]
+                        [ Maybe.map (stopView Departure) departureStop |> Maybe.withDefault (text "") ]
+                    , div [ class "intermediate-stops-toggle", onClick (internalMsg (ToggleExpand idx)) ]
+                        [ i [ class "icon" ] [ text expandIcon ]
+                        , text (intermediateText ++ " (" ++ durationStr ++ ")")
+                        ]
+                    , div
+                        [ classList
+                            [ "intermediate-stops" => True
+                            , "expanded" => expanded
+                            , "collapsed" => not expanded
+                            ]
+                        ]
+                        (List.map (stopView Departure) intermediateStops)
+                    , div [ class "last-stop" ]
+                        [ Maybe.map (stopView Arrival) arrivalStop |> Maybe.withDefault (text "") ]
                     ]
-                        ++ (List.foldr foldStops [] train.stops)
 
             Nothing ->
                 text ""

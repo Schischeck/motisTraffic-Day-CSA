@@ -14,6 +14,8 @@ import Html.Events exposing (..)
 import Html.App as App
 import Date
 import Date.Extra.Create exposing (dateFromFields)
+import String
+import Navigation
 
 
 remoteAddress : String
@@ -22,10 +24,11 @@ remoteAddress =
 
 
 main =
-    App.program
+    Navigation.program urlParser
         { init = init
         , view = view
         , update = update
+        , urlUpdate = urlUpdate
         , subscriptions = subscriptions
         }
 
@@ -47,8 +50,8 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Result String Route -> ( Model, Cmd Msg )
+init _ =
     let
         ( dateModel, dateCmd ) =
             Calendar.init
@@ -92,8 +95,8 @@ type Msg
     | MapUpdate Map.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
-    | SelectConnection Journey
-    | SetConnectionDetailsState ConnectionDetails.State
+    | SelectConnection Int
+    | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
 
 
@@ -157,14 +160,27 @@ update msg model =
             in
                 ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
 
-        SelectConnection journey ->
-            ( { model | selectedConnection = Just journey }, Cmd.none )
+        SelectConnection idx ->
+            selectConnection True model idx
 
-        SetConnectionDetailsState state ->
-            ( { model | selectedConnection = Just state }, Cmd.none )
+        ConnectionDetailsUpdate msg' ->
+            let
+                ( m, c ) =
+                    case model.selectedConnection of
+                        Just state ->
+                            let
+                                ( m', c' ) =
+                                    ConnectionDetails.update msg' state
+                            in
+                                ( Just m', c' )
+
+                        Nothing ->
+                            Nothing ! []
+            in
+                ( { model | selectedConnection = m }, Cmd.map ConnectionDetailsUpdate c )
 
         CloseConnectionDetails ->
-            ( { model | selectedConnection = Nothing }, Cmd.none )
+            closeSelectedConnection model
 
 
 combineDateTime : Date.Date -> Date.Date -> Date.Date
@@ -269,6 +285,91 @@ detailsView state =
 detailsConfig : ConnectionDetails.Config Msg
 detailsConfig =
     ConnectionDetails.Config
-        { internalMsg = SetConnectionDetailsState
+        { internalMsg = ConnectionDetailsUpdate
         , closeMsg = CloseConnectionDetails
         }
+
+
+(!!) : List a -> Int -> Maybe a
+(!!) list index =
+    if index < 0 then
+        Nothing
+    else
+        List.head <| List.drop index list
+
+
+type Route
+    = Connections
+    | ConnectionDetails Int
+
+
+toUrl : Route -> String
+toUrl route =
+    case route of
+        Connections ->
+            "#/"
+
+        ConnectionDetails idx ->
+            "#/" ++ toString idx
+
+
+fromUrl : String -> Result String Route
+fromUrl url =
+    let
+        path =
+            String.dropLeft 2 url
+
+        int =
+            String.toInt path
+    in
+        case int of
+            Ok idx ->
+                Ok (ConnectionDetails idx)
+
+            Err _ ->
+                Ok Connections
+
+
+urlParser : Navigation.Parser (Result String Route)
+urlParser =
+    Navigation.makeParser (fromUrl << .hash)
+
+
+urlUpdate : Result String Route -> Model -> ( Model, Cmd Msg )
+urlUpdate result model =
+    case result of
+        Ok route ->
+            case route of
+                Connections ->
+                    { model | selectedConnection = Nothing } ! []
+
+                ConnectionDetails idx ->
+                    selectConnection False model idx
+
+        Err _ ->
+            { model | selectedConnection = Nothing } ! [ Navigation.newUrl (toUrl Connections) ]
+
+
+selectConnection : Bool -> Model -> Int -> ( Model, Cmd Msg )
+selectConnection updateUrl model idx =
+    let
+        journey =
+            model.connections.journeys !! idx
+    in
+        case journey of
+            Just j ->
+                { model | selectedConnection = Maybe.map ConnectionDetails.init journey }
+                    ! (if updateUrl then
+                        [ Navigation.newUrl (toUrl (ConnectionDetails idx)) ]
+                       else
+                        []
+                      )
+
+            Nothing ->
+                closeSelectedConnection model
+
+
+closeSelectedConnection : Model -> ( Model, Cmd Msg )
+closeSelectedConnection model =
+    { model | selectedConnection = Nothing }
+        ! [ Navigation.newUrl (toUrl Connections) ]
