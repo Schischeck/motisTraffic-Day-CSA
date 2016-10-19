@@ -256,13 +256,13 @@ searchView model =
             , div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map TimeUpdate (TimeInput.view model.time) ]
             ]
-        ]
-    , div []
-        [ a
-            [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
-            , onClick SearchConnections
+        , div []
+            [ a
+                [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
+                , onClick SearchConnections
+                ]
+                [ text "Suchen" ]
             ]
-            [ text "Search" ]
         ]
     , div [ id "connections" ]
         [ Connections.view connectionConfig model.connections ]

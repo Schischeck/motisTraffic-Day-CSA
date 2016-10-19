@@ -54,14 +54,24 @@
   z-index: 0;
 }
 
+#connections {
+  margin-top: -20px;
+}
+
 .connection {
-  border: 1px solid #cccccc;
+  /*border: 1px solid #cccccc;*/
   margin-top: 20px;
   cursor: pointer;
 }
 
 .connections .header div {
   font-weight: bold;
+}
+
+.connections .connection-duration {
+  /*display: flex;
+  align-items: center;*/
+  padding-top: 0.5em;
 }
 
 .all-stops {
