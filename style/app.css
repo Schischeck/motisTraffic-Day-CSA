@@ -273,14 +273,15 @@
 }
 
 .connection-details {
-  margin: 10px;
+  margin: 10px 10px 0 10px;
 }
 
 .connection-info {
   background: #76909B;
   color: #fff;
-  margin: -10px -10px 10px -10px;
+  margin: -10px -10px 0 -10px;
   padding: 10px;
+  height: 80px;
 }
 
 .back {
@@ -309,4 +310,10 @@
 
 .connection-info .duration {
   margin-right: 20px;
+}
+
+.connection-details .connection-journey {
+    overflow-y: auto;
+    height: 520px;
+    padding-top: 10px;
 }
