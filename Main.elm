@@ -12,6 +12,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.App as App
+import Dom.Scroll as Scroll
+import Task
 import Date
 import Date.Extra.Create exposing (dateFromFields)
 import String
@@ -62,8 +64,9 @@ init _ =
         ( mapModel, mapCmd ) =
             Map.init
     in
-        ( { fromLocation = Typeahead.init remoteAddress "Luisenplatz, Darmstadt"
-          , toLocation = Typeahead.init remoteAddress "Frankfurt(Main)Hbf"
+        ( { fromLocation =
+                Typeahead.init remoteAddress "Luisenplatz, Darmstadt"
+          , toLocation = Typeahead.init remoteAddress "Hamburg Berliner Tor"
           , fromTransports = TagList.init
           , toTransports = TagList.init
           , date = dateModel
@@ -85,7 +88,8 @@ init _ =
 
 
 type Msg
-    = Reset
+    = NoOp
+    | Reset
     | FromLocationUpdate Typeahead.Msg
     | ToLocationUpdate Typeahead.Msg
     | FromTransportsUpdate TagList.Msg
@@ -103,6 +107,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         Reset ->
             ( model, Cmd.none )
 
@@ -161,7 +168,11 @@ update msg model =
                 ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
 
         SelectConnection idx ->
-            selectConnection True model idx
+            let
+                ( m, c ) =
+                    selectConnection True model idx
+            in
+                m ! [ c, Task.perform (\_ -> NoOp) (\_ -> NoOp) <| Scroll.toTop "overlay-content" ]
 
         ConnectionDetailsUpdate msg' ->
             let
@@ -229,7 +240,7 @@ view model =
                     [ h1 [ class "disable-select" ] [ text "Motis Project" ]
                     , i [ class "icon" ] [ text "\xE2BF" ]
                     ]
-                , div [ class "overlay-content" ]
+                , div [ id "overlay-content" ]
                     content
                 ]
             ]
