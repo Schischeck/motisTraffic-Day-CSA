@@ -6,6 +6,8 @@ import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Widgets.Map as Map
 import Widgets.Connections as Connections
+import Widgets.ConnectionDetails as ConnectionDetails
+import Widgets.ConnectionUtil exposing (Journey)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -41,6 +43,7 @@ type alias Model =
     , time : TimeInput.Model
     , map : Map.Model
     , connections : Connections.Model
+    , selectedConnection : Maybe ConnectionDetails.State
     }
 
 
@@ -64,6 +67,7 @@ init =
           , time = timeModel
           , map = mapModel
           , connections = Connections.init remoteAddress
+          , selectedConnection = Nothing
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -88,6 +92,9 @@ type Msg
     | MapUpdate Map.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
+    | SelectConnection Journey
+    | SetConnectionDetailsState ConnectionDetails.State
+    | CloseConnectionDetails
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -150,6 +157,15 @@ update msg model =
             in
                 ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
 
+        SelectConnection journey ->
+            ( { model | selectedConnection = Just journey }, Cmd.none )
+
+        SetConnectionDetailsState state ->
+            ( { model | selectedConnection = Just state }, Cmd.none )
+
+        CloseConnectionDetails ->
+            ( { model | selectedConnection = Nothing }, Cmd.none )
+
 
 combineDateTime : Date.Date -> Date.Date -> Date.Date
 combineDateTime date time =
@@ -181,41 +197,78 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "app" ]
-        [ App.map MapUpdate (Map.view model.map)
-        , div [ class "overlay" ]
-            [ div [ id "header" ]
-                [ h1 [ class "disable-select" ] [ text "Motis Project" ]
-                , i [ class "icon" ] [ text "\xE2BF" ]
+    let
+        content =
+            case model.selectedConnection of
+                Nothing ->
+                    searchView model
+
+                Just c ->
+                    detailsView c
+    in
+        div [ class "app" ] <|
+            [ App.map MapUpdate (Map.view model.map)
+            , div [ class "overlay" ] <|
+                [ div [ id "header" ]
+                    [ h1 [ class "disable-select" ] [ text "Motis Project" ]
+                    , i [ class "icon" ] [ text "\xE2BF" ]
+                    ]
+                , div [ class "overlay-content" ]
+                    content
                 ]
-            , div [ id "search" ]
-                [ div [ class "pure-g gutters" ]
-                    [ div [ class "pure-u-1 pure-u-sm-3-5" ]
-                        [ App.map FromLocationUpdate (Typeahead.view (Just "\xE8B4") model.fromLocation) ]
-                    , div [ class "pure-u-1 pure-u-sm-2-5" ]
-                        [ App.map FromTransportsUpdate (TagList.view model.fromTransports) ]
-                    ]
-                , div [ class "pure-g gutters" ]
-                    [ div [ class "pure-u-1 pure-u-sm-3-5" ]
-                        [ App.map ToLocationUpdate (Typeahead.view (Just "\xE8B4") model.toLocation) ]
-                    , div [ class "pure-u-1 pure-u-sm-2-5" ]
-                        [ App.map ToTransportsUpdate (TagList.view model.toTransports) ]
-                    ]
-                , div [ class "pure-g gutters" ]
-                    [ div [ class "pure-u-1 pure-u-sm-1-2" ]
-                        [ App.map DateUpdate (Calendar.view model.date) ]
-                    , div [ class "pure-u-1 pure-u-sm-1-2" ]
-                        [ App.map TimeUpdate (TimeInput.view model.time) ]
-                    ]
-                ]
-            , div []
-                [ a
-                    [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
-                    , onClick SearchConnections
-                    ]
-                    [ text "Search" ]
-                ]
-            , div [ id "connections" ]
-                [ App.map ConnectionsUpdate (Connections.view model.connections) ]
+            ]
+
+
+searchView : Model -> List (Html Msg)
+searchView model =
+    [ div [ id "search" ]
+        [ div [ class "pure-g gutters" ]
+            [ div [ class "pure-u-1 pure-u-sm-3-5" ]
+                [ App.map FromLocationUpdate (Typeahead.view (Just "\xE8B4") model.fromLocation) ]
+            , div [ class "pure-u-1 pure-u-sm-2-5" ]
+                [ App.map FromTransportsUpdate (TagList.view model.fromTransports) ]
+            ]
+        , div [ class "pure-g gutters" ]
+            [ div [ class "pure-u-1 pure-u-sm-3-5" ]
+                [ App.map ToLocationUpdate (Typeahead.view (Just "\xE8B4") model.toLocation) ]
+            , div [ class "pure-u-1 pure-u-sm-2-5" ]
+                [ App.map ToTransportsUpdate (TagList.view model.toTransports) ]
+            ]
+        , div [ class "pure-g gutters" ]
+            [ div [ class "pure-u-1 pure-u-sm-1-2" ]
+                [ App.map DateUpdate (Calendar.view model.date) ]
+            , div [ class "pure-u-1 pure-u-sm-1-2" ]
+                [ App.map TimeUpdate (TimeInput.view model.time) ]
             ]
         ]
+    , div []
+        [ a
+            [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
+            , onClick SearchConnections
+            ]
+            [ text "Search" ]
+        ]
+    , div [ id "connections" ]
+        [ Connections.view connectionConfig model.connections ]
+    ]
+
+
+connectionConfig : Connections.Config Msg
+connectionConfig =
+    Connections.Config
+        { internalMsg = ConnectionsUpdate
+        , selectMsg = SelectConnection
+        }
+
+
+detailsView : ConnectionDetails.State -> List (Html Msg)
+detailsView state =
+    [ ConnectionDetails.view detailsConfig state ]
+
+
+detailsConfig : ConnectionDetails.Config Msg
+detailsConfig =
+    ConnectionDetails.Config
+        { internalMsg = SetConnectionDetailsState
+        , closeMsg = CloseConnectionDetails
+        }

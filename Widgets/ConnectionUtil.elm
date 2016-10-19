@@ -320,3 +320,8 @@ trainsWithInterchangeInfo trains =
                     ]
     in
         List.foldl foldTrains [] trains
+
+
+(=>) : a -> b -> ( a, b )
+(=>) =
+    (,)

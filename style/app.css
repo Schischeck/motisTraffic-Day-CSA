@@ -38,9 +38,11 @@
   border-radius: 3px;
   transition: .4s ease all;
   width: 650px;
-  /*height: 640px;*/
-  max-height: 640px;
-  overflow-y: auto;
+}
+
+.overlay-content {
+    overflow-y: auto;
+    height: 600px;
 }
 
 #map {
@@ -55,6 +57,7 @@
 .connection {
   border: 1px solid #cccccc;
   margin-top: 20px;
+  cursor: pointer;
 }
 
 .connections .header div {
@@ -241,4 +244,22 @@
 
 .train-detail .stop .station {
 
+}
+
+.connection-details {
+  margin: 10px;
+}
+
+.back {
+  cursor: pointer;
+  background: #ccc;
+  font-size: 16px;
+  margin: 5px 0 10px 0;
+  padding: 10px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.back i {
+  vertical-align: middle;
 }

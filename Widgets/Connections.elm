@@ -1,4 +1,4 @@
-module Widgets.Connections exposing (Model, Msg(..), init, update, view)
+module Widgets.Connections exposing (Model, Config(..), Msg(..), init, update, view)
 
 import Html exposing (Html, div, ul, li, text, span, i)
 import Html.Attributes exposing (..)
@@ -29,6 +29,13 @@ type alias Model =
     , remoteAddress : String
     , journeys : List Journey
     }
+
+
+type Config msg
+    = Config
+        { internalMsg : Msg -> msg
+        , selectMsg : Journey -> msg
+        }
 
 
 
@@ -83,8 +90,8 @@ command msg model =
 -- VIEW
 
 
-connectionsView : Model -> Html Msg
-connectionsView model =
+connectionsView : Config msg -> Model -> Html msg
+connectionsView config model =
     div [ class "connections" ]
         ([ div [ class "pure-g header" ]
             [ div [ class "pure-u-5-24" ]
@@ -95,18 +102,18 @@ connectionsView model =
                 [ text "Trains" ]
             ]
          ]
-            ++ (List.map connectionView model.journeys)
+            ++ (List.map (connectionView config) model.journeys)
         )
 
 
-trainsView : Journey -> Html Msg
+trainsView : Journey -> Html msg
 trainsView j =
     div [ class "train-list" ] <|
         List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
             List.map trainView j.trains
 
 
-trainView : Train -> Html Msg
+trainView : Train -> Html msg
 trainView train =
     let
         transport =
@@ -125,39 +132,38 @@ trainView train =
                 div [ class "train-box train-class-0" ] [ text "???" ]
 
 
-connectionView : Journey -> Html Msg
-connectionView j =
-    div [ class "connection" ]
+connectionView : Config msg -> Journey -> Html msg
+connectionView (Config { internalMsg, selectMsg }) j =
+    div [ class "connection", onClick (selectMsg j) ]
         [ div [ class "pure-g" ]
-            [ div [ class "pure-u-5-24" ]
-                [ div []
+            [ div [ class "pure-u-5-24 connection-times" ]
+                [ div [ class "connection-departure" ]
                     [ text (Maybe.map formatTime (departureTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (departureEvent j.connection) |> Maybe.withDefault (text "")
                     ]
-                , div []
+                , div [ class "connection-arrival" ]
                     [ text (Maybe.map formatTime (arrivalTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (arrivalEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 ]
-            , div [ class "pure-u-4-24" ]
+            , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (duration j.connection) |> Maybe.withDefault "?") ] ]
-            , div [ class "pure-u-15-24" ]
+            , div [ class "pure-u-15-24 connection-trains" ]
                 [ trainsView j ]
             ]
-        , ConnectionDetails.view j.trains
         ]
 
 
-view : Model -> Html Msg
-view model =
+view : Config msg -> Model -> Html msg
+view config model =
     if model.loading then
         text "Loading..."
     else if List.isEmpty model.journeys then
         text "No connections found."
     else
-        lazy connectionsView model
+        lazy (connectionsView config) model
 
 
 
@@ -288,8 +294,3 @@ journeysFromJson json =
 
             Err _ ->
                 Nothing
-
-
-(=>) : a -> b -> ( a, b )
-(=>) =
-    (,)

@@ -1,7 +1,4 @@
--- module Widgets.Connections exposing (Model, Msg(..), init, update, view)
-
-
-module Widgets.ConnectionDetails exposing (view)
+module Widgets.ConnectionDetails exposing (State, Config(..), view)
 
 import Html exposing (Html, div, ul, li, text, span, i)
 import Html.Attributes exposing (..)
@@ -19,15 +16,22 @@ import Widgets.Data.Connection exposing (..)
 import Widgets.ConnectionUtil exposing (..)
 
 
-{--
 -- MODEL
 
 
-type alias Model =
-    { trains : List Train
-    }
+type alias State =
+    Journey
 
 
+type Config msg
+    = Config
+        { internalMsg : State -> msg
+        , closeMsg : msg
+        }
+
+
+
+{--
 type Msg
     = NoOp
 
@@ -44,10 +48,15 @@ update msg model =
 -- VIEW
 
 
-view : List Train -> Html msg
-view trains =
+view : Config msg -> State -> Html msg
+view (Config { internalMsg, closeMsg }) journey =
     div [ class "connection-details" ] <|
-        List.map trainDetail (trainsWithInterchangeInfo trains)
+        (div [ onClick closeMsg, class "back" ]
+            [ i [ class "icon" ] [ text " navigate_before" ]
+            , text "Back to results"
+            ]
+        )
+            :: (List.map trainDetail (trainsWithInterchangeInfo journey.trains))
 
 
 stopView : EventType -> Stop -> Html msg
