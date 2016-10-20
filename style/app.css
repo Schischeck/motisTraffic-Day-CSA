@@ -310,9 +310,12 @@
 
 .train-detail .intermediate-stops-toggle {
   margin: 2em 0 2em 2em;
-  cursor: pointer;
   font-weight: 300;
   color: #888;
+}
+
+.train-detail .intermediate-stops-toggle.clickable {
+  cursor: pointer;
 }
 
 .train-detail .intermediate-stops-toggle i {

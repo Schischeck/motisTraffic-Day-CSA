@@ -224,6 +224,12 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                 "Fahrt " ++ (toString (List.length intermediateStops)) ++ " Stationen"
             else
                 "Fahrt ohne Zwischenhalt"
+
+        intermediateToggleOnClick =
+            if hasIntermediateStops then
+                [ onClick (internalMsg (ToggleExpand idx)) ]
+            else
+                []
     in
         case transport of
             Just t ->
@@ -243,7 +249,14 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                             [ text <| "Gleis " ++ departureTrack ]
                     , div [ class "first-stop" ]
                         [ Maybe.map (stopView Departure) departureStop |> Maybe.withDefault (text "") ]
-                    , div [ class "intermediate-stops-toggle", onClick (internalMsg (ToggleExpand idx)) ]
+                    , div
+                        ([ classList
+                            [ "intermediate-stops-toggle" => True
+                            , "clickable" => hasIntermediateStops
+                            ]
+                         ]
+                            ++ intermediateToggleOnClick
+                        )
                         [ i [ class "icon" ] [ text expandIcon ]
                         , text (intermediateText ++ " (" ++ durationStr ++ ")")
                         ]
