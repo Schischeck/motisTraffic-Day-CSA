@@ -159,7 +159,7 @@ connectionView (Config { internalMsg, selectMsg }) idx j =
 view : Config msg -> Model -> Html msg
 view config model =
     if model.loading then
-        text "Loading..."
+        div [ class "loader" ] [ text "Loading..." ]
     else if List.isEmpty model.journeys then
         text "No connections found."
     else
