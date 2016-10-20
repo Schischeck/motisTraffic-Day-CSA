@@ -47,6 +47,7 @@ type Msg
     | Search Request
     | ReceiveResponse String
     | HttpError Http.RawError
+    | MotisError String
 
 
 type alias Request =
@@ -100,6 +101,12 @@ updateModel msg model =
                     | loading = False
                     , errorMessage = Just msg
                 }
+
+        MotisError msg ->
+            { model
+                | loading = False
+                , errorMessage = Just msg
+            }
 
 
 command : Msg -> Model -> Cmd Msg
@@ -294,7 +301,10 @@ responseReader : Http.Response -> Msg
 responseReader res =
     case res.value of
         Http.Text t ->
-            ReceiveResponse t
+            if res.status == 200 then
+                ReceiveResponse t
+            else
+                MotisError t
 
         _ ->
             NoOp
