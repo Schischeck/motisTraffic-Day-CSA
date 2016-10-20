@@ -15,7 +15,6 @@ import Http as Http
 import Task as Task
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
-import Debug
 import Widgets.Data.Connection exposing (..)
 import Widgets.ConnectionUtil exposing (..)
 import Widgets.ConnectionDetails as ConnectionDetails
@@ -28,6 +27,7 @@ type alias Model =
     { loading : Bool
     , remoteAddress : String
     , journeys : List Journey
+    , errorMessage : Maybe String
     }
 
 
@@ -46,6 +46,7 @@ type Msg
     = NoOp
     | Search Request
     | ReceiveResponse String
+    | HttpError Http.RawError
 
 
 type alias Request =
@@ -70,10 +71,35 @@ updateModel msg model =
             { model | loading = True }
 
         ReceiveResponse json ->
-            { model
-                | loading = False
-                , journeys = Maybe.withDefault [] (journeysFromJson json)
-            }
+            case journeysFromJson json of
+                Ok journeys ->
+                    { model
+                        | loading = False
+                        , errorMessage = Nothing
+                        , journeys = journeys
+                    }
+
+                Err msg ->
+                    { model
+                        | loading = False
+                        , errorMessage = Just msg
+                        , journeys = []
+                    }
+
+        HttpError err ->
+            let
+                msg =
+                    case err of
+                        Http.RawTimeout ->
+                            "Network timeout"
+
+                        Http.RawNetworkError ->
+                            "Network error"
+            in
+                { model
+                    | loading = False
+                    , errorMessage = Just msg
+                }
 
 
 command : Msg -> Model -> Cmd Msg
@@ -161,7 +187,12 @@ view config model =
     if model.loading then
         div [ class "loader" ] [ text "Loading..." ]
     else if List.isEmpty model.journeys then
-        text "No connections found."
+        case model.errorMessage of
+            Just err ->
+                div [ class "error" ] [ text err ]
+
+            Nothing ->
+                div [ class "no-results" ] [ text "Keine Verbindungen gefunden." ]
     else
         lazy (connectionsView config) model
 
@@ -177,6 +208,7 @@ init remoteAddress =
     { loading = False
     , remoteAddress = remoteAddress
     , journeys = []
+    , errorMessage = Nothing
     }
 
 
@@ -255,7 +287,7 @@ sendRequest remoteAddress request =
         , url = remoteAddress
         , body = generateRequest request |> Encode.encode 0 |> Http.string
         }
-        |> Task.perform (\_ -> NoOp) responseReader
+        |> Task.perform HttpError responseReader
 
 
 responseReader : Http.Response -> Msg
@@ -268,7 +300,7 @@ responseReader res =
             NoOp
 
 
-journeysFromJson : String -> Maybe (List Journey)
+journeysFromJson : String -> Result String (List Journey)
 journeysFromJson json =
     let
         response =
@@ -279,18 +311,10 @@ journeysFromJson json =
             { connection = connection
             , trains = groupTrains connection
             }
-
-        _ =
-            case response of
-                Err e ->
-                    Debug.log "journeysFromJson" e
-
-                _ ->
-                    ""
     in
         case response of
             Ok connections ->
-                Just <| List.map toJourney connections
+                Ok <| List.map toJourney connections
 
-            Err _ ->
-                Nothing
+            Err err ->
+                Err err
