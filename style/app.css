@@ -247,7 +247,8 @@
   margin-bottom: 1em;
 }
 
-.train-detail .intermediate-stops .stop::before {
+.train-detail .intermediate-stops .stop::before,
+.train-detail:last-of-type .last-stop .stop::before {
   content: "";
   position: absolute;
   left: 7px;
@@ -255,6 +256,18 @@
   width: 10px;
   height: 10px;
   border-radius: 5px;
+  z-index: 10;
+}
+
+.train-detail:last-of-type .last-stop .stop::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  margin-top: 10px;
+  width: 0px;
+  height: 2.5em;
+  border-left: 4px solid #fff;
+  z-index: 5;
 }
 
 .train-detail.train-class-0 .stop::before {
