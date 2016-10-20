@@ -171,8 +171,15 @@ update msg model =
             let
                 ( m, c ) =
                     selectConnection True model idx
+
+                noop =
+                    \_ -> NoOp
             in
-                m ! [ c, Task.perform (\_ -> NoOp) (\_ -> NoOp) <| Scroll.toTop "overlay-content" ]
+                m
+                    ! [ c
+                      , Task.perform noop noop <| Scroll.toTop "overlay-content"
+                      , Task.perform noop noop <| Scroll.toTop "connection-journey"
+                      ]
 
         ConnectionDetailsUpdate msg' ->
             let

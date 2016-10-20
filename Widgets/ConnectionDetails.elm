@@ -81,7 +81,7 @@ view (Config { internalMsg, closeMsg }) state =
     in
         div [ class "connection-details" ]
             [ connectionInfoView closeMsg state.journey.connection
-            , div [ class "connection-journey" ] trainsView
+            , div [ class "connection-journey", id "connection-journey" ] trainsView
             ]
 
 
