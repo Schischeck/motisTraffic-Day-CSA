@@ -134,7 +134,7 @@ connectionsView config model =
             , div [ class "pure-u-4-24" ]
                 [ text "Dauer" ]
             , div [ class "pure-u-15-24" ]
-                [ text "Züge" ]
+                [ text "Verkehrsmittel" ]
             ]
          ]
             ++ (List.indexedMap (connectionView config) model.journeys)
