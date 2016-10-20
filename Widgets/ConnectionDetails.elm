@@ -89,11 +89,9 @@ connectionInfoView : msg -> Connection -> Html msg
 connectionInfoView closeMsg connection =
     div [ class "connection-info" ]
         [ div [ class "pure-g" ]
-            [ div [ class "pure-u-5-24 connection-times" ]
+            [ div [ class "pure-u-3-24" ]
                 [ div [ onClick closeMsg, class "back" ]
-                    [ i [ class "icon" ] [ text "navigate_before" ]
-                    , text "Zurück"
-                    ]
+                    [ i [ class "icon" ] [ text "arrow_back" ] ]
                 ]
             , div [ class "pure-u-3-24 connection-times" ]
                 [ div [ class "connection-departure" ]
@@ -103,7 +101,7 @@ connectionInfoView closeMsg connection =
                     [ text (Maybe.map formatTime (arrivalTime connection) |> Maybe.withDefault "?")
                     ]
                 ]
-            , div [ class "pure-u-16-24" ]
+            , div [ class "pure-u-18-24" ]
                 [ div [] [ text (Maybe.map (.station >> .name) (List.head connection.stops) |> Maybe.withDefault "?") ]
                 , div [] [ text (Maybe.map (.station >> .name) (last connection.stops) |> Maybe.withDefault "?") ]
                 , div [ class "summary" ]

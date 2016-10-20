@@ -286,16 +286,22 @@
 
 .back {
   cursor: pointer;
-  background: #ccc;
-  color: #000;
-  font-size: 16px;
-  padding: 10px;
-  border-radius: 8px;
+  font-size: 24px;
+  padding: 5px 10px 10px 9px;
+  border: 1px solid #fff;
+  border-radius: 23px;
+  width: 44px;
+  height: 44px;
   display: inline-block;
 }
 
 .back i {
   vertical-align: middle;
+  cursor: pointer;
+}
+
+.back:hover {
+  background: #90A4AE;
 }
 
 .connection-info .summary {

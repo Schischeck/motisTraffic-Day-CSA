@@ -318,10 +318,10 @@ toUrl : Route -> String
 toUrl route =
     case route of
         Connections ->
-            "#/"
+            "#!"
 
         ConnectionDetails idx ->
-            "#/" ++ toString idx
+            "#!" ++ toString idx
 
 
 fromUrl : String -> Result String Route
