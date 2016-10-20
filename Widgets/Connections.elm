@@ -100,12 +100,14 @@ updateModel msg model =
                 { model
                     | loading = False
                     , errorMessage = Just msg
+                    , journeys = []
                 }
 
         MotisError msg ->
             { model
                 | loading = False
                 , errorMessage = Just msg
+                , journeys = []
             }
 
 
