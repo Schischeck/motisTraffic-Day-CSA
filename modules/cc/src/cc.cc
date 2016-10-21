@@ -1,5 +1,7 @@
 #include "motis/cc/cc.h"
 
+#include "motis/core/journey/message_to_journeys.h"
+
 #include "boost/program_options.hpp"
 
 namespace po = boost::program_options;
@@ -18,7 +20,14 @@ void cc::init(motis::module::registry& reg) {
                 std::bind(&cc::check_journey, this, p::_1));
 }
 
-msg_ptr cc::check_journey(msg_ptr const&) const { return nullptr; }
+msg_ptr cc::check_journey(msg_ptr const& msg) const {
+  auto c = motis_content(Connection, msg);
+
+  for (auto const& s : *c->stops()) {
+  }
+
+  return msg;
+}
 
 }  // namespace cc
 }  // namespace motis
