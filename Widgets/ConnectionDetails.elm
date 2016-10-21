@@ -178,6 +178,14 @@ trainTopLine ( train, ic ) =
             ""
 
 
+directionView : String -> Html msg
+directionView direction =
+    div [ class "direction" ]
+        [ i [ class "icon" ] [ text "arrow_forward" ]
+        , text direction
+        ]
+
+
 trainDetail : (Msg -> msg) -> ( Train, InterchangeInfo ) -> Int -> Bool -> Html msg
 trainDetail internalMsg ( train, ic ) idx expanded =
     let
@@ -230,6 +238,17 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                 [ onClick (internalMsg (ToggleExpand idx)) ]
             else
                 []
+
+        direction =
+            case Maybe.map .direction transport of
+                Just d ->
+                    if String.isEmpty d then
+                        Nothing
+                    else
+                        Just d
+
+                Nothing ->
+                    Nothing
     in
         case transport of
             Just t ->
@@ -249,6 +268,7 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                             [ text <| "Gleis " ++ departureTrack ]
                     , div [ class "first-stop" ]
                         [ Maybe.map (stopView Departure) departureStop |> Maybe.withDefault (text "") ]
+                    , Maybe.map directionView direction |> Maybe.withDefault (text "")
                     , div
                         ([ classList
                             [ "intermediate-stops-toggle" => True
