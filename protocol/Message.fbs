@@ -82,11 +82,13 @@ table MotisNoMessage {
 }
 
 union MsgContent {
+  motis.Connection,
   motis.MotisNoMessage,
   motis.MotisError,
   motis.MotisSuccess,
   motis.HTTPRequest,
   motis.HTTPResponse,
+  motis.TripId,
   motis.bikesharing.BikesharingRequest,
   motis.bikesharing.BikesharingResponse,
   motis.bikesharing.BikesharingGeoTerminalsRequest,

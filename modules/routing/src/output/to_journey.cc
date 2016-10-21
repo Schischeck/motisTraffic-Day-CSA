@@ -147,8 +147,8 @@ std::vector<journey::stop> generate_journey_stops(
   for (auto const& stop : stops) {
     auto const& station = *sched.stations_[stop.station_id_];
     journey_stops.push_back(
-        {stop.interchange_, station.name_, station.eva_nr_, station.width_,
-         station.length_,
+        {stop.leave_, stop.enter_, station.name_, station.eva_nr_,
+         station.width_, station.length_,
          stop.a_time_ != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
                                                    sched.schedule_begin_,

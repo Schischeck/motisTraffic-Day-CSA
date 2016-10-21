@@ -175,8 +175,8 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
                            get_node(current)->get_station()->id_, a_track,
                            d_track, a_time, d_time, a_sched_time, d_sched_time,
                            a_reason, d_reason,
-                           a_time != INVALID_TIME && d_time != INVALID_TIME &&
-                               last_con != nullptr);
+                           last_con != nullptr && a_time != INVALID_TIME,
+                           d_time != INVALID_TIME);
         break;
       }
 
@@ -210,12 +210,17 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
             // Departure schedule time:
             current.now_,
 
-            walk_arrival_di.get_reason(), walk_arrival_di.get_reason(),
+            // Arrival reason timestamp
+            walk_arrival_di.get_reason(),
 
-            last_con != nullptr &&
-                std::any_of(it, end(labels), [](Label const& l) {
-                  return l.edge_->type() == edge::ROUTE_EDGE;
-                }));
+            // Departure reason timestamp
+            walk_arrival_di.get_reason(),
+
+            // Leaving
+            last_con != nullptr,
+
+            // Entering
+            false);
 
         transports.emplace_back(stop_index,
                                 static_cast<unsigned int>(stop_index) + 1,
@@ -261,7 +266,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
                 succ.connection_->full_con_->d_track_,
                 current.connection_->a_time_, succ.connection_->d_time_,
                 a_di.get_schedule_time(), d_di.get_schedule_time(),
-                a_di.get_reason(), d_di.get_reason(), false);
+                a_di.get_reason(), d_di.get_reason(), false, false);
           }
         }
 
