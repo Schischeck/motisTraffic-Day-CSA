@@ -136,12 +136,11 @@ public class JourneyListView
         updateVisibility();
         route(searchIntervalBegin, searchIntervalEnd, 5, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
+            logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
+
             intervalBegin = new Date(res.intervalBegin() * 1000);
             intervalEnd = new Date(res.intervalEnd() * 1000);
-
             initialRequestPending = false;
-
-            logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
 
             if (res.connectionsLength() == 0) {
                 serverError = true;
@@ -199,7 +198,6 @@ public class JourneyListView
 
         route(searchIntervalBegin, searchIntervalEnd, 0, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
-
             logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
 
             List<Connection> newData = new ArrayList<>(res.connectionsLength());
