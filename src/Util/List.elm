@@ -3,10 +3,7 @@ module Util.List exposing (..)
 
 (!!) : List a -> Int -> Maybe a
 (!!) list index =
-    if index < 0 then
-        Nothing
-    else
-        List.head <| List.drop index list
+    List.drop index list |> List.head
 
 
 last : List a -> Maybe a

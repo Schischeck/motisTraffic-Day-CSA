@@ -7,9 +7,11 @@ import Widgets.Typeahead as Typeahead
 import Widgets.Map as Map
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
-import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
-import Util.Core exposing ((=>))
+import Data.ScheduleInfo.Types exposing (ScheduleInfo)
+import Data.ScheduleInfo.Request as ScheduleInfo
+import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Util.List exposing ((!!))
+import Util.Api as Api
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -246,14 +248,12 @@ combineDateTime date time =
 
 requestScheduleInfo : String -> Cmd Msg
 requestScheduleInfo remoteAddress =
-    Http.send Http.defaultSettings
-        { verb = "POST"
-        , headers = [ "Content-Type" => "application/json" ]
-        , url = remoteAddress
-        , body = ScheduleInfo.request |> Http.string
-        }
-        |> Http.fromJson ScheduleInfo.decodeScheduleInfoResponse
-        |> Task.perform ScheduleInfoError ScheduleInfoResponse
+    Api.sendJsonRequest
+        remoteAddress
+        decodeScheduleInfoResponse
+        ScheduleInfoError
+        ScheduleInfoResponse
+        ScheduleInfo.request
 
 
 

@@ -4,7 +4,7 @@ import Json.Encode as Encode
 import Util.Core exposing ((=>))
 
 
-request : String
+request : Encode.Value
 request =
     Encode.object
         [ "destination"
@@ -17,4 +17,3 @@ request =
             => Encode.object
                 []
         ]
-        |> Encode.encode 0

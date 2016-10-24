@@ -11,13 +11,8 @@ import Json.Decode as Decode
 import Widgets.Input as Input
 import Widgets.ViewUtil exposing (onStopAll)
 import Http as Http
-import Task as Task
-
-
--- remoteAddress : String
--- remoteAddress =
---     "http://localhost:8081"
-
+import Util.Core exposing ((=>))
+import Util.Api as Api
 
 
 -- MODEL
@@ -39,7 +34,7 @@ type alias Model =
 
 type Msg
     = NoOp
-    | ReceiveSuggestions String
+    | ReceiveSuggestions (List String)
     | InputChange String
     | EnterSelection
     | ClickElement Int
@@ -61,16 +56,8 @@ updateModel msg model =
         NoOp ->
             model
 
-        ReceiveSuggestions json ->
-            { model
-                | suggestions =
-                    case suggestionsFromJson (json) of
-                        Just s ->
-                            s
-
-                        Nothing ->
-                            model.suggestions
-            }
+        ReceiveSuggestions suggestions ->
+            { model | suggestions = suggestions }
 
         InputChange str ->
             { model | input = str }
@@ -229,41 +216,28 @@ init remoteAddress initialValue =
 generateRequest : String -> Encode.Value
 generateRequest input =
     Encode.object
-        [ ( "destination"
-          , Encode.object
-                [ ( "type", Encode.string "Module" )
-                , ( "target", Encode.string "/guesser" )
+        [ "destination"
+            => Encode.object
+                [ "type" => Encode.string "Module"
+                , "target" => Encode.string "/guesser"
                 ]
-          )
-        , ( "content_type", Encode.string "StationGuesserRequest" )
-        , ( "content"
-          , Encode.object
-                [ ( "input", Encode.string input )
-                , ( "guess_count", Encode.int 6 )
+        , "content_type" => Encode.string "StationGuesserRequest"
+        , "content"
+            => Encode.object
+                [ "input" => Encode.string input
+                , "guess_count" => Encode.int 6
                 ]
-          )
         ]
 
 
 requestSuggestions : String -> String -> Cmd Msg
 requestSuggestions remoteAddress input =
-    Http.send Http.defaultSettings
-        { verb = "POST"
-        , headers = [ ( "Content-Type", "application/json" ) ]
-        , url = remoteAddress
-        , body = generateRequest input |> Encode.encode 0 |> Http.string
-        }
-        |> Task.perform (\_ -> NoOp) responseReader
-
-
-responseReader : Http.Response -> Msg
-responseReader res =
-    case res.value of
-        Http.Text t ->
-            ReceiveSuggestions t
-
-        _ ->
-            NoOp
+    Api.sendJsonRequest
+        remoteAddress
+        suggestionsDecoder
+        (\_ -> NoOp)
+        ReceiveSuggestions
+        (generateRequest input)
 
 
 suggestionDecoder : Decode.Decoder String
@@ -274,12 +248,6 @@ suggestionDecoder =
 suggestionsDecoder : Decode.Decoder (List String)
 suggestionsDecoder =
     Decode.at [ "content", "guesses" ] (Decode.list suggestionDecoder)
-
-
-suggestionsFromJson : String -> Maybe (List String)
-suggestionsFromJson json =
-    Decode.decodeString suggestionsDecoder json
-        |> Result.toMaybe
 
 
 

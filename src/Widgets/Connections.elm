@@ -245,7 +245,7 @@ init remoteAddress =
 
 sendRequest : String -> Request -> Cmd Msg
 sendRequest remoteAddress request =
-    Api.sendRequest remoteAddress (encodeRequest request) HttpError responseReader
+    Api.sendRawRequest remoteAddress HttpError responseReader (encodeRequest request)
 
 
 responseReader : Http.Response -> Msg
