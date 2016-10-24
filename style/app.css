@@ -58,6 +58,13 @@
   margin-top: -20px;
 }
 
+#connections .no-results {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
 .connection {
   /*border: 1px solid #cccccc;*/
   margin-top: 20px;

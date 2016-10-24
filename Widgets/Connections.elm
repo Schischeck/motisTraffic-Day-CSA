@@ -16,6 +16,7 @@ import Task as Task
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Widgets.Data.Connection exposing (..)
+import Widgets.Data.ScheduleInfo exposing (ScheduleInfo)
 import Widgets.ConnectionUtil exposing (..)
 import Widgets.ConnectionDetails as ConnectionDetails
 
@@ -28,6 +29,7 @@ type alias Model =
     , remoteAddress : String
     , journeys : List Journey
     , errorMessage : Maybe String
+    , scheduleInfo : Maybe ScheduleInfo
     }
 
 
@@ -48,6 +50,7 @@ type Msg
     | ReceiveResponse String
     | HttpError Http.RawError
     | MotisError String
+    | UpdateScheduleInfo (Maybe ScheduleInfo)
 
 
 type alias Request =
@@ -109,6 +112,9 @@ updateModel msg model =
                 , errorMessage = Just msg
                 , journeys = []
             }
+
+        UpdateScheduleInfo si ->
+            { model | scheduleInfo = si }
 
 
 command : Msg -> Model -> Cmd Msg
@@ -191,6 +197,16 @@ connectionView (Config { internalMsg, selectMsg }) idx j =
         ]
 
 
+scheduleRangeView : Model -> Html msg
+scheduleRangeView { scheduleInfo } =
+    case scheduleInfo of
+        Just si ->
+            div [] [ text <| "Auskunft von " ++ (toString si.begin) ++ " bis " ++ (toString si.end) ++ " möglich" ]
+
+        Nothing ->
+            text ""
+
+
 view : Config msg -> Model -> Html msg
 view config model =
     if model.loading then
@@ -201,7 +217,10 @@ view config model =
                 div [ class "error" ] [ text err ]
 
             Nothing ->
-                div [ class "no-results" ] [ text "Keine Verbindungen gefunden." ]
+                div [ class "no-results" ]
+                    [ div [] [ text "Keine Verbindungen gefunden." ]
+                    , scheduleRangeView model
+                    ]
     else
         lazy (connectionsView config) model
 
@@ -218,6 +237,7 @@ init remoteAddress =
     , remoteAddress = remoteAddress
     , journeys = []
     , errorMessage = Nothing
+    , scheduleInfo = Nothing
     }
 
 
@@ -241,16 +261,6 @@ generateRequest request =
 
         endTime =
             selectedTime + 3600
-
-        _ =
-            Debug.log "generateRequest"
-                ("selectedTime="
-                    ++ (toString selectedTime)
-                    ++ ", startTime="
-                    ++ (toString startTime)
-                    ++ ", endTime="
-                    ++ (toString endTime)
-                )
     in
         Encode.object
             [ "destination"

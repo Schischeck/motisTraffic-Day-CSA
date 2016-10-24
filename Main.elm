@@ -7,12 +7,14 @@ import Widgets.Typeahead as Typeahead
 import Widgets.Map as Map
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
-import Widgets.ConnectionUtil exposing (Journey)
+import Widgets.ConnectionUtil exposing ((=>))
+import Widgets.Data.ScheduleInfo as ScheduleInfo exposing (ScheduleInfo)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.App as App
 import Dom.Scroll as Scroll
+import Http
 import Task
 import Date
 import Date.Extra.Create exposing (dateFromFields)
@@ -49,6 +51,7 @@ type alias Model =
     , map : Map.Model
     , connections : Connections.Model
     , selectedConnection : Maybe ConnectionDetails.State
+    , scheduleInfo : Maybe ScheduleInfo
     }
 
 
@@ -74,11 +77,13 @@ init _ =
           , map = mapModel
           , connections = Connections.init remoteAddress
           , selectedConnection = Nothing
+          , scheduleInfo = Nothing
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
             , Cmd.map TimeUpdate timeCmd
             , Cmd.map MapUpdate mapCmd
+            , requestScheduleInfo remoteAddress
             ]
         )
 
@@ -102,6 +107,8 @@ type Msg
     | SelectConnection Int
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
+    | ScheduleInfoError Http.Error
+    | ScheduleInfoResponse ScheduleInfo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -200,6 +207,30 @@ update msg model =
         CloseConnectionDetails ->
             closeSelectedConnection model
 
+        ScheduleInfoError _ ->
+            let
+                ( m, c ) =
+                    Connections.update (Connections.UpdateScheduleInfo Nothing) model.connections
+            in
+                ( { model
+                    | scheduleInfo = Nothing
+                    , connections = m
+                  }
+                , Cmd.map ConnectionsUpdate c
+                )
+
+        ScheduleInfoResponse si ->
+            let
+                ( m, c ) =
+                    Connections.update (Connections.UpdateScheduleInfo (Just si)) model.connections
+            in
+                ( { model
+                    | scheduleInfo = Just si
+                    , connections = m
+                  }
+                , Cmd.map ConnectionsUpdate c
+                )
+
 
 combineDateTime : Date.Date -> Date.Date -> Date.Date
 combineDateTime date time =
@@ -210,6 +241,18 @@ combineDateTime date time =
         (Date.minute time)
         (Date.second time)
         (Date.millisecond time)
+
+
+requestScheduleInfo : String -> Cmd Msg
+requestScheduleInfo remoteAddress =
+    Http.send Http.defaultSettings
+        { verb = "POST"
+        , headers = [ "Content-Type" => "application/json" ]
+        , url = remoteAddress
+        , body = ScheduleInfo.request |> Http.string
+        }
+        |> Http.fromJson ScheduleInfo.decodeScheduleInfoResponse
+        |> Task.perform ScheduleInfoError ScheduleInfoResponse
 
 
 
