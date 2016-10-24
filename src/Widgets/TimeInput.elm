@@ -9,7 +9,7 @@ import Html.Attributes exposing (value, class)
 import Html.Lazy exposing (lazy)
 import Widgets.Input as Input
 import Widgets.Button as Button
-import Widgets.StringSplitUtil exposing (..)
+import Util.StringSplit exposing (..)
 import Date.Extra.Create exposing (dateFromFields)
 import Date.Extra.Duration as Duration
 

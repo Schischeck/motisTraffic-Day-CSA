@@ -1,4 +1,4 @@
-module Widgets.StringSplitUtil exposing (..)
+module Util.StringSplit exposing (..)
 
 import String
 

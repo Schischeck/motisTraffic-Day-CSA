@@ -1,4 +1,4 @@
-module Widgets.ViewUtil exposing (..)
+module Util.View exposing (..)
 
 import Html.Events exposing (onWithOptions)
 import Html exposing (..)

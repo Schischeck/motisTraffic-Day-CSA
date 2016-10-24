@@ -12,7 +12,7 @@ import Data.Connection.Decode
 import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
-import Widgets.ConnectionUtil exposing (..)
+import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.DateFormat exposing (..)
 import Util.Api as Api
     exposing

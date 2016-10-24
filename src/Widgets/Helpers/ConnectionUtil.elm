@@ -1,4 +1,4 @@
-module Widgets.ConnectionUtil exposing (..)
+module Widgets.Helpers.ConnectionUtil exposing (..)
 
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Html exposing (Html, div, ul, li, text, span, i)

@@ -9,8 +9,7 @@ import Dict exposing (..)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Widgets.Input as Input
-import Widgets.ViewUtil exposing (onStopAll)
-import Http as Http
+import Util.View exposing (onStopAll)
 import Util.Core exposing ((=>))
 import Util.Api as Api
 

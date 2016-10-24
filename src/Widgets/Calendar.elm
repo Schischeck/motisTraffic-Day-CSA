@@ -13,7 +13,7 @@ import Date.Extra.Create exposing (dateFromFields)
 import Task
 import String
 import Array
-import Widgets.ViewUtil exposing (onStopAll, onStopPropagation)
+import Util.View exposing (onStopAll, onStopPropagation)
 import Widgets.Input as Input
 import Widgets.Button as Button
 

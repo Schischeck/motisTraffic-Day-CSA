@@ -6,7 +6,7 @@ import Html.Events exposing (onClick)
 import Html.Lazy exposing (lazy)
 import Set exposing (..)
 import Mouse
-import Widgets.ViewUtil exposing (onStopAll, onStopPropagation)
+import Util.View exposing (onStopAll, onStopPropagation)
 
 
 -- MODEL
