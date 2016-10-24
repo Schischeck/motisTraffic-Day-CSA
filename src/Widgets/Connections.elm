@@ -6,18 +6,17 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (lazy)
 import Svg
 import Svg.Attributes exposing (xlinkHref)
-import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=))
 import Http as Http
-import Task as Task
 import Date exposing (Date)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
 import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
+import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.ConnectionUtil exposing (..)
-import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
+import Util.Api as Api
 
 
 -- MODEL
@@ -244,68 +243,9 @@ init remoteAddress =
 -- ROUTING REQUEST / RESPONSE
 
 
-unixTime : Date -> Int
-unixTime d =
-    (floor (Date.toTime d)) // 1000
-
-
-generateRequest : Request -> Encode.Value
-generateRequest request =
-    let
-        selectedTime =
-            unixTime request.date
-
-        startTime =
-            selectedTime - 3600
-
-        endTime =
-            selectedTime + 3600
-    in
-        Encode.object
-            [ "destination"
-                => Encode.object
-                    [ "type" => Encode.string "Module"
-                    , "target" => Encode.string "/routing"
-                    ]
-            , "content_type" => Encode.string "RoutingRequest"
-            , "content"
-                => Encode.object
-                    [ "start_type" => Encode.string "PretripStart"
-                    , "start"
-                        => Encode.object
-                            [ "station"
-                                => Encode.object
-                                    [ "name" => Encode.string request.from
-                                    , "id" => Encode.string ""
-                                    ]
-                            , "interval"
-                                => Encode.object
-                                    [ "begin" => Encode.int startTime
-                                    , "end" => Encode.int endTime
-                                    ]
-                            ]
-                    , "destination"
-                        => Encode.object
-                            [ "name" => Encode.string request.to
-                            , "id" => Encode.string ""
-                            ]
-                    , "search_type" => Encode.string "Default"
-                    , "search_dir" => Encode.string "Forward"
-                    , "via" => Encode.list []
-                    , "additional_edges" => Encode.list []
-                    ]
-            ]
-
-
 sendRequest : String -> Request -> Cmd Msg
 sendRequest remoteAddress request =
-    Http.send Http.defaultSettings
-        { verb = "POST"
-        , headers = [ "Content-Type" => "application/json" ]
-        , url = remoteAddress
-        , body = generateRequest request |> Encode.encode 0 |> Http.string
-        }
-        |> Task.perform HttpError responseReader
+    Api.sendRequest remoteAddress (encodeRequest request) HttpError responseReader
 
 
 responseReader : Http.Response -> Msg
