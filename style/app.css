@@ -58,11 +58,15 @@
   margin-top: -20px;
 }
 
-#connections .no-results {
+#connections .no-results, #connections .error {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
+}
+
+#connections .schedule-range {
+  margin-top: 1em;
 }
 
 .connection {

@@ -196,7 +196,14 @@ scheduleRangeView : Model -> Html msg
 scheduleRangeView { scheduleInfo } =
     case scheduleInfo of
         Just si ->
-            div [] [ text <| "Auskunft von " ++ (toString si.begin) ++ " bis " ++ (toString si.end) ++ " möglich" ]
+            div [ class "schedule-range" ]
+                [ text <|
+                    "Auskunft von "
+                        ++ (formatDate deDateConfig si.begin)
+                        ++ " bis "
+                        ++ (formatDate deDateConfig si.end)
+                        ++ " möglich"
+                ]
 
         Nothing ->
             text ""
@@ -205,15 +212,18 @@ scheduleRangeView { scheduleInfo } =
 view : Config msg -> Model -> Html msg
 view config model =
     if model.loading then
-        div [ class "loader" ] [ text "Loading..." ]
+        div [ class "loader" ] [ text "Verbindungen suchen..." ]
     else if List.isEmpty model.journeys then
         case model.errorMessage of
             Just err ->
-                div [ class "error" ] [ text err ]
+                div [ class "error" ]
+                    [ div [] [ text err ]
+                    , scheduleRangeView model
+                    ]
 
             Nothing ->
                 div [ class "no-results" ]
-                    [ div [] [ text "Keine Verbindungen gefunden." ]
+                    [ div [] [ text "Keine Verbindungen gefunden" ]
                     , scheduleRangeView model
                     ]
     else
