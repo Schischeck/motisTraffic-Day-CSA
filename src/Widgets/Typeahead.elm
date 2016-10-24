@@ -232,7 +232,7 @@ generateRequest input =
 
 requestSuggestions : String -> String -> Cmd Msg
 requestSuggestions remoteAddress input =
-    Api.sendJsonRequest
+    Api.sendRequest
         remoteAddress
         suggestionsDecoder
         (\_ -> NoOp)

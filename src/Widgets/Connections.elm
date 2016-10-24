@@ -87,20 +87,20 @@ updateModel msg model =
                                 ++ category
                                 ++ " error code "
                                 ++ (toString errorCode)
-                                ++ ":"
+                                ++ ": "
                                 ++ reason
 
-                        HttpError (Http.Timeout) ->
+                        TimeoutError ->
                             "Request timeout"
 
-                        HttpError (Http.NetworkError) ->
+                        NetworkError ->
                             "Network error"
 
-                        HttpError (Http.UnexpectedPayload err) ->
-                            "Invalid response: " ++ err
+                        HttpError status ->
+                            "HTTP error " ++ (toString status)
 
-                        HttpError (Http.BadResponse status _) ->
-                            "Http error " ++ (toString status)
+                        DecodeError msg ->
+                            "Invalid response: " ++ msg
             in
                 { model
                     | loading = False
