@@ -12,14 +12,13 @@ import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
+import Util.Date exposing (combineDateTime)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.App as App
 import Dom.Scroll as Scroll
 import Task
-import Date
-import Date.Extra.Create exposing (dateFromFields)
 import String
 import Navigation
 
@@ -235,17 +234,6 @@ update msg model =
                 )
 
 
-combineDateTime : Date.Date -> Date.Date -> Date.Date
-combineDateTime date time =
-    dateFromFields (Date.year date)
-        (Date.month date)
-        (Date.day date)
-        (Date.hour time)
-        (Date.minute time)
-        (Date.second time)
-        (Date.millisecond time)
-
-
 requestScheduleInfo : String -> Cmd Msg
 requestScheduleInfo remoteAddress =
     Api.sendRequest
@@ -350,6 +338,10 @@ detailsConfig =
         { internalMsg = ConnectionDetailsUpdate
         , closeMsg = CloseConnectionDetails
         }
+
+
+
+-- NAVIGATION
 
 
 type Route
