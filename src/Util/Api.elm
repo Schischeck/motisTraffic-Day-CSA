@@ -1,7 +1,10 @@
 module Util.Api
     exposing
         ( ApiError(..)
-        , MotisErrorInfo
+        , MotisErrorInfo(..)
+        , ModuleErrorInfo(..)
+        , RoutingErrorInfo(..)
+        , MotisErrorDetail
         , sendRequest
         )
 
@@ -13,13 +16,6 @@ import Task exposing (Task, andThen, mapError, succeed, fail)
 import Util.Core exposing ((=>))
 
 
-type alias MotisErrorInfo =
-    { errorCode : Int
-    , category : String
-    , reason : String
-    }
-
-
 type ApiError
     = MotisError MotisErrorInfo
     | TimeoutError
@@ -28,25 +24,36 @@ type ApiError
     | DecodeError String
 
 
+type MotisErrorInfo
+    = ModuleError ModuleErrorInfo
+    | RoutingError RoutingErrorInfo
+    | UnknownMotisError MotisErrorDetail
 
-{--
-MotisError:
-category            errorCode   reason
-motis::module       0           module: no error
-motis::module       1           module: unable to parse message
-motis::module       2           module: malformed message
-motis::module       3           module: target not found
-motis::module       4           module: unkown error
-motis::module       5           module: unexpected message type
-motis::routing      0           routing: no error
-motis::routing      1           routing: station could not be guessed
-motis::routing      2           routing: requested search type not supported
-motis::routing      3           routing: path length not supported
-motis::routing      4           routing: journey date not in schedule
-motis::routing      5           routing: event not found
-motis::routing      6           routing: edge type not supported
-motis::routing      7           routing: too many start labels (route edge not sorted?)
---}
+
+type ModuleErrorInfo
+    = UnableToParseMsg
+    | MalformedMsg
+    | TargetNotFound
+    | UnexpectedMessageType
+    | UnknownModuleError MotisErrorDetail
+
+
+type RoutingErrorInfo
+    = NoGuessForStation
+    | SearchTypeNotSupported
+    | PathLengthNotSupported
+    | JourneyDateNotInSchedule
+    | EventNotFound
+    | EdgeTypeNotSupported
+    | TooManyStartLabels
+    | UnknownRoutingError MotisErrorDetail
+
+
+type alias MotisErrorDetail =
+    { errorCode : Int
+    , category : String
+    , reason : String
+    }
 
 
 sendRequest :
@@ -65,29 +72,6 @@ sendRequest remoteAddress jsonDecoder onErr onOk value =
         }
         |> handleResponse jsonDecoder
         |> Task.perform onErr onOk
-
-
-decodeErrorResponse : Decode.Decoder MotisErrorInfo
-decodeErrorResponse =
-    let
-        decodeContent : String -> Decode.Decoder MotisErrorInfo
-        decodeContent content_type =
-            case content_type of
-                "MotisError" ->
-                    Decode.at [ "content" ] decodeMotisError
-
-                _ ->
-                    Decode.fail ("unexpected message type: " ++ content_type)
-    in
-        ("content_type" := Decode.string) `Decode.andThen` decodeContent
-
-
-decodeMotisError : Decode.Decoder MotisErrorInfo
-decodeMotisError =
-    Decode.succeed MotisErrorInfo
-        |: ("error_code" := Decode.int)
-        |: ("category" := Decode.string)
-        |: ("reason" := Decode.string)
 
 
 handleResponse :
@@ -144,3 +128,94 @@ promoteError rawError =
 
         Http.RawNetworkError ->
             NetworkError
+
+
+decodeErrorResponse : Decode.Decoder MotisErrorInfo
+decodeErrorResponse =
+    let
+        decodeContent : String -> Decode.Decoder MotisErrorInfo
+        decodeContent content_type =
+            case content_type of
+                "MotisError" ->
+                    Decode.at [ "content" ] decodeMotisError
+
+                _ ->
+                    Decode.fail ("unexpected message type: " ++ content_type)
+    in
+        ("content_type" := Decode.string) `Decode.andThen` decodeContent
+
+
+decodeMotisErrorDetail : Decode.Decoder MotisErrorDetail
+decodeMotisErrorDetail =
+    Decode.succeed MotisErrorDetail
+        |: ("error_code" := Decode.int)
+        |: ("category" := Decode.string)
+        |: ("reason" := Decode.string)
+
+
+decodeMotisError : Decode.Decoder MotisErrorInfo
+decodeMotisError =
+    decodeMotisErrorDetail `Decode.andThen` (Decode.succeed << mapMotisError)
+
+
+mapMotisError : MotisErrorDetail -> MotisErrorInfo
+mapMotisError err =
+    case err.category of
+        "motis::module" ->
+            ModuleError (mapModuleError err)
+
+        "motis::routing" ->
+            RoutingError (mapRoutingError err)
+
+        _ ->
+            UnknownMotisError err
+
+
+mapModuleError : MotisErrorDetail -> ModuleErrorInfo
+mapModuleError err =
+    case err.errorCode of
+        1 ->
+            UnableToParseMsg
+
+        2 ->
+            MalformedMsg
+
+        3 ->
+            TargetNotFound
+
+        4 ->
+            UnknownModuleError err
+
+        5 ->
+            UnexpectedMessageType
+
+        _ ->
+            UnknownModuleError err
+
+
+mapRoutingError : MotisErrorDetail -> RoutingErrorInfo
+mapRoutingError err =
+    case err.errorCode of
+        1 ->
+            NoGuessForStation
+
+        2 ->
+            SearchTypeNotSupported
+
+        3 ->
+            PathLengthNotSupported
+
+        4 ->
+            JourneyDateNotInSchedule
+
+        5 ->
+            EventNotFound
+
+        6 ->
+            EdgeTypeNotSupported
+
+        7 ->
+            TooManyStartLabels
+
+        _ ->
+            UnknownRoutingError err

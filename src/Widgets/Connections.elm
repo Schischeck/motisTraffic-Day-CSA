@@ -6,8 +6,6 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (lazy)
 import Svg
 import Svg.Attributes exposing (xlinkHref)
-import Json.Decode as Decode exposing ((:=))
-import Http
 import Date exposing (Date)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
@@ -16,7 +14,14 @@ import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.ConnectionUtil exposing (..)
 import Util.DateFormat exposing (..)
-import Util.Api as Api exposing (ApiError(..))
+import Util.Api as Api
+    exposing
+        ( ApiError(..)
+        , MotisErrorInfo(..)
+        , ModuleErrorInfo(..)
+        , RoutingErrorInfo(..)
+        , MotisErrorDetail
+        )
 
 
 -- MODEL
@@ -82,13 +87,8 @@ updateModel msg model =
             let
                 errorMsg =
                     case msg' of
-                        MotisError { errorCode, category, reason } ->
-                            "Motis error "
-                                ++ category
-                                ++ " error code "
-                                ++ (toString errorCode)
-                                ++ ": "
-                                ++ reason
+                        MotisError err ->
+                            motisErrorMsg err
 
                         TimeoutError ->
                             "Request timeout"
@@ -218,6 +218,16 @@ view config model =
                     ]
     else
         lazy (connectionsView config) model
+
+
+motisErrorMsg : MotisErrorInfo -> String
+motisErrorMsg err =
+    case err of
+        RoutingError JourneyDateNotInSchedule ->
+            "Zeitraum nicht im Fahrplan"
+
+        _ ->
+            "Interner Fehler (" ++ (toString err) ++ ")"
 
 
 
