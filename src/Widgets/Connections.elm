@@ -7,7 +7,7 @@ import Html.Lazy exposing (lazy)
 import Svg
 import Svg.Attributes exposing (xlinkHref)
 import Json.Decode as Decode exposing ((:=))
-import Http as Http
+import Http
 import Date exposing (Date)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
@@ -16,7 +16,7 @@ import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.ConnectionUtil exposing (..)
 import Util.DateFormat exposing (..)
-import Util.Api as Api
+import Util.Api as Api exposing (ApiError(..))
 
 
 -- MODEL
@@ -45,9 +45,8 @@ type Config msg
 type Msg
     = NoOp
     | Search Request
-    | ReceiveResponse String
-    | HttpError Http.RawError
-    | MotisError String
+    | ReceiveResponse (List Connection)
+    | ReceiveError ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
 
 
@@ -72,44 +71,42 @@ updateModel msg model =
         Search _ ->
             { model | loading = True }
 
-        ReceiveResponse json ->
-            case journeysFromJson json of
-                Ok journeys ->
-                    { model
-                        | loading = False
-                        , errorMessage = Nothing
-                        , journeys = journeys
-                    }
+        ReceiveResponse connections ->
+            { model
+                | loading = False
+                , errorMessage = Nothing
+                , journeys = List.map Journey.toJourney connections
+            }
 
-                Err msg ->
-                    { model
-                        | loading = False
-                        , errorMessage = Just msg
-                        , journeys = []
-                    }
-
-        HttpError err ->
+        ReceiveError msg' ->
             let
-                msg =
-                    case err of
-                        Http.RawTimeout ->
-                            "Network timeout"
+                errorMsg =
+                    case msg' of
+                        MotisError { errorCode, category, reason } ->
+                            "Motis error "
+                                ++ category
+                                ++ " error code "
+                                ++ (toString errorCode)
+                                ++ ":"
+                                ++ reason
 
-                        Http.RawNetworkError ->
+                        HttpError (Http.Timeout) ->
+                            "Request timeout"
+
+                        HttpError (Http.NetworkError) ->
                             "Network error"
+
+                        HttpError (Http.UnexpectedPayload err) ->
+                            "Invalid response: " ++ err
+
+                        HttpError (Http.BadResponse status _) ->
+                            "Http error " ++ (toString status)
             in
                 { model
                     | loading = False
-                    , errorMessage = Just msg
+                    , errorMessage = Just errorMsg
                     , journeys = []
                 }
-
-        MotisError msg ->
-            { model
-                | loading = False
-                , errorMessage = Just msg
-                , journeys = []
-            }
 
         UpdateScheduleInfo si ->
             { model | scheduleInfo = si }
@@ -245,31 +242,9 @@ init remoteAddress =
 
 sendRequest : String -> Request -> Cmd Msg
 sendRequest remoteAddress request =
-    Api.sendRawRequest remoteAddress HttpError responseReader (encodeRequest request)
-
-
-responseReader : Http.Response -> Msg
-responseReader res =
-    case res.value of
-        Http.Text t ->
-            if res.status == 200 then
-                ReceiveResponse t
-            else
-                MotisError t
-
-        _ ->
-            NoOp
-
-
-journeysFromJson : String -> Result String (List Journey)
-journeysFromJson json =
-    let
-        response =
-            Decode.decodeString Data.Connection.Decode.decodeRoutingResponse json
-    in
-        case response of
-            Ok connections ->
-                Ok <| List.map Journey.toJourney connections
-
-            Err err ->
-                Err err
+    Api.sendRequest
+        remoteAddress
+        Data.Connection.Decode.decodeRoutingResponse
+        ReceiveError
+        ReceiveResponse
+        (encodeRequest request)

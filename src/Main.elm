@@ -11,13 +11,12 @@ import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Util.List exposing ((!!))
-import Util.Api as Api
+import Util.Api as Api exposing (ApiError(..))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.App as App
 import Dom.Scroll as Scroll
-import Http
 import Task
 import Date
 import Date.Extra.Create exposing (dateFromFields)
@@ -30,6 +29,7 @@ remoteAddress =
     "http://localhost:8081"
 
 
+main : Program Never
 main =
     Navigation.program urlParser
         { init = init
@@ -110,7 +110,7 @@ type Msg
     | SelectConnection Int
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
-    | ScheduleInfoError Http.Error
+    | ScheduleInfoError ApiError
     | ScheduleInfoResponse ScheduleInfo
 
 
@@ -248,7 +248,7 @@ combineDateTime date time =
 
 requestScheduleInfo : String -> Cmd Msg
 requestScheduleInfo remoteAddress =
-    Api.sendJsonRequest
+    Api.sendRequest
         remoteAddress
         decodeScheduleInfoResponse
         ScheduleInfoError
