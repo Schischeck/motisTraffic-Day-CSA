@@ -6,14 +6,12 @@ import Html.Attributes exposing (..)
 import Html.Lazy exposing (lazy)
 import Date exposing (Date, Day, day, month, year, dayOfWeek)
 import Date.Extra.Duration as Duration
-import Date.Extra.Core exposing (lastOfMonthDate, intToMonth, monthToInt, toFirstOfMonth, isoDayOfWeek)
+import Date.Extra.Core exposing (lastOfMonthDate, toFirstOfMonth, isoDayOfWeek)
 import Date.Extra.Utils exposing (dayList)
 import Date.Extra.Compare as Compare
-import Date.Extra.Create exposing (dateFromFields)
 import Task
-import String
-import Array
 import Util.View exposing (onStopAll, onStopPropagation)
+import Util.DateFormat exposing (..)
 import Widgets.Input as Input
 import Widgets.Button as Button
 
@@ -246,17 +244,6 @@ getCurrentDate =
     Task.perform NewDateError InitDate Date.now
 
 
-formatDate : DateConfig -> Date -> String
-formatDate conf d =
-    Array.repeat 3 0
-        |> Array.set conf.yearPos (year d)
-        |> Array.set conf.monthPos (monthToInt (month d))
-        |> Array.set conf.dayPos (day d)
-        |> Array.toList
-        |> List.map toString
-        |> String.join conf.seperator
-
-
 daysInSixWeeks : Int
 daysInSixWeeks =
     42
@@ -286,120 +273,3 @@ dayListForMonthView today selected =
                     , selected = Compare.is Compare.Same selected date
                     }
                 )
-
-
-monthName : DateConfig -> Date -> String
-monthName conf date =
-    List.drop (monthToInt (month date)) conf.monthNames
-        |> List.head
-        |> Maybe.withDefault ""
-
-
-weekDayName : DateConfig -> Date -> String
-weekDayName conf date =
-    List.drop (isoDayOfWeek (dayOfWeek date) - 1) conf.weekDayNames
-        |> List.head
-        |> Maybe.withDefault ""
-
-
-monthAndYearStr : DateConfig -> Date -> String
-monthAndYearStr conf d =
-    [ monthName conf d, toString (year d) ]
-        |> String.join " "
-
-
-type alias DateConfig =
-    { seperator : String
-    , yearPos : Int
-    , monthPos : Int
-    , dayPos : Int
-    , weekDayNames : List String
-    , monthNames : List String
-    }
-
-
-enDateConfig : DateConfig
-enDateConfig =
-    { seperator = "/"
-    , yearPos = 0
-    , monthPos = 1
-    , dayPos = 2
-    , weekDayNames = [ "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" ]
-    , monthNames =
-        [ ""
-        , "January"
-        , "February"
-        , "March"
-        , "April"
-        , "May"
-        , "June"
-        , "July"
-        , "August"
-        , "September"
-        , "October"
-        , "November"
-        , "December"
-        ]
-    }
-
-
-deDateConfig : DateConfig
-deDateConfig =
-    { seperator = "."
-    , yearPos = 2
-    , monthPos = 1
-    , dayPos = 0
-    , weekDayNames = [ "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So" ]
-    , monthNames =
-        [ ""
-        , "Januar"
-        , "Februar"
-        , "März"
-        , "April"
-        , "Mai"
-        , "Juni"
-        , "Juli"
-        , "August"
-        , "September"
-        , "Oktober"
-        , "November"
-        , "Dezember"
-        ]
-    }
-
-
-nthToken : Int -> String -> String -> Maybe String
-nthToken pos splitToken str =
-    String.split splitToken str
-        |> List.drop pos
-        |> List.head
-
-
-intNthToken : Int -> String -> String -> Maybe Int
-intNthToken pos splitToken str =
-    case nthToken pos splitToken str of
-        Just str ->
-            String.toInt str |> Result.toMaybe
-
-        Nothing ->
-            Nothing
-
-
-toDate : Int -> Int -> Int -> Date
-toDate year month day =
-    dateFromFields year (intToMonth month) day 0 0 0 0
-
-
-parseDate : DateConfig -> String -> Maybe Date
-parseDate conf str =
-    let
-        year =
-            intNthToken conf.yearPos conf.seperator str
-
-        month =
-            intNthToken conf.monthPos conf.seperator str
-
-        day =
-            intNthToken conf.dayPos conf.seperator str
-    in
-        Maybe.map3 toDate year month day

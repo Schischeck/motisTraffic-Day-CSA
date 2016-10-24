@@ -2,6 +2,7 @@ module Util.Date exposing (..)
 
 import Date exposing (Date)
 import Date.Extra.Create exposing (dateFromFields)
+import Date.Extra.Core exposing (lastOfMonthDate, intToMonth)
 
 
 unixTime : Date -> Int
@@ -18,3 +19,8 @@ combineDateTime date time =
         (Date.minute time)
         (Date.second time)
         (Date.millisecond time)
+
+
+toDate : Int -> Int -> Int -> Date
+toDate year month day =
+    dateFromFields year (intToMonth month) day 0 0 0 0
