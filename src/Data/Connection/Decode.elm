@@ -1,90 +1,9 @@
-module Widgets.Data.Connection exposing (..)
+module Data.Connection.Decode exposing (decodeRoutingResponse, decodeConnection)
 
+import Data.Connection.Types exposing (..)
 import Json.Decode as Decode exposing ((:=))
 import Json.Decode.Extra exposing ((|:), withDefault, maybeNull)
-import Date exposing (Date, fromTime)
-
-
-type alias Connection =
-    { stops : List Stop
-    , transports : List Move
-    , attributes : List Attribute
-    }
-
-
-type alias Stop =
-    { station : Station
-    , arrival : EventInfo
-    , departure : EventInfo
-    , leave : Bool
-    , enter : Bool
-    }
-
-
-type alias Station =
-    { id : String
-    , name : String
-    , pos : Position
-    }
-
-
-type alias Position =
-    { lat : Float
-    , lng : Float
-    }
-
-
-type alias EventInfo =
-    { time : Maybe Date
-    , schedule_time : Maybe Date
-    , track : String
-    , reason : TimestampReason
-    }
-
-
-type TimestampReason
-    = Schedule
-    | Is
-    | Propagation
-    | Forecast
-
-
-type Move
-    = Transport TransportInfo
-    | Walk WalkInfo
-
-
-type alias TransportInfo =
-    { range : Range
-    , category_name : String
-    , class : Int
-    , train_nr : Maybe Int
-    , line_id : String
-    , name : String
-    , provider : String
-    , direction : String
-    }
-
-
-type alias WalkInfo =
-    { range : Range
-    , mumo_id : Int
-    , price : Maybe Int
-    , mumo_type : String
-    }
-
-
-type alias Attribute =
-    { range : Range
-    , code : String
-    , text : String
-    }
-
-
-type alias Range =
-    { from : Int
-    , to : Int
-    }
+import Util.Json exposing (decodeDate)
 
 
 decodeRoutingResponse : Decode.Decoder (List Connection)
@@ -213,8 +132,3 @@ decodeTimestampReason =
                     Result.Err ("Not valid pattern for decoder to TimestampReason. Pattern: " ++ (toString string))
     in
         Decode.customDecoder Decode.string decodeToType
-
-
-decodeDate : Decode.Decoder Date
-decodeDate =
-    Decode.int `Decode.andThen` (Decode.succeed << Date.fromTime << toFloat << \i -> i * 1000)

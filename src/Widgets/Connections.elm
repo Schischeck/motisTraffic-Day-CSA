@@ -6,19 +6,18 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (lazy)
 import Svg
 import Svg.Attributes exposing (xlinkHref)
-import String
-import Set exposing (Set)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=))
-import Widgets.ViewUtil exposing (onStopAll)
 import Http as Http
 import Task as Task
 import Date exposing (Date)
-import Date.Extra.Duration as Duration exposing (DeltaRecord)
-import Widgets.Data.Connection exposing (..)
-import Widgets.Data.ScheduleInfo exposing (ScheduleInfo)
+import Data.Connection.Types as Connection exposing (Connection, Stop)
+import Data.Connection.Decode
+import Data.Journey.Types as Journey exposing (Journey, Train)
+import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.ConnectionUtil exposing (..)
-import Widgets.ConnectionDetails as ConnectionDetails
+import Util.Core exposing ((=>))
+import Util.DateFormat exposing (..)
 
 
 -- MODEL
@@ -179,18 +178,18 @@ connectionView (Config { internalMsg, selectMsg }) idx j =
         [ div [ class "pure-g" ]
             [ div [ class "pure-u-5-24 connection-times" ]
                 [ div [ class "connection-departure" ]
-                    [ text (Maybe.map formatTime (departureTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map formatTime (Connection.departureTime j.connection) |> Maybe.withDefault "?")
                     , text " "
-                    , Maybe.map delay (departureEvent j.connection) |> Maybe.withDefault (text "")
+                    , Maybe.map delay (Connection.departureEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 , div [ class "connection-arrival" ]
-                    [ text (Maybe.map formatTime (arrivalTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map formatTime (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
                     , text " "
-                    , Maybe.map delay (arrivalEvent j.connection) |> Maybe.withDefault (text "")
+                    , Maybe.map delay (Connection.arrivalEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 ]
             , div [ class "pure-u-4-24 connection-duration" ]
-                [ div [] [ text (Maybe.map durationText (duration j.connection) |> Maybe.withDefault "?") ] ]
+                [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-15-24 connection-trains" ]
                 [ trainsView j ]
             ]
@@ -326,17 +325,11 @@ journeysFromJson : String -> Result String (List Journey)
 journeysFromJson json =
     let
         response =
-            Decode.decodeString decodeRoutingResponse json
-
-        toJourney : Connection -> Journey
-        toJourney connection =
-            { connection = connection
-            , trains = groupTrains connection
-            }
+            Decode.decodeString Data.Connection.Decode.decodeRoutingResponse json
     in
         case response of
             Ok connections ->
-                Ok <| List.map toJourney connections
+                Ok <| List.map Journey.toJourney connections
 
             Err err ->
                 Err err

@@ -11,9 +11,12 @@ import Set exposing (Set)
 import Widgets.ViewUtil exposing (onStopAll)
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
-import Debug
-import Widgets.Data.Connection exposing (..)
+import Data.Connection.Types as Connection exposing (..)
+import Data.Journey.Types as Journey exposing (..)
 import Widgets.ConnectionUtil exposing (..)
+import Util.Core exposing ((=>))
+import Util.DateFormat exposing (..)
+import Util.List exposing (..)
 
 
 -- MODEL

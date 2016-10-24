@@ -1,10 +1,11 @@
-module Widgets.Data.ScheduleInfo exposing (ScheduleInfo, request, decodeScheduleInfoResponse)
+module Data.ScheduleInfo.Types exposing (ScheduleInfo, request, decodeScheduleInfoResponse)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=))
 import Json.Decode.Extra exposing ((|:), withDefault, maybeNull)
-import Date exposing (Date, fromTime)
-import Widgets.ConnectionUtil exposing ((=>))
+import Date exposing (Date)
+import Util.Core exposing ((=>))
+import Util.Json exposing (decodeDate)
 
 
 type alias ScheduleInfo =
@@ -25,11 +26,6 @@ decodeScheduleInfo =
         |: ("name" := Decode.string)
         |: ("begin" := decodeDate)
         |: ("end" := decodeDate)
-
-
-decodeDate : Decode.Decoder Date
-decodeDate =
-    Decode.int `Decode.andThen` (Decode.succeed << Date.fromTime << toFloat << \i -> i * 1000)
 
 
 request : String

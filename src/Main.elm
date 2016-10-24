@@ -7,8 +7,9 @@ import Widgets.Typeahead as Typeahead
 import Widgets.Map as Map
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
-import Widgets.ConnectionUtil exposing ((=>))
-import Widgets.Data.ScheduleInfo as ScheduleInfo exposing (ScheduleInfo)
+import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
+import Util.Core exposing ((=>))
+import Util.List exposing ((!!))
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -349,14 +350,6 @@ detailsConfig =
         { internalMsg = ConnectionDetailsUpdate
         , closeMsg = CloseConnectionDetails
         }
-
-
-(!!) : List a -> Int -> Maybe a
-(!!) list index =
-    if index < 0 then
-        Nothing
-    else
-        List.head <| List.drop index list
 
 
 type Route
