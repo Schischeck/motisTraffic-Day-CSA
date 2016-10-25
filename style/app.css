@@ -287,6 +287,10 @@
   border-color: #9e9e9e;
 }
 
+.train-detail.train-class-walk .left-border {
+  border-color: #333;
+}
+
 .train-detail .stop {
   margin-bottom: 1em;
 }
@@ -345,7 +349,11 @@
 }
 
 .train-detail.train-class-9 .stop::before {
-  color: #9e9e9e;
+  background-color: #9e9e9e;
+}
+
+.train-detail.train-class-walk .stop::before {
+  background-color: #333;
 }
 
 .train-detail .last-stop .stop {

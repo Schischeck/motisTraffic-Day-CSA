@@ -67,20 +67,38 @@ toggle list idx =
 
 
 view : Config msg -> State -> Html msg
-view (Config { internalMsg, closeMsg }) state =
+view (Config { internalMsg, closeMsg }) { journey, expanded } =
     let
         trains =
-            trainsWithInterchangeInfo state.journey.trains
+            trainsWithInterchangeInfo journey.trains
 
         indices =
             [0..List.length trains - 1]
 
         trainsView =
-            List.map3 (trainDetail internalMsg) trains indices state.expanded
+            List.map3 (trainDetail internalMsg) trains indices expanded
+
+        walkView maybeWalk =
+            case maybeWalk of
+                Just walk ->
+                    [ walkDetail walk ]
+
+                Nothing ->
+                    []
+
+        leadingWalkView =
+            walkView journey.leadingWalk
+
+        trailingWalkView =
+            walkView journey.trailingWalk
+
+        transportsView =
+            leadingWalkView ++ trainsView ++ trailingWalkView
     in
         div [ class "connection-details" ]
-            [ connectionInfoView closeMsg state.journey.connection
-            , div [ class "connection-journey", id "connection-journey" ] trainsView
+            [ connectionInfoView closeMsg journey.connection
+            , div [ class "connection-journey", id "connection-journey" ]
+                transportsView
             ]
 
 
@@ -293,3 +311,23 @@ trainDetail internalMsg ( train, ic ) idx expanded =
 
             Nothing ->
                 text ""
+
+
+walkDetail : JourneyWalk -> Html msg
+walkDetail walk =
+    let
+        durationStr =
+            durationText walk.duration
+    in
+        div [ class <| "train-detail train-class-walk" ] <|
+            [ div [ class "left-border" ] []
+            , div [ class "top-border" ] []
+            , walkBox
+            , div [ class "first-stop" ]
+                [ stopView Departure walk.from ]
+            , div [ class "intermediate-stops-toggle" ]
+                [ text ("Fußweg (" ++ durationStr ++ ")")
+                ]
+            , div [ class "last-stop" ]
+                [ stopView Arrival walk.to ]
+            ]

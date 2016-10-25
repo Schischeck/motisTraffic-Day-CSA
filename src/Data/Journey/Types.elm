@@ -164,8 +164,8 @@ toJourneyWalk connection walkInfo =
         getWalkDuration from to =
             Maybe.map2
                 Duration.diff
-                (from.departure.schedule_time)
                 (to.arrival.schedule_time)
+                (from.departure.schedule_time)
                 |> Maybe.withDefault Duration.zeroDelta
 
         makeJourneyWalk from to =
