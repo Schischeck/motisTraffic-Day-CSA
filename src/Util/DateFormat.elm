@@ -29,6 +29,7 @@ durationText dr =
 
 type alias DateConfig =
     { seperator : String
+    , shortFormatTrailingSeperator : String
     , yearPos : Int
     , monthPos : Int
     , dayPos : Int
@@ -40,6 +41,7 @@ type alias DateConfig =
 enDateConfig : DateConfig
 enDateConfig =
     { seperator = "/"
+    , shortFormatTrailingSeperator = ""
     , yearPos = 0
     , monthPos = 1
     , dayPos = 2
@@ -65,6 +67,7 @@ enDateConfig =
 deDateConfig : DateConfig
 deDateConfig =
     { seperator = "."
+    , shortFormatTrailingSeperator = "."
     , yearPos = 2
     , monthPos = 1
     , dayPos = 0
@@ -131,3 +134,31 @@ formatDate conf d =
         |> Array.toList
         |> List.map toString
         |> String.join conf.seperator
+
+
+formatShortDate : DateConfig -> Date -> String
+formatShortDate conf date =
+    let
+        d =
+            toString (day date)
+
+        m =
+            toString (monthToInt (month date))
+    in
+        if conf.dayPos < conf.monthPos then
+            d ++ conf.seperator ++ d
+        else
+            m ++ conf.seperator ++ d
+
+
+formatShortDateTime : DateConfig -> Date -> String
+formatShortDateTime conf date =
+    (formatShortDate conf date)
+        ++ conf.shortFormatTrailingSeperator
+        ++ " "
+        ++ (formatTime date)
+
+
+formatDateTime : DateConfig -> Date -> String
+formatDateTime conf date =
+    (formatDate conf date) ++ " " ++ (formatTime date)

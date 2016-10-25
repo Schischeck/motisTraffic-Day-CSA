@@ -326,11 +326,11 @@ connectionsView config model =
     div [ class "connections" ]
         [ extendIntervalButton ExtendBefore config model
         , div [ class "pure-g header" ]
-            [ div [ class "pure-u-5-24" ]
+            [ div [ class "pure-u-6-24" ]
                 [ text "Zeit" ]
             , div [ class "pure-u-4-24" ]
                 [ text "Dauer" ]
-            , div [ class "pure-u-15-24" ]
+            , div [ class "pure-u-14-24" ]
                 [ text "Verkehrsmittel" ]
             ]
         , Keyed.node "div"
@@ -385,21 +385,21 @@ connectionView : Config msg -> Int -> Journey -> Html msg
 connectionView (Config { internalMsg, selectMsg }) idx j =
     div [ class "connection", onClick (selectMsg idx) ]
         [ div [ class "pure-g" ]
-            [ div [ class "pure-u-5-24 connection-times" ]
+            [ div [ class "pure-u-6-24 connection-times" ]
                 [ div [ class "connection-departure" ]
-                    [ text (Maybe.map formatTime (Connection.departureTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime deDateConfig) (Connection.departureTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (Connection.departureEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 , div [ class "connection-arrival" ]
-                    [ text (Maybe.map formatTime (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime deDateConfig) (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (Connection.arrivalEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 ]
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
-            , div [ class "pure-u-15-24 connection-trains" ]
+            , div [ class "pure-u-14-24 connection-trains" ]
                 [ trainsView (pickTransportViewMode transportListViewWidth j) j ]
             ]
         ]
@@ -407,7 +407,7 @@ connectionView (Config { internalMsg, selectMsg }) idx j =
 
 transportListViewWidth : Int
 transportListViewWidth =
-    380
+    360
 
 
 scheduleRangeView : Model -> Html msg

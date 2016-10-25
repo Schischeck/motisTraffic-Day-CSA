@@ -92,15 +92,15 @@ connectionInfoView closeMsg connection =
                 [ div [ onClick closeMsg, class "back" ]
                     [ i [ class "icon" ] [ text "arrow_back" ] ]
                 ]
-            , div [ class "pure-u-3-24 connection-times" ]
+            , div [ class "pure-u-5-24 connection-times" ]
                 [ div [ class "connection-departure" ]
-                    [ text (Maybe.map formatTime (departureTime connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime deDateConfig) (departureTime connection) |> Maybe.withDefault "?")
                     ]
                 , div [ class "connection-arrival" ]
-                    [ text (Maybe.map formatTime (arrivalTime connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime deDateConfig) (arrivalTime connection) |> Maybe.withDefault "?")
                     ]
                 ]
-            , div [ class "pure-u-18-24" ]
+            , div [ class "pure-u-16-24" ]
                 [ div [] [ text (Maybe.map (.station >> .name) (List.head connection.stops) |> Maybe.withDefault "?") ]
                 , div [] [ text (Maybe.map (.station >> .name) (last connection.stops) |> Maybe.withDefault "?") ]
                 , div [ class "summary" ]
