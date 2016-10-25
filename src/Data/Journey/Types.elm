@@ -1,5 +1,15 @@
-module Data.Journey.Types exposing (..)
+module Data.Journey.Types
+    exposing
+        ( Journey
+        , Train
+        , JourneyWalk
+        , EventType(..)
+        , InterchangeInfo
+        , toJourney
+        , trainsWithInterchangeInfo
+        )
 
+import Date.Extra.Duration as Duration
 import Data.Connection.Types exposing (..)
 import Util.List exposing (..)
 
@@ -7,12 +17,21 @@ import Util.List exposing (..)
 type alias Journey =
     { connection : Connection
     , trains : List Train
+    , leadingWalk : Maybe JourneyWalk
+    , trailingWalk : Maybe JourneyWalk
     }
 
 
 type alias Train =
     { stops : List Stop
     , transports : List TransportInfo
+    }
+
+
+type alias JourneyWalk =
+    { from : Stop
+    , to : Stop
+    , duration : Duration.DeltaRecord
     }
 
 
@@ -31,6 +50,8 @@ toJourney : Connection -> Journey
 toJourney connection =
     { connection = connection
     , trains = groupTrains connection
+    , leadingWalk = extractLeadingWalk connection
+    , trailingWalk = extractTrailingWalk connection
     }
 
 
@@ -83,6 +104,77 @@ groupTrains connection =
             List.foldr group ( [], False, -1 ) indexedStops
     in
         trains
+
+
+extractLeadingWalk : Connection -> Maybe JourneyWalk
+extractLeadingWalk connection =
+    (getWalkFrom 0 connection) `Maybe.andThen` (toJourneyWalk connection)
+
+
+extractTrailingWalk : Connection -> Maybe JourneyWalk
+extractTrailingWalk connection =
+    let
+        lastStopIdx =
+            (List.length connection.stops) - 1
+    in
+        (getWalkTo lastStopIdx connection) `Maybe.andThen` (toJourneyWalk connection)
+
+
+
+-- TODO: combine adjacent walks
+
+
+getWalk : (WalkInfo -> Bool) -> Connection -> Maybe WalkInfo
+getWalk filter connection =
+    let
+        checkMove : Move -> Maybe WalkInfo
+        checkMove move =
+            case move of
+                Walk walk ->
+                    if filter walk then
+                        Just walk
+                    else
+                        Nothing
+
+                Transport _ ->
+                    Nothing
+    in
+        List.filterMap checkMove connection.transports |> List.head
+
+
+getWalkTo : Int -> Connection -> Maybe WalkInfo
+getWalkTo to =
+    getWalk (\w -> w.range.to == to)
+
+
+getWalkFrom : Int -> Connection -> Maybe WalkInfo
+getWalkFrom to =
+    getWalk (\w -> w.range.from == to)
+
+
+toJourneyWalk : Connection -> WalkInfo -> Maybe JourneyWalk
+toJourneyWalk connection walkInfo =
+    let
+        fromStop =
+            connection.stops !! walkInfo.range.from
+
+        toStop =
+            connection.stops !! walkInfo.range.to
+
+        getWalkDuration from to =
+            Maybe.map2
+                Duration.diff
+                (from.departure.schedule_time)
+                (to.arrival.schedule_time)
+                |> Maybe.withDefault Duration.zeroDelta
+
+        makeJourneyWalk from to =
+            { from = from
+            , to = to
+            , duration = getWalkDuration from to
+            }
+    in
+        Maybe.map2 makeJourneyWalk fromStop toStop
 
 
 trainsWithInterchangeInfo : List Train -> List ( Train, InterchangeInfo )

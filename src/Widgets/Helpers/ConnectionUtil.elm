@@ -112,6 +112,18 @@ trainBox viewMode t =
             ]
 
 
+walkBox : Html msg
+walkBox =
+    div [ class <| "train-box train-class-walk" ]
+        [ Svg.svg
+            [ Svg.Attributes.class "train-icon" ]
+            [ Svg.use
+                [ xlinkHref <| "#walk" ]
+                []
+            ]
+        ]
+
+
 isDelayed : DeltaRecord -> Bool
 isDelayed dr =
     dr.minute > 0 || dr.hour > 0 || dr.day > 0

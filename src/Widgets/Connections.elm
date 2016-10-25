@@ -350,14 +350,33 @@ trainsView viewMode j =
         trainBoxes =
             List.map (trainView viewMode) j.trains
 
+        prefix =
+            case j.leadingWalk of
+                Just _ ->
+                    [ walkBox ]
+
+                Nothing ->
+                    []
+
+        suffix =
+            case j.trailingWalk of
+                Just _ ->
+                    [ walkBox ]
+
+                Nothing ->
+                    []
+
+        transportBoxes =
+            prefix ++ trainBoxes ++ suffix
+
         content =
             case viewMode of
                 IconOnlyNoSep ->
-                    trainBoxes
+                    transportBoxes
 
                 _ ->
                     List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
-                        trainBoxes
+                        transportBoxes
     in
         div [ class "train-list" ] content
 
@@ -507,10 +526,21 @@ extendIntervalButton direction (Config { internalMsg }) model =
 
 
 pickTransportViewMode : Int -> Journey -> TransportViewMode
-pickTransportViewMode maxTotalWidth { trains } =
+pickTransportViewMode maxTotalWidth { trains, leadingWalk, trailingWalk } =
     let
+        countMaybe mb =
+            case mb of
+                Just _ ->
+                    1
+
+                Nothing ->
+                    0
+
+        walkCount =
+            (countMaybe leadingWalk) + (countMaybe trailingWalk)
+
         separators =
-            16 * ((List.length trains) - 1)
+            16 * ((List.length trains) - 1 + walkCount)
 
         iconOnlyBase =
             32
@@ -548,13 +578,19 @@ pickTransportViewMode maxTotalWidth { trains } =
                     iconOnlyBase
 
         longNameWidth =
-            separators + (List.sum <| List.map (boxWidth LongName) trains)
+            separators
+                + (List.sum <| List.map (boxWidth LongName) trains)
+                + (walkCount * iconOnlyBase)
 
         shortNameWidth =
-            separators + (List.sum <| List.map (boxWidth ShortName) trains)
+            separators
+                + (List.sum <| List.map (boxWidth ShortName) trains)
+                + (walkCount * iconOnlyBase)
 
         iconOnlyWidth =
-            separators + (List.sum <| List.map (boxWidth IconOnly) trains)
+            separators
+                + (List.sum <| List.map (boxWidth IconOnly) trains)
+                + (walkCount * iconOnlyBase)
     in
         if longNameWidth <= maxTotalWidth then
             LongName
