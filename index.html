@@ -22,6 +22,7 @@
 </head>
 
 <body>
+	<div id="app-container"></div>
 	<script type="text/javascript" src="external_lib/leaflet.min.js"></script>
 	<script type="text/javascript" src="elm.js"></script>
 	<script type="text/javascript">
@@ -84,7 +85,7 @@
   </script>
 
 	<script type="text/javascript">
-  var app = Elm.Main.fullscreen()
+  var app = Elm.Main.embed(document.getElementById("app-container"));
 
   window.elmMaps = {};
 
