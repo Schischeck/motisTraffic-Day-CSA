@@ -52,6 +52,35 @@ struct prepare_settings : public conf::simple_config {
   std::string out_;
 };
 
+struct stats {
+
+  std::string report(){
+    std::string out = "";
+    out += "\nSequences: " + std::to_string(seqs_);
+    out += "\nNot broken: " + std::to_string(not_broken_) + " / " + percentage(not_broken_, seqs_) + "%";
+    out += "\nUsing relations: " + std::to_string(matched_) + " / " + percentage(matched_, seqs_) + "%";
+    out += "\nEdges: " + std::to_string(edges_);
+    out += "\nAirlines: " + std::to_string(airlines_) + " / " + percentage(airlines_, edges_) + "%";
+    out += "\nIn station: " + std::to_string(edges_in_station_) + " / " + percentage(edges_in_station_, edges_) + "%";
+    out += "\nAirlines without stations: " + std::to_string(airlines_without_) + " / " + percentage(airlines_without_, edges_) + "%";
+    return out;
+  }
+
+  std::string percentage(int share, int total){
+    if(total < 0)
+      return std::to_string(0);
+    return std::to_string(((float) share / (float) total)*100);
+  }
+
+  int airlines_ = 0;
+  int airlines_without_ = 0;
+  int edges_in_station_ = 0;
+  int not_broken_ = 0;
+  int edges_ = 0;
+  int seqs_ = 0;
+  int matched_ = 0;
+};
+
 int main(int argc, char** argv) {
   prepare_settings opt;
 
@@ -87,7 +116,7 @@ int main(int argc, char** argv) {
 
   auto sequences = load_station_sequences(schedule);
 
-  // auto const extent_polygon = read_poly_file(opt.extent_);
+  auto const extent_polygon = read_poly_file(opt.extent_);
   sequences.erase(
       std::remove_if(begin(sequences), end(sequences),
                      [&](auto const& seq) {
@@ -98,14 +127,14 @@ int main(int argc, char** argv) {
                          return true;
                        }
 
-                       // if (std::any_of(begin(seq.coordinates_),
-                       // end(seq.coordinates_),
-                       //                 [&](auto const& coord) {
-                       //                   return !within(coord,
-                       //                   extent_polygon);
-                       //                 })) {
-                       //   return true;
-                       // }
+                       if (std::any_of(begin(seq.coordinates_),
+                       end(seq.coordinates_),
+                                       [&](auto const& coord) {
+                                         return !within(coord,
+                                         extent_polygon);
+                                       })) {
+                         return true;
+                       }
 
                        // if (seq.station_ids_.front() != "8000105" ||
                        //     seq.station_ids_.back() != "8000126") {
@@ -121,13 +150,16 @@ int main(int argc, char** argv) {
 
   flatbuffers::FlatBufferBuilder fbb;
   std::vector<flatbuffers::Offset<motis::routes::Route>> fbs_routes;
+  stats stats;
+  stats.seqs_ = sequences.size();
 
   for (auto i = 0u; i < sequences.size(); ++i) {
     auto const& seq = sequences[i];
     auto const& relations = rel_matches[i];
-
     std::cout << "\nusing " << relations.size() << "relations";
-
+    if(relations.size() > 0){
+      stats.matched_++;
+    }
     auto fbs_stations = transform_to_vec(
         seq.station_ids_,
         [&](auto const& station_id) { return fbb.CreateString(station_id); });
@@ -158,18 +190,30 @@ int main(int argc, char** argv) {
       std::cout << '\n' << dijkstra.get_distance(*best_goal_it);
 
       std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
+      float save = stats.airlines_;
       for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
         // std::cout << "\n"
         //           << edge->from_->idx_ << " -> " << edge->to_->idx_ << "("
         //           << edge->weight_ << ")";
+        stats.edges_++;
+        if(edge->source_.type_ == source_spec::type::AIRLINE){
+          stats.airlines_++;
+        }
+        if(edge->source_.station_){
+          stats.edges_in_station_++;
+          if(edge->source_.type_ == source_spec::type::AIRLINE){
+            stats.airlines_without_++;
+          }
+        }
         append(lines[edge->from_->station_idx_], edge->p_);
       }
-
+      if(save == stats.airlines_){
+        stats.not_broken_++;
+      }
       // std::stringstream ss;
       // ss << "debug/polyline." << seq.station_ids_.front() << "-"
       //    << seq.station_ids_.back() << "." << i << ".json";
       // dump_polylines(lines, ss.str().c_str());
-
       std::vector<flatbuffers::Offset<Polyline>> fbs_lines;
       for (auto const& line : lines) {
         std::vector<double> flat_polyline;
@@ -186,7 +230,8 @@ int main(int argc, char** argv) {
                                        fbb.CreateVector(fbs_lines)));
     }
   }
-
+  std::cout << "\n" << stats.report();
+  std::cout << "\n";
   fbb.Finish(CreateRoutesAuxiliary(fbb,
                                    write_stop_positions(fbb, stop_positions),
                                    fbb.CreateVector(fbs_routes)));

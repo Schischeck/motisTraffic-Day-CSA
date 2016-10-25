@@ -31,7 +31,7 @@ void add_matches(seq_graph& g, source_spec::category const& category,
                         begin(m.polyline_) + station.second + 1);
 
         nodes[node_idx - 1]->edges_.emplace_back(
-            nodes[node_idx - 1].get(), nodes[node_idx].get(), polyline, 0);
+            nodes[node_idx - 1].get(), nodes[node_idx].get(), polyline, source_spec(0, category, source_spec::type::POLYLINE), 0);
       }
     }
   }
@@ -68,7 +68,9 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
       }
 
       auto const& p = polylines[i][j];
-      from->edges_.emplace_back(from, to, p.polyline_, p.weight_);
+      source_spec source(p.source_.id_, p.source_.category_, p.source_.type_);
+      source.station_ = from->station_idx_ == to->station_idx_;
+      from->edges_.emplace_back(from, to, p.polyline_, source, p.weight_);
     }
   }
 }

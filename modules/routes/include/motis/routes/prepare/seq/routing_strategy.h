@@ -6,6 +6,8 @@
 #include "geo/latlng.h"
 #include "geo/polyline.h"
 
+#include "motis/routes/prepare/source_spec.h"
+
 namespace motis {
 namespace routes {
 
@@ -21,9 +23,10 @@ struct node_ref {
 };
 
 struct routing_result {
-  routing_result(geo::polyline polyline, double weight)
-      : polyline_(std::move(polyline)), weight_(weight) {}
+  routing_result(geo::polyline polyline, source_spec s, double weight)
+      : polyline_(std::move(polyline)), source_(s), weight_(weight) {}
   geo::polyline polyline_;
+  source_spec source_;
   double weight_;
 };
 
@@ -41,12 +44,11 @@ struct stub_routing : routing_strategy {
   virtual std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
     std::vector<std::vector<routing_result>> result;
-
     for (auto const& f : from) {
       std::vector<routing_result> from_result;
 
       for (auto const& t : to) {
-        from_result.emplace_back(geo::polyline{f.coords_, t.coords_},
+        from_result.emplace_back(geo::polyline{f.coords_, t.coords_}, source_spec(0, source_spec::category::UNKNOWN, source_spec::type::AIRLINE),
                                  distance(f.coords_, t.coords_));
       }
       result.emplace_back(std::move(from_result));

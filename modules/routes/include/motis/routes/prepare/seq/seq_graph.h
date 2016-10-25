@@ -6,6 +6,8 @@
 #include "geo/latlng.h"
 #include "geo/polyline.h"
 
+#include "motis/routes/prepare/source_spec.h"
+
 namespace motis {
 namespace routes {
 
@@ -23,12 +25,13 @@ struct seq_node {
 };
 
 struct seq_edge {
-  seq_edge(seq_node* from, seq_node* to, geo::polyline p, double weight)
-      : from_(from), to_(to), p_(std::move(p)), weight_(weight) {}
+  seq_edge(seq_node* from, seq_node* to, geo::polyline p, source_spec s, double weight)
+      : from_(from), to_(to), p_(std::move(p)), source_(s), weight_(weight) {}
 
   seq_node* from_;
   seq_node* to_;
   geo::polyline p_;
+  source_spec source_;
   double weight_;
 };
 

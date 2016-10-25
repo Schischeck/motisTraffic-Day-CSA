@@ -54,7 +54,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
 
     auto cat = is_rail ? source_spec::category::RAILWAY
                        : source_spec::category::UNKNOWN;
-    result.relations_.push_back({{relation.id(), cat}, ways});
+    result.relations_.push_back({{relation.id(), cat, source_spec::type::RELATION}, ways});
   });
 
   std::string platform = "platform";
