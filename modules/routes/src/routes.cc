@@ -9,6 +9,7 @@
 #include "motis/module/context/motis_call.h"
 
 #include "motis/routes/auxiliary_data.h"
+#include "motis/routes/db/database.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -23,12 +24,13 @@ routes::routes()
     : module("Routes", "routes"), aux_(std::make_unique<auxiliary_data>()) {
   string_param(aux_file_, "routes-auxiliary.raw", "aux",
                "/path/to/routes-auxiliary.raw");
+  string_param(database_path_, "database", "db", "/path/to/routes-database");
 };
 routes::~routes() = default;
 
 void routes::init(registry& r) {
   aux_->load(aux_file_);
-
+  db_ = std::make_unique<database>(database_path_);
   r.register_op("/routes/id_train",
                 [this](msg_ptr const& m) { return id_train_routes(m); });
 }

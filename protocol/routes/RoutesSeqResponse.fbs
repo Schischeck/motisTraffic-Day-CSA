@@ -1,0 +1,9 @@
+include "base/Polyline.fbs";
+
+namespace motis.routes;
+
+table RoutesSeqResponse {
+  station_ids: [string];
+  classes: [uint];
+  segments: [Polyline];
+}

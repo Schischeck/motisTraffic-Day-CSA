@@ -48,7 +48,9 @@ struct stub_routing : routing_strategy {
       std::vector<routing_result> from_result;
 
       for (auto const& t : to) {
-        from_result.emplace_back(geo::polyline{f.coords_, t.coords_}, source_spec(0, source_spec::category::UNKNOWN, source_spec::type::AIRLINE),
+        from_result.emplace_back(geo::polyline{f.coords_, t.coords_},
+                                 source_spec(0, source_spec::category::UNKNOWN,
+                                             source_spec::type::AIRLINE),
                                  distance(f.coords_, t.coords_));
       }
       result.emplace_back(std::move(from_result));

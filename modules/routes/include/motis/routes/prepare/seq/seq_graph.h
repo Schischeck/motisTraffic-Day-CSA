@@ -25,7 +25,8 @@ struct seq_node {
 };
 
 struct seq_edge {
-  seq_edge(seq_node* from, seq_node* to, geo::polyline p, source_spec s, double weight)
+  seq_edge(seq_node* from, seq_node* to, geo::polyline p, source_spec s,
+           double weight)
       : from_(from), to_(to), p_(std::move(p)), source_(s), weight_(weight) {}
 
   seq_node* from_;
@@ -58,7 +59,6 @@ struct seq_graph {
 //     }
 //   }
 // }
-
 
 }  // namespace routes
 }  // namespace motis

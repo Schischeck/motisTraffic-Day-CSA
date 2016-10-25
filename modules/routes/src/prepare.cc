@@ -54,22 +54,26 @@ struct prepare_settings : public conf::simple_config {
 
 struct stats {
 
-  std::string report(){
+  std::string report() {
     std::string out = "";
     out += "\nSequences: " + std::to_string(seqs_);
-    out += "\nNot broken: " + std::to_string(not_broken_) + " / " + percentage(not_broken_, seqs_) + "%";
-    out += "\nUsing relations: " + std::to_string(matched_) + " / " + percentage(matched_, seqs_) + "%";
+    out += "\nNot broken: " + std::to_string(not_broken_) + " / " +
+           percentage(not_broken_, seqs_) + "%";
+    out += "\nUsing relations: " + std::to_string(matched_) + " / " +
+           percentage(matched_, seqs_) + "%";
     out += "\nEdges: " + std::to_string(edges_);
-    out += "\nAirlines: " + std::to_string(airlines_) + " / " + percentage(airlines_, edges_) + "%";
-    out += "\nIn station: " + std::to_string(edges_in_station_) + " / " + percentage(edges_in_station_, edges_) + "%";
-    out += "\nAirlines without stations: " + std::to_string(airlines_without_) + " / " + percentage(airlines_without_, edges_) + "%";
+    out += "\nAirlines: " + std::to_string(airlines_) + " / " +
+           percentage(airlines_, edges_) + "%";
+    out += "\nIn station: " + std::to_string(edges_in_station_) + " / " +
+           percentage(edges_in_station_, edges_) + "%";
+    out += "\nAirlines without stations: " + std::to_string(airlines_without_) +
+           " / " + percentage(airlines_without_, edges_) + "%";
     return out;
   }
 
-  std::string percentage(int share, int total){
-    if(total < 0)
-      return std::to_string(0);
-    return std::to_string(((float) share / (float) total)*100);
+  std::string percentage(int share, int total) {
+    if (total < 0) return std::to_string(0);
+    return std::to_string(((float)share / (float)total) * 100);
   }
 
   int airlines_ = 0;
@@ -118,31 +122,29 @@ int main(int argc, char** argv) {
 
   auto const extent_polygon = read_poly_file(opt.extent_);
   sequences.erase(
-      std::remove_if(begin(sequences), end(sequences),
-                     [&](auto const& seq) {
-                       if (seq.categories_.empty() ||
-                           std::none_of(
-                               begin(seq.categories_), end(seq.categories_),
-                               [](auto const& cat) { return cat < 6; })) {
-                         return true;
-                       }
+      std::remove_if(
+          begin(sequences), end(sequences),
+          [&](auto const& seq) {
+            if (seq.categories_.empty() ||
+                std::none_of(begin(seq.categories_), end(seq.categories_),
+                             [](auto const& cat) { return cat < 6; })) {
+              return true;
+            }
 
-                       if (std::any_of(begin(seq.coordinates_),
-                       end(seq.coordinates_),
-                                       [&](auto const& coord) {
-                                         return !within(coord,
-                                         extent_polygon);
-                                       })) {
-                         return true;
-                       }
+            if (std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
+                            [&](auto const& coord) {
+                              return !within(coord, extent_polygon);
+                            })) {
+              return true;
+            }
 
-                       // if (seq.station_ids_.front() != "8000105" ||
-                       //     seq.station_ids_.back() != "8000126") {
-                       //   return true;
-                       // }
+            // if (seq.station_ids_.front() != "8000105" ||
+            //     seq.station_ids_.back() != "8000126") {
+            //   return true;
+            // }
 
-                       return false;
-                     }),
+            return false;
+          }),
       end(sequences));
 
   auto const rel_matches =
@@ -157,7 +159,7 @@ int main(int argc, char** argv) {
     auto const& seq = sequences[i];
     auto const& relations = rel_matches[i];
     std::cout << "\nusing " << relations.size() << "relations";
-    if(relations.size() > 0){
+    if (relations.size() > 0) {
       stats.matched_++;
     }
     auto fbs_stations = transform_to_vec(
@@ -196,18 +198,18 @@ int main(int argc, char** argv) {
         //           << edge->from_->idx_ << " -> " << edge->to_->idx_ << "("
         //           << edge->weight_ << ")";
         stats.edges_++;
-        if(edge->source_.type_ == source_spec::type::AIRLINE){
+        if (edge->source_.type_ == source_spec::type::AIRLINE) {
           stats.airlines_++;
         }
-        if(edge->source_.station_){
+        if (edge->source_.station_) {
           stats.edges_in_station_++;
-          if(edge->source_.type_ == source_spec::type::AIRLINE){
+          if (edge->source_.type_ == source_spec::type::AIRLINE) {
             stats.airlines_without_++;
           }
         }
         append(lines[edge->from_->station_idx_], edge->p_);
       }
-      if(save == stats.airlines_){
+      if (save == stats.airlines_) {
         stats.not_broken_++;
       }
       // std::stringstream ss;

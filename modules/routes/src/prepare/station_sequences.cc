@@ -40,7 +40,6 @@ std::vector<station_seq> load_station_sequences(
     for (auto const& section : *service->sections()) {
       seq.train_nrs_.insert(section->train_nr());
 
-
       auto it = mapping.find(section->category()->name()->str());
       if (it != end(mapping)) {
         seq.categories_.emplace(it->second);

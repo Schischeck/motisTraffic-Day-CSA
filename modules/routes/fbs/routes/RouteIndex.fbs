@@ -1,0 +1,11 @@
+namespace motis.routes;
+
+table RouteLookup {
+	indices: [RouteIndex];
+}
+
+table RouteIndex {
+  station_ids: [string];
+  classes: [uint];
+  index: string;
+}

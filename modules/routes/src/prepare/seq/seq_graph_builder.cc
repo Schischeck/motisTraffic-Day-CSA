@@ -31,7 +31,8 @@ void add_matches(seq_graph& g, source_spec::category const& category,
                         begin(m.polyline_) + station.second + 1);
 
         nodes[node_idx - 1]->edges_.emplace_back(
-            nodes[node_idx - 1].get(), nodes[node_idx].get(), polyline, source_spec(0, category, source_spec::type::POLYLINE), 0);
+            nodes[node_idx - 1].get(), nodes[node_idx].get(), polyline,
+            source_spec(0, category, source_spec::type::POLYLINE), 0);
       }
     }
   }

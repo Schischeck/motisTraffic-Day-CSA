@@ -15,6 +15,7 @@ namespace motis {
 namespace routes {
 
 struct auxiliary_data;
+struct database;
 
 struct routes : public motis::module::module {
   routes();
@@ -34,6 +35,8 @@ private:
 
   motis::module::msg_ptr trip_to_osrm_request(schedule const&, trip const*);
 
+  std::string database_path_;
+  std::unique_ptr<database> db_;
   std::string aux_file_;
   std::unique_ptr<auxiliary_data> aux_;
 };
