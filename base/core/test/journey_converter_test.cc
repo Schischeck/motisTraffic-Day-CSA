@@ -29,7 +29,7 @@ journey create_journey1() {
   journey j;
   j.duration_ = 30;
   j.price_ = 10;
-  j.transfers_ = 1;
+  j.transfers_ = 2;
   j.db_costs_ = 100;
   j.night_penalty_ = 200;
 
