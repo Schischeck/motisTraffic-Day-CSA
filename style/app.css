@@ -91,8 +91,16 @@
 
 .train-list {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   /*justify-content: space-between;*/
+}
+
+.train-list .train-box:first-of-type {
+  margin-left: 0;
+}
+
+.train-list .train-box:last-of-type {
+  margin-right: 0;
 }
 
 .train-box {
@@ -113,6 +121,16 @@
 
 .train-box .train-name {
   margin: 0 4px 0 4px;
+}
+
+.train-sep {
+  height: 1em;
+  margin: 7px -4px 0 -4px;
+  color: #ccc;
+}
+
+.connection .train-sep {
+  cursor: pointer;
 }
 
 .train-box.train-class-0 {
@@ -147,12 +165,6 @@
 
 .train-box.train-class-9 {
   background-color: #9e9e9e;
-}
-
-.train-sep {
-  height: 1em;
-  margin-top: 0.2em;
-  color: #ccc;
 }
 
 .neg-delay {

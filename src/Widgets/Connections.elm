@@ -3,10 +3,9 @@ module Widgets.Connections exposing (Model, Config(..), Msg(..), init, update, v
 import Html exposing (Html, div, ul, li, text, span, i)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
-import Html.Lazy exposing (lazy)
-import Svg
-import Svg.Attributes exposing (xlinkHref)
+import Html.Lazy exposing (..)
 import Date exposing (Date)
+import String
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
 import Data.Journey.Types as Journey exposing (Journey, Train)
@@ -193,9 +192,14 @@ connectionView (Config { internalMsg, selectMsg }) idx j =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-15-24 connection-trains" ]
-                [ trainsView LongName j ]
+                [ trainsView (pickTransportViewMode transportListViewWidth j) j ]
             ]
         ]
+
+
+transportListViewWidth : Int
+transportListViewWidth =
+    380
 
 
 scheduleRangeView : Model -> Html msg
@@ -233,7 +237,7 @@ view config model =
                     , scheduleRangeView model
                     ]
     else
-        lazy (connectionsView config) model
+        lazy2 connectionsView config model
 
 
 motisErrorMsg : MotisErrorInfo -> String
@@ -244,6 +248,66 @@ motisErrorMsg err =
 
         _ ->
             "Interner Fehler (" ++ (toString err) ++ ")"
+
+
+pickTransportViewMode : Int -> Journey -> TransportViewMode
+pickTransportViewMode maxTotalWidth { trains } =
+    let
+        separators =
+            16 * ((List.length trains) - 1)
+
+        iconOnlyBase =
+            32
+
+        iconTextBase =
+            40
+
+        avgCharWidth =
+            9
+
+        transportName f train =
+            case List.head train.transports of
+                Just t ->
+                    f t
+
+                Nothing ->
+                    "???"
+
+        boxWidth viewMode t =
+            case viewMode of
+                LongName ->
+                    iconTextBase
+                        + avgCharWidth
+                        * String.length (transportName longTransportName t)
+
+                ShortName ->
+                    iconTextBase
+                        + avgCharWidth
+                        * String.length (transportName shortTransportName t)
+
+                IconOnly ->
+                    iconOnlyBase
+
+                IconOnlyNoSep ->
+                    iconOnlyBase
+
+        longNameWidth =
+            separators + (List.sum <| List.map (boxWidth LongName) trains)
+
+        shortNameWidth =
+            separators + (List.sum <| List.map (boxWidth ShortName) trains)
+
+        iconOnlyWidth =
+            separators + (List.sum <| List.map (boxWidth IconOnly) trains)
+    in
+        if longNameWidth <= maxTotalWidth then
+            LongName
+        else if shortNameWidth <= maxTotalWidth then
+            ShortName
+        else if iconOnlyWidth <= maxTotalWidth then
+            IconOnly
+        else
+            IconOnlyNoSep
 
 
 
