@@ -18,13 +18,11 @@ namespace motis {
 namespace cc {
 
 struct interchange {
-  interchange() = default;
-  interchange(ev_key leave, ev_key enter)
-      : leave_(std::move(leave)), enter_(std::move(enter)) {}
   void reset() {
     enter_ = ev_key();
     leave_ = ev_key();
   }
+  std::size_t leave_stop_idx_, enter_stop_idx_;
   ev_key leave_, enter_;
 };
 
@@ -85,6 +83,7 @@ std::vector<interchange> get_interchanges(schedule const& sched,
   for (auto const& s : *con->stops()) {
     if (s->enter()) {
       ic.enter_ = get_event_at(sched, con, stop_idx, event_type::DEP);
+      ic.enter_stop_idx_ = stop_idx;
       if (ic.leave_.valid()) {
         evs.emplace_back(std::move(ic));
       }
@@ -93,6 +92,7 @@ std::vector<interchange> get_interchanges(schedule const& sched,
     if (s->leave()) {
       ic.reset();
       ic.leave_ = get_event_at(sched, con, stop_idx, event_type::ARR);
+      ic.leave_stop_idx_ = stop_idx;
     }
 
     ++stop_idx;
@@ -101,18 +101,51 @@ std::vector<interchange> get_interchanges(schedule const& sched,
   return evs;
 }
 
-void check_interchange(interchange const& ic) {
-  if (ic.leave_.get_station_idx() != ic.enter_.get_station_idx()) {
-    // TODO(felix) check walk times
+motis::time get_foot_edge_duration(schedule const& sched, Connection const* con,
+                                   std::size_t src_stop_idx) {
+  verify(src_stop_idx + 1 < con->stops()->Length(),
+         "walk target index out of range");
+
+  auto const from = get_station(
+      sched, con->stops()->Get(src_stop_idx)->station()->id()->str());
+  auto const to = get_station(
+      sched, con->stops()->Get(src_stop_idx + 1)->station()->id()->str());
+
+  auto const from_node = sched.station_nodes_.at(from->index_).get();
+  auto const to_node = sched.station_nodes_.at(to->index_).get();
+
+  verify(from_node->foot_node_ != nullptr, "walk src node has no foot node");
+  auto const& foot_edges = from_node->foot_node_->edges_;
+  auto const fe_it =
+      std::find_if(begin(foot_edges), end(foot_edges),
+                   [](edge const& e) { return e.to_ == to_node; });
+  verify(fe_it != end(foot_edges), "foot edge not found");
+
+  return fe_it->get_minimum_cost().time_;
+}
+
+void check_interchange(schedule const& sched, Connection const* con,
+                       interchange const& ic) {
+  auto const transfer_time = ic.enter_.get_time() - ic.leave_.get_time();
+  if (ic.leave_stop_idx_ == ic.enter_stop_idx_) {
+    verify(transfer_time >=
+               sched.stations_.at(ic.enter_.get_station_idx())->transfer_time_,
+           "transfer time below station transfer time");
   } else {
-    // TODO(felix) check interchange times
+    auto const min_transfer_time = 0;
+    for (auto i = ic.leave_stop_idx_; i < ic.enter_stop_idx_; ++i) {
+      min_transfer_time += get_foot_edge_duration(sched, con, i);
+    }
+    verify(transfer_time >= min_transfer_time,
+           "transfer below walk tranfer time");
   }
 }
 
 msg_ptr cc::check_journey(msg_ptr const& msg) const {
   auto const con = motis_content(Connection, msg);
-  for (auto const& ic : get_interchanges(get_schedule(), con)) {
-    check_interchange(ic);
+  auto const& sched = get_schedule();
+  for (auto const& ic : get_interchanges(sched, con)) {
+    check_interchange(sched, con, ic);
   }
   return msg;
 }
