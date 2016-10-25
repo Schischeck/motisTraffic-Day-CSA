@@ -118,7 +118,7 @@ motis::time get_foot_edge_duration(schedule const& sched, Connection const* con,
   auto const& foot_edges = from_node->foot_node_->edges_;
   auto const fe_it =
       std::find_if(begin(foot_edges), end(foot_edges),
-                   [](edge const& e) { return e.to_ == to_node; });
+                   [&to_node](edge const& e) { return e.to_ == to_node; });
   verify(fe_it != end(foot_edges), "foot edge not found");
 
   return fe_it->get_minimum_cost().time_;
@@ -132,7 +132,7 @@ void check_interchange(schedule const& sched, Connection const* con,
                sched.stations_.at(ic.enter_.get_station_idx())->transfer_time_,
            "transfer time below station transfer time");
   } else {
-    auto const min_transfer_time = 0;
+    auto min_transfer_time = 0;
     for (auto i = ic.leave_stop_idx_; i < ic.enter_stop_idx_; ++i) {
       min_transfer_time += get_foot_edge_duration(sched, con, i);
     }
