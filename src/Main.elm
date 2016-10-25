@@ -401,8 +401,11 @@ urlUpdate result model =
 selectConnection : Bool -> Model -> Int -> ( Model, Cmd Msg )
 selectConnection updateUrl model idx =
     let
+        realIndex =
+            idx - model.connections.indexOffset
+
         journey =
-            model.connections.journeys !! idx
+            model.connections.journeys !! realIndex
     in
         case journey of
             Just j ->

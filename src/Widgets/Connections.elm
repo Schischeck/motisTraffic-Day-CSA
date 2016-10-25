@@ -38,6 +38,7 @@ type alias Model =
     { loading : Bool
     , remoteAddress : String
     , journeys : List Journey
+    , indexOffset : Int
     , errorMessage : Maybe String
     , scheduleInfo : Maybe ScheduleInfo
     , routingRequest : Maybe RoutingRequest
@@ -219,8 +220,22 @@ updateModelWithNewResults model action connections =
 
                 AppendResults ->
                     model.journeys ++ journeysToAdd
+
+        newIndexOffset =
+            case action of
+                ReplaceResults ->
+                    0
+
+                PrependResults ->
+                    model.indexOffset - (List.length journeysToAdd)
+
+                AppendResults ->
+                    model.indexOffset
     in
-        { base | journeys = newJourneys }
+        { base
+            | journeys = newJourneys
+            , indexOffset = newIndexOffset
+        }
 
 
 
@@ -240,7 +255,11 @@ connectionsView config model =
                 [ text "Verkehrsmittel" ]
             ]
         , div [ class "connection-list" ]
-            (List.indexedMap (connectionView config) model.journeys)
+            (List.map2
+                (connectionView config)
+                [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
+                model.journeys
+            )
         , extendIntervalButton ExtendAfter config model
         ]
 
@@ -453,6 +472,7 @@ init remoteAddress =
     { loading = False
     , remoteAddress = remoteAddress
     , journeys = []
+    , indexOffset = 0
     , errorMessage = Nothing
     , scheduleInfo = Nothing
     , routingRequest = Nothing
