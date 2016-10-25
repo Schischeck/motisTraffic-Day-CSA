@@ -64,8 +64,8 @@ type Msg
     = NoOp
     | Search SearchAction RoutingRequest
     | ExtendSearchInterval ExtendIntervalType
-    | ReceiveResponse SearchAction (List Connection)
-    | ReceiveError SearchAction ApiError
+    | ReceiveResponse SearchAction RoutingRequest (List Connection)
+    | ReceiveError SearchAction RoutingRequest ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
 
 
@@ -89,6 +89,8 @@ update msg model =
         Search action req ->
             { model
                 | loading = True
+                , loadingBefore = False
+                , loadingAfter = False
                 , routingRequest = Just req
             }
                 ! [ sendRequest model.remoteAddress ReplaceResults req ]
@@ -134,34 +136,17 @@ update msg model =
                 Nothing ->
                     model ! []
 
-        ReceiveResponse action connections ->
-            (updateModelWithNewResults model action connections) ! []
+        ReceiveResponse action request connections ->
+            if belongsToCurrentSearch model request then
+                (updateModelWithNewResults model action request connections) ! []
+            else
+                model ! []
 
-        ReceiveError action msg' ->
-            let
-                errorMsg =
-                    case msg' of
-                        MotisError err ->
-                            motisErrorMsg err
-
-                        TimeoutError ->
-                            "Request timeout"
-
-                        NetworkError ->
-                            "Network error"
-
-                        HttpError status ->
-                            "HTTP error " ++ (toString status)
-
-                        DecodeError msg ->
-                            "Invalid response: " ++ msg
-            in
-                { model
-                    | loading = False
-                    , errorMessage = Just errorMsg
-                    , journeys = []
-                }
-                    ! []
+        ReceiveError action request msg' ->
+            if belongsToCurrentSearch model request then
+                (handleRequestError model action request msg') ! []
+            else
+                model ! []
 
         UpdateScheduleInfo si ->
             { model | scheduleInfo = si } ! []
@@ -214,8 +199,13 @@ extendSearchInterval direction base =
         )
 
 
-updateModelWithNewResults : Model -> SearchAction -> List Connection -> Model
-updateModelWithNewResults model action connections =
+updateModelWithNewResults :
+    Model
+    -> SearchAction
+    -> RoutingRequest
+    -> List Connection
+    -> Model
+updateModelWithNewResults model action request connections =
     let
         base =
             case action of
@@ -265,6 +255,66 @@ updateModelWithNewResults model action connections =
             | journeys = newJourneys
             , indexOffset = newIndexOffset
         }
+
+
+handleRequestError :
+    Model
+    -> SearchAction
+    -> RoutingRequest
+    -> ApiError
+    -> Model
+handleRequestError model action request msg =
+    let
+        errorMsg =
+            case msg of
+                MotisError err ->
+                    motisErrorMsg err
+
+                TimeoutError ->
+                    "Request timeout"
+
+                NetworkError ->
+                    "Network error"
+
+                HttpError status ->
+                    "HTTP error " ++ (toString status)
+
+                DecodeError msg ->
+                    "Invalid response: " ++ msg
+
+        newModel =
+            case action of
+                ReplaceResults ->
+                    { model
+                        | loading = False
+                        , errorMessage = Just errorMsg
+                        , journeys = []
+                    }
+
+                PrependResults ->
+                    { model
+                        | loadingBefore = False
+                    }
+
+                AppendResults ->
+                    { model
+                        | loadingAfter = False
+                    }
+    in
+        newModel
+
+
+belongsToCurrentSearch : Model -> RoutingRequest -> Bool
+belongsToCurrentSearch model check =
+    case model.routingRequest of
+        Just currentRequest ->
+            (currentRequest.from == check.from)
+                && (currentRequest.to == check.to)
+                && (currentRequest.intervalStart <= check.intervalStart)
+                && (currentRequest.intervalEnd >= check.intervalEnd)
+
+        Nothing ->
+            False
 
 
 
@@ -545,6 +595,6 @@ sendRequest remoteAddress action request =
     Api.sendRequest
         remoteAddress
         Data.Connection.Decode.decodeRoutingResponse
-        (ReceiveError action)
-        (ReceiveResponse action)
+        (ReceiveError action request)
+        (ReceiveResponse action request)
         (encodeRequest request)
