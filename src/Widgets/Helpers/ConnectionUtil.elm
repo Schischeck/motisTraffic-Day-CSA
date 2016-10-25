@@ -85,7 +85,7 @@ trainBox viewMode t =
             Svg.svg
                 [ Svg.Attributes.class "train-icon" ]
                 [ Svg.use
-                    [ xlinkHref <| "icons.svg#" ++ (trainIcon t.class) ]
+                    [ xlinkHref <| "#" ++ (trainIcon t.class) ]
                     []
                 ]
 
