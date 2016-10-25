@@ -9,15 +9,16 @@ import Util.Date exposing (unixTime)
 type alias RoutingRequest =
     { from : String
     , to : String
-    , date : Date
+    , intervalStart : Int
+    , intervalEnd : Int
     }
 
 
-encodeRequest : RoutingRequest -> Encode.Value
-encodeRequest request =
+initialRequest : String -> String -> Date -> RoutingRequest
+initialRequest from to date =
     let
         selectedTime =
-            unixTime request.date
+            unixTime date
 
         startTime =
             selectedTime - 3600
@@ -25,37 +26,46 @@ encodeRequest request =
         endTime =
             selectedTime + 3600
     in
-        Encode.object
-            [ "destination"
-                => Encode.object
-                    [ "type" => Encode.string "Module"
-                    , "target" => Encode.string "/routing"
-                    ]
-            , "content_type" => Encode.string "RoutingRequest"
-            , "content"
-                => Encode.object
-                    [ "start_type" => Encode.string "PretripStart"
-                    , "start"
-                        => Encode.object
-                            [ "station"
-                                => Encode.object
-                                    [ "name" => Encode.string request.from
-                                    , "id" => Encode.string ""
-                                    ]
-                            , "interval"
-                                => Encode.object
-                                    [ "begin" => Encode.int startTime
-                                    , "end" => Encode.int endTime
-                                    ]
-                            ]
-                    , "destination"
-                        => Encode.object
-                            [ "name" => Encode.string request.to
-                            , "id" => Encode.string ""
-                            ]
-                    , "search_type" => Encode.string "Default"
-                    , "search_dir" => Encode.string "Forward"
-                    , "via" => Encode.list []
-                    , "additional_edges" => Encode.list []
-                    ]
-            ]
+        { from = from
+        , to = to
+        , intervalStart = startTime
+        , intervalEnd = endTime
+        }
+
+
+encodeRequest : RoutingRequest -> Encode.Value
+encodeRequest request =
+    Encode.object
+        [ "destination"
+            => Encode.object
+                [ "type" => Encode.string "Module"
+                , "target" => Encode.string "/routing"
+                ]
+        , "content_type" => Encode.string "RoutingRequest"
+        , "content"
+            => Encode.object
+                [ "start_type" => Encode.string "PretripStart"
+                , "start"
+                    => Encode.object
+                        [ "station"
+                            => Encode.object
+                                [ "name" => Encode.string request.from
+                                , "id" => Encode.string ""
+                                ]
+                        , "interval"
+                            => Encode.object
+                                [ "begin" => Encode.int request.intervalStart
+                                , "end" => Encode.int request.intervalEnd
+                                ]
+                        ]
+                , "destination"
+                    => Encode.object
+                        [ "name" => Encode.string request.to
+                        , "id" => Encode.string ""
+                        ]
+                , "search_type" => Encode.string "Default"
+                , "search_dir" => Encode.string "Forward"
+                , "via" => Encode.list []
+                , "additional_edges" => Encode.list []
+                ]
+        ]

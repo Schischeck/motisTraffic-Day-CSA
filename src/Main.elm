@@ -10,6 +10,7 @@ import Widgets.ConnectionDetails as ConnectionDetails
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
+import Data.Routing.Request as RoutingRequest
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
@@ -17,6 +18,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.App as App
+import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
 import Task
 import String
@@ -166,11 +168,11 @@ update msg model =
             let
                 ( m, c ) =
                     Connections.update
-                        (Connections.Search
-                            { from = model.fromLocation.input
-                            , to = model.toLocation.input
-                            , date = (combineDateTime model.date.date model.time.date)
-                            }
+                        (Connections.Search Connections.ReplaceResults <|
+                            RoutingRequest.initialRequest
+                                model.fromLocation.input
+                                model.toLocation.input
+                                (combineDateTime model.date.date model.time.date)
                         )
                         model.connections
             in
@@ -315,7 +317,7 @@ searchView model =
             ]
         ]
     , div [ id "connections" ]
-        [ Connections.view connectionConfig model.connections ]
+        [ lazy2 Connections.view connectionConfig model.connections ]
     ]
 
 

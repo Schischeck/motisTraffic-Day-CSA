@@ -1,10 +1,18 @@
-module Widgets.Connections exposing (Model, Config(..), Msg(..), init, update, view)
+module Widgets.Connections
+    exposing
+        ( Model
+        , Config(..)
+        , Msg(..)
+        , SearchAction(..)
+        , init
+        , update
+        , view
+        )
 
-import Html exposing (Html, div, ul, li, text, span, i)
+import Html exposing (Html, div, ul, li, text, span, i, a)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
-import Date exposing (Date)
 import String
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
@@ -32,6 +40,7 @@ type alias Model =
     , journeys : List Journey
     , errorMessage : Maybe String
     , scheduleInfo : Maybe ScheduleInfo
+    , routingRequest : Maybe RoutingRequest
     }
 
 
@@ -48,41 +57,64 @@ type Config msg
 
 type Msg
     = NoOp
-    | Search Request
-    | ReceiveResponse (List Connection)
-    | ReceiveError ApiError
+    | Search SearchAction RoutingRequest
+    | ExtendSearchInterval ExtendIntervalType
+    | ReceiveResponse SearchAction (List Connection)
+    | ReceiveError SearchAction ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
 
 
-type alias Request =
-    { from : String
-    , to : String
-    , date : Date
-    }
+type ExtendIntervalType
+    = ExtendBefore
+    | ExtendAfter
+
+
+type SearchAction
+    = ReplaceResults
+    | PrependResults
+    | AppendResults
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( updateModel msg model, command msg model )
-
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
     case msg of
         NoOp ->
-            model
+            model ! []
 
-        Search _ ->
-            { model | loading = True }
-
-        ReceiveResponse connections ->
+        Search action req ->
             { model
-                | loading = False
-                , errorMessage = Nothing
-                , journeys = List.map Journey.toJourney connections
+                | loading = True
+                , routingRequest = Just req
             }
+                ! [ sendRequest model.remoteAddress ReplaceResults req ]
 
-        ReceiveError msg' ->
+        ExtendSearchInterval direction ->
+            case model.routingRequest of
+                Just baseRequest ->
+                    let
+                        ( newRequest, updatedFullRequest ) =
+                            extendSearchInterval direction baseRequest
+
+                        action =
+                            case direction of
+                                ExtendBefore ->
+                                    PrependResults
+
+                                ExtendAfter ->
+                                    AppendResults
+                    in
+                        { model
+                            | routingRequest = Just updatedFullRequest
+                        }
+                            ! [ sendRequest model.remoteAddress action newRequest ]
+
+                Nothing ->
+                    model ! []
+
+        ReceiveResponse action connections ->
+            (updateModelWithNewResults model action connections) ! []
+
+        ReceiveError action msg' ->
             let
                 errorMsg =
                     case msg' of
@@ -106,19 +138,89 @@ updateModel msg model =
                     , errorMessage = Just errorMsg
                     , journeys = []
                 }
+                    ! []
 
         UpdateScheduleInfo si ->
-            { model | scheduleInfo = si }
+            { model | scheduleInfo = si } ! []
 
 
-command : Msg -> Model -> Cmd Msg
-command msg model =
-    case msg of
-        Search req ->
-            sendRequest model.remoteAddress req
+extendSearchInterval :
+    ExtendIntervalType
+    -> RoutingRequest
+    -> ( RoutingRequest, RoutingRequest )
+extendSearchInterval direction base =
+    let
+        extendBy =
+            3600 * 2
 
-        _ ->
-            Cmd.none
+        newIntervalStart =
+            case direction of
+                ExtendBefore ->
+                    base.intervalStart - extendBy
+
+                ExtendAfter ->
+                    base.intervalStart
+
+        newIntervalEnd =
+            case direction of
+                ExtendBefore ->
+                    base.intervalEnd
+
+                ExtendAfter ->
+                    base.intervalEnd + extendBy
+
+        newRequest =
+            case direction of
+                ExtendBefore ->
+                    { base
+                        | intervalStart = newIntervalStart
+                        , intervalEnd = base.intervalStart
+                    }
+
+                ExtendAfter ->
+                    { base
+                        | intervalStart = base.intervalEnd
+                        , intervalEnd = newIntervalEnd
+                    }
+    in
+        ( newRequest
+        , { base
+            | intervalStart = newIntervalStart
+            , intervalEnd = newIntervalEnd
+          }
+        )
+
+
+updateModelWithNewResults : Model -> SearchAction -> List Connection -> Model
+updateModelWithNewResults model action connections =
+    let
+        base =
+            case action of
+                ReplaceResults ->
+                    { model
+                        | loading = False
+                        , errorMessage = Nothing
+                    }
+
+                _ ->
+                    model
+
+        journeysToAdd : List Journey
+        journeysToAdd =
+            List.map Journey.toJourney connections
+
+        newJourneys =
+            case action of
+                ReplaceResults ->
+                    journeysToAdd
+
+                PrependResults ->
+                    journeysToAdd ++ model.journeys
+
+                AppendResults ->
+                    model.journeys ++ journeysToAdd
+    in
+        { base | journeys = newJourneys }
 
 
 
@@ -128,7 +230,8 @@ command msg model =
 connectionsView : Config msg -> Model -> Html msg
 connectionsView config model =
     div [ class "connections" ]
-        ([ div [ class "pure-g header" ]
+        [ extendIntervalButton ExtendBefore config model
+        , div [ class "pure-g header" ]
             [ div [ class "pure-u-5-24" ]
                 [ text "Zeit" ]
             , div [ class "pure-u-4-24" ]
@@ -136,9 +239,10 @@ connectionsView config model =
             , div [ class "pure-u-15-24" ]
                 [ text "Verkehrsmittel" ]
             ]
-         ]
-            ++ (List.indexedMap (connectionView config) model.journeys)
-        )
+        , div [ class "connection-list" ]
+            (List.indexedMap (connectionView config) model.journeys)
+        , extendIntervalButton ExtendAfter config model
+        ]
 
 
 trainsView : TransportViewMode -> Journey -> Html msg
@@ -250,6 +354,34 @@ motisErrorMsg err =
             "Interner Fehler (" ++ (toString err) ++ ")"
 
 
+extendIntervalButton : ExtendIntervalType -> Config msg -> Model -> Html msg
+extendIntervalButton direction (Config { internalMsg }) model =
+    let
+        divClass =
+            case direction of
+                ExtendBefore ->
+                    "search-before"
+
+                ExtendAfter ->
+                    "search-after"
+
+        title =
+            case direction of
+                ExtendBefore ->
+                    "Frühere Verbindungen suchen"
+
+                ExtendAfter ->
+                    "Spätere Verbindungen suchen"
+    in
+        div [ class <| divClass ++ " extend-search-interval" ]
+            [ a
+                [ class "gb-button gb-button-small gb-button-PRIMARY_COLOR disable-select"
+                , onClick (internalMsg <| ExtendSearchInterval direction)
+                ]
+                [ text title ]
+            ]
+
+
 pickTransportViewMode : Int -> Journey -> TransportViewMode
 pickTransportViewMode maxTotalWidth { trains } =
     let
@@ -323,6 +455,7 @@ init remoteAddress =
     , journeys = []
     , errorMessage = Nothing
     , scheduleInfo = Nothing
+    , routingRequest = Nothing
     }
 
 
@@ -330,11 +463,11 @@ init remoteAddress =
 -- ROUTING REQUEST / RESPONSE
 
 
-sendRequest : String -> Request -> Cmd Msg
-sendRequest remoteAddress request =
+sendRequest : String -> SearchAction -> RoutingRequest -> Cmd Msg
+sendRequest remoteAddress action request =
     Api.sendRequest
         remoteAddress
         Data.Connection.Decode.decodeRoutingResponse
-        ReceiveError
-        ReceiveResponse
+        (ReceiveError action)
+        (ReceiveResponse action)
         (encodeRequest request)

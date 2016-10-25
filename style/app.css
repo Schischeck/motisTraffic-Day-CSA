@@ -75,6 +75,10 @@
   cursor: pointer;
 }
 
+.connections .header {
+  margin-bottom: -15px;
+}
+
 .connections .header div {
   font-weight: bold;
 }
@@ -165,6 +169,11 @@
 
 .train-box.train-class-9 {
   background-color: #9e9e9e;
+}
+
+.extend-search-interval a {
+  width: 50%;
+  margin: 5px auto;
 }
 
 .neg-delay {
