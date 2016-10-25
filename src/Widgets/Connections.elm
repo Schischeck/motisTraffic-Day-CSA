@@ -13,6 +13,7 @@ import Html exposing (Html, div, ul, li, text, span, i, a)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
+import Html.Keyed as Keyed
 import String
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
@@ -20,6 +21,7 @@ import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.Helpers.ConnectionUtil exposing (..)
+import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Api as Api
     exposing
@@ -36,6 +38,8 @@ import Util.Api as Api
 
 type alias Model =
     { loading : Bool
+    , loadingBefore : Bool
+    , loadingAfter : Bool
     , remoteAddress : String
     , journeys : List Journey
     , indexOffset : Int
@@ -103,9 +107,27 @@ update msg model =
 
                                 ExtendAfter ->
                                     AppendResults
+
+                        loadingBefore' =
+                            case direction of
+                                ExtendBefore ->
+                                    True
+
+                                ExtendAfter ->
+                                    model.loadingBefore
+
+                        loadingAfter' =
+                            case direction of
+                                ExtendBefore ->
+                                    model.loadingAfter
+
+                                ExtendAfter ->
+                                    True
                     in
                         { model
                             | routingRequest = Just updatedFullRequest
+                            , loadingBefore = loadingBefore'
+                            , loadingAfter = loadingAfter'
                         }
                             ! [ sendRequest model.remoteAddress action newRequest ]
 
@@ -203,8 +225,15 @@ updateModelWithNewResults model action connections =
                         , errorMessage = Nothing
                     }
 
-                _ ->
-                    model
+                PrependResults ->
+                    { model
+                        | loadingBefore = False
+                    }
+
+                AppendResults ->
+                    { model
+                        | loadingAfter = False
+                    }
 
         journeysToAdd : List Journey
         journeysToAdd =
@@ -254,9 +283,10 @@ connectionsView config model =
             , div [ class "pure-u-15-24" ]
                 [ text "Verkehrsmittel" ]
             ]
-        , div [ class "connection-list" ]
+        , Keyed.node "div"
+            [ class "connection-list" ]
             (List.map2
-                (connectionView config)
+                (keyedConnectionView config)
                 [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
                 model.journeys
             )
@@ -294,6 +324,11 @@ trainView viewMode train =
 
             Nothing ->
                 div [ class "train-box train-class-0" ] [ text "???" ]
+
+
+keyedConnectionView : Config msg -> Int -> Journey -> ( String, Html msg )
+keyedConnectionView config idx j =
+    ( toString idx, connectionView config idx j )
 
 
 connectionView : Config msg -> Int -> Journey -> Html msg
@@ -376,6 +411,14 @@ motisErrorMsg err =
 extendIntervalButton : ExtendIntervalType -> Config msg -> Model -> Html msg
 extendIntervalButton direction (Config { internalMsg }) model =
     let
+        enabled =
+            case direction of
+                ExtendBefore ->
+                    not model.loadingBefore
+
+                ExtendAfter ->
+                    not model.loadingAfter
+
         divClass =
             case direction of
                 ExtendBefore ->
@@ -391,11 +434,23 @@ extendIntervalButton direction (Config { internalMsg }) model =
 
                 ExtendAfter ->
                     "Spätere Verbindungen suchen"
+
+        clickHandler =
+            if enabled then
+                internalMsg <| ExtendSearchInterval direction
+            else
+                internalMsg NoOp
     in
-        div [ class <| divClass ++ " extend-search-interval" ]
+        div
+            [ classList
+                [ "extend-search-interval" => True
+                , divClass => True
+                , "disabled" => not enabled
+                ]
+            ]
             [ a
                 [ class "gb-button gb-button-small gb-button-PRIMARY_COLOR disable-select"
-                , onClick (internalMsg <| ExtendSearchInterval direction)
+                , onClick clickHandler
                 ]
                 [ text title ]
             ]
@@ -470,6 +525,8 @@ pickTransportViewMode maxTotalWidth { trains } =
 init : String -> Model
 init remoteAddress =
     { loading = False
+    , loadingBefore = False
+    , loadingAfter = False
     , remoteAddress = remoteAddress
     , journeys = []
     , indexOffset = 0

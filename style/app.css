@@ -176,6 +176,11 @@
   margin: 5px auto;
 }
 
+.extend-search-interval.disabled a {
+  background: #ccc;
+  cursor: default;
+}
+
 .neg-delay {
   color: green;
 }
