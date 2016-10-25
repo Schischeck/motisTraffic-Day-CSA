@@ -142,27 +142,33 @@ connectionsView config model =
         )
 
 
-trainsView : Journey -> Html msg
-trainsView j =
-    div [ class "train-list" ] <|
-        List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
-            List.map trainView j.trains
+trainsView : TransportViewMode -> Journey -> Html msg
+trainsView viewMode j =
+    let
+        trainBoxes =
+            List.map (trainView viewMode) j.trains
+
+        content =
+            case viewMode of
+                IconOnlyNoSep ->
+                    trainBoxes
+
+                _ ->
+                    List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
+                        trainBoxes
+    in
+        div [ class "train-list" ] content
 
 
-trainView : Train -> Html msg
-trainView train =
+trainView : TransportViewMode -> Train -> Html msg
+trainView viewMode train =
     let
         transport =
             List.head train.transports
     in
         case transport of
             Just t ->
-                div [ class <| "train-box train-class-" ++ (toString t.class) ]
-                    [ Svg.svg
-                        [ Svg.Attributes.class "train-icon" ]
-                        [ Svg.use [ xlinkHref <| "icons.svg#" ++ (trainIcon t.class) ] [] ]
-                    , text <| transportName t
-                    ]
+                trainBox viewMode t
 
             Nothing ->
                 div [ class "train-box train-class-0" ] [ text "???" ]
@@ -187,7 +193,7 @@ connectionView (Config { internalMsg, selectMsg }) idx j =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-15-24 connection-trains" ]
-                [ trainsView j ]
+                [ trainsView LongName j ]
             ]
         ]
 

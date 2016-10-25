@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Svg
 import Svg.Attributes exposing (xlinkHref)
 import Data.Connection.Types as Connection exposing (..)
+import String
 
 
 useLineId : Int -> Bool
@@ -13,12 +14,30 @@ useLineId class =
     class == 5 || class == 6
 
 
-transportName : TransportInfo -> String
-transportName transport =
+longTransportName : TransportInfo -> String
+longTransportName transport =
     if useLineId transport.class then
         transport.line_id
     else
         transport.name
+
+
+shortTransportName : TransportInfo -> String
+shortTransportName transport =
+    let
+        train_nr =
+            Maybe.withDefault 0 transport.train_nr
+    in
+        if useLineId transport.class then
+            transport.line_id
+        else if String.length transport.name < 7 then
+            transport.name
+        else if String.isEmpty transport.line_id && train_nr == 0 then
+            transport.name
+        else if String.isEmpty transport.line_id then
+            toString train_nr
+        else
+            transport.line_id
 
 
 trainIcon : Int -> String
@@ -52,14 +71,45 @@ trainIcon class =
             "bus"
 
 
-trainBox : TransportInfo -> Html msg
-trainBox t =
-    div [ class <| "train-box train-class-" ++ (toString t.class) ]
-        [ Svg.svg
-            [ Svg.Attributes.class "train-icon" ]
-            [ Svg.use [ xlinkHref <| "icons.svg#" ++ (trainIcon t.class) ] [] ]
-        , text <| transportName t
-        ]
+type TransportViewMode
+    = LongName
+    | ShortName
+    | IconOnly
+    | IconOnlyNoSep
+
+
+trainBox : TransportViewMode -> TransportInfo -> Html msg
+trainBox viewMode t =
+    let
+        icon =
+            Svg.svg
+                [ Svg.Attributes.class "train-icon" ]
+                [ Svg.use
+                    [ xlinkHref <| "icons.svg#" ++ (trainIcon t.class) ]
+                    []
+                ]
+
+        name =
+            case viewMode of
+                LongName ->
+                    longTransportName t
+
+                ShortName ->
+                    shortTransportName t
+
+                IconOnly ->
+                    ""
+
+                IconOnlyNoSep ->
+                    ""
+    in
+        div [ class <| "train-box train-class-" ++ (toString t.class) ]
+            [ icon
+            , if String.isEmpty name then
+                text ""
+              else
+                span [ class "train-name" ] [ text name ]
+            ]
 
 
 isDelayed : DeltaRecord -> Bool
