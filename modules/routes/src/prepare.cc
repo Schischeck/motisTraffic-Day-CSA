@@ -4,16 +4,17 @@
 
 #include "boost/filesystem.hpp"
 
+#include "motis/core/common/transform_to_vec.h"
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
 #include "geo/polygon.h"
 #include "parser/file.h"
 
-#include "motis/core/common/transform_to_vec.h"
-
 #include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
+#include "motis/routes/db/database.h"
+#include "motis/routes/db/db_builder.h"
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/geojson.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
@@ -22,7 +23,7 @@
 #include "motis/routes/prepare/station_sequences.h"
 #include "motis/routes/prepare/vector_utils.h"
 
-#include "motis/routes/fbs/RoutesAuxiliary_generated.h"
+#include "motis/protocol/RoutesSeqResponse_generated.h"
 #include "motis/schedule-format/Schedule_generated.h"
 
 #include "version.h"
@@ -120,40 +121,41 @@ int main(int argc, char** argv) {
 
   auto sequences = load_station_sequences(schedule);
 
-  auto const extent_polygon = read_poly_file(opt.extent_);
+  // auto const extent_polygon = read_poly_file(opt.extent_);
   sequences.erase(
-      std::remove_if(
-          begin(sequences), end(sequences),
-          [&](auto const& seq) {
-            if (seq.categories_.empty() ||
-                std::none_of(begin(seq.categories_), end(seq.categories_),
-                             [](auto const& cat) { return cat < 6; })) {
-              return true;
-            }
+      std::remove_if(begin(sequences), end(sequences),
+                     [&](auto const& seq) {
+                       if (seq.categories_.empty() ||
+                           std::none_of(
+                               begin(seq.categories_), end(seq.categories_),
+                               [](auto const& cat) { return cat < 6; })) {
+                         return true;
+                       }
 
-            if (std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
-                            [&](auto const& coord) {
-                              return !within(coord, extent_polygon);
-                            })) {
-              return true;
-            }
+                       // if (std::any_of(begin(seq.coordinates_),
+                       // end(seq.coordinates_),
+                       //                 [&](auto const& coord) {
+                       //                   return !within(coord,
+                       //                   extent_polygon);
+                       //                 })) {
+                       //   return true;
+                       // }
 
-            // if (seq.station_ids_.front() != "8000105" ||
-            //     seq.station_ids_.back() != "8000126") {
-            //   return true;
-            // }
+                       // if (seq.station_ids_.front() != "8000105" ||
+                       //     seq.station_ids_.back() != "8000126") {
+                       //   return true;
+                       // }
 
-            return false;
-          }),
+                       return false;
+                     }),
       end(sequences));
 
   auto const rel_matches =
       match_osm_relations(opt.osm_, sequences, stop_positions);
 
-  flatbuffers::FlatBufferBuilder fbb;
-  std::vector<flatbuffers::Offset<motis::routes::Route>> fbs_routes;
   stats stats;
   stats.seqs_ = sequences.size();
+  rocksdb_database db("filepath");
 
   for (auto i = 0u; i < sequences.size(); ++i) {
     auto const& seq = sequences[i];
@@ -162,11 +164,12 @@ int main(int argc, char** argv) {
     if (relations.size() > 0) {
       stats.matched_++;
     }
-    auto fbs_stations = transform_to_vec(
-        seq.station_ids_,
-        [&](auto const& station_id) { return fbb.CreateString(station_id); });
 
     for (auto const& category_group : category_groups(seq.categories_)) {
+      flatbuffers::FlatBufferBuilder fbb;
+      auto fbs_stations = transform_to_vec(
+          seq.station_ids_,
+          [&](auto const& station_id) { return fbb.CreateString(station_id); });
       stub_routing strategy{seq};
       auto const g =
           build_seq_graph(category_group.first, seq, relations, strategy);
@@ -226,17 +229,12 @@ int main(int argc, char** argv) {
         fbs_lines.push_back(
             CreatePolyline(fbb, fbb.CreateVector(flat_polyline)));
       }
-
-      fbs_routes.push_back(CreateRoute(fbb, fbb.CreateVector(fbs_stations),
-                                       fbb.CreateVector(category_group.second),
-                                       fbb.CreateVector(fbs_lines)));
+      auto res = CreateRoutesSeqResponse(
+          fbb, fbb.CreateVector(fbs_stations),
+          fbb.CreateVector(category_group.second), fbb.CreateVector(fbs_lines));
     }
   }
+  std::cout << db.get("__index");
   std::cout << "\n" << stats.report();
   std::cout << "\n";
-  fbb.Finish(CreateRoutesAuxiliary(fbb,
-                                   write_stop_positions(fbb, stop_positions),
-                                   fbb.CreateVector(fbs_routes)));
-  parser::file(opt.out_.c_str(), "w+")
-      .write(fbb.GetBufferPointer(), fbb.GetSize());
 }
