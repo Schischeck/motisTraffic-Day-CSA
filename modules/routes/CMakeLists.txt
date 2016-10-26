@@ -30,6 +30,8 @@ foreach(file ${motis-routes-prepare-files})
   list(REMOVE_ITEM motis-routes-files "${file}")
 endforeach()
 
+list(APPEND motis-routes-prepare-files src/db/rocksdb.cc src/db/db_builder.cc)
+
 add_library(motis-routes STATIC ${motis-routes-files})
 add_dependencies(motis-routes generated-routes-fbs-headers)
 target_link_libraries(motis-routes
@@ -52,6 +54,7 @@ target_link_libraries(routes-prepare
   motis-loader
   conf
   geo
+  rocksdb
 )
 
 set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

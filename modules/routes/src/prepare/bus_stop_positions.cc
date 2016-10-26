@@ -44,24 +44,5 @@ std::map<std::string, std::vector<latlng>> find_bus_stop_positions(
   return result;
 }
 
-flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<StopPositions>>>
-write_stop_positions(
-    flatbuffers::FlatBufferBuilder& fbb,
-    std::map<std::string, std::vector<latlng>> const& stop_positions) {
-  std::vector<flatbuffers::Offset<StopPositions>> result;
-
-  for (auto const& pair : stop_positions) {
-    std::vector<Position> positions;
-    for (auto const& p : pair.second) {
-      positions.emplace_back(p.lat_, p.lng_);
-    }
-    result.emplace_back(
-        CreateStopPositions(fbb, fbb.CreateString(pair.first),
-                            fbb.CreateVectorOfStructs(positions)));
-  }
-
-  return fbb.CreateVector(result);
-}
-
 }  // namespace routes
 }  // namespace motis

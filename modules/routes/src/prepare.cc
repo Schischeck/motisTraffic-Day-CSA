@@ -4,27 +4,22 @@
 
 #include "boost/filesystem.hpp"
 
-#include "motis/core/common/transform_to_vec.h"
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
 #include "geo/polygon.h"
 #include "parser/file.h"
 
-#include "motis/routes/prepare/fbs/use_32bit_flatbuffers.h"
-#include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
-
+#include "motis/core/common/logging.h"
 #include "motis/routes/db/database.h"
 #include "motis/routes/db/db_builder.h"
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/geojson.h"
+#include "motis/routes/prepare/parallel_for.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
 #include "motis/routes/prepare/seq/seq_graph_builder.h"
 #include "motis/routes/prepare/seq/seq_graph_dijkstra.h"
 #include "motis/routes/prepare/station_sequences.h"
 #include "motis/routes/prepare/vector_utils.h"
-
-#include "motis/protocol/RoutesSeqResponse_generated.h"
-#include "motis/schedule-format/Schedule_generated.h"
 
 #include "version.h"
 
@@ -39,12 +34,12 @@ struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
                             std::string const& osm = "germany-latest.osm.pbf",
                             std::string const& extent = "germany-latest.poly",
-                            std::string const& out = "routes-auxiliary.raw")
+                            std::string const& out = "auxdb")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
     string_param(extent_, extent, "extent", "/path/to/germany-latest.poly");
-    string_param(out_, out, "out", "/path/to/routes-auxiliary.raw");
+    string_param(out_, out, "out", "/path/to/db");
   }
 
   std::string schedule_;
@@ -73,7 +68,7 @@ struct stats {
   }
 
   std::string percentage(int share, int total) {
-    if (total < 0) return std::to_string(0);
+    if (total == 0) return std::to_string(0);
     return std::to_string(((float)share / (float)total) * 100);
   }
 
@@ -115,6 +110,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  motis::logging::manual_timer timer("preparing data");
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
   auto const stop_positions = find_bus_stop_positions(schedule, opt.osm_);
@@ -155,21 +151,21 @@ int main(int argc, char** argv) {
 
   stats stats;
   stats.seqs_ = sequences.size();
-  rocksdb_database db("filepath");
-
+  rocksdb_database db(opt.out_);
+  db_builder builder(db);
+  std::vector<std::pair<station_seq, std::vector<match_seq>>> results;
   for (auto i = 0u; i < sequences.size(); ++i) {
-    auto const& seq = sequences[i];
-    auto const& relations = rel_matches[i];
-    std::cout << "\nusing " << relations.size() << "relations";
-    if (relations.size() > 0) {
-      stats.matched_++;
-    }
+    results.emplace_back(sequences[i], rel_matches[i]);
+  }
+  parallel_for("searching routes", results, 250, [&](auto const& r) {
+    auto const& seq = r.first;
+    auto const& relations = r.second;
+    // std::cout << "\nusing " << relations.size() << "relations";
+    // if (relations.size() > 0) {
+    //   stats.matched_++;
+    // }
 
     for (auto const& category_group : category_groups(seq.categories_)) {
-      flatbuffers::FlatBufferBuilder fbb;
-      auto fbs_stations = transform_to_vec(
-          seq.station_ids_,
-          [&](auto const& station_id) { return fbb.CreateString(station_id); });
       stub_routing strategy{seq};
       auto const g =
           build_seq_graph(category_group.first, seq, relations, strategy);
@@ -188,53 +184,42 @@ int main(int argc, char** argv) {
                                     dijkstra.get_distance(rhs_idx_);
                            });
       if (best_goal_it == end(g.goals_)) {
-        std::cout << "\n no result";
+        // std::cout << "\n no result";
         continue;
       }
 
-      std::cout << '\n' << dijkstra.get_distance(*best_goal_it);
+      // std::cout << '\n' << dijkstra.get_distance(*best_goal_it);
 
       std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
-      float save = stats.airlines_;
+      // float save = stats.airlines_;
       for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
         // std::cout << "\n"
         //           << edge->from_->idx_ << " -> " << edge->to_->idx_ << "("
         //           << edge->weight_ << ")";
-        stats.edges_++;
-        if (edge->source_.type_ == source_spec::type::AIRLINE) {
-          stats.airlines_++;
-        }
-        if (edge->source_.station_) {
-          stats.edges_in_station_++;
-          if (edge->source_.type_ == source_spec::type::AIRLINE) {
-            stats.airlines_without_++;
-          }
-        }
+        // stats.edges_++;
+        // if (edge->source_.type_ == source_spec::type::AIRLINE) {
+        //   stats.airlines_++;
+        // }
+        // if (edge->source_.station_) {
+        //   stats.edges_in_station_++;
+        //   if (edge->source_.type_ == source_spec::type::AIRLINE) {
+        //     stats.airlines_without_++;
+        //   }
+        // }
         append(lines[edge->from_->station_idx_], edge->p_);
       }
-      if (save == stats.airlines_) {
-        stats.not_broken_++;
-      }
+      // if (save == stats.airlines_) {
+      //   stats.not_broken_++;
+      // }
       // std::stringstream ss;
       // ss << "debug/polyline." << seq.station_ids_.front() << "-"
       //    << seq.station_ids_.back() << "." << i << ".json";
       // dump_polylines(lines, ss.str().c_str());
-      std::vector<flatbuffers::Offset<Polyline>> fbs_lines;
-      for (auto const& line : lines) {
-        std::vector<double> flat_polyline;
-        for (auto const& latlng : line) {
-          flat_polyline.push_back(latlng.lat_);
-          flat_polyline.push_back(latlng.lng_);
-        }
-        fbs_lines.push_back(
-            CreatePolyline(fbb, fbb.CreateVector(flat_polyline)));
-      }
-      auto res = CreateRoutesSeqResponse(
-          fbb, fbb.CreateVector(fbs_stations),
-          fbb.CreateVector(category_group.second), fbb.CreateVector(fbs_lines));
+
+      builder.append(seq.station_ids_, category_group.second, lines);
     }
-  }
-  std::cout << db.get("__index");
-  std::cout << "\n" << stats.report();
-  std::cout << "\n";
+  });
+
+  builder.finish();
+  timer.stop_and_print();
 }

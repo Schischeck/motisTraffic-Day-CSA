@@ -7,5 +7,5 @@ table RouteLookup {
 table RouteIndex {
   station_ids: [string];
   classes: [uint];
-  index: string;
+  index: uint;
 }

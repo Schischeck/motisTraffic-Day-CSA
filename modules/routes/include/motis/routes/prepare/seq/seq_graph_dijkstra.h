@@ -2,8 +2,6 @@
 
 #include <queue>
 
-#include "motis/core/common/logging.h"
-
 namespace motis {
 namespace routes {
 
@@ -33,7 +31,6 @@ struct seq_graph_dijkstra {
   }
 
   void run() {
-    motis::logging::scoped_timer timer("Sequence Graph Dijkstra");
     while (!pq_.empty()) {
       auto label = pq_.top();
       pq_.pop();
