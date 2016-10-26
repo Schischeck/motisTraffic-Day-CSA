@@ -213,10 +213,13 @@ trainDetail internalMsg ( train, ic ) idx expanded =
             List.head train.stops
 
         departureTrack =
-            (Maybe.map (.departure >> .track) departureStop |> Maybe.withDefault "")
+            Maybe.map (.departure >> .track) departureStop |> Maybe.withDefault ""
 
         arrivalStop =
             last train.stops
+
+        arrivalTrack =
+            Maybe.map (.arrival >> .track) arrivalStop |> Maybe.withDefault ""
 
         intermediateStops =
             train.stops |> List.drop 1 |> dropEnd 1
@@ -306,7 +309,13 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                         ]
                         (List.map (stopView Departure) intermediateStops)
                     , div [ class "last-stop" ]
-                        [ Maybe.map (stopView Arrival) arrivalStop |> Maybe.withDefault (text "") ]
+                        [ Maybe.map (stopView Arrival) arrivalStop |> Maybe.withDefault (text "")
+                        , if String.isEmpty arrivalTrack then
+                            text ""
+                          else
+                            div [ class "train-arr-track" ]
+                                [ text <| "Gleis " ++ arrivalTrack ]
+                        ]
                     ]
 
             Nothing ->
