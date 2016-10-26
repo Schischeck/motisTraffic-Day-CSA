@@ -5,17 +5,14 @@
 #include <utility>
 #include <vector>
 
-#include "boost/optional.hpp"
+#include "motis/routes/index_lookup.h"
 
 #include "motis/module/module.h"
-
-#include "geo/latlng.h"
 
 namespace motis {
 namespace routes {
 
-struct auxiliary_data;
-struct database;
+struct rocksdb_database;
 
 struct routes : public motis::module::module {
   routes();
@@ -25,20 +22,12 @@ struct routes : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
-  motis::module::msg_ptr id_train_routes(motis::module::msg_ptr const&);
-
-  boost::optional<motis::module::msg_ptr> resolve_prepared_route(
-      schedule const&, trip const*);
-
-  motis::module::msg_ptr resolve_route_osrm(schedule const&, trip const*);
-  motis::module::msg_ptr resolve_route_stub(schedule const&, trip const*);
-
-  motis::module::msg_ptr trip_to_osrm_request(schedule const&, trip const*);
+  motis::module::msg_ptr index_routes(motis::module::msg_ptr const&);
+  motis::module::msg_ptr station_seq_routes(motis::module::msg_ptr const&);
 
   std::string database_path_;
-  std::unique_ptr<database> db_;
-  std::string aux_file_;
-  std::unique_ptr<auxiliary_data> aux_;
+  std::unique_ptr<rocksdb_database> db_;
+  std::unique_ptr<index_lookup> lookup_;
 };
 
 }  // namespace routes

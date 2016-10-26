@@ -1,8 +1,0 @@
-include "base/Polyline.fbs";
-
-namespace motis.routes;
-
-table RoutesIdTrainResponse {
-  segments: [Polyline];
-  source: string;
-}

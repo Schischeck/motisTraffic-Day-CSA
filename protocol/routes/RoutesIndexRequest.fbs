@@ -1,0 +1,5 @@
+namespace motis.routes;
+
+table RoutesIndexRequest {
+  index: int;
+}

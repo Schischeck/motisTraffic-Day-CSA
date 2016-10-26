@@ -34,7 +34,7 @@ struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
                             std::string const& osm = "germany-latest.osm.pbf",
                             std::string const& extent = "germany-latest.poly",
-                            std::string const& out = "auxdb")
+                            std::string const& out = "routesdb")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");

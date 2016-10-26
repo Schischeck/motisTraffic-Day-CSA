@@ -10,10 +10,10 @@
 
 namespace motis {
 namespace routes {
+
 using routing_sequence = typed_flatbuffer<motis::routes::RoutesSeqResponse>;
 using routing_lookup = typed_flatbuffer<motis::routes::RouteLookup>;
 using key_pair = std::pair<std::vector<std::string>, std::vector<uint32_t>>;
-struct database;
 
 struct db_builder {
   db_builder(rocksdb_database& db) : db_(db){};

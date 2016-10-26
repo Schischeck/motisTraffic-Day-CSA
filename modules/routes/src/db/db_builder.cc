@@ -38,7 +38,9 @@ int db_builder::append(std::vector<std::string> const& station_ids,
 void db_builder::finish() {
   module::message_creator b;
   std::vector<flatbuffers::Offset<motis::routes::RouteIndex>> r;
-
+  std::sort(begin(indices_), end(indices_), [&](auto const& l, auto const& r) {
+    return std::tie(l.first, l.second) < std::tie(r.first, r.second);
+  });
   for (auto i = 0u; i < indices_.size(); i++) {
     auto ids = indices_[i].first;
     auto classes = indices_[i].second;

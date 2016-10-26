@@ -38,6 +38,7 @@ target_link_libraries(motis-routes
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   expat
+  rocksdb
   ${ZLIB_LIBRARIES}
   motis-module
 )
