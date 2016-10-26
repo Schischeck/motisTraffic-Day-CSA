@@ -182,7 +182,7 @@
 
 .extend-search-interval.disabled a {
   background: #ccc;
-  cursor: default;
+  cursor: progress;
 }
 
 .neg-delay {
