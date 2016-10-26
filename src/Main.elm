@@ -14,6 +14,9 @@ import Data.Routing.Request as RoutingRequest
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
+import Localization.Base exposing (..)
+import Localization.De exposing (..)
+import Localization.En exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -56,6 +59,7 @@ type alias Model =
     , connections : Connections.Model
     , selectedConnection : Maybe ConnectionDetails.State
     , scheduleInfo : Maybe ScheduleInfo
+    , locale : Localization
     }
 
 
@@ -82,6 +86,7 @@ init _ =
           , connections = Connections.init remoteAddress
           , selectedConnection = Nothing
           , scheduleInfo = Nothing
+          , locale = deLocalization
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -279,7 +284,7 @@ view model =
                     searchView model
 
                 Just c ->
-                    detailsView c
+                    detailsView model.locale c
     in
         div [ class "app" ] <|
             [ App.map MapUpdate (Map.view model.map)
@@ -320,11 +325,11 @@ searchView model =
                 [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
                 , onClick SearchConnections
                 ]
-                [ text "Suchen" ]
+                [ text model.locale.t.search.search ]
             ]
         ]
     , div [ id "connections" ]
-        [ lazy2 Connections.view connectionConfig model.connections ]
+        [ lazy3 Connections.view connectionConfig model.locale model.connections ]
     ]
 
 
@@ -336,9 +341,9 @@ connectionConfig =
         }
 
 
-detailsView : ConnectionDetails.State -> List (Html Msg)
-detailsView state =
-    [ ConnectionDetails.view detailsConfig state ]
+detailsView : Localization -> ConnectionDetails.State -> List (Html Msg)
+detailsView locale state =
+    [ ConnectionDetails.view detailsConfig locale state ]
 
 
 detailsConfig : ConnectionDetails.Config Msg

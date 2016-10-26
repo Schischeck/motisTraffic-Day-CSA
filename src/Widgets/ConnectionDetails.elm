@@ -13,6 +13,7 @@ import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.List exposing (..)
+import Localization.Base exposing (..)
 
 
 -- MODEL
@@ -66,8 +67,8 @@ toggle list idx =
 -- VIEW
 
 
-view : Config msg -> State -> Html msg
-view (Config { internalMsg, closeMsg }) { journey, expanded } =
+view : Config msg -> Localization -> State -> Html msg
+view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -76,12 +77,12 @@ view (Config { internalMsg, closeMsg }) { journey, expanded } =
             [0..List.length trains - 1]
 
         trainsView =
-            List.map3 (trainDetail internalMsg) trains indices expanded
+            List.map3 (trainDetail internalMsg locale) trains indices expanded
 
         walkView maybeWalk =
             case maybeWalk of
                 Just walk ->
-                    [ walkDetail walk ]
+                    [ walkDetail locale walk ]
 
                 Nothing ->
                     []
@@ -96,14 +97,14 @@ view (Config { internalMsg, closeMsg }) { journey, expanded } =
             leadingWalkView ++ trainsView ++ trailingWalkView
     in
         div [ class "connection-details" ]
-            [ connectionInfoView closeMsg journey.connection
+            [ connectionInfoView closeMsg locale journey.connection
             , div [ class "connection-journey", id "connection-journey" ]
                 transportsView
             ]
 
 
-connectionInfoView : msg -> Connection -> Html msg
-connectionInfoView closeMsg connection =
+connectionInfoView : msg -> Localization -> Connection -> Html msg
+connectionInfoView closeMsg locale connection =
     div [ class "connection-info" ]
         [ div [ class "pure-g" ]
             [ div [ class "pure-u-3-24" ]
@@ -112,10 +113,10 @@ connectionInfoView closeMsg connection =
                 ]
             , div [ class "pure-u-5-24 connection-times" ]
                 [ div [ class "connection-departure" ]
-                    [ text (Maybe.map (formatShortDateTime deDateConfig) (departureTime connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime locale.dateConfig) (departureTime connection) |> Maybe.withDefault "?")
                     ]
                 , div [ class "connection-arrival" ]
-                    [ text (Maybe.map (formatShortDateTime deDateConfig) (arrivalTime connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime locale.dateConfig) (arrivalTime connection) |> Maybe.withDefault "?")
                     ]
                 ]
             , div [ class "pure-u-16-24" ]
@@ -128,7 +129,7 @@ connectionInfoView closeMsg connection =
                         ]
                     , span [ class "interchanges" ]
                         [ i [ class "icon" ] [ text "transfer_within_a_station" ]
-                        , text <| (toString (interchanges connection)) ++ " Umstiege"
+                        , text <| locale.t.connections.interchanges (interchanges connection)
                         ]
                     ]
                 ]
@@ -153,8 +154,8 @@ stopView eventType stop =
             ]
 
 
-trainTopLine : ( Train, InterchangeInfo ) -> String
-trainTopLine ( train, ic ) =
+trainTopLine : Localization -> ( Train, InterchangeInfo ) -> String
+trainTopLine locale ( train, ic ) =
     case ic.previousArrival of
         Just pa ->
             let
@@ -182,14 +183,14 @@ trainTopLine ( train, ic ) =
 
                 icText =
                     if ic.walk then
-                        dText ++ " Fußweg"
+                        locale.t.connections.walkDuration dText
                     else
-                        dText ++ " Umstieg"
+                        locale.t.connections.interchangeDuration dText
             in
                 if String.isEmpty pa.track then
                     icText
                 else
-                    "Ankunft Gleis " ++ pa.track ++ ", " ++ icText
+                    (locale.t.connections.arrivalTrack pa.track) ++ ", " ++ icText
 
         Nothing ->
             ""
@@ -203,8 +204,14 @@ directionView direction =
         ]
 
 
-trainDetail : (Msg -> msg) -> ( Train, InterchangeInfo ) -> Int -> Bool -> Html msg
-trainDetail internalMsg ( train, ic ) idx expanded =
+trainDetail :
+    (Msg -> msg)
+    -> Localization
+    -> ( Train, InterchangeInfo )
+    -> Int
+    -> Bool
+    -> Html msg
+trainDetail internalMsg locale ( train, ic ) idx expanded =
     let
         transport =
             List.head train.transports
@@ -228,7 +235,7 @@ trainDetail internalMsg ( train, ic ) idx expanded =
             not (List.isEmpty intermediateStops)
 
         topLine =
-            trainTopLine ( train, ic )
+            trainTopLine locale ( train, ic )
 
         duration =
             Maybe.map2 Duration.diff
@@ -252,10 +259,7 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                 []
 
         intermediateText =
-            if hasIntermediateStops then
-                "Fahrt " ++ (toString (List.length intermediateStops)) ++ " Stationen"
-            else
-                "Fahrt ohne Zwischenhalt"
+            locale.t.connections.tripIntermediateStops (List.length intermediateStops)
 
         intermediateToggleOnClick =
             if hasIntermediateStops then
@@ -289,7 +293,7 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                         text ""
                       else
                         div [ class "train-dep-track" ]
-                            [ text <| "Gleis " ++ departureTrack ]
+                            [ text <| locale.t.connections.track ++ " " ++ departureTrack ]
                     , div [ class "first-stop" ]
                         [ Maybe.map (stopView Departure) departureStop |> Maybe.withDefault (text "") ]
                     , Maybe.map directionView direction |> Maybe.withDefault (text "")
@@ -318,7 +322,7 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                             text ""
                           else
                             div [ class "train-arr-track" ]
-                                [ text <| "Gleis " ++ arrivalTrack ]
+                                [ text <| locale.t.connections.track ++ " " ++ arrivalTrack ]
                         ]
                     ]
 
@@ -326,8 +330,8 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                 text ""
 
 
-walkDetail : JourneyWalk -> Html msg
-walkDetail walk =
+walkDetail : Localization -> JourneyWalk -> Html msg
+walkDetail { t } walk =
     let
         durationStr =
             durationText walk.duration
@@ -340,7 +344,7 @@ walkDetail walk =
                 [ stopView Departure walk.from ]
             , div [ class "intermediate-stops-toggle" ]
                 [ div [ class "expand-icon" ] []
-                , span [] [ text ("Fußweg (" ++ durationStr ++ ")") ]
+                , span [] [ text <| t.connections.tripWalk durationStr ]
                 ]
             , div [ class "last-stop" ]
                 [ stopView Arrival walk.to ]

@@ -32,6 +32,7 @@ import Util.Api as Api
         , RoutingErrorInfo(..)
         , MotisErrorDetail
         )
+import Localization.Base exposing (..)
 
 
 -- MODEL
@@ -44,7 +45,7 @@ type alias Model =
     , remoteAddress : String
     , journeys : List Journey
     , indexOffset : Int
-    , errorMessage : Maybe String
+    , errorMessage : Maybe ApiError
     , scheduleInfo : Maybe ScheduleInfo
     , routingRequest : Maybe RoutingRequest
     }
@@ -279,29 +280,12 @@ handleRequestError :
     -> Model
 handleRequestError model action request msg =
     let
-        errorMsg =
-            case msg of
-                MotisError err ->
-                    motisErrorMsg err
-
-                TimeoutError ->
-                    "Request timeout"
-
-                NetworkError ->
-                    "Network error"
-
-                HttpError status ->
-                    "HTTP error " ++ (toString status)
-
-                DecodeError msg ->
-                    "Invalid response: " ++ msg
-
         newModel =
             case action of
                 ReplaceResults ->
                     { model
                         | loading = False
-                        , errorMessage = Just errorMsg
+                        , errorMessage = Just msg
                         , journeys = []
                     }
 
@@ -335,26 +319,26 @@ belongsToCurrentSearch model check =
 -- VIEW
 
 
-connectionsView : Config msg -> Model -> Html msg
-connectionsView config model =
+connectionsView : Config msg -> Localization -> Model -> Html msg
+connectionsView config locale model =
     div [ class "connections" ]
-        [ extendIntervalButton ExtendBefore config model
+        [ extendIntervalButton ExtendBefore config locale model
         , div [ class "pure-g header" ]
             [ div [ class "pure-u-6-24" ]
-                [ text "Zeit" ]
+                [ text locale.t.connections.timeHeader ]
             , div [ class "pure-u-4-24" ]
-                [ text "Dauer" ]
+                [ text locale.t.connections.durationHeader ]
             , div [ class "pure-u-14-24" ]
-                [ text "Verkehrsmittel" ]
+                [ text locale.t.connections.transportsHeader ]
             ]
         , Keyed.node "div"
             [ class "connection-list" ]
             (List.map2
-                (keyedConnectionView config)
+                (keyedConnectionView config locale)
                 [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
                 model.journeys
             )
-        , extendIntervalButton ExtendAfter config model
+        , extendIntervalButton ExtendAfter config locale model
         ]
 
 
@@ -409,23 +393,23 @@ trainView viewMode train =
                 div [ class "train-box train-class-0" ] [ text "???" ]
 
 
-keyedConnectionView : Config msg -> Int -> Journey -> ( String, Html msg )
-keyedConnectionView config idx j =
-    ( toString idx, connectionView config idx j )
+keyedConnectionView : Config msg -> Localization -> Int -> Journey -> ( String, Html msg )
+keyedConnectionView config locale idx j =
+    ( toString idx, connectionView config locale idx j )
 
 
-connectionView : Config msg -> Int -> Journey -> Html msg
-connectionView (Config { internalMsg, selectMsg }) idx j =
+connectionView : Config msg -> Localization -> Int -> Journey -> Html msg
+connectionView (Config { internalMsg, selectMsg }) locale idx j =
     div [ class "connection", onClick (selectMsg idx) ]
         [ div [ class "pure-g" ]
             [ div [ class "pure-u-6-24 connection-times" ]
                 [ div [ class "connection-departure" ]
-                    [ text (Maybe.map (formatShortDateTime deDateConfig) (Connection.departureTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime locale.dateConfig) (Connection.departureTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (Connection.departureEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 , div [ class "connection-arrival" ]
-                    [ text (Maybe.map (formatShortDateTime deDateConfig) (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map (formatShortDateTime locale.dateConfig) (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (Connection.arrivalEvent j.connection) |> Maybe.withDefault (text "")
                     ]
@@ -443,56 +427,78 @@ transportListViewWidth =
     360
 
 
-scheduleRangeView : Model -> Html msg
-scheduleRangeView { scheduleInfo } =
+scheduleRangeView : Localization -> Model -> Html msg
+scheduleRangeView { t } { scheduleInfo } =
     case scheduleInfo of
         Just si ->
             div [ class "schedule-range" ]
-                [ text <|
-                    "Auskunft von "
-                        ++ (formatDateTime deDateConfig si.begin)
-                        ++ " bis "
-                        ++ (formatDateTime deDateConfig si.end)
-                        ++ " möglich"
-                ]
+                [ text <| t.connections.scheduleRange si.begin si.end ]
 
         Nothing ->
             text ""
 
 
-view : Config msg -> Model -> Html msg
-view config model =
+view : Config msg -> Localization -> Model -> Html msg
+view config locale model =
     if model.loading then
-        div [ class "loader" ] [ text "Verbindungen suchen..." ]
+        div [ class "loader" ] [ text locale.t.connections.loading ]
     else if List.isEmpty model.journeys then
         case model.errorMessage of
             Just err ->
-                div [ class "error" ]
-                    [ div [] [ text err ]
-                    , scheduleRangeView model
-                    ]
+                errorView locale model err
 
             Nothing ->
                 div [ class "no-results" ]
-                    [ div [] [ text "Keine Verbindungen gefunden" ]
-                    , scheduleRangeView model
+                    [ div [] [ text locale.t.connections.noResults ]
+                    , scheduleRangeView locale model
                     ]
     else
-        lazy2 connectionsView config model
+        lazy3 connectionsView config locale model
 
 
-motisErrorMsg : MotisErrorInfo -> String
-motisErrorMsg err =
+errorView : Localization -> Model -> ApiError -> Html msg
+errorView locale model err =
+    let
+        errorMsg =
+            case err of
+                MotisError err' ->
+                    motisErrorMsg locale err'
+
+                TimeoutError ->
+                    locale.t.connections.errors.timeout
+
+                NetworkError ->
+                    locale.t.connections.errors.network
+
+                HttpError status ->
+                    locale.t.connections.errors.http status
+
+                DecodeError msg ->
+                    locale.t.connections.errors.decode msg
+    in
+        div [ class "error" ]
+            [ div [] [ text errorMsg ]
+            , scheduleRangeView locale model
+            ]
+
+
+motisErrorMsg : Localization -> MotisErrorInfo -> String
+motisErrorMsg { t } err =
     case err of
         RoutingError JourneyDateNotInSchedule ->
-            "Zeitraum nicht im Fahrplan"
+            t.connections.errors.journeyDateNotInSchedule
 
         _ ->
-            "Interner Fehler (" ++ (toString err) ++ ")"
+            t.connections.errors.internalError (toString err)
 
 
-extendIntervalButton : ExtendIntervalType -> Config msg -> Model -> Html msg
-extendIntervalButton direction (Config { internalMsg }) model =
+extendIntervalButton :
+    ExtendIntervalType
+    -> Config msg
+    -> Localization
+    -> Model
+    -> Html msg
+extendIntervalButton direction (Config { internalMsg }) { t } model =
     let
         enabled =
             case direction of
@@ -513,10 +519,10 @@ extendIntervalButton direction (Config { internalMsg }) model =
         title =
             case direction of
                 ExtendBefore ->
-                    "Frühere Verbindungen suchen"
+                    t.connections.extendBefore
 
                 ExtendAfter ->
-                    "Spätere Verbindungen suchen"
+                    t.connections.extendAfter
 
         clickHandler =
             if enabled then
