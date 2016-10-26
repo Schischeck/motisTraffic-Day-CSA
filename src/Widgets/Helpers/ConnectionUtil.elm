@@ -154,27 +154,32 @@ delay event =
         diff =
             Maybe.map2 Duration.diff event.time event.schedule_time
     in
-        case diff of
-            Just d ->
-                let
-                    delayed =
-                        isDelayed d
-                in
-                    span
-                        [ class <|
-                            if delayed then
-                                "delay pos-delay"
-                            else
-                                "delay neg-delay"
-                        ]
-                        [ text <|
-                            (if delayed || (zeroDelay d) then
-                                "+"
-                             else
-                                "-"
-                            )
-                                ++ (delayText d)
-                        ]
-
-            Nothing ->
+        case event.reason of
+            Schedule ->
                 span [ class "delay" ] []
+
+            _ ->
+                case diff of
+                    Just d ->
+                        let
+                            delayed =
+                                isDelayed d
+                        in
+                            span
+                                [ class <|
+                                    if delayed then
+                                        "delay pos-delay"
+                                    else
+                                        "delay neg-delay"
+                                ]
+                                [ text <|
+                                    (if delayed || (zeroDelay d) then
+                                        "+"
+                                     else
+                                        "-"
+                                    )
+                                        ++ (delayText d)
+                                ]
+
+                    Nothing ->
+                        span [ class "delay" ] []
