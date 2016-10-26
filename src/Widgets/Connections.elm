@@ -15,6 +15,7 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (..)
 import Html.Keyed as Keyed
 import String
+import Date exposing (Date)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
 import Data.Journey.Types as Journey exposing (Journey, Train)
@@ -252,9 +253,22 @@ updateModelWithNewResults model action request connections =
                     model.indexOffset
     in
         { base
-            | journeys = newJourneys
+            | journeys = sortJourneys newJourneys
             , indexOffset = newIndexOffset
         }
+
+
+sortJourneys : List Journey -> List Journey
+sortJourneys journeys =
+    List.sortBy
+        (.connection
+            >> .stops
+            >> List.head
+            >> (\m -> Maybe.andThen m (.departure >> .schedule_time))
+            >> Maybe.map Date.toTime
+            >> Maybe.withDefault 0
+        )
+        journeys
 
 
 handleRequestError :
