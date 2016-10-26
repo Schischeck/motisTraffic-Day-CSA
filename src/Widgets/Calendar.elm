@@ -1,4 +1,4 @@
-module Widgets.Calendar exposing (Model, Msg, init, update, view)
+module Widgets.Calendar exposing (Model, Msg(..), init, update, view)
 
 import Html exposing (..)
 import Html.Events exposing (onClick, onInput, onFocus, onBlur, onWithOptions)
@@ -26,6 +26,7 @@ type alias Model =
     , inputStr : String
     , visible : Bool
     , inputWidget : Input.Model
+    , validRange : Maybe ( Date, Date )
     }
 
 
@@ -42,6 +43,7 @@ emptyModel =
     , visible = False
     , inputStr = ""
     , inputWidget = Input.init
+    , validRange = Nothing
     }
 
 
@@ -61,6 +63,7 @@ type Msg
     | NextMonth
     | ToggleVisibility
     | InputUpdate Input.Msg
+    | SetValidRange (Maybe ( Date, Date ))
 
 
 update : Msg -> Model -> Model
@@ -149,6 +152,9 @@ update msg model =
         ToggleVisibility ->
             model
 
+        SetValidRange range ->
+            { model | validRange = range }
+
 
 
 -- VIEW
@@ -156,7 +162,7 @@ update msg model =
 
 weekDays : DateConfig -> List (Html Msg)
 weekDays conf =
-    dayListForMonthView (Date.fromTime 0) (Date.fromTime 0)
+    dayListForMonthView Nothing (Date.fromTime 0) (Date.fromTime 0)
         |> List.take 7
         |> List.map (\d -> li [] [ text (weekDayName conf d.day) ])
 
@@ -170,14 +176,16 @@ calendarDay date =
             , ( "in-month", date.inMonth )
             , ( "today", date.today )
             , ( "selected", date.selected )
+            , ( "valid-day", Maybe.withDefault False date.valid )
+            , ( "invalid-day", not <| Maybe.withDefault True date.valid )
             ]
         ]
         [ text (toString (day date.day)) ]
 
 
-calendarDays : Date -> Date -> List (Html Msg)
-calendarDays today date =
-    List.map calendarDay (dayListForMonthView today date)
+calendarDays : Maybe ( Date, Date ) -> Date -> Date -> List (Html Msg)
+calendarDays validRange today date =
+    List.map calendarDay (dayListForMonthView validRange today date)
 
 
 monthView : DateConfig -> Date -> Html Msg
@@ -217,7 +225,7 @@ calendarView model =
             ]
             [ monthView model.conf model.date
             , ul [ class "weekdays" ] (weekDays model.conf)
-            , ul [ class "calendardays" ] (calendarDays model.today model.date)
+            , ul [ class "calendardays" ] (calendarDays model.validRange model.today model.date)
             ]
         ]
 
@@ -236,6 +244,7 @@ type alias CalendarDay =
     , inMonth : Bool
     , today : Bool
     , selected : Bool
+    , valid : Maybe Bool
     }
 
 
@@ -249,8 +258,8 @@ daysInSixWeeks =
     42
 
 
-dayListForMonthView : Date -> Date -> List CalendarDay
-dayListForMonthView today selected =
+dayListForMonthView : Maybe ( Date, Date ) -> Date -> Date -> List CalendarDay
+dayListForMonthView validRange today selected =
     let
         firstOfMonth =
             toFirstOfMonth selected
@@ -271,5 +280,11 @@ dayListForMonthView today selected =
                     , inMonth = Compare.is3 Compare.BetweenOpen date firstOfMonth lastOfMonth
                     , today = Compare.is Compare.Same today date
                     , selected = Compare.is Compare.Same selected date
+                    , valid = Maybe.map2 isValidDay validRange (Just date)
                     }
                 )
+
+
+isValidDay : ( Date, Date ) -> Date -> Bool
+isValidDay ( begin, end ) day =
+    Compare.is3 Compare.BetweenOpen day begin end

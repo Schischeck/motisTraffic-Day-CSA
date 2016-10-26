@@ -213,24 +213,31 @@ update msg model =
 
         ScheduleInfoError _ ->
             let
-                ( m, c ) =
+                ( newConnections, c ) =
                     Connections.update (Connections.UpdateScheduleInfo Nothing) model.connections
+
+                newDate =
+                    Calendar.update (Calendar.SetValidRange Nothing) model.date
             in
-                ( { model
+                { model
                     | scheduleInfo = Nothing
-                    , connections = m
-                  }
-                , Cmd.map ConnectionsUpdate c
-                )
+                    , connections = newConnections
+                    , date = newDate
+                }
+                    ! [ Cmd.map ConnectionsUpdate c ]
 
         ScheduleInfoResponse si ->
             let
                 ( m, c ) =
                     Connections.update (Connections.UpdateScheduleInfo (Just si)) model.connections
+
+                newDate =
+                    Calendar.update (Calendar.SetValidRange (Just ( si.begin, si.end ))) model.date
             in
                 ( { model
                     | scheduleInfo = Just si
                     , connections = m
+                    , date = newDate
                   }
                 , Cmd.map ConnectionsUpdate c
                 )

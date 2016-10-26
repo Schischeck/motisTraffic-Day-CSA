@@ -71,6 +71,10 @@
   background-color: #dbe3fa;
 }
 
+.calendardays li.invalid-day:hover {
+  background-color: #eee;
+}
+
 .weekdays li {
   color: #96a2ba;
   font-size: .75em;
@@ -84,6 +88,14 @@
 
 .out-of-month {
   font-weight: lighter;
+}
+
+.calendardays li.invalid-day {
+  color: #ccc;
+}
+
+.calendardays li.selected.invalid-day, .calendardays li.selected.invalid-day:hover {
+  background-color: #777 !important;
 }
 
 .calendardays li.selected, .calendardays li.selected:hover {

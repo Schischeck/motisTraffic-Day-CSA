@@ -436,9 +436,9 @@ scheduleRangeView { scheduleInfo } =
             div [ class "schedule-range" ]
                 [ text <|
                     "Auskunft von "
-                        ++ (formatDate deDateConfig si.begin)
+                        ++ (formatDateTime deDateConfig si.begin)
                         ++ " bis "
-                        ++ (formatDate deDateConfig si.end)
+                        ++ (formatDateTime deDateConfig si.end)
                         ++ " möglich"
                 ]
 
