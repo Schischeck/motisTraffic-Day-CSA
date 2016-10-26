@@ -414,17 +414,38 @@
   cursor: pointer;
 }
 
-.train-detail .intermediate-stops-toggle i {
-  vertical-align: middle;
-  width: 1.5em;
-}
-
 .train-detail .intermediate-stops.collapsed {
   display: none;
 }
 
 .train-detail .intermediate-stops.expanded {
   display: block;
+}
+
+.expand-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  position: relative;
+}
+
+.expand-icon i {
+  position: absolute;
+  vertical-align: middle;
+}
+
+.expand-icon i:first-of-type {
+  position: absolute;
+  top: 0px;
+}
+
+.expand-icon i:last-of-type {
+  position: absolute;
+  top: 12px;
+}
+
+.train-detail .intermediate-stops-toggle span {
+  margin-left: 10px;
 }
 
 .train-detail .stop .time {

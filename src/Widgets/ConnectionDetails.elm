@@ -241,11 +241,15 @@ trainDetail internalMsg ( train, ic ) idx expanded =
         expandIcon =
             if hasIntermediateStops then
                 if expanded then
-                    "expand_less"
+                    [ i [ class "icon" ] [ text "expand_more" ]
+                    , i [ class "icon" ] [ text "expand_less" ]
+                    ]
                 else
-                    "expand_more"
+                    [ i [ class "icon" ] [ text "expand_less" ]
+                    , i [ class "icon" ] [ text "expand_more" ]
+                    ]
             else
-                ""
+                []
 
         intermediateText =
             if hasIntermediateStops then
@@ -297,8 +301,8 @@ trainDetail internalMsg ( train, ic ) idx expanded =
                          ]
                             ++ intermediateToggleOnClick
                         )
-                        [ i [ class "icon" ] [ text expandIcon ]
-                        , text (intermediateText ++ " (" ++ durationStr ++ ")")
+                        [ div [ class "expand-icon" ] expandIcon
+                        , span [] [ text (intermediateText ++ " (" ++ durationStr ++ ")") ]
                         ]
                     , div
                         [ classList
@@ -335,7 +339,8 @@ walkDetail walk =
             , div [ class "first-stop" ]
                 [ stopView Departure walk.from ]
             , div [ class "intermediate-stops-toggle" ]
-                [ text ("Fußweg (" ++ durationStr ++ ")")
+                [ div [ class "expand-icon" ] []
+                , span [] [ text ("Fußweg (" ++ durationStr ++ ")") ]
                 ]
             , div [ class "last-stop" ]
                 [ stopView Arrival walk.to ]
