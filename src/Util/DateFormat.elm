@@ -146,7 +146,7 @@ formatShortDate conf date =
             toString (monthToInt (month date))
     in
         if conf.dayPos < conf.monthPos then
-            d ++ conf.seperator ++ d
+            d ++ conf.seperator ++ m
         else
             m ++ conf.seperator ++ d
 
