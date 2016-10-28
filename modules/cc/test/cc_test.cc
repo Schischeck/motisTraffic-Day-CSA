@@ -9,7 +9,9 @@
 using namespace motis;
 using namespace motis::test;
 using namespace motis::module;
-using motis::test::schedule::invalid_realtime::dataset_opt;
+
+loader::loader_options dataset_opt("modules/cc/test_resources/schedule",
+                                   "20151124", 2, false, true, false, true);
 
 struct cc_check_artificial_connection_test : public motis_instance_test {
   cc_check_artificial_connection_test()
