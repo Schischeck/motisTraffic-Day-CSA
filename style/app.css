@@ -444,18 +444,22 @@
 }
 
 .connection-info {
-  background: #76909B;
-  color: #fff;
+  height: 110px;
   margin: 0;
-  padding: 10px 20px;
-  height: 90px;
+  padding: 20px 20px;
+  font-weight: 300;
+  border-bottom: 1px solid #ccc;
+}
+
+.connection-info .connection-times {
+  font-weight: 700;
 }
 
 .back {
   cursor: pointer;
   font-size: 24px;
   padding: 2px 10px 10px 9px;
-  border: 1px solid #fff;
+  border: 1px solid #ccc;
   border-radius: 23px;
   width: 44px;
   height: 44px;
@@ -468,7 +472,7 @@
 }
 
 .back:hover {
-  background: #90A4AE;
+  background: #eee;
 }
 
 .connection-info .summary {
@@ -487,6 +491,6 @@
 
 .connection-details .connection-journey {
     overflow-y: auto;
-    height: 510px;
-    padding: 15px 15px 0 15px;
+    height: 490px;
+    padding: 20px 15px 0 15px;
 }
