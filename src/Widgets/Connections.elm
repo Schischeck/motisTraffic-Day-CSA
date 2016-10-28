@@ -323,14 +323,6 @@ connectionsView : Config msg -> Localization -> Model -> Html msg
 connectionsView config locale model =
     div [ class "connections" ]
         [ extendIntervalButton ExtendBefore config locale model
-        , div [ class "pure-g header" ]
-            [ div [ class "pure-u-6-24" ]
-                [ text locale.t.connections.timeHeader ]
-            , div [ class "pure-u-4-24" ]
-                [ text locale.t.connections.durationHeader ]
-            , div [ class "pure-u-14-24" ]
-                [ text locale.t.connections.transportsHeader ]
-            ]
         , Keyed.node "div"
             [ class "connection-list" ]
             (List.map2
@@ -402,21 +394,21 @@ connectionView : Config msg -> Localization -> Int -> Journey -> Html msg
 connectionView (Config { internalMsg, selectMsg }) locale idx j =
     div [ class "connection", onClick (selectMsg idx) ]
         [ div [ class "pure-g" ]
-            [ div [ class "pure-u-6-24 connection-times" ]
+            [ div [ class "pure-u-4-24 connection-times" ]
                 [ div [ class "connection-departure" ]
-                    [ text (Maybe.map (formatShortDateTime locale.dateConfig) (Connection.departureTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map formatTime (Connection.departureTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (Connection.departureEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 , div [ class "connection-arrival" ]
-                    [ text (Maybe.map (formatShortDateTime locale.dateConfig) (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
+                    [ text (Maybe.map formatTime (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
                     , text " "
                     , Maybe.map delay (Connection.arrivalEvent j.connection) |> Maybe.withDefault (text "")
                     ]
                 ]
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
-            , div [ class "pure-u-14-24 connection-trains" ]
+            , div [ class "pure-u-16-24 connection-trains" ]
                 [ trainsView (pickTransportViewMode transportListViewWidth j) j ]
             ]
         ]
@@ -424,7 +416,7 @@ connectionView (Config { internalMsg, selectMsg }) locale idx j =
 
 transportListViewWidth : Int
 transportListViewWidth =
-    360
+    400
 
 
 scheduleRangeView : Localization -> Model -> Html msg
