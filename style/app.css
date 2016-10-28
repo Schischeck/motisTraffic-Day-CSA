@@ -1,5 +1,5 @@
 #search, #connections {
-  padding: 16px;
+  padding: 24px;
 }
 
 .app {
@@ -78,7 +78,7 @@
 .train-list {
   display: flex;
   flex-wrap: nowrap;
-  /*justify-content: space-between;*/
+  justify-content: space-between;
 }
 
 .train-list .train-box:first-of-type {
