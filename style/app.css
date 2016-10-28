@@ -296,6 +296,10 @@
   padding: 0 4px;
 }
 
+.train-detail .intermediate-stops .stop {
+  margin-bottom: 2em;
+}
+
 .train-detail .intermediate-stops .stop::before,
 .train-detail:last-of-type .last-stop .stop::before {
   content: "";
