@@ -163,7 +163,8 @@
 }
 
 .extend-search-interval.disabled a {
-  background: #ccc;
+  color: #ccc;
+  border-color: #ccc;
   cursor: progress;
 }
 
