@@ -32,8 +32,7 @@ po::options_description cc::desc() {
 
 void cc::init(motis::module::registry& reg) {
   namespace p = std::placeholders;
-  reg.subscribe("/cc/check_journey",
-                std::bind(&cc::check_journey, this, p::_1));
+  reg.subscribe("/cc", std::bind(&cc::check_journey, this, p::_1));
 }
 
 ev_key get_event_at(schedule const& sched, Connection const* con,
