@@ -416,7 +416,7 @@ connectionView (Config { internalMsg, selectMsg }) locale idx j =
 
 transportListViewWidth : Int
 transportListViewWidth =
-    400
+    390
 
 
 scheduleRangeView : Localization -> Model -> Html msg

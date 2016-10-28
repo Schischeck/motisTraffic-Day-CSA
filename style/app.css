@@ -1,5 +1,5 @@
 #search, #connections {
-  padding: 24px;
+  padding: 32px;
 }
 
 .app {
@@ -37,7 +37,7 @@
 }
 
 #connections {
-  margin-top: -20px;
+  margin-top: -50px;
 }
 
 #connections .no-results, #connections .error {
@@ -166,6 +166,14 @@
   color: #ccc;
   border-color: #ccc;
   cursor: progress;
+}
+
+.extend-search-interval.search-before {
+  margin-bottom: 20px;
+}
+
+.extend-search-interval.search-after {
+  margin-top: 20px;
 }
 
 .neg-delay {
@@ -450,7 +458,7 @@
 .connection-info {
   height: 110px;
   margin: 0;
-  padding: 20px 20px;
+  padding: 20px 24px;
   font-weight: 300;
   border-bottom: 1px solid #ccc;
 }
@@ -496,5 +504,5 @@
 .connection-details .connection-journey {
     overflow-y: auto;
     height: 490px;
-    padding: 20px 15px 0 15px;
+    padding: 20px 20px 0 20px;
 }
