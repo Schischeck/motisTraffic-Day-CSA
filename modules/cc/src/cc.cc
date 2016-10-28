@@ -137,7 +137,7 @@ void check_interchange(schedule const& sched, Connection const* con,
       min_transfer_time += get_foot_edge_duration(sched, con, i);
     }
     verify(transfer_time >= min_transfer_time,
-           "transfer below walk tranfer time");
+           "transfer time below walk duration");
   }
 }
 
