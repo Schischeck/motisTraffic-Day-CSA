@@ -289,11 +289,7 @@ view model =
         div [ class "app" ] <|
             [ App.map MapUpdate (Map.view model.map)
             , div [ class "overlay" ] <|
-                [ div [ id "header" ]
-                    [ h1 [ class "disable-select" ] [ text "Motis Project" ]
-                    , i [ class "icon" ] [ text "\xE2BF" ]
-                    ]
-                , div [ id "overlay-content" ]
+                [ div [ id "overlay-content" ]
                     content
                 ]
             ]

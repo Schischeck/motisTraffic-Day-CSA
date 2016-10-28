@@ -1,23 +1,5 @@
-#search, #header, #connections {
+#search, #connections {
   padding: 16px;
-}
-
-#header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  background: #2f2e3e;
-  color: white;
-  font-weight: lighter;
-  border-radius: 3px 3px 0 0;
-  box-shadow: 0 2px 5px rgba(0,0,0,.16);
-}
-
-#header h1 {
-  font-size: 1.2em;
-  margin: 0;
-  font-weight: 400;
-  cursor: default;
 }
 
 .app {
