@@ -16,19 +16,19 @@ struct cc_check_routed_connection_test : public motis_instance_test {
       : motis::test::motis_instance_test(dataset_opt, {"cc", "routing", "rt"}) {
   }
 
-  msg_ptr routing_req_2_11() const {
+  msg_ptr route(std::string const& from, std::string const& to,
+                int hhmm) const {
     message_creator fbb;
     fbb.create_and_finish(
         MsgContent_RoutingRequest,
         CreateRoutingRequest(
             fbb, Start_OntripStationStart,
             CreateOntripStationStart(
-                fbb, CreateInputStation(fbb, fbb.CreateString("0000002"),
+                fbb, CreateInputStation(fbb, fbb.CreateString(from),
                                         fbb.CreateString("")),
-                unix_time(1700))
+                unix_time(hhmm))
                 .Union(),
-            CreateInputStation(fbb, fbb.CreateString("0000011"),
-                               fbb.CreateString("")),
+            CreateInputStation(fbb, fbb.CreateString(to), fbb.CreateString("")),
             SearchType_SingleCriterion, SearchDir_Forward,
             fbb.CreateVector(std::vector<Offset<Via>>()),
             fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
@@ -47,12 +47,11 @@ struct cc_check_routed_connection_test : public motis_instance_test {
 };
 
 TEST_F(cc_check_routed_connection_test, simple_result_ok) {
-  auto res = call(routing_req_2_11());
-  std::cout << res->to_json();
-
-  auto const connections = motis_content(RoutingResponse, res)->connections();
+  auto const routing_res = call(route("0000002", "0000011", 1700));
+  auto const connections =
+      motis_content(RoutingResponse, routing_res)->connections();
   ASSERT_EQ(1, connections->size());
 
-  auto res1 = call(check_connection(connections->Get(0)));
-  std::cout << res1->to_json();
+  auto const cc_res = call(check_connection(connections->Get(0)));
+  EXPECT_NE(MsgContent_MotisError, cc_res->get()->content_type());
 }

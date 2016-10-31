@@ -40,4 +40,4 @@ B:     3,4,5     | cancel 5
 C: 2,3,4,5,11    | cancel 5 (arrival S6)
    2,3,4,5,11    | cancel 5 (departure S4)
    2,3,4,5,6,8,9 | cancel 5 (arrival S6)
-   2,3,4,5,6,8,9 | cancel 8 (departure S5) 
+   2,3,4,5,6,8,9 | cancel 8 (departure S5)
