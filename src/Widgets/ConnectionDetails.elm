@@ -3,7 +3,6 @@ module Widgets.ConnectionDetails exposing (State, Config(..), Msg, view, init, u
 import Html exposing (Html, div, ul, li, text, span, i)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
-import Html.Lazy exposing (lazy)
 import String
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
@@ -11,6 +10,7 @@ import Data.Connection.Types as Connection exposing (..)
 import Data.Journey.Types as Journey exposing (..)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.Core exposing ((=>))
+import Util.Date exposing (isSameDay)
 import Util.DateFormat exposing (..)
 import Util.List exposing (..)
 import Localization.Base exposing (..)
@@ -104,37 +104,53 @@ view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
 
 
 connectionInfoView : msg -> Localization -> Connection -> Html msg
-connectionInfoView closeMsg locale connection =
-    div [ class "connection-info" ]
-        [ div [ class "pure-g" ]
-            [ div [ class "pure-u-3-24" ]
-                [ div [ onClick closeMsg, class "back" ]
-                    [ i [ class "icon" ] [ text "arrow_back" ] ]
-                ]
-            , div [ class "pure-u-4-24 connection-times" ]
-                [ div [ class "connection-departure" ]
-                    [ text (Maybe.map formatTime (departureTime connection) |> Maybe.withDefault "?")
+connectionInfoView closeMsg { t, dateConfig } connection =
+    let
+        depTime =
+            departureTime connection |> Maybe.withDefault (Date.fromTime 0)
+
+        arrTime =
+            arrivalTime connection |> Maybe.withDefault (Date.fromTime 0)
+
+        depTimeText =
+            formatDateTime dateConfig depTime
+
+        arrTimeText =
+            if isSameDay depTime arrTime then
+                formatTime arrTime
+            else
+                formatDateTime dateConfig arrTime
+    in
+        div [ class "connection-info" ]
+            [ div [ class "pure-g" ]
+                [ div [ class "pure-u-3-24" ]
+                    [ div [ onClick closeMsg, class "back" ]
+                        [ i [ class "icon" ] [ text "arrow_back" ] ]
                     ]
-                , div [ class "connection-arrival" ]
-                    [ text (Maybe.map formatTime (arrivalTime connection) |> Maybe.withDefault "?")
-                    ]
-                ]
-            , div [ class "pure-u-17-24" ]
-                [ div [] [ text (Maybe.map (.station >> .name) (List.head connection.stops) |> Maybe.withDefault "?") ]
-                , div [] [ text (Maybe.map (.station >> .name) (last connection.stops) |> Maybe.withDefault "?") ]
-                , div [ class "summary" ]
-                    [ span [ class "duration" ]
-                        [ i [ class "icon" ] [ text "schedule" ]
-                        , text (Maybe.map durationText (duration connection) |> Maybe.withDefault "?")
+                , div [ class "pure-u-6-24 connection-times" ]
+                    [ div [ class "connection-departure" ]
+                        [ text depTimeText
                         ]
-                    , span [ class "interchanges" ]
-                        [ i [ class "icon" ] [ text "transfer_within_a_station" ]
-                        , text <| locale.t.connections.interchanges (interchanges connection)
+                    , div [ class "connection-arrival" ]
+                        [ text arrTimeText
+                        ]
+                    ]
+                , div [ class "pure-u-15-24" ]
+                    [ div [] [ text (Maybe.map (.station >> .name) (List.head connection.stops) |> Maybe.withDefault "?") ]
+                    , div [] [ text (Maybe.map (.station >> .name) (last connection.stops) |> Maybe.withDefault "?") ]
+                    , div [ class "summary" ]
+                        [ span [ class "duration" ]
+                            [ i [ class "icon" ] [ text "schedule" ]
+                            , text (Maybe.map durationText (duration connection) |> Maybe.withDefault "?")
+                            ]
+                        , span [ class "interchanges" ]
+                            [ i [ class "icon" ] [ text "transfer_within_a_station" ]
+                            , text <| t.connections.interchanges (interchanges connection)
+                            ]
                         ]
                     ]
                 ]
             ]
-        ]
 
 
 stopView : EventType -> Stop -> Html msg

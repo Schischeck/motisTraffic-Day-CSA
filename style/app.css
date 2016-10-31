@@ -483,6 +483,8 @@
 
 .connection-info .connection-times {
   font-weight: 700;
+  text-align: right;
+  padding-right: 10px;
 }
 
 .back {
