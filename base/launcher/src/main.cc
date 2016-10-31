@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
 
   listener_settings listener_opt(true, false, false, "0.0.0.0", "8080", false,
                                  "0.0.0.0", "8081", "0.0.0.0", "7000", "");
-  dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, true, true, true);
+  dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, true, true, false);
   module_settings module_opt(instance.module_names());
   launcher_settings launcher_opt(launcher_settings::motis_mode_t::SERVER,
                                  "queries.txt", "responses.txt",
