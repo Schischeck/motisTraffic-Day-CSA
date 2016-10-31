@@ -32,7 +32,7 @@ po::options_description cc::desc() {
 
 void cc::init(motis::module::registry& reg) {
   namespace p = std::placeholders;
-  reg.subscribe("/cc", std::bind(&cc::check_journey, this, p::_1));
+  reg.register_op("/cc", std::bind(&cc::check_journey, this, p::_1));
 }
 
 ev_key get_event_at(schedule const& sched, Connection const* con,
@@ -75,29 +75,29 @@ ev_key get_event_at(schedule const& sched, Connection const* con,
 
 std::vector<interchange> get_interchanges(schedule const& sched,
                                           Connection const* con) {
-  std::vector<interchange> evs;
+  std::vector<interchange> interchanges;
 
   interchange ic;
   auto stop_idx = 0;
   for (auto const& s : *con->stops()) {
+    if (s->leave()) {
+      ic.leave_ = get_event_at(sched, con, stop_idx, event_type::ARR);
+      ic.leave_stop_idx_ = stop_idx;
+    }
+
     if (s->enter()) {
       ic.enter_ = get_event_at(sched, con, stop_idx, event_type::DEP);
       ic.enter_stop_idx_ = stop_idx;
       if (ic.leave_.valid()) {
-        evs.emplace_back(std::move(ic));
+        interchanges.emplace_back(std::move(ic));
       }
-    }
-
-    if (s->leave()) {
       ic.reset();
-      ic.leave_ = get_event_at(sched, con, stop_idx, event_type::ARR);
-      ic.leave_stop_idx_ = stop_idx;
     }
 
     ++stop_idx;
   }
 
-  return evs;
+  return interchanges;
 }
 
 motis::time get_foot_edge_duration(schedule const& sched, Connection const* con,
