@@ -13,7 +13,6 @@ import Html exposing (Html, div, ul, li, text, span, i, a)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
-import Html.Keyed as Keyed
 import String
 import Date exposing (Date)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
@@ -24,6 +23,7 @@ import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
+import Util.Date exposing (isSameDay)
 import Util.Api as Api
     exposing
         ( ApiError(..)
@@ -323,15 +323,30 @@ connectionsView : Config msg -> Localization -> Model -> Html msg
 connectionsView config locale model =
     div [ class "connections" ]
         [ extendIntervalButton ExtendBefore config locale model
-        , Keyed.node "div"
-            [ class "connection-list" ]
-            (List.map2
-                (keyedConnectionView config locale)
-                [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
-                model.journeys
-            )
+        , connectionsWithDateHeaders config locale model
         , extendIntervalButton ExtendAfter config locale model
         ]
+
+
+connectionsWithDateHeaders : Config msg -> Localization -> Model -> Html msg
+connectionsWithDateHeaders config locale model =
+    let
+        getDate ( idx, journey ) =
+            Connection.departureTime journey.connection |> Maybe.withDefault (Date.fromTime 0)
+
+        renderConnection ( idx, journey ) =
+            connectionView config locale idx journey
+
+        renderDateHeader =
+            dateHeader locale
+
+        elements =
+            List.map2 (,)
+                [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
+                model.journeys
+    in
+        div [ class "connection-list" ]
+            (withDateHeaders getDate renderConnection renderDateHeader elements)
 
 
 trainsView : TransportViewMode -> Journey -> Html msg
@@ -412,6 +427,38 @@ connectionView (Config { internalMsg, selectMsg }) locale idx j =
                 [ trainsView (pickTransportViewMode transportListViewWidth j) j ]
             ]
         ]
+
+
+dateHeader : Localization -> Date -> Html msg
+dateHeader { dateConfig } date =
+    div [ class "date-header" ] [ span [] [ text <| formatDate dateConfig date ] ]
+
+
+withDateHeaders :
+    (a -> Date)
+    -> (a -> Html msg)
+    -> (Date -> Html msg)
+    -> List a
+    -> List (Html msg)
+withDateHeaders getDate renderElement renderDateHeader elements =
+    let
+        f element ( lastDate, result ) =
+            let
+                currentDate =
+                    getDate element
+
+                base =
+                    if not (isSameDay currentDate lastDate) then
+                        result ++ [ renderDateHeader currentDate ]
+                    else
+                        result
+            in
+                ( currentDate, base ++ [ renderElement element ] )
+
+        ( _, result ) =
+            List.foldl f ( Date.fromTime 0, [] ) elements
+    in
+        result
 
 
 transportListViewWidth : Int

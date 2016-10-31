@@ -24,3 +24,15 @@ combineDateTime date time =
 toDate : Int -> Int -> Int -> Date
 toDate year month day =
     dateFromFields year (intToMonth month) day 0 0 0 0
+
+
+isSameDay : Date -> Date -> Bool
+isSameDay a b =
+    let
+        firstDay =
+            ( Date.day a, Date.month a, Date.year a )
+
+        secondDay =
+            ( Date.day b, Date.month b, Date.year b )
+    in
+        firstDay == secondDay

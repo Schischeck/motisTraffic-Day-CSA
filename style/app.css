@@ -57,12 +57,30 @@
   cursor: pointer;
 }
 
-.connections .header {
-  margin-bottom: -15px;
+.connections .date-header {
+  font-size: 90%;
+  text-align: center;
+  margin: 10px 0 -10px 0;
+  display: table;
+  white-space: nowrap;
 }
 
-.connections .header div {
-  font-weight: bold;
+.connections .date-header::before,
+.connections .date-header::after {
+  border-top: 1px solid #ccc;
+  content: '';
+  display: table-cell;
+  position: relative;
+  top: 0.6em;
+  width: 45%;
+}
+
+.connections .date-header::before {
+  right: 1.5%;
+}
+
+.connections .date-header::after {
+  left: 1.5%;
 }
 
 .connections .connection-duration {
