@@ -19,7 +19,6 @@ import Localization.De exposing (..)
 import Localization.En exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 import Html.App as App
 import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
@@ -178,10 +177,7 @@ update msg model =
         SearchConnections ->
             let
                 routingRequest =
-                    RoutingRequest.initialRequest
-                        model.fromLocation.input
-                        model.toLocation.input
-                        (combineDateTime model.date.date model.time.date)
+                    buildRoutingRequest model
 
                 ( m, c ) =
                     Connections.update
