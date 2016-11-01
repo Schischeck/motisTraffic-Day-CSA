@@ -367,13 +367,6 @@ searchView model =
             , div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map TimeUpdate (TimeInput.view model.locale.t.search.time model.time) ]
             ]
-        , div []
-            [ a
-                [ class "gb-button gb-button-medium gb-button-PRIMARY_COLOR disable-select"
-                , onClick SearchConnections
-                ]
-                [ text model.locale.t.search.search ]
-            ]
         ]
     , div [ id "connections" ]
         [ lazy3 Connections.view connectionConfig model.locale model.connections ]
