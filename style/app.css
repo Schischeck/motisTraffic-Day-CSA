@@ -57,6 +57,10 @@
   cursor: pointer;
 }
 
+.connection .delay {
+  display: inline-block;
+}
+
 .connections .date-header {
   font-size: 90%;
   text-align: center;
@@ -319,7 +323,7 @@
 
 .train-detail .stop span {
   background-color: white;
-  padding: 0 4px;
+  padding: 0 6px;
 }
 
 .train-detail .intermediate-stops .stop {

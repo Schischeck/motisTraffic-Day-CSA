@@ -164,7 +164,7 @@ stopView eventType stop =
                 stop.arrival
     in
         div [ class "stop" ]
-            [ span [ class "time" ] [ text (Maybe.map formatTime event.schedule_time |> Maybe.withDefault "?") ]
+            [ div [ class "time" ] [ span [] [ text (Maybe.map formatTime event.schedule_time |> Maybe.withDefault "?") ] ]
             , delay event
             , span [ class "station" ] [ text stop.station.name ]
             ]

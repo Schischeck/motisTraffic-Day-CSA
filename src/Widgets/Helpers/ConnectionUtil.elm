@@ -165,21 +165,23 @@ delay event =
                             delayed =
                                 isDelayed d
                         in
-                            span
+                            div
                                 [ class <|
                                     if delayed then
                                         "delay pos-delay"
                                     else
                                         "delay neg-delay"
                                 ]
-                                [ text <|
-                                    (if delayed || (zeroDelay d) then
-                                        "+"
-                                     else
-                                        "-"
-                                    )
-                                        ++ (delayText d)
+                                [ span []
+                                    [ text <|
+                                        (if delayed || (zeroDelay d) then
+                                            "+"
+                                         else
+                                            "-"
+                                        )
+                                            ++ (delayText d)
+                                    ]
                                 ]
 
                     Nothing ->
-                        span [ class "delay" ] []
+                        div [ class "delay" ] []
