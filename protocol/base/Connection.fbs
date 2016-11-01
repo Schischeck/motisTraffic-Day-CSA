@@ -15,7 +15,7 @@ table Stop {
   station:motis.Station;
   arrival:EventInfo;
   departure:EventInfo;
-  leave:bool;
+  exit:bool;
   enter:bool;
 }
 

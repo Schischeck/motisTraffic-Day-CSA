@@ -19,7 +19,7 @@ uint16_t get_duration(journey const& journey) {
 
 uint16_t get_transfers(journey const& journey) {
   return std::count_if(begin(journey.stops_), end(journey.stops_),
-                       [](journey::stop const& s) { return s.leave_; }) -
+                       [](journey::stop const& s) { return s.exit_; }) -
          1;
 }
 
