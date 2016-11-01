@@ -10,7 +10,7 @@ import Widgets.ConnectionDetails as ConnectionDetails
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
-import Data.Routing.Request as RoutingRequest
+import Data.Routing.Request as RoutingRequest exposing (RoutingRequest)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
@@ -60,6 +60,7 @@ type alias Model =
     , selectedConnection : Maybe ConnectionDetails.State
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
+    , currentRoutingRequest : Maybe RoutingRequest
     }
 
 
@@ -87,6 +88,7 @@ init _ =
           , selectedConnection = Nothing
           , scheduleInfo = Nothing
           , locale = deLocalization
+          , currentRoutingRequest = Nothing
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -141,14 +143,14 @@ update msg model =
                 ( m, c ) =
                     Typeahead.update msg' model.fromLocation
             in
-                ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
+                checkRoutingRequest ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
 
         ToLocationUpdate msg' ->
             let
                 ( m, c ) =
                     Typeahead.update msg' model.toLocation
             in
-                ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
+                checkRoutingRequest ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
 
         FromTransportsUpdate msg' ->
             ( { model | fromTransports = TagList.update msg' model.fromTransports }, Cmd.none )
@@ -157,10 +159,10 @@ update msg model =
             ( { model | toTransports = TagList.update msg' model.toTransports }, Cmd.none )
 
         DateUpdate msg' ->
-            ( { model | date = Calendar.update msg' model.date }, Cmd.none )
+            checkRoutingRequest ( { model | date = Calendar.update msg' model.date }, Cmd.none )
 
         TimeUpdate msg' ->
-            ( { model | time = TimeInput.update msg' model.time }, Cmd.none )
+            checkRoutingRequest ( { model | time = TimeInput.update msg' model.time }, Cmd.none )
 
         ConnectionsUpdate msg' ->
             let
@@ -171,17 +173,22 @@ update msg model =
 
         SearchConnections ->
             let
+                routingRequest =
+                    RoutingRequest.initialRequest
+                        model.fromLocation.input
+                        model.toLocation.input
+                        (combineDateTime model.date.date model.time.date)
+
                 ( m, c ) =
                     Connections.update
-                        (Connections.Search Connections.ReplaceResults <|
-                            RoutingRequest.initialRequest
-                                model.fromLocation.input
-                                model.toLocation.input
-                                (combineDateTime model.date.date model.time.date)
-                        )
+                        (Connections.Search Connections.ReplaceResults routingRequest)
                         model.connections
             in
-                ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
+                { model
+                    | connections = m
+                    , currentRoutingRequest = Just routingRequest
+                }
+                    ! [ Cmd.map ConnectionsUpdate c ]
 
         SelectConnection idx ->
             let
@@ -256,6 +263,38 @@ requestScheduleInfo remoteAddress =
         ScheduleInfoError
         ScheduleInfoResponse
         ScheduleInfo.request
+
+
+buildRoutingRequest : Model -> RoutingRequest
+buildRoutingRequest model =
+    RoutingRequest.initialRequest
+        model.fromLocation.input
+        model.toLocation.input
+        (combineDateTime model.date.date model.time.date)
+
+
+checkRoutingRequest : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+checkRoutingRequest ( model, cmds ) =
+    let
+        newRoutingRequest =
+            buildRoutingRequest model
+
+        requestChanged =
+            case model.currentRoutingRequest of
+                Just currentRequest ->
+                    newRoutingRequest /= currentRequest
+
+                Nothing ->
+                    True
+    in
+        if requestChanged then
+            let
+                ( m, c ) =
+                    update SearchConnections model
+            in
+                m ! [ cmds, c ]
+        else
+            ( model, cmds )
 
 
 
