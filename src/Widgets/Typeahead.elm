@@ -12,6 +12,7 @@ import Widgets.Input as Input
 import Util.View exposing (onStopAll)
 import Util.Core exposing ((=>))
 import Util.Api as Api
+import Debounce
 
 
 -- MODEL
@@ -24,6 +25,7 @@ type alias Model =
     , visible : Bool
     , inputWidget : Input.Model
     , remoteAddress : String
+    , debounce : Debounce.State
     }
 
 
@@ -42,11 +44,18 @@ type Msg
     | Select Int
     | Hide
     | InputUpdate Input.Msg
+    | Deb (Debounce.Msg Msg)
+    | RequestSuggestions
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( updateModel msg model, command msg model )
+    case msg of
+        Deb a ->
+            Debounce.update debounceCfg a model
+
+        _ ->
+            ( updateModel msg model, command msg model )
 
 
 updateModel : Msg -> Model -> Model
@@ -98,18 +107,37 @@ updateModel msg model =
             in
                 { updated | inputWidget = Input.update msg' model.inputWidget }
 
+        Deb _ ->
+            -- handled in update
+            model
+
+        RequestSuggestions ->
+            model
+
 
 command : Msg -> Model -> Cmd Msg
 command msg model =
     case msg of
-        InputChange str ->
-            if String.length str > 2 then
-                requestSuggestions model.remoteAddress str
+        InputChange _ ->
+            Debounce.debounceCmd debounceCfg RequestSuggestions
+
+        RequestSuggestions ->
+            if String.length model.input > 2 then
+                requestSuggestions model.remoteAddress model.input
             else
                 Cmd.none
 
         _ ->
             Cmd.none
+
+
+debounceCfg : Debounce.Config Model Msg
+debounceCfg =
+    Debounce.config
+        .debounce
+        (\model s -> { model | debounce = s })
+        Deb
+        100
 
 
 
@@ -206,6 +234,7 @@ init remoteAddress initialValue =
     , visible = False
     , inputWidget = Input.init
     , remoteAddress = remoteAddress
+    , debounce = Debounce.init
     }
 
 
