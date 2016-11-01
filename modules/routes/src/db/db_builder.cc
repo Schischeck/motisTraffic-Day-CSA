@@ -30,7 +30,7 @@ int db_builder::append(std::vector<std::string> const& station_ids,
   b.create_and_finish(MsgContent_RoutesSeqResponse, res.Union());
 
   db_.put(std::to_string(index_), routing_sequence(std::move(b)).to_string());
-  indices_.emplace_back(station_ids, classes);
+  indices_.emplace_back(station_ids, classes, index_);
   index_++;
   return index_;
 }
@@ -39,18 +39,20 @@ void db_builder::finish() {
   module::message_creator b;
   std::vector<flatbuffers::Offset<motis::routes::RouteIndex>> r;
   std::sort(begin(indices_), end(indices_), [&](auto const& l, auto const& r) {
-    return std::tie(l.first, l.second) < std::tie(r.first, r.second);
+    return std::tie(std::get<0>(l), std::get<1>(l)) <
+           std::tie(std::get<0>(r), std::get<1>(r));
   });
   for (auto i = 0u; i < indices_.size(); i++) {
-    auto ids = indices_[i].first;
-    auto classes = indices_[i].second;
+    auto ids = std::get<0>(indices_[i]);
+    auto classes = std::get<1>(indices_[i]);
 
     auto fbs_stations = transform_to_vec(ids, [&](auto const& station_id) {
       return b.CreateString(station_id);
     });
 
     r.push_back(CreateRouteIndex(b, b.CreateVector(fbs_stations),
-                                 b.CreateVector(classes), i));
+                                 b.CreateVector(classes),
+                                 std::get<2>(indices_[i])));
   }
 
   b.Finish(CreateRouteLookup(b, b.CreateVector(r)));
