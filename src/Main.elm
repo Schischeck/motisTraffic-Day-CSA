@@ -26,6 +26,7 @@ import Dom.Scroll as Scroll
 import Task
 import String
 import Navigation
+import Debounce
 
 
 remoteAddress : String
@@ -61,6 +62,7 @@ type alias Model =
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
     , currentRoutingRequest : Maybe RoutingRequest
+    , debounce : Debounce.State
     }
 
 
@@ -89,6 +91,7 @@ init _ =
           , scheduleInfo = Nothing
           , locale = deLocalization
           , currentRoutingRequest = Nothing
+          , debounce = Debounce.init
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -120,6 +123,7 @@ type Msg
     | CloseConnectionDetails
     | ScheduleInfoError ApiError
     | ScheduleInfoResponse ScheduleInfo
+    | Deb (Debounce.Msg Msg)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -254,6 +258,9 @@ update msg model =
                 , Cmd.map ConnectionsUpdate c
                 )
 
+        Deb a ->
+            Debounce.update debounceCfg a model
+
 
 requestScheduleInfo : String -> Cmd Msg
 requestScheduleInfo remoteAddress =
@@ -288,13 +295,18 @@ checkRoutingRequest ( model, cmds ) =
                     True
     in
         if requestChanged then
-            let
-                ( m, c ) =
-                    update SearchConnections model
-            in
-                m ! [ cmds, c ]
+            model ! [ cmds, Debounce.debounceCmd debounceCfg <| SearchConnections ]
         else
             ( model, cmds )
+
+
+debounceCfg : Debounce.Config Model Msg
+debounceCfg =
+    Debounce.config
+        .debounce
+        (\model s -> { model | debounce = s })
+        Deb
+        200
 
 
 
