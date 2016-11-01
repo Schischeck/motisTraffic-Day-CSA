@@ -15,6 +15,12 @@ deTranslations : Translations
 deTranslations =
     { search =
         { search = "Suchen"
+        , start = "Start"
+        , destination = "Ziel"
+        , date = "Datum"
+        , time = "Uhrzeit"
+        , startTransports = "Verkehrsmittel am Start"
+        , destinationTransports = "Verkehrsmittel am Ziel"
         }
     , connections =
         { timeHeader = "Zeit"

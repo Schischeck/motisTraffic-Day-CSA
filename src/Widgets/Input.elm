@@ -66,13 +66,14 @@ addInputWidget inputWidget list =
 view :
     (Msg -> msg)
     -> List (Html.Attribute msg)
+    -> String
     -> Maybe (List (Html msg))
     -> Maybe String
     -> Model
     -> Html msg
-view makeMsg attributes inputWidget icon model =
+view makeMsg attributes label inputWidget icon model =
     div []
-        [ div [ class "label" ] [ text "Date" ]
+        [ div [ class "label" ] [ text label ]
         , div
             [ classList
                 [ ( "gb-input-group", True )

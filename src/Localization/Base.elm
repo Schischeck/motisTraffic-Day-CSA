@@ -13,6 +13,12 @@ type alias Localization =
 type alias Translations =
     { search :
         { search : String
+        , start : String
+        , destination : String
+        , date : String
+        , time : String
+        , startTransports : String
+        , destinationTransports : String
         }
     , connections :
         { timeHeader : String

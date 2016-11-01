@@ -15,6 +15,12 @@ enTranslations : Translations
 enTranslations =
     { search =
         { search = "Search"
+        , start = "Start"
+        , destination = "Destination"
+        , date = "Date"
+        , time = "Time"
+        , startTransports = "Transports at the start"
+        , destinationTransports = "Transports at the destination"
         }
     , connections =
         { timeHeader = "Time"

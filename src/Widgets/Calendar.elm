@@ -3,7 +3,7 @@ module Widgets.Calendar exposing (Model, Msg(..), init, update, view)
 import Html exposing (..)
 import Html.Events exposing (onClick, onInput, onFocus, onBlur, onWithOptions)
 import Html.Attributes exposing (..)
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (..)
 import Date exposing (Date, Day, day, month, year, dayOfWeek)
 import Date.Extra.Duration as Duration
 import Date.Extra.Core exposing (lastOfMonthDate, toFirstOfMonth, isoDayOfWeek)
@@ -205,13 +205,14 @@ dayButtons =
         ]
 
 
-calendarView : Model -> Html Msg
-calendarView model =
+calendarView : String -> Model -> Html Msg
+calendarView label model =
     div []
         [ Input.view InputUpdate
             [ onInput DateInput
             , value model.inputStr
             ]
+            label
             (Just [ dayButtons ])
             (Just "\xE878")
             model.inputWidget
@@ -230,9 +231,9 @@ calendarView model =
         ]
 
 
-view : Model -> Html Msg
+view : String -> Model -> Html Msg
 view =
-    lazy calendarView
+    lazy2 calendarView
 
 
 

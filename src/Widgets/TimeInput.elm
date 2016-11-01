@@ -6,7 +6,7 @@ import Html exposing (..)
 import Date exposing (Date)
 import Html.Events exposing (onInput, onClick)
 import Html.Attributes exposing (value, class)
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (..)
 import Widgets.Input as Input
 import Widgets.Button as Button
 import Util.StringSplit exposing (..)
@@ -123,15 +123,16 @@ hourButtons =
         ]
 
 
-timeInputView : Model -> Html Msg
-timeInputView model =
+timeInputView : String -> Model -> Html Msg
+timeInputView label model =
     Input.view InputUpdate
         [ onInput TimeInput, value model.inputStr ]
+        label
         (Just [ hourButtons ])
         (Just "\xE8AE")
         model.inputWidget
 
 
-view : Model -> Html Msg
-view model =
-    lazy timeInputView model
+view : String -> Model -> Html Msg
+view label model =
+    lazy2 timeInputView label model

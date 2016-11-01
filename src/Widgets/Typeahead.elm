@@ -3,7 +3,7 @@ module Widgets.Typeahead exposing (Model, Msg, init, update, view)
 import Html exposing (Html, div, ul, li, text)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
-import Html.Lazy exposing (lazy)
+import Html.Lazy exposing (..)
 import String
 import Dict exposing (..)
 import Json.Encode as Encode
@@ -155,8 +155,8 @@ proposalView selected index str =
         [ text str ]
 
 
-typeaheadView : Maybe String -> Model -> Html Msg
-typeaheadView icon model =
+typeaheadView : String -> Maybe String -> Model -> Html Msg
+typeaheadView label icon model =
     div []
         [ Input.view InputUpdate
             [ value model.input
@@ -170,6 +170,7 @@ typeaheadView icon model =
                     ]
                 )
             ]
+            label
             Nothing
             icon
             model.inputWidget
@@ -186,9 +187,9 @@ typeaheadView icon model =
         ]
 
 
-view : Maybe String -> Model -> Html Msg
-view icon model =
-    lazy (typeaheadView icon) model
+view : String -> Maybe String -> Model -> Html Msg
+view label icon model =
+    lazy3 typeaheadView label icon model
 
 
 
