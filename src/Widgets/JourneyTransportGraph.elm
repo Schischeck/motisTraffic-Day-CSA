@@ -4,10 +4,8 @@ import Html exposing (Html, div)
 import Html.Lazy
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
-import String
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
-import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Journey.Types as Journey exposing (Journey, Train, JourneyWalk)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.List exposing (last)
@@ -77,12 +75,18 @@ partView { part, position, barLength } =
     let
         radius =
             toString circleRadius
+
+        partWidth =
+            (circleRadius * 2) + barLength
+
+        lineEnd =
+            position + partWidth
     in
         g [ class <| "train-class-" ++ part.colorClass ]
             [ line
                 [ x1 (toString <| position)
                 , y1 radius
-                , x2 (toString <| position + (circleRadius * 2) + barLength)
+                , x2 (toString <| lineEnd)
                 , y2 radius
                 , class "train-line"
                 ]
@@ -103,6 +107,13 @@ partView { part, position, barLength } =
                 , height (toString <| iconSize)
                 ]
                 []
+            , text'
+                [ x (toString <| position)
+                , y (toString <| textOffset + textHeight)
+                , textAnchor "start"
+                , class "train-name"
+                ]
+                [ text part.longName ]
             ]
 
 
@@ -155,7 +166,7 @@ trainPart train =
                 { base
                     | icon = trainIcon t.class
                     , colorClass = toString t.class
-                    , longName = longTransportName t
+                    , longName = longTransportNameWithoutIcon t
                     , shortName = shortTransportName t
                 }
 
@@ -254,16 +265,26 @@ circleRadius =
     12
 
 
-totalHeight : number
-totalHeight =
-    circleRadius * 2
-
-
-iconOffset : Int
+iconOffset : Float
 iconOffset =
-    ((circleRadius * 2) - iconSize) // 2
+    ((circleRadius * 2) - iconSize) / 2
 
 
 destinationRadius : number
 destinationRadius =
     6
+
+
+textOffset : number
+textOffset =
+    circleRadius * 2 + 4
+
+
+textHeight : number
+textHeight =
+    12
+
+
+totalHeight : number
+totalHeight =
+    textOffset + textHeight

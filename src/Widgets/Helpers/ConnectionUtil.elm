@@ -40,6 +40,14 @@ shortTransportName transport =
             transport.line_id
 
 
+longTransportNameWithoutIcon : TransportInfo -> String
+longTransportNameWithoutIcon transport =
+    if useLineId transport.class then
+        transport.category_name ++ " " ++ transport.line_id
+    else
+        transport.name
+
+
 trainIcon : Int -> String
 trainIcon class =
     case class of
