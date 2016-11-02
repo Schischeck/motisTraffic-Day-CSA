@@ -221,6 +221,9 @@ layoutParts totalWidth parts =
         partCount =
             List.length parts
 
+        baseBarLength =
+            20
+
         basePartSize =
             circleRadius * 2
 
@@ -229,12 +232,12 @@ layoutParts totalWidth parts =
 
         totalLineSpace =
             totalWidth
-                - (partCount * basePartSize)
+                - (partCount * (basePartSize + baseBarLength))
                 - destinationWidth
                 |> toFloat
 
         getBarLength part =
-            ((toFloat part.duration) / totalDuration) * totalLineSpace
+            ((toFloat part.duration) / totalDuration) * totalLineSpace + baseBarLength
 
         layout part ( pos, results ) =
             let
