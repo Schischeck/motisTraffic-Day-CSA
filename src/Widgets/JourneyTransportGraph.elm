@@ -53,7 +53,21 @@ transportsView totalWidth journey =
             , height (toString totalHeight)
             , viewBox <| "0 0 " ++ (toString totalWidth) ++ " " ++ (toString totalHeight)
             ]
-            (List.map partView parts)
+            [ g [] (List.map partView parts)
+            , destinationView totalWidth
+            ]
+
+
+destinationView : Int -> Svg msg
+destinationView totalWidth =
+    g [ class "destination" ]
+        [ circle
+            [ cx (toString <| totalWidth - destinationRadius)
+            , cy (toString <| totalHeight / 2)
+            , r (toString destinationRadius)
+            ]
+            []
+        ]
 
 
 partView : DisplayPart -> Svg msg
@@ -191,8 +205,14 @@ layoutParts totalWidth parts =
         basePartSize =
             circleRadius * 2
 
+        destinationWidth =
+            destinationRadius * 2
+
         totalLineSpace =
-            totalWidth - partCount * basePartSize |> toFloat
+            totalWidth
+                - (partCount * basePartSize)
+                - destinationWidth
+                |> toFloat
 
         getBarLength part =
             ((toFloat part.duration) / totalDuration) * totalLineSpace
@@ -216,17 +236,26 @@ layoutParts totalWidth parts =
         displayParts
 
 
+iconSize : number
 iconSize =
     16
 
 
+circleRadius : number
 circleRadius =
     12
 
 
+totalHeight : number
 totalHeight =
     circleRadius * 2
 
 
+iconOffset : Int
 iconOffset =
     ((circleRadius * 2) - iconSize) // 2
+
+
+destinationRadius : number
+destinationRadius =
+    6

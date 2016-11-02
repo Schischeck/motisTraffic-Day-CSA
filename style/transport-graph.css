@@ -1,3 +1,17 @@
+.transport-graph .train-icon {
+    fill: #fff;
+}
+
+.transport-graph line {
+    stroke-width: 4;
+}
+
+.transport-graph .destination {
+    fill: #666;
+}
+
+
+
 .transport-graph .train-class-0 circle {
   fill: #9c27b0;
 }
@@ -37,19 +51,6 @@
 }
 
 
-
-
-
-.transport-graph .train-icon {
-    fill: #fff;
-}
-
-
-
-
-.transport-graph line {
-    stroke-width: 4;
-}
 
 .transport-graph .train-class-0 line {
   stroke: #9c27b0;
