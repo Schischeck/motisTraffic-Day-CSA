@@ -1,0 +1,90 @@
+.transport-graph .train-class-0 circle {
+  fill: #9c27b0;
+}
+
+.transport-graph .train-class-1 circle {
+  fill: #e91e63;
+}
+
+.transport-graph .train-class-2 circle {
+  fill: #1a237e;
+}
+
+.transport-graph .train-class-3,
+.transport-graph .train-class-4 circle {
+  fill: #f44336;
+}
+
+.transport-graph .train-class-5 circle {
+  fill: #4caf50;
+}
+
+.transport-graph .train-class-6 circle {
+  fill: #3f51b5;
+}
+
+.transport-graph .train-class-7,
+.transport-graph .train-class-8 circle {
+  fill: #ff9800;
+}
+
+.transport-graph .train-class-9 circle {
+  fill: #9e9e9e;
+}
+
+.transport-graph .train-class-walk circle {
+  fill: #333;
+}
+
+
+
+
+
+.transport-graph .train-icon {
+    fill: #fff;
+}
+
+
+
+
+.transport-graph line {
+    stroke-width: 4;
+}
+
+.transport-graph .train-class-0 line {
+  stroke: #9c27b0;
+}
+
+.transport-graph .train-class-1 line {
+  stroke: #e91e63;
+}
+
+.transport-graph .train-class-2 line {
+  stroke: #1a237e;
+}
+
+.transport-graph .train-class-3,
+.transport-graph .train-class-4 line {
+  stroke: #f44336;
+}
+
+.transport-graph .train-class-5 line {
+  stroke: #4caf50;
+}
+
+.transport-graph .train-class-6 line {
+  stroke: #3f51b5;
+}
+
+.transport-graph .train-class-7,
+.transport-graph .train-class-8 line {
+  stroke: #ff9800;
+}
+
+.transport-graph .train-class-9 line {
+  stroke: #9e9e9e;
+}
+
+.transport-graph .train-class-walk line {
+  stroke: #333;
+}

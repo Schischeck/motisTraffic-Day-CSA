@@ -21,6 +21,7 @@ import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.Helpers.ConnectionUtil exposing (..)
+import Widgets.JourneyTransportGraph as JourneyTransportGraph
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Date exposing (isSameDay)
@@ -424,7 +425,9 @@ connectionView (Config { internalMsg, selectMsg }) locale idx j =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-16-24 connection-trains" ]
-                [ trainsView (pickTransportViewMode transportListViewWidth j) j ]
+                [ trainsView (pickTransportViewMode transportListViewWidth j) j
+                , JourneyTransportGraph.view transportListViewWidth j
+                ]
             ]
         ]
 
