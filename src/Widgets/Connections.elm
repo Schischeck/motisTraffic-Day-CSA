@@ -425,8 +425,8 @@ connectionView (Config { internalMsg, selectMsg }) locale idx j =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-16-24 connection-trains" ]
-                [ trainsView (pickTransportViewMode transportListViewWidth j) j
-                , JourneyTransportGraph.view transportListViewWidth j
+                [ -- trainsView (pickTransportViewMode transportListViewWidth j) j,
+                  JourneyTransportGraph.view transportListViewWidth j
                 ]
             ]
         ]
