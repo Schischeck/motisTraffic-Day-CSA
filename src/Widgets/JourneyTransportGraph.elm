@@ -63,7 +63,7 @@ destinationView totalWidth =
     g [ class "destination" ]
         [ circle
             [ cx (toString <| totalWidth - destinationRadius)
-            , cy (toString <| totalHeight / 2)
+            , cy (toString circleRadius)
             , r (toString destinationRadius)
             ]
             []
