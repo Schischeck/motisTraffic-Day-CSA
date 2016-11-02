@@ -17,6 +17,8 @@ type alias Part =
     { icon : String
     , colorClass : String
     , duration : Int
+    , longName : String
+    , shortName : String
     }
 
 
@@ -144,6 +146,8 @@ trainPart train =
             { icon = "train"
             , colorClass = "0"
             , duration = trainDuration train
+            , longName = ""
+            , shortName = ""
             }
     in
         case transport of
@@ -151,6 +155,8 @@ trainPart train =
                 { base
                     | icon = trainIcon t.class
                     , colorClass = toString t.class
+                    , longName = longTransportName t
+                    , shortName = shortTransportName t
                 }
 
             Nothing ->
@@ -162,6 +168,8 @@ walkPart walk =
     { icon = "walk"
     , colorClass = "walk"
     , duration = deltaRecordToMinutes walk.duration
+    , longName = ""
+    , shortName = ""
     }
 
 
