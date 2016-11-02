@@ -32,11 +32,21 @@ struct rocksdb_database::impl {
   }
 
   std::string get(std::string const& key) {
+    auto value = try_get(key);
+
+    if (!value) {
+      throw std::system_error(error::not_found);
+    }
+
+    return *value;
+  }
+
+  boost::optional<std::string> try_get(std::string const& key) {
     std::string value;
     Status s = db_->Get(ReadOptions(), key, &value);
 
     if (s.IsNotFound()) {
-      throw std::system_error(error::not_found);
+      return {};
     } else if (!s.ok()) {
       throw std::system_error(error::database_error);
     }
@@ -57,6 +67,10 @@ void rocksdb_database::put(std::string const& key, std::string const& value) {
 
 std::string rocksdb_database::get(std::string const& key) {
   return impl_->get(key);
+}
+
+boost::optional<std::string> rocksdb_database::try_get(std::string const& key) {
+  return impl_->try_get(key);
 }
 
 }  // namespace routes

@@ -17,7 +17,7 @@ using key_pair =
     std::tuple<std::vector<std::string>, std::vector<uint32_t>, int>;
 
 struct db_builder {
-  db_builder(rocksdb_database& db) : db_(db){};
+  db_builder(kv_database& db) : db_(db){};
 
   int append(std::vector<std::string> const& station_ids,
              std::vector<uint32_t> const& classes,
@@ -25,7 +25,7 @@ struct db_builder {
 
   void finish();
 
-  rocksdb_database& db_;
+  kv_database& db_;
   std::vector<key_pair> indices_;
   std::mutex m_;
   int index_ = 0;

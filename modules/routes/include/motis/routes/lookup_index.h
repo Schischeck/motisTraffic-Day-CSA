@@ -9,14 +9,18 @@
 namespace motis {
 namespace routes {
 
-using lookup_table = typed_flatbuffer<motis::routes::RouteLookup>;
+struct lookup_index {
+  using lookup_table = typed_flatbuffer<motis::routes::RouteLookup>;
 
-std::string lookup_index(lookup_table const& lookup,
-                         RoutesStationSeqRequest const* req);
+  lookup_index(std::string const& s) : lookup_table_(s.size(), s.data()) {}
 
-std::string lookup_index(lookup_table const& lookup,
-                         std::vector<std::string> const& station_ids,
-                         uint32_t const& clasz);
+  std::string find(RoutesStationSeqRequest const* req);
+
+  std::string find(std::vector<std::string> const& station_ids,
+                   uint32_t const& clasz);
+
+  lookup_table lookup_table_;
+};
 
 }  // namespace routes
 }  // namespace motis

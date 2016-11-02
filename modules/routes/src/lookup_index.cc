@@ -1,15 +1,14 @@
 #include "motis/routes/lookup_index.h"
+
 #include "motis/core/common/transform_to_vec.h"
-#include <iostream>
 
 namespace motis {
 namespace routes {
 
-std::string lookup_index(lookup_table const& lookup,
-                         RoutesStationSeqRequest const* req) {
+std::string lookup_index::find(RoutesStationSeqRequest const* req) {
   auto it = std::find_if(
-      lookup.get()->indices()->begin(), lookup.get()->indices()->end(),
-      [&](auto const& p) {
+      lookup_table_.get()->indices()->begin(),
+      lookup_table_.get()->indices()->end(), [&](auto const& p) {
         return p->station_ids()->size() == req->station_ids()->size() &&
                std::equal(p->station_ids()->begin(), p->station_ids()->end(),
                           req->station_ids()->begin(),
@@ -20,18 +19,17 @@ std::string lookup_index(lookup_table const& lookup,
                          req->clasz()) != p->classes()->end();
       });
 
-  if (it == lookup.get()->indices()->end()) {
+  if (it == lookup_table_.get()->indices()->end()) {
     return "";
   }
   return std::to_string(it->index());
 }
 
-std::string lookup_index(lookup_table const& lookup,
-                         std::vector<std::string> const& station_ids,
-                         uint32_t const& clasz) {
+std::string lookup_index::find(std::vector<std::string> const& station_ids,
+                               uint32_t const& clasz) {
   auto it = std::find_if(
-      lookup.get()->indices()->begin(), lookup.get()->indices()->end(),
-      [&](auto const& p) {
+      lookup_table_.get()->indices()->begin(),
+      lookup_table_.get()->indices()->end(), [&](auto const& p) {
         return p->station_ids()->size() == station_ids.size() &&
                std::equal(p->station_ids()->begin(), p->station_ids()->end(),
                           station_ids.begin(),
@@ -42,7 +40,7 @@ std::string lookup_index(lookup_table const& lookup,
                    p->classes()->end();
       });
 
-  if (it == lookup.get()->indices()->end()) {
+  if (it == lookup_table_.get()->indices()->end()) {
     return "";
   }
   return std::to_string(it->index());

@@ -10,8 +10,8 @@
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/routes/db/database.h"
 #include "motis/routes/db/db_builder.h"
+#include "motis/routes/db/kv_database.h"
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/geojson.h"
 #include "motis/routes/prepare/parallel_for.h"
@@ -29,6 +29,9 @@ using namespace motis;
 using namespace motis::loader;
 using namespace motis::routes;
 using namespace geo;
+
+namespace motis {
+namespace routes {
 
 struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
@@ -48,38 +51,51 @@ struct prepare_settings : public conf::simple_config {
   std::string out_;
 };
 
-struct stats {
-
-  std::string report() {
-    std::string out = "";
-    out += "\nSequences: " + std::to_string(seqs_);
-    out += "\nNot broken: " + std::to_string(not_broken_) + " / " +
-           percentage(not_broken_, seqs_) + "%";
-    out += "\nUsing relations: " + std::to_string(matched_) + " / " +
-           percentage(matched_, seqs_) + "%";
-    out += "\nEdges: " + std::to_string(edges_);
-    out += "\nAirlines: " + std::to_string(airlines_) + " / " +
-           percentage(airlines_, edges_) + "%";
-    out += "\nIn station: " + std::to_string(edges_in_station_) + " / " +
-           percentage(edges_in_station_, edges_) + "%";
-    out += "\nAirlines without stations: " + std::to_string(airlines_without_) +
-           " / " + percentage(airlines_without_, edges_) + "%";
-    return out;
+void function
+prepare(std::vector<station_seq>& sequences,
+        std::map<std::string, std::vector<geo::latlng>> const& stop_positions,
+        std::string const& osm, kv_database& db) {
+  motis::logging::manual_timer timer("preparing data");
+  auto const rel_matches = match_osm_relations(osm, sequences, stop_positions);
+  db_builder builder(db);
+  std::vector<std::pair<station_seq, std::vector<match_seq>>> results;
+  for (auto i = 0u; i < sequences.size(); ++i) {
+    results.emplace_back(sequences[i], rel_matches[i]);
   }
+  parallel_for("searching routes", results, 250, [&](auto const& r) {
+    auto const& seq = r.first;
+    auto const& relations = r.second;
 
-  std::string percentage(int share, int total) {
-    if (total == 0) return std::to_string(0);
-    return std::to_string(((float)share / (float)total) * 100);
-  }
+    for (auto const& category_group : category_groups(seq.categories_)) {
+      stub_routing strategy{seq};
+      auto const g =
+          build_seq_graph(category_group.first, seq, relations, strategy);
 
-  int airlines_ = 0;
-  int airlines_without_ = 0;
-  int edges_in_station_ = 0;
-  int not_broken_ = 0;
-  int edges_ = 0;
-  int seqs_ = 0;
-  int matched_ = 0;
-};
+      seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
+      dijkstra.run();
+
+      auto best_goal_it =
+          std::min_element(begin(g.goals_), end(g.goals_),
+                           [&](auto const& lhs_idx_, auto const& rhs_idx_) {
+                             return dijkstra.get_distance(lhs_idx_) <
+                                    dijkstra.get_distance(rhs_idx_);
+                           });
+      if (best_goal_it == end(g.goals_)) {
+        continue;
+      }
+
+      std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
+      for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
+        append(lines[edge->from_->station_idx_], edge->p_);
+      }
+
+      builder.append(seq.station_ids_, category_group.second, lines);
+    }
+  });
+
+  builder.finish();
+  timer.stop_and_print();
+}
 
 int main(int argc, char** argv) {
   prepare_settings opt;
@@ -110,7 +126,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  motis::logging::manual_timer timer("preparing data");
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
   auto const stop_positions = find_bus_stop_positions(schedule, opt.osm_);
@@ -145,81 +160,9 @@ int main(int argc, char** argv) {
                        return false;
                      }),
       end(sequences));
-
-  auto const rel_matches =
-      match_osm_relations(opt.osm_, sequences, stop_positions);
-
-  stats stats;
-  stats.seqs_ = sequences.size();
   rocksdb_database db(opt.out_);
-  db_builder builder(db);
-  std::vector<std::pair<station_seq, std::vector<match_seq>>> results;
-  for (auto i = 0u; i < sequences.size(); ++i) {
-    results.emplace_back(sequences[i], rel_matches[i]);
-  }
-  parallel_for("searching routes", results, 250, [&](auto const& r) {
-    auto const& seq = r.first;
-    auto const& relations = r.second;
-    // std::cout << "\nusing " << relations.size() << "relations";
-    // if (relations.size() > 0) {
-    //   stats.matched_++;
-    // }
-
-    for (auto const& category_group : category_groups(seq.categories_)) {
-      stub_routing strategy{seq};
-      auto const g =
-          build_seq_graph(category_group.first, seq, relations, strategy);
-
-      seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
-      dijkstra.run();
-
-      // for (auto const& goal : g.goals_) {
-      //   std::cout << '\n' << dijkstra.get_distance(goal);
-      // }
-
-      auto best_goal_it =
-          std::min_element(begin(g.goals_), end(g.goals_),
-                           [&](auto const& lhs_idx_, auto const& rhs_idx_) {
-                             return dijkstra.get_distance(lhs_idx_) <
-                                    dijkstra.get_distance(rhs_idx_);
-                           });
-      if (best_goal_it == end(g.goals_)) {
-        // std::cout << "\n no result";
-        continue;
-      }
-
-      // std::cout << '\n' << dijkstra.get_distance(*best_goal_it);
-
-      std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
-      // float save = stats.airlines_;
-      for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
-        // std::cout << "\n"
-        //           << edge->from_->idx_ << " -> " << edge->to_->idx_ << "("
-        //           << edge->weight_ << ")";
-        // stats.edges_++;
-        // if (edge->source_.type_ == source_spec::type::AIRLINE) {
-        //   stats.airlines_++;
-        // }
-        // if (edge->source_.station_) {
-        //   stats.edges_in_station_++;
-        //   if (edge->source_.type_ == source_spec::type::AIRLINE) {
-        //     stats.airlines_without_++;
-        //   }
-        // }
-        append(lines[edge->from_->station_idx_], edge->p_);
-      }
-      // if (save == stats.airlines_) {
-      //   stats.not_broken_++;
-      // }
-      // std::stringstream ss;
-      // ss << "debug/polyline." << seq.station_ids_.front() << "-"
-      //    << seq.station_ids_.back() << "." << i << ".json";
-      // dump_polylines(lines, ss.str().c_str());
-
-      builder.append(seq.station_ids_, category_group.second, lines);
-    }
-  });
-
-  builder.finish();
-  timer.stop_and_print();
+  prepare(sequences, stop_positions, opt.osm_, db);
 }
+
+}  // namespace routes
+}  // namespace motis
