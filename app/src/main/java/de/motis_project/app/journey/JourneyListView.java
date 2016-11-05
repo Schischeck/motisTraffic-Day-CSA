@@ -163,7 +163,7 @@ public class JourneyListView
             infiniteScroll.notifyLoadFinished();
             serverError = true;
             if (t instanceof MotisErrorException) {
-                serverErrorView.setErrorCode((MotisErrorException) t, adapter.scheduleRange);
+                serverErrorView.setErrorCode((MotisErrorException) t);
             }
             updateVisibility();
         });

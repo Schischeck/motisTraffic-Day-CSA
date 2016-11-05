@@ -7,11 +7,15 @@ import android.widget.TextView;
 import butterknife.BindString;
 import butterknife.ButterKnife;
 import de.motis_project.app.R;
+import de.motis_project.app.io.Status;
 import de.motis_project.app.io.error.MotisErrorException;
 import motis.lookup.LookupScheduleInfoResponse;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 public class ServerErrorView extends TextView {
-
     @BindString(R.string.server_error)
     String default_message;
 
@@ -24,6 +28,7 @@ public class ServerErrorView extends TextView {
     @BindString(R.string.routing_error)
     String routingErrorMessage;
 
+    private final Observable<LookupScheduleInfoResponse> scheduleInfo = Status.get().getServer().scheduleInfo();
 
     public ServerErrorView(Context context) {
         super(context);
@@ -35,9 +40,13 @@ public class ServerErrorView extends TextView {
         ButterKnife.bind(this);
     }
 
-    public void setErrorCode(MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
+    public void setErrorCode(MotisErrorException mee) {
         setText(JourneyErrorViewHolder
-                .buildMessage(mee, scheduleInfo, scheduleRangeTemplate, routingErrorMessage));
+                .buildMessage(mee, scheduleInfo.toBlocking().firstOrDefault(null), scheduleRangeTemplate, routingErrorMessage));
+        scheduleInfo.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(lookupScheduleInfoResponse ->
+                        setText(JourneyErrorViewHolder.buildScheduleRangeError(lookupScheduleInfoResponse, scheduleRangeTemplate, routingErrorMessage)), Throwable::printStackTrace);
     }
 
     public void setEmptyResponse() {
