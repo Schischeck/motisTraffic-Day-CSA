@@ -588,9 +588,12 @@ extendIntervalButton direction (Config { internalMsg }) { t } model =
                 , "disabled" => not enabled
                 ]
             ]
-            [ a
-                [ onClick clickHandler ]
-                [ text title ]
+            [ if enabled then
+                a
+                    [ onClick clickHandler ]
+                    [ text title ]
+              else
+                loadingSpinner
             ]
 
 

@@ -193,6 +193,7 @@
 .extend-search-interval {
   margin: 5px auto;
   text-align: center;
+  height: 24px;
 }
 
 .extend-search-interval a {
@@ -208,11 +209,6 @@
   white-space: nowrap;
   vertical-align: baseline;
   border-radius: .25em;
-}
-
-.extend-search-interval.disabled a {
-  background: #999;
-  cursor: progress;
 }
 
 .extend-search-interval.search-before {
