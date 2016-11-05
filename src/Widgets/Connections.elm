@@ -47,6 +47,8 @@ type alias Model =
     , journeys : List Journey
     , indexOffset : Int
     , errorMessage : Maybe ApiError
+    , errorBefore : Maybe ApiError
+    , errorAfter : Maybe ApiError
     , scheduleInfo : Maybe ScheduleInfo
     , routingRequest : Maybe RoutingRequest
     }
@@ -216,16 +218,20 @@ updateModelWithNewResults model action request connections =
                     { model
                         | loading = False
                         , errorMessage = Nothing
+                        , errorBefore = Nothing
+                        , errorAfter = Nothing
                     }
 
                 PrependResults ->
                     { model
                         | loadingBefore = False
+                        , errorBefore = Nothing
                     }
 
                 AppendResults ->
                     { model
                         | loadingAfter = False
+                        , errorAfter = Nothing
                     }
 
         journeysToAdd : List Journey
@@ -293,11 +299,13 @@ handleRequestError model action request msg =
                 PrependResults ->
                     { model
                         | loadingBefore = False
+                        , errorBefore = Just msg
                     }
 
                 AppendResults ->
                     { model
                         | loadingAfter = False
+                        , errorAfter = Just msg
                     }
     in
         newModel
@@ -549,7 +557,7 @@ extendIntervalButton :
     -> Localization
     -> Model
     -> Html msg
-extendIntervalButton direction (Config { internalMsg }) { t } model =
+extendIntervalButton direction (Config { internalMsg }) locale model =
     let
         enabled =
             case direction of
@@ -570,16 +578,24 @@ extendIntervalButton direction (Config { internalMsg }) { t } model =
         title =
             case direction of
                 ExtendBefore ->
-                    t.connections.extendBefore
+                    locale.t.connections.extendBefore
 
                 ExtendAfter ->
-                    t.connections.extendAfter
+                    locale.t.connections.extendAfter
 
         clickHandler =
             if enabled then
                 internalMsg <| ExtendSearchInterval direction
             else
                 internalMsg NoOp
+
+        err =
+            case direction of
+                ExtendBefore ->
+                    model.errorBefore
+
+                ExtendAfter ->
+                    model.errorAfter
     in
         div
             [ classList
@@ -589,9 +605,14 @@ extendIntervalButton direction (Config { internalMsg }) { t } model =
                 ]
             ]
             [ if enabled then
-                a
-                    [ onClick clickHandler ]
-                    [ text title ]
+                case err of
+                    Nothing ->
+                        a
+                            [ onClick clickHandler ]
+                            [ text title ]
+
+                    Just error ->
+                        errorView locale model error
               else
                 loadingSpinner
             ]
@@ -689,6 +710,8 @@ init remoteAddress =
     , journeys = []
     , indexOffset = 0
     , errorMessage = Nothing
+    , errorBefore = Nothing
+    , errorAfter = Nothing
     , scheduleInfo = Nothing
     , routingRequest = Nothing
     }

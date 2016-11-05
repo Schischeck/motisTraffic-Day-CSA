@@ -193,7 +193,7 @@
 .extend-search-interval {
   margin: 5px auto;
   text-align: center;
-  height: 24px;
+  min-height: 24px;
 }
 
 .extend-search-interval a {
