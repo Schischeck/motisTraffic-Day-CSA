@@ -16,9 +16,6 @@ import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class ServerErrorView extends TextView {
-    @BindString(R.string.server_error)
-    String default_message;
-
     @BindString(R.string.empty_response)
     String emptyResponseMessage;
 
