@@ -44,7 +44,7 @@
 #connections {
   height: 300px;
   overflow-y: auto;
-  padding-top: 5px;
+  padding-top: 0px;
 }
 
 #connections .no-results, #connections .error {
@@ -74,11 +74,12 @@
   margin: 10px 0 -10px 0;
   display: table;
   white-space: nowrap;
+  color: #4971E7;
 }
 
 .connections .date-header::before,
 .connections .date-header::after {
-  border-top: 1px solid #ccc;
+  border-top: 1px solid #4971E7;
   content: '';
   display: table-cell;
   position: relative;
@@ -186,14 +187,28 @@
   background-color: #333;
 }
 
-.extend-search-interval a {
-  width: 50%;
+.extend-search-interval {
   margin: 5px auto;
+  text-align: center;
+}
+
+.extend-search-interval a {
+  cursor: pointer;
+  background: #777;
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
 }
 
 .extend-search-interval.disabled a {
-  color: #ccc;
-  border-color: #ccc;
+  background: #999;
   cursor: progress;
 }
 
@@ -489,7 +504,7 @@
   margin: 0;
   padding: 20px 24px;
   font-weight: 300;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #4971E7;
 }
 
 .connection-info .connection-times {

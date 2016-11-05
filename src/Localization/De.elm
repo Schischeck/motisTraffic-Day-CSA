@@ -43,8 +43,8 @@ deTranslations =
             , http = \code -> "HTTP-Fehler " ++ (toString code)
             , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
             }
-        , extendBefore = "Frühere Verbindungen suchen"
-        , extendAfter = "Spätere Verbindungen suchen"
+        , extendBefore = "Früher"
+        , extendAfter = "Später"
         , interchanges =
             \count ->
                 case count of

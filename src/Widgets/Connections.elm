@@ -580,9 +580,7 @@ extendIntervalButton direction (Config { internalMsg }) { t } model =
                 ]
             ]
             [ a
-                [ class "gb-button gb-button-small gb-button-outline gb-button-PRIMARY_COLOR disable-select"
-                , onClick clickHandler
-                ]
+                [ onClick clickHandler ]
                 [ text title ]
             ]
 

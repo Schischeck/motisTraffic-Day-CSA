@@ -43,8 +43,8 @@ enTranslations =
             , http = \code -> "HTTP error " ++ (toString code)
             , decode = \msg -> "Invalid response (" ++ msg ++ ")"
             }
-        , extendBefore = "Earlier connections"
-        , extendAfter = "Later connections"
+        , extendBefore = "Earlier"
+        , extendAfter = "Later"
         , interchanges =
             \count ->
                 case count of
