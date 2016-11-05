@@ -31,8 +31,8 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="title_activity_journey_detail">Detailansicht</string>
     <string name="query_not_valid">Bitte geben Sie Start und Ziel an.</string>
-    <string name="server_error">Die Anfrage konnte nicht bearbeitet werden</string>
     <string name="empty_response">Keine Verbindungen in diesem Zeitraum</string>
     <string name="schedule_range">Auskunft von %1$s bis %2$s möglich</string>
     <string name="routing_error">Zeitram nicht im Fahrplan</string>
+    <string name="crash_toast_text">Crash Report!</string>
 </resources>

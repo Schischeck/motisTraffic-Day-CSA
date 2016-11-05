@@ -11,10 +11,6 @@ import de.motis_project.app.io.error.MotisErrorException;
 import motis.lookup.LookupScheduleInfoResponse;
 
 public class ServerErrorView extends TextView {
-
-    @BindString(R.string.server_error)
-    String default_message;
-
     @BindString(R.string.empty_response)
     String emptyResponseMessage;
 
@@ -23,7 +19,6 @@ public class ServerErrorView extends TextView {
 
     @BindString(R.string.routing_error)
     String routingErrorMessage;
-
 
     public ServerErrorView(Context context) {
         super(context);
@@ -37,7 +32,7 @@ public class ServerErrorView extends TextView {
 
     public void setErrorCode(MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
         setText(JourneyErrorViewHolder
-                .buildMessage(mee, scheduleInfo, scheduleRangeTemplate, routingErrorMessage));
+                        .buildMessage(mee, scheduleInfo, scheduleRangeTemplate, routingErrorMessage));
     }
 
     public void setEmptyResponse() {
