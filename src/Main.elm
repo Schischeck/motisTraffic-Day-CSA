@@ -302,7 +302,7 @@ debounceCfg =
         .debounce
         (\model s -> { model | debounce = s })
         Deb
-        300
+        700
 
 
 
