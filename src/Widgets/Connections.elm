@@ -483,7 +483,7 @@ scheduleRangeView { t } { scheduleInfo } =
 view : Config msg -> Localization -> Model -> Html msg
 view config locale model =
     if model.loading then
-        div [ class "loader" ] [ text locale.t.connections.loading ]
+        div [ class "loading" ] [ loadingSpinner ]
     else if List.isEmpty model.journeys then
         case model.errorMessage of
             Just err ->
@@ -496,6 +496,15 @@ view config locale model =
                     ]
     else
         lazy3 connectionsView config locale model
+
+
+loadingSpinner : Html msg
+loadingSpinner =
+    div [ class "spinner" ]
+        [ div [ class "bounce1" ] []
+        , div [ class "bounce2" ] []
+        , div [ class "bounce3" ] []
+        ]
 
 
 errorView : Localization -> Model -> ApiError -> Html msg
