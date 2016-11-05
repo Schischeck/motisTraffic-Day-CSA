@@ -29,9 +29,9 @@ deTranslations =
         , scheduleRange =
             \begin end ->
                 "Auskunft von "
-                    ++ (formatDateTime deDateConfig begin)
+                    ++ (formatDate deDateConfig begin)
                     ++ " bis "
-                    ++ (formatDateTime deDateConfig end)
+                    ++ (formatDate deDateConfig end)
                     ++ " möglich"
         , loading = "Verbindungen suchen..."
         , noResults = "Keine Verbindungen gefunden"

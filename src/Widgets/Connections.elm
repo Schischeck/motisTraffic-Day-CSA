@@ -15,6 +15,7 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (..)
 import String
 import Date exposing (Date)
+import Date.Extra.Duration as Duration exposing (Duration(..))
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Connection.Decode
 import Data.Journey.Types as Journey exposing (Journey, Train)
@@ -481,8 +482,15 @@ scheduleRangeView : Localization -> Model -> Html msg
 scheduleRangeView { t } { scheduleInfo } =
     case scheduleInfo of
         Just si ->
-            div [ class "schedule-range" ]
-                [ text <| t.connections.scheduleRange si.begin si.end ]
+            let
+                begin =
+                    si.begin
+
+                end =
+                    Duration.add Hour -12 si.end
+            in
+                div [ class "schedule-range" ]
+                    [ text <| t.connections.scheduleRange begin end ]
 
         Nothing ->
             text ""

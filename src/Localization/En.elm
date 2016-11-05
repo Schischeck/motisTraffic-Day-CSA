@@ -29,9 +29,9 @@ enTranslations =
         , scheduleRange =
             \begin end ->
                 "Auskunft von "
-                    ++ (formatDateTime enDateConfig begin)
+                    ++ (formatDate enDateConfig begin)
                     ++ " bis "
-                    ++ (formatDateTime enDateConfig end)
+                    ++ (formatDate enDateConfig end)
                     ++ " möglich"
         , loading = "Searching..."
         , noResults = "No connections found"
