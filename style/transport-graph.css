@@ -15,6 +15,15 @@
     color: #000;
 }
 
+.transport-graph {
+  animation: fade-in-connection 1s;
+}
+
+@keyframes fade-in-connection {
+  from {filter: grayscale(100%);}
+  to {filter: grayscale(0%);}
+}
+
 
 
 .transport-graph .train-class-0 circle {

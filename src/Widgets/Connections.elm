@@ -13,6 +13,7 @@ import Html exposing (Html, div, ul, li, text, span, i, a)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
+import Html.Keyed
 import String
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (Duration(..))
@@ -345,17 +346,18 @@ connectionsWithDateHeaders config locale model =
             Connection.departureTime journey.connection |> Maybe.withDefault (Date.fromTime 0)
 
         renderConnection ( idx, journey ) =
-            connectionView config locale idx journey
+            ( "connection-" ++ (toString idx), connectionView config locale idx journey )
 
-        renderDateHeader =
-            dateHeader locale
+        renderDateHeader date =
+            ( "header-" ++ (toString (Date.toTime date)), dateHeader locale date )
 
         elements =
             List.map2 (,)
                 [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
                 model.journeys
     in
-        div [ class "connection-list" ]
+        Html.Keyed.node "div"
+            [ class "connection-list" ]
             (withDateHeaders getDate renderConnection renderDateHeader elements)
 
 
@@ -410,11 +412,6 @@ trainView viewMode train =
                 div [ class "train-box train-class-0" ] [ text "???" ]
 
 
-keyedConnectionView : Config msg -> Localization -> Int -> Journey -> ( String, Html msg )
-keyedConnectionView config locale idx j =
-    ( toString idx, connectionView config locale idx j )
-
-
 connectionView : Config msg -> Localization -> Int -> Journey -> Html msg
 connectionView (Config { internalMsg, selectMsg }) locale idx j =
     div [ class "connection", onClick (selectMsg idx) ]
@@ -448,10 +445,10 @@ dateHeader { dateConfig } date =
 
 withDateHeaders :
     (a -> Date)
-    -> (a -> Html msg)
-    -> (Date -> Html msg)
+    -> (a -> ( String, Html msg ))
+    -> (Date -> ( String, Html msg ))
     -> List a
-    -> List (Html msg)
+    -> List ( String, Html msg )
 withDateHeaders getDate renderElement renderDateHeader elements =
     let
         f element ( lastDate, result ) =
