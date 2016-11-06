@@ -34,6 +34,8 @@ public class Server extends WebSocketAdapter {
     private final List<Listener> listeners = new ArrayList<Listener>();
     private final Handler handler;
     private WebSocket ws;
+    private long lastReceiveTimestamp = System.currentTimeMillis();
+    private List<byte[]> sendQueue = new ArrayList<>();
 
     public Server(String url, Handler handler) {
         this.url = url;
@@ -42,7 +44,7 @@ public class Server extends WebSocketAdapter {
 
     public void connect() throws IOException {
         WebSocketFactory factory = new WebSocketFactory();
-        factory.setConnectionTimeout(60000);
+        factory.setConnectionTimeout(15000);
 
         ws = factory.createSocket(url);
         ws.addListener(this);
@@ -50,19 +52,24 @@ public class Server extends WebSocketAdapter {
     }
 
     public boolean isConnected() {
-        if (ws == null) {
+        if (ws == null || lastReceiveTimestamp < System.currentTimeMillis() - 30000) {
+            System.out.println("NOT CONNECTED");
             return false;
         } else {
+            System.out.println((ws.getState() == WebSocketState.OPEN) ? "CONNECTED" : "NOT CONNECTED");
             return ws.getState() == WebSocketState.OPEN;
         }
     }
 
-    protected void send(byte[] msg) throws DisconnectedException {
+    protected boolean send(byte[] msg) throws DisconnectedException {
         if (!isConnected()) {
-            throw new DisconnectedException();
+            sendQueue.add(msg);
+            scheduleConnect();
+            return false;
         }
         ws.sendPing();
         ws.sendBinary(msg);
+        return true;
     }
 
     public void addListener(Listener l) {
@@ -74,11 +81,14 @@ public class Server extends WebSocketAdapter {
     }
 
     private void scheduleConnect() {
+        System.out.println("Server.scheduleConnect");
         try {
             handler.postDelayed(() -> {
                 try {
+                    System.out.println("CONNECTING...");
                     connect();
                 } catch (IOException e) {
+                    System.out.println("CONNECT ERROR: " + e.getMessage());
                     scheduleConnect();
                 }
             }, RECONNECT_INTERVAL);
@@ -95,6 +105,7 @@ public class Server extends WebSocketAdapter {
     @Override
     public void onBinaryMessage(WebSocket ws, byte[] buf) throws Exception {
         System.out.println("Server.onBinaryMessage");
+        lastReceiveTimestamp = System.currentTimeMillis();
 
         Message msg = MessageBuilder.decode(buf);
 
@@ -117,6 +128,16 @@ public class Server extends WebSocketAdapter {
                             Map<String, List<String>> headers)
             throws Exception {
         System.out.println("Server.onConnected");
+
+        lastReceiveTimestamp = System.currentTimeMillis();
+
+        synchronized (sendQueue) {
+            for (byte[] b : sendQueue) {
+                send(b);
+            }
+            sendQueue.clear();
+        }
+
         synchronized (listeners) {
             for (Listener l : listeners) {
                 l.onConnect();

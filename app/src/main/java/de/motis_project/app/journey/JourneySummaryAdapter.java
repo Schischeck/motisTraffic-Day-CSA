@@ -69,7 +69,6 @@ public class JourneySummaryAdapter
 
     final static int ERROR_TYPE_NO_ERROR = 0;
     final static int ERROR_TYPE_MOTIS_ERROR = 1;
-    final static int ERROR_TYPE_OTHER = 2;
 
     private int errorTypeBefore = ERROR_TYPE_NO_ERROR;
     private int errorTypeAfter = ERROR_TYPE_NO_ERROR;
@@ -80,8 +79,6 @@ public class JourneySummaryAdapter
     private int otherErrorMsgBefore;
     private int otherErrorMsgAfter;
 
-    public LookupScheduleInfoResponse scheduleRange;
-
     private final List<Connection> data;
 
     private HeaderMapping headerMapping;
@@ -89,7 +86,6 @@ public class JourneySummaryAdapter
     public JourneySummaryAdapter(List<Connection> d) {
         data = d;
         recalculateHeaders();
-        getServerScheduleRange();
     }
 
     @Override
@@ -119,15 +115,15 @@ public class JourneySummaryAdapter
                                 parent, false), null);
             case VIEW_TYPE_ERROR_BEFORE:
                 if (errorTypeBefore == ERROR_TYPE_MOTIS_ERROR) {
-                    return new JourneyErrorViewHolder(parent, inflater, motisErrorBefore, scheduleRange);
+                    return new JourneyErrorViewHolder(parent, inflater, motisErrorBefore);
                 } else {
-                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgBefore, scheduleRange);
+                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgBefore);
                 }
             case VIEW_TYPE_ERROR_AFTER:
                 if (errorTypeAfter == ERROR_TYPE_MOTIS_ERROR) {
-                    return new JourneyErrorViewHolder(parent, inflater, motisErrorAfter, scheduleRange);
+                    return new JourneyErrorViewHolder(parent, inflater, motisErrorAfter);
                 } else {
-                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgAfter, scheduleRange);
+                    return new JourneyErrorViewHolder(parent, inflater, otherErrorMsgAfter);
                 }
             default:
                 throw new RuntimeException("unknown view type");
@@ -232,22 +228,4 @@ public class JourneySummaryAdapter
     public int getErrorStateAfter() {
         return errorTypeAfter;
     }
-
-
-    public void getServerScheduleRange() {
-        // TODO(simon) save and cancel subscription? leak?
-        Status.get().getServer()
-                .scheduleInfo()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(res -> {
-                    scheduleRange = res;
-                    System.out.println("SCHEDULE BEGIN: " + TimeUtil.formatDate(res.begin()));
-                    System.out.println("SCHEDULE END:   " + TimeUtil.formatDate(res.end()));
-                }, throwable -> {
-                    throwable.printStackTrace();
-                    System.out.println("GET SERVER INFO FAILED");
-                });
-    }
-
 }

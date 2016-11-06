@@ -1,5 +1,7 @@
 package de.motis_project.app.journey;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -10,8 +12,12 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
+import de.motis_project.app.io.Status;
 import de.motis_project.app.io.error.MotisErrorException;
 import motis.lookup.LookupScheduleInfoResponse;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class JourneyErrorViewHolder extends JourneyViewHolder {
 
@@ -31,12 +37,20 @@ public class JourneyErrorViewHolder extends JourneyViewHolder {
     @BindString(R.string.routing_error)
     String routingErrorMessage;
 
-    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, MotisErrorException mee, LookupScheduleInfoResponse scheduleInfo) {
+    private final Observable<LookupScheduleInfoResponse> scheduleInfo = Status.get().getServer().scheduleInfo();
+
+    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, MotisErrorException mee) {
         super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
-        messageView.setText(buildMessage(mee, scheduleInfo));
+        messageView.setText(buildMessage(mee, scheduleInfo.toBlocking().firstOrDefault(null)));
+        scheduleInfo.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(lookupScheduleInfoResponse ->
+                                messageView.setText(JourneyErrorViewHolder.buildScheduleRangeError(
+                                        lookupScheduleInfoResponse, scheduleRangeTemplate, routingErrorMessage)),
+                        Throwable::printStackTrace);
     }
 
-    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int msgId, LookupScheduleInfoResponse scheduleInfo) {
+    public JourneyErrorViewHolder(ViewGroup parent, LayoutInflater inflater, int msgId) {
         super(inflater.inflate(R.layout.journey_loading_error, parent, false), inflater);
         messageView.setText(inflater.getContext().getText(msgId));
     }
@@ -50,15 +64,20 @@ public class JourneyErrorViewHolder extends JourneyViewHolder {
     }
 
     public static String buildMessage(MotisErrorException mee,
-                                      LookupScheduleInfoResponse scheduleInfo,
+                                      @Nullable LookupScheduleInfoResponse scheduleInfo,
                                       String scheduleRangeTemplate, String routingErrorMessage) {
         if (mee.category.equals("motis::routing") && mee.code == 4) {
-            String scheduleInfoStr = String.format(scheduleRangeTemplate,
-                    TimeUtil.formatDate(scheduleInfo.begin()),
-                    TimeUtil.formatDate(scheduleInfo.end()));
-            return routingErrorMessage + "\n" + scheduleInfoStr;
+            return buildScheduleRangeError(scheduleInfo, scheduleRangeTemplate, routingErrorMessage);
         } else {
             return messageFromMotisError(mee);
         }
+    }
+
+    public static String buildScheduleRangeError(@Nullable LookupScheduleInfoResponse scheduleInfo,
+                                                 String scheduleRangeTemplate, String routingErrorMessage) {
+        String scheduleInfoStr = scheduleInfo != null ? String.format(scheduleRangeTemplate,
+                TimeUtil.formatDate(scheduleInfo.begin()),
+                TimeUtil.formatDate(scheduleInfo.end())) : "";
+        return routingErrorMessage + "\n" + scheduleInfoStr;
     }
 }
