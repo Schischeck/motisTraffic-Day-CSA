@@ -454,10 +454,16 @@ selectConnection updateUrl model idx =
 
         journey =
             model.connections.journeys !! realIndex
+
+        ( newConnections, _ ) =
+            Connections.update Connections.ResetNew model.connections
     in
         case journey of
             Just j ->
-                { model | selectedConnection = Maybe.map ConnectionDetails.init journey }
+                { model
+                    | selectedConnection = Maybe.map ConnectionDetails.init journey
+                    , connections = newConnections
+                }
                     ! (if updateUrl then
                         [ Navigation.newUrl (toUrl (ConnectionDetails idx)) ]
                        else

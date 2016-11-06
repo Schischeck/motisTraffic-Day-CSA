@@ -53,6 +53,7 @@ type alias Model =
     , errorAfter : Maybe ApiError
     , scheduleInfo : Maybe ScheduleInfo
     , routingRequest : Maybe RoutingRequest
+    , newJourneys : List Int
     }
 
 
@@ -74,6 +75,7 @@ type Msg
     | ReceiveResponse SearchAction RoutingRequest (List Connection)
     | ReceiveError SearchAction RoutingRequest ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
+    | ResetNew
 
 
 type ExtendIntervalType
@@ -157,6 +159,9 @@ update msg model =
 
         UpdateScheduleInfo si ->
             { model | scheduleInfo = si } ! []
+
+        ResetNew ->
+            { model | newJourneys = [] } ! []
 
 
 extendSearchInterval :
@@ -261,10 +266,22 @@ updateModelWithNewResults model action request connections =
 
                 AppendResults ->
                     model.indexOffset
+
+        newNewJourneys =
+            case action of
+                ReplaceResults ->
+                    []
+
+                PrependResults ->
+                    [newIndexOffset..(newIndexOffset + (List.length journeysToAdd) - 1)]
+
+                AppendResults ->
+                    [newIndexOffset + (List.length model.journeys)..newIndexOffset + (List.length newJourneys) - 1]
     in
         { base
             | journeys = sortJourneys newJourneys
             , indexOffset = newIndexOffset
+            , newJourneys = newNewJourneys
         }
 
 
@@ -346,7 +363,9 @@ connectionsWithDateHeaders config locale model =
             Connection.departureTime journey.connection |> Maybe.withDefault (Date.fromTime 0)
 
         renderConnection ( idx, journey ) =
-            ( "connection-" ++ (toString idx), connectionView config locale idx journey )
+            ( "connection-" ++ (toString idx)
+            , connectionView config locale idx (List.member idx model.newJourneys) journey
+            )
 
         renderDateHeader date =
             ( "header-" ++ (toString (Date.toTime date)), dateHeader locale date )
@@ -412,9 +431,21 @@ trainView viewMode train =
                 div [ class "train-box train-class-0" ] [ text "???" ]
 
 
-connectionView : Config msg -> Localization -> Int -> Journey -> Html msg
-connectionView (Config { internalMsg, selectMsg }) locale idx j =
-    div [ class "connection", onClick (selectMsg idx) ]
+connectionView :
+    Config msg
+    -> Localization
+    -> Int
+    -> Bool
+    -> Journey
+    -> Html msg
+connectionView (Config { internalMsg, selectMsg }) locale idx new j =
+    div
+        [ classList
+            [ "connection" => True
+            , "new" => new
+            ]
+        , onClick (selectMsg idx)
+        ]
         [ div [ class "pure-g" ]
             [ div [ class "pure-u-4-24 connection-times" ]
                 [ div [ class "connection-departure" ]
@@ -719,6 +750,7 @@ init remoteAddress =
     , errorAfter = Nothing
     , scheduleInfo = Nothing
     , routingRequest = Nothing
+    , newJourneys = []
     }
 
 

@@ -67,6 +67,15 @@
   cursor: pointer;
 }
 
+.connection.new {
+  animation: fade-in-connection 1s;
+}
+
+@keyframes fade-in-connection {
+  from {filter: grayscale(100%);}
+  to {filter: grayscale(0%);}
+}
+
 .connection .delay {
   display: inline-block;
 }
