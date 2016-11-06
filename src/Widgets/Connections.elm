@@ -380,57 +380,6 @@ connectionsWithDateHeaders config locale model =
             (withDateHeaders getDate renderConnection renderDateHeader elements)
 
 
-trainsView : TransportViewMode -> Journey -> Html msg
-trainsView viewMode j =
-    let
-        trainBoxes =
-            List.map (trainView viewMode) j.trains
-
-        prefix =
-            case j.leadingWalk of
-                Just _ ->
-                    [ walkBox ]
-
-                Nothing ->
-                    []
-
-        suffix =
-            case j.trailingWalk of
-                Just _ ->
-                    [ walkBox ]
-
-                Nothing ->
-                    []
-
-        transportBoxes =
-            prefix ++ trainBoxes ++ suffix
-
-        content =
-            case viewMode of
-                IconOnlyNoSep ->
-                    transportBoxes
-
-                _ ->
-                    List.intersperse (i [ class "icon train-sep" ] [ text "keyboard_arrow_right" ]) <|
-                        transportBoxes
-    in
-        div [ class "train-list" ] content
-
-
-trainView : TransportViewMode -> Train -> Html msg
-trainView viewMode train =
-    let
-        transport =
-            List.head train.transports
-    in
-        case transport of
-            Just t ->
-                trainBox viewMode t
-
-            Nothing ->
-                div [ class "train-box train-class-0" ] [ text "???" ]
-
-
 connectionView :
     Config msg
     -> Localization
@@ -462,9 +411,7 @@ connectionView (Config { internalMsg, selectMsg }) locale idx new j =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-16-24 connection-trains" ]
-                [ -- trainsView (pickTransportViewMode transportListViewWidth j) j,
-                  JourneyTransportGraph.view transportListViewWidth j
-                ]
+                [ JourneyTransportGraph.view transportListViewWidth j ]
             ]
         ]
 
@@ -652,83 +599,6 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
               else
                 loadingSpinner
             ]
-
-
-pickTransportViewMode : Int -> Journey -> TransportViewMode
-pickTransportViewMode maxTotalWidth { trains, leadingWalk, trailingWalk } =
-    let
-        countMaybe mb =
-            case mb of
-                Just _ ->
-                    1
-
-                Nothing ->
-                    0
-
-        walkCount =
-            (countMaybe leadingWalk) + (countMaybe trailingWalk)
-
-        separators =
-            16 * ((List.length trains) - 1 + walkCount)
-
-        iconOnlyBase =
-            32
-
-        iconTextBase =
-            40
-
-        avgCharWidth =
-            9
-
-        transportName f train =
-            case List.head train.transports of
-                Just t ->
-                    f t
-
-                Nothing ->
-                    "???"
-
-        boxWidth viewMode t =
-            case viewMode of
-                LongName ->
-                    iconTextBase
-                        + avgCharWidth
-                        * String.length (transportName longTransportName t)
-
-                ShortName ->
-                    iconTextBase
-                        + avgCharWidth
-                        * String.length (transportName shortTransportName t)
-
-                IconOnly ->
-                    iconOnlyBase
-
-                IconOnlyNoSep ->
-                    iconOnlyBase
-
-        longNameWidth =
-            separators
-                + (List.sum <| List.map (boxWidth LongName) trains)
-                + (walkCount * iconOnlyBase)
-
-        shortNameWidth =
-            separators
-                + (List.sum <| List.map (boxWidth ShortName) trains)
-                + (walkCount * iconOnlyBase)
-
-        iconOnlyWidth =
-            separators
-                + (List.sum <| List.map (boxWidth IconOnly) trains)
-                + (walkCount * iconOnlyBase)
-    in
-        if longNameWidth <= maxTotalWidth then
-            LongName
-        else if shortNameWidth <= maxTotalWidth then
-            ShortName
-        else if iconOnlyWidth <= maxTotalWidth then
-            IconOnly
-        else
-            IconOnlyNoSep
 
 
 
