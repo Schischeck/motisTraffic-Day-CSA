@@ -72,8 +72,12 @@
 }
 
 @keyframes fade-in-connection {
-  from {filter: grayscale(100%);}
-  to {filter: grayscale(0%);}
+  from {
+    filter: grayscale(100%) opacity(0%);
+  }
+  to {
+    filter: grayscale(0%) opacity(100%);
+  }
 }
 
 .connection .delay {
