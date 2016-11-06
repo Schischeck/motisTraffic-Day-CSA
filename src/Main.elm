@@ -62,6 +62,7 @@ type alias Model =
     , locale : Localization
     , currentRoutingRequest : Maybe RoutingRequest
     , debounce : Debounce.State
+    , connectionListScrollPos : Float
     }
 
 
@@ -91,6 +92,7 @@ init _ =
           , locale = deLocalization
           , currentRoutingRequest = Nothing
           , debounce = Debounce.init
+          , connectionListScrollPos = 0
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -117,7 +119,9 @@ type Msg
     | MapUpdate Map.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
+    | PrepareSelectConnection Int
     | SelectConnection Int
+    | StoreConnectionListScrollPos Msg Float
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
     | ScheduleInfoError ApiError
@@ -187,22 +191,39 @@ update msg model =
                 { model
                     | connections = m
                     , currentRoutingRequest = Just routingRequest
+                    , connectionListScrollPos = 0
                 }
                     ! [ Cmd.map ConnectionsUpdate c ]
+
+        PrepareSelectConnection idx ->
+            let
+                selectMsg =
+                    SelectConnection idx
+            in
+                model
+                    ! [ Task.perform
+                            (always selectMsg)
+                            (StoreConnectionListScrollPos selectMsg)
+                            (Scroll.y "connections")
+                      ]
 
         SelectConnection idx ->
             let
                 ( m, c ) =
                     selectConnection True model idx
-
-                noop =
-                    \_ -> NoOp
             in
                 m
                     ! [ c
                       , Task.perform noop noop <| Scroll.toTop "overlay-content"
                       , Task.perform noop noop <| Scroll.toTop "connection-journey"
                       ]
+
+        StoreConnectionListScrollPos msg' pos ->
+            let
+                newModel =
+                    { model | connectionListScrollPos = pos }
+            in
+                update msg' newModel
 
         ConnectionDetailsUpdate msg' ->
             let
@@ -221,7 +242,7 @@ update msg model =
                 ( { model | selectedConnection = m }, Cmd.map ConnectionDetailsUpdate c )
 
         CloseConnectionDetails ->
-            closeSelectedConnection model
+            closeSelectedConnection True model
 
         ScheduleInfoError _ ->
             let
@@ -305,6 +326,11 @@ debounceCfg =
         700
 
 
+noop : a -> Msg
+noop =
+    \_ -> NoOp
+
+
 
 -- SUBSCRIPTIONS
 
@@ -367,7 +393,7 @@ connectionConfig : Connections.Config Msg
 connectionConfig =
     Connections.Config
         { internalMsg = ConnectionsUpdate
-        , selectMsg = SelectConnection
+        , selectMsg = PrepareSelectConnection
         }
 
 
@@ -431,13 +457,13 @@ urlUpdate result model =
         Ok route ->
             case route of
                 Connections ->
-                    { model | selectedConnection = Nothing } ! []
+                    closeSelectedConnection False model
 
                 ConnectionDetails idx ->
                     selectConnection False model idx
 
         Err _ ->
-            { model | selectedConnection = Nothing } ! [ Navigation.newUrl (toUrl Connections) ]
+            closeSelectedConnection False model
 
 
 selectConnection : Bool -> Model -> Int -> ( Model, Cmd Msg )
@@ -465,10 +491,15 @@ selectConnection updateUrl model idx =
                       )
 
             Nothing ->
-                closeSelectedConnection model
+                closeSelectedConnection updateUrl model
 
 
-closeSelectedConnection : Model -> ( Model, Cmd Msg )
-closeSelectedConnection model =
+closeSelectedConnection : Bool -> Model -> ( Model, Cmd Msg )
+closeSelectedConnection updateUrl model =
     { model | selectedConnection = Nothing }
-        ! [ Navigation.newUrl (toUrl Connections) ]
+        ! ([ Task.perform noop noop <| Scroll.toY "connections" model.connectionListScrollPos ]
+            ++ if updateUrl then
+                [ Navigation.newUrl (toUrl Connections) ]
+               else
+                []
+          )
