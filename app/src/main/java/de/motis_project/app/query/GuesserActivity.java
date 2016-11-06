@@ -2,21 +2,11 @@ package de.motis_project.app.query;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.QueryObservable;
-import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +18,7 @@ import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
 import de.motis_project.app.R;
 import de.motis_project.app.io.Status;
+import de.motis_project.app.io.db.FavoritesDataSource;
 import motis.guesser.StationGuesserResponse;
 import rx.Observable;
 import rx.Subscriber;
@@ -43,11 +34,7 @@ public class GuesserActivity extends FragmentActivity {
 
     Observable observable;
 
-    private static final String sqlGetTop = "SELECT * FROM " + FavoritesDbHelper.TABLE +
-            " ORDER BY " + FavoritesDbHelper.COL_SELECTED_COUNT + " DESC LIMIT 5";
-    SqlBrite sqlBrite = new SqlBrite.Builder().logger(message -> System.out.println("DATABASE message = [" + message + "]")).build();
-    BriteDatabase db = sqlBrite.wrapDatabaseHelper(new FavoritesDbHelper(this), Schedulers.io());
-    QueryObservable favs = db.createQuery(FavoritesDbHelper.TABLE, sqlGetTop);
+    FavoritesDataSource favorites = new FavoritesDataSource(this);
 
     @BindView(R.id.suggestionslist)
     ListView suggestions;
@@ -77,15 +64,7 @@ public class GuesserActivity extends FragmentActivity {
         i.putExtra(RESULT_ID, eva);
         setResult(Activity.RESULT_OK, i);
 
-        try (BriteDatabase.Transaction t = db.newTransaction()) {
-            db.execute("INSERT OR IGNORE INTO " + FavoritesDbHelper.TABLE +
-                    " VALUES (\"" + eva + "\", \"" + stationName + "\", " + "0" + ")");
-            db.execute("UPDATE " + FavoritesDbHelper.TABLE +
-                    " SET " + FavoritesDbHelper.COL_SELECTED_COUNT + " = " + FavoritesDbHelper.COL_SELECTED_COUNT + " + 1 " +
-                    " WHERE " + FavoritesDbHelper.COL_EVA + " = " + eva);
-
-            t.markSuccessful();
-        }
+        favorites.addOrIncrement(eva, stationName);
 
         finish();
     }
@@ -141,15 +120,18 @@ public class GuesserActivity extends FragmentActivity {
             searchInput.setSelection(query.length());
         }
 
-        db.setLoggingEnabled(true);
-        favs.first().subscribe(q -> {
-            Cursor c = q.run();
-            System.out.println("rows returned = " + c.getCount());
-            while (c.moveToNext()) {
-                String eva = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_EVA));
-                String name = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_NAME));
-                String count = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_SELECTED_COUNT));
-                System.out.println("name = " + name + ", eva = " + eva + ", count = " + count);
+        favorites.getFavorites().subscribe(new Subscriber<List<FavoritesDataSource.FavoriteStation>>() {
+            @Override
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable e) {
+            }
+
+            @Override
+            public void onNext(List<FavoritesDataSource.FavoriteStation> favs) {
+
             }
         });
     }
@@ -157,7 +139,7 @@ public class GuesserActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        db.close();
+        favorites.closeDb();
     }
 
     public void setResults(ArrayList<String> names, ArrayList<String> ids) {

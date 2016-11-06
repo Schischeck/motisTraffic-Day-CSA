@@ -1,4 +1,4 @@
-package de.motis_project.app.query;
+package de.motis_project.app.io.db;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
