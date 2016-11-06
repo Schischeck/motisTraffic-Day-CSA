@@ -297,9 +297,18 @@ buildRoutingRequest model =
         (combineDateTime model.date.date model.time.date)
 
 
+isCompleteQuery : Model -> Bool
+isCompleteQuery model =
+    not (String.isEmpty model.fromLocation.input)
+        && not (String.isEmpty model.toLocation.input)
+
+
 checkRoutingRequest : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
 checkRoutingRequest ( model, cmds ) =
     let
+        completeQuery =
+            isCompleteQuery model
+
         newRoutingRequest =
             buildRoutingRequest model
 
@@ -311,7 +320,7 @@ checkRoutingRequest ( model, cmds ) =
                 Nothing ->
                     True
     in
-        if requestChanged then
+        if completeQuery && requestChanged then
             model ! [ cmds, Debounce.debounceCmd debounceCfg <| SearchConnections ]
         else
             ( model, cmds )
