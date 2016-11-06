@@ -29,7 +29,7 @@ journey create_journey1() {
   journey j;
   j.duration_ = 30;
   j.price_ = 10;
-  j.transfers_ = 1;
+  j.transfers_ = 2;
   j.db_costs_ = 100;
   j.night_penalty_ = 200;
 
@@ -37,7 +37,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Stop0";
@@ -49,7 +50,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "2222222";
-    stop.interchange_ = true;
+    stop.enter_ = true;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Stop1";
@@ -63,7 +65,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[2];
     stop.eva_no_ = "3333333";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Stop2";
@@ -77,7 +80,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[3];
     stop.eva_no_ = "4444444";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Stop3";
@@ -199,7 +203,8 @@ journey create_journey2() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Stop0";
@@ -211,7 +216,8 @@ journey create_journey2() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "2222222";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Stop1";
@@ -277,7 +283,8 @@ TEST(core_convert_journey, journey_message_journey) {
       auto const& os = o.stops_[s];
       auto const& js = j.stops_[s];
       ASSERT_EQ(os.eva_no_, js.eva_no_);
-      ASSERT_EQ(os.interchange_, js.interchange_);
+      ASSERT_EQ(os.enter_, js.enter_);
+      ASSERT_EQ(os.exit_, js.exit_);
       ASSERT_EQ(os.lat_, js.lat_);
       ASSERT_EQ(os.lng_, js.lng_);
       ASSERT_EQ(os.name_, js.name_);
