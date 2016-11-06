@@ -51,30 +51,21 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Deb a ->
-            Debounce.update debounceCfg a model
-
-        _ ->
-            ( updateModel msg model, command msg model )
-
-
-updateModel : Msg -> Model -> Model
-updateModel msg model =
-    case msg of
         NoOp ->
-            model
+            model ! []
 
         ReceiveSuggestions suggestions ->
-            { model | suggestions = suggestions }
+            { model | suggestions = suggestions } ! []
 
         InputChange str ->
-            { model | input = str }
+            { model | input = str } ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
 
         EnterSelection ->
             { model
                 | visible = False
                 , input = Maybe.withDefault "" (nthElement model.selected model.suggestions)
             }
+                ! []
 
         ClickElement i ->
             { model
@@ -82,18 +73,19 @@ updateModel msg model =
                 , selected = 0
                 , input = Maybe.withDefault "" (nthElement i model.suggestions)
             }
+                ! []
 
         SelectionUp ->
-            { model | selected = (model.selected - 1) % List.length model.suggestions }
+            { model | selected = (model.selected - 1) % List.length model.suggestions } ! []
 
         SelectionDown ->
-            { model | selected = (model.selected + 1) % List.length model.suggestions }
+            { model | selected = (model.selected + 1) % List.length model.suggestions } ! []
 
         Select index ->
-            { model | selected = index }
+            { model | selected = index } ! []
 
         Hide ->
-            { model | visible = False, selected = 0 }
+            { model | visible = False, selected = 0 } ! []
 
         InputUpdate msg' ->
             let
@@ -105,30 +97,18 @@ updateModel msg model =
                         Input.Blur ->
                             { model | visible = False, selected = 0 }
             in
-                { updated | inputWidget = Input.update msg' model.inputWidget }
+                { updated | inputWidget = Input.update msg' model.inputWidget } ! []
 
-        Deb _ ->
-            -- handled in update
-            model
-
-        RequestSuggestions ->
-            model
-
-
-command : Msg -> Model -> Cmd Msg
-command msg model =
-    case msg of
-        InputChange _ ->
-            Debounce.debounceCmd debounceCfg RequestSuggestions
+        Deb a ->
+            Debounce.update debounceCfg a model
 
         RequestSuggestions ->
-            if String.length model.input > 2 then
-                requestSuggestions model.remoteAddress model.input
-            else
-                Cmd.none
-
-        _ ->
-            Cmd.none
+            model
+                ! [ if String.length model.input > 2 then
+                        requestSuggestions model.remoteAddress model.input
+                    else
+                        Cmd.none
+                  ]
 
 
 debounceCfg : Debounce.Config Model Msg
