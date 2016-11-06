@@ -60,7 +60,7 @@ public class GuesserActivity extends FragmentActivity {
         String eva = resultIds.get(pos).toString();
         String stationName = suggestions.getAdapter().getItem(pos).toString();
         i.putExtra(RESULT_NAME,
-                stationName);
+                   stationName);
         i.putExtra(RESULT_ID, eva);
         setResult(Activity.RESULT_OK, i);
 
@@ -145,8 +145,8 @@ public class GuesserActivity extends FragmentActivity {
     public void setResults(ArrayList<String> names, ArrayList<String> ids) {
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<String>(GuesserActivity.this,
-                        R.layout.query_guesser_list_item,
-                        R.id.guess_text, names);
+                                         R.layout.query_guesser_list_item,
+                                         R.id.guess_text, names);
         suggestions.setAdapter(adapter);
         resultIds = ids;
     }
