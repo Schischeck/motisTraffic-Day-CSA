@@ -1,5 +1,6 @@
 module Widgets.JourneyTransportGraph exposing (view)
 
+import String
 import Html exposing (Html, div)
 import Html.Lazy
 import Svg exposing (..)
@@ -80,7 +81,7 @@ partView { part, position, barLength } =
             (circleRadius * 2) + barLength
 
         lineEnd =
-            position + partWidth
+            position + partWidth + (destinationRadius / 2)
     in
         g [ class <| "train-class-" ++ part.colorClass ]
             [ line
@@ -222,7 +223,7 @@ layoutParts totalWidth parts =
             List.length parts
 
         baseBarLength =
-            20
+            5
 
         basePartSize =
             circleRadius * 2
@@ -230,14 +231,26 @@ layoutParts totalWidth parts =
         destinationWidth =
             destinationRadius * 2
 
-        totalLineSpace =
+        avgCharWidth =
+            7
+
+        requiredBaseBarLength part =
+            baseBarLength + (Basics.max 0 (avgCharWidth * (String.length part.longName) - basePartSize))
+
+        totalBaseBarLength =
+            parts
+                |> List.map requiredBaseBarLength
+                |> List.sum
+
+        scaleLineSpace =
             totalWidth
-                - (partCount * (basePartSize + baseBarLength))
+                - (partCount * basePartSize)
+                - totalBaseBarLength
                 - destinationWidth
                 |> toFloat
 
         getBarLength part =
-            ((toFloat part.duration) / totalDuration) * totalLineSpace + baseBarLength
+            (requiredBaseBarLength part |> toFloat) + (((toFloat part.duration) / totalDuration) * scaleLineSpace)
 
         layout part ( pos, results ) =
             let
