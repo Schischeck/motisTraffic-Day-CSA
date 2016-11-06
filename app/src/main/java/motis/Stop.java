@@ -19,26 +19,30 @@ public final class Stop extends Table {
   public EventInfo arrival(EventInfo obj) { int o = __offset(6); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
   public EventInfo departure() { return departure(new EventInfo()); }
   public EventInfo departure(EventInfo obj) { int o = __offset(8); return o != 0 ? obj.__init(__indirect(o + bb_pos), bb) : null; }
-  public boolean interchange() { int o = __offset(10); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean exit() { int o = __offset(10); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
+  public boolean enter() { int o = __offset(12); return o != 0 ? 0!=bb.get(o + bb_pos) : false; }
 
   public static int createStop(FlatBufferBuilder builder,
       int stationOffset,
       int arrivalOffset,
       int departureOffset,
-      boolean interchange) {
-    builder.startObject(4);
+      boolean exit,
+      boolean enter) {
+    builder.startObject(5);
     Stop.addDeparture(builder, departureOffset);
     Stop.addArrival(builder, arrivalOffset);
     Stop.addStation(builder, stationOffset);
-    Stop.addInterchange(builder, interchange);
+    Stop.addEnter(builder, enter);
+    Stop.addExit(builder, exit);
     return Stop.endStop(builder);
   }
 
-  public static void startStop(FlatBufferBuilder builder) { builder.startObject(4); }
+  public static void startStop(FlatBufferBuilder builder) { builder.startObject(5); }
   public static void addStation(FlatBufferBuilder builder, int stationOffset) { builder.addOffset(0, stationOffset, 0); }
   public static void addArrival(FlatBufferBuilder builder, int arrivalOffset) { builder.addOffset(1, arrivalOffset, 0); }
   public static void addDeparture(FlatBufferBuilder builder, int departureOffset) { builder.addOffset(2, departureOffset, 0); }
-  public static void addInterchange(FlatBufferBuilder builder, boolean interchange) { builder.addBoolean(3, interchange, false); }
+  public static void addExit(FlatBufferBuilder builder, boolean exit) { builder.addBoolean(3, exit, false); }
+  public static void addEnter(FlatBufferBuilder builder, boolean enter) { builder.addBoolean(4, enter, false); }
   public static int endStop(FlatBufferBuilder builder) {
     int o = builder.endObject();
     return o;
