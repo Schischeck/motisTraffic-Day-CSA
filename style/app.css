@@ -37,12 +37,12 @@
 }
 
 #search {
-  height: 300px;
+  height: 210px;
   padding-bottom: 0;
 }
 
 #connections {
-  height: 300px;
+  height: 390px;
   overflow-y: auto;
   padding-top: 0px;
 }
