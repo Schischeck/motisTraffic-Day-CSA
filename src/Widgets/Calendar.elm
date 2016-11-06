@@ -191,17 +191,17 @@ calendarDays validRange today date =
 monthView : DateConfig -> Date -> Html Msg
 monthView conf date =
     div [ class "month" ]
-        [ i [ class "icon", onClick PrevMonth ] [ text "\xE314" ]
+        [ i [ class "icon", onClick PrevMonth ] [ text "chevron_left" ]
         , span [ class "month-name" ] [ text (monthAndYearStr conf date) ]
-        , i [ class "icon", onClick NextMonth ] [ text "\xE315" ]
+        , i [ class "icon", onClick NextMonth ] [ text "chevron_right" ]
         ]
 
 
 dayButtons : Html Msg
 dayButtons =
     div [ class "day-buttons" ]
-        [ div [] [ Button.view [ onStopAll "mousedown" PrevDay ] [ i [ class "icon" ] [ text "\xE314" ] ] ]
-        , div [] [ Button.view [ onStopAll "mousedown" NextDay ] [ i [ class "icon" ] [ text "\xE315" ] ] ]
+        [ div [] [ Button.view [ onStopAll "mousedown" PrevDay ] [ i [ class "icon" ] [ text "chevron_left" ] ] ]
+        , div [] [ Button.view [ onStopAll "mousedown" NextDay ] [ i [ class "icon" ] [ text "chevron_right" ] ] ]
         ]
 
 
@@ -214,7 +214,7 @@ calendarView label model =
             ]
             label
             (Just [ dayButtons ])
-            (Just "\xE878")
+            (Just "event")
             model.inputWidget
         , div
             [ classList

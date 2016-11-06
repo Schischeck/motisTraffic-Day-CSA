@@ -86,7 +86,7 @@ tagListView label model =
                 []
             else
                 [ div [ class "tag outline", onClick ToggleVisibility ]
-                    ([ i [ class "icon" ] [ text "\xE145" ] ]
+                    ([ i [ class "icon" ] [ text "add" ] ]
                         ++ [ availableTags ]
                     )
                 ]
@@ -97,7 +97,7 @@ tagListView label model =
                     (\s ->
                         a [ class "tag" ]
                             [ i [ class "icon" ] [ text s ]
-                            , i [ class "remove icon", onClick (RemoveTag s) ] [ text "\xE5C9" ]
+                            , i [ class "remove icon", onClick (RemoveTag s) ] [ text "cancel" ]
                             ]
                     )
     in
@@ -131,7 +131,7 @@ subscriptions model =
 
 init : Model
 init =
-    { tags = Set.fromList [ "\xE531", "\xE536", "\xE52F" ]
+    { tags = Set.fromList [ "directions_car", "directions_walk", "directions_bike" ]
     , selected = Set.empty
     , visible = False
     , ignoreNextToggle = False

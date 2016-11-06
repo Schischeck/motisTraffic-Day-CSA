@@ -118,8 +118,8 @@ formatDate d =
 hourButtons : Html Msg
 hourButtons =
     div [ class "hour-buttons" ]
-        [ div [] [ Button.view [ onClick PrevHour ] [ i [ class "icon" ] [ text "\xE314" ] ] ]
-        , div [] [ Button.view [ onClick NextHour ] [ i [ class "icon" ] [ text "\xE315" ] ] ]
+        [ div [] [ Button.view [ onClick PrevHour ] [ i [ class "icon" ] [ text "chevron_left" ] ] ]
+        , div [] [ Button.view [ onClick NextHour ] [ i [ class "icon" ] [ text "chevron_right" ] ] ]
         ]
 
 
@@ -129,7 +129,7 @@ timeInputView label model =
         [ onInput TimeInput, value model.inputStr ]
         label
         (Just [ hourButtons ])
-        (Just "\xE8AE")
+        (Just "schedule")
         model.inputWidget
 
 
