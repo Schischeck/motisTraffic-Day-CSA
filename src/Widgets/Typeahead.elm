@@ -192,8 +192,8 @@ proposalView selected index str =
         [ text str ]
 
 
-typeaheadView : String -> Maybe String -> Model -> Html Msg
-typeaheadView label icon model =
+typeaheadView : ( Int, String, Maybe String ) -> Model -> Html Msg
+typeaheadView ( tabIndex, label, icon ) model =
     div []
         [ Input.view InputUpdate
             [ value model.input
@@ -206,6 +206,7 @@ typeaheadView label icon model =
                     , ( escape, Hide )
                     ]
                 )
+            , tabindex tabIndex
             ]
             label
             Nothing
@@ -224,9 +225,9 @@ typeaheadView label icon model =
         ]
 
 
-view : String -> Maybe String -> Model -> Html Msg
-view label icon model =
-    lazy3 typeaheadView label icon model
+view : Int -> String -> Maybe String -> Model -> Html Msg
+view tabIndex label icon model =
+    lazy2 typeaheadView ( tabIndex, label, icon ) model
 
 
 

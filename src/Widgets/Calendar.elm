@@ -205,12 +205,13 @@ dayButtons =
         ]
 
 
-calendarView : String -> Model -> Html Msg
-calendarView label model =
+calendarView : Int -> String -> Model -> Html Msg
+calendarView tabIndex label model =
     div []
         [ Input.view InputUpdate
             [ onInput DateInput
             , value model.inputStr
+            , tabindex tabIndex
             ]
             label
             (Just [ dayButtons ])
@@ -231,9 +232,9 @@ calendarView label model =
         ]
 
 
-view : String -> Model -> Html Msg
+view : Int -> String -> Model -> Html Msg
 view =
-    lazy2 calendarView
+    lazy3 calendarView
 
 
 

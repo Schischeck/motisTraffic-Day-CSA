@@ -5,7 +5,7 @@ import String
 import Html exposing (..)
 import Date exposing (Date)
 import Html.Events exposing (onInput, onClick)
-import Html.Attributes exposing (value, class)
+import Html.Attributes exposing (value, class, tabindex)
 import Html.Lazy exposing (..)
 import Widgets.Input as Input
 import Widgets.Button as Button
@@ -123,16 +123,19 @@ hourButtons =
         ]
 
 
-timeInputView : String -> Model -> Html Msg
-timeInputView label model =
+timeInputView : Int -> String -> Model -> Html Msg
+timeInputView tabIndex label model =
     Input.view InputUpdate
-        [ onInput TimeInput, value model.inputStr ]
+        [ onInput TimeInput
+        , value model.inputStr
+        , tabindex tabIndex
+        ]
         label
         (Just [ hourButtons ])
         (Just "schedule")
         model.inputWidget
 
 
-view : String -> Model -> Html Msg
-view label model =
-    lazy2 timeInputView label model
+view : Int -> String -> Model -> Html Msg
+view tabIndex label model =
+    lazy3 timeInputView tabIndex label model

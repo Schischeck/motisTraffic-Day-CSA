@@ -388,6 +388,14 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
+    div [ class "app" ] <|
+        [ App.map MapUpdate (Map.view model.map)
+        , lazy overlayView model
+        ]
+
+
+overlayView : Model -> Html Msg
+overlayView model =
     let
         content =
             case model.selectedConnection of
@@ -397,12 +405,9 @@ view model =
                 Just c ->
                     detailsView model.locale c
     in
-        div [ class "app" ] <|
-            [ App.map MapUpdate (Map.view model.map)
-            , div [ class "overlay" ] <|
-                [ div [ id "overlay-content" ]
-                    content
-                ]
+        div [ class "overlay" ] <|
+            [ div [ id "overlay-content" ]
+                content
             ]
 
 
@@ -411,15 +416,23 @@ searchView model =
     [ div [ id "search" ]
         [ div [ class "pure-g gutters" ]
             [ div [ class "pure-u-1 pure-u-sm-3-5" ]
-                [ App.map FromLocationUpdate (Typeahead.view model.locale.t.search.start (Just "place") model.fromLocation) ]
+                [ App.map FromLocationUpdate <|
+                    Typeahead.view 1 model.locale.t.search.start (Just "place") model.fromLocation
+                ]
             , div [ class "pure-u-1 pure-u-sm-2-5" ]
-                [ App.map DateUpdate (Calendar.view model.locale.t.search.date model.date) ]
+                [ App.map DateUpdate <|
+                    Calendar.view 3 model.locale.t.search.date model.date
+                ]
             ]
         , div [ class "pure-g gutters" ]
             [ div [ class "pure-u-1 pure-u-sm-3-5" ]
-                [ App.map ToLocationUpdate (Typeahead.view model.locale.t.search.destination (Just "place") model.toLocation) ]
+                [ App.map ToLocationUpdate <|
+                    Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
+                ]
             , div [ class "pure-u-1 pure-u-sm-2-5" ]
-                [ App.map TimeUpdate (TimeInput.view model.locale.t.search.time model.time) ]
+                [ App.map TimeUpdate <|
+                    TimeInput.view 4 model.locale.t.search.time model.time
+                ]
             ]
         ]
     , div [ id "connections" ]
