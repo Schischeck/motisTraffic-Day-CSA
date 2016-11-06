@@ -1,4 +1,4 @@
-package de.motis_project.app.query;
+package de.motis_project.app.query.guesser;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -18,7 +18,6 @@ import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
 import de.motis_project.app.R;
 import de.motis_project.app.io.Status;
-import de.motis_project.app.io.db.FavoritesDataSource;
 import motis.guesser.StationGuesserResponse;
 import rx.Observable;
 import rx.Subscriber;
@@ -30,7 +29,7 @@ public class GuesserActivity extends FragmentActivity {
     public static final String RESULT_ID = "result_id";
     public static final String QUERY = "route";
 
-    private List<String> resultIds = new ArrayList<String>();
+    private List<String> resultIds = new ArrayList<>();
 
     Observable observable;
 
@@ -51,7 +50,7 @@ public class GuesserActivity extends FragmentActivity {
     @OnClick(R.id.clearButton)
     void clearInput() {
         searchInput.setText("");
-        setResults(new ArrayList<String>(), new ArrayList<String>());
+        setResults(new ArrayList<>(), new ArrayList<>());
     }
 
     @OnItemClick(R.id.suggestionslist)
@@ -112,7 +111,7 @@ public class GuesserActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.query_guesser_activity);
         ButterKnife.bind(this);
-        setResults(new ArrayList<String>(), new ArrayList<String>());
+        setResults(new ArrayList<>(), new ArrayList<>());
 
         String query = getIntent().getStringExtra(QUERY);
         if (query != null) {
@@ -143,11 +142,10 @@ public class GuesserActivity extends FragmentActivity {
     }
 
     public void setResults(ArrayList<String> names, ArrayList<String> ids) {
-        ArrayAdapter<String> adapter =
-                new ArrayAdapter<String>(GuesserActivity.this,
-                                         R.layout.query_guesser_list_item,
-                                         R.id.guess_text, names);
-        suggestions.setAdapter(adapter);
+        suggestions.setAdapter(new ArrayAdapter<>(
+                GuesserActivity.this,
+                R.layout.query_guesser_list_item,
+                R.id.guess_text, names));
         resultIds = ids;
     }
 

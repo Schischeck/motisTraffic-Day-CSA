@@ -24,7 +24,7 @@
                 android:value=".SearchActivity" />
         </activity>
         <activity
-            android:name=".query.GuesserActivity"
+            android:name=".query.guesser.GuesserActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait">
             <intent-filter>

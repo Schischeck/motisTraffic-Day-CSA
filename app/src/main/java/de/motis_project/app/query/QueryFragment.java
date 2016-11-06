@@ -28,6 +28,7 @@ import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.journey.JourneyListView;
 import de.motis_project.app.journey.ServerErrorView;
+import de.motis_project.app.query.guesser.GuesserActivity;
 
 public class QueryFragment extends Fragment
         implements android.app.DatePickerDialog.OnDateSetListener, TimePickerDialogFragment.ChangeListener {
