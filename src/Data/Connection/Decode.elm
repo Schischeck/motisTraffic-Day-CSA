@@ -1,4 +1,9 @@
-module Data.Connection.Decode exposing (decodeRoutingResponse, decodeConnection)
+module Data.Connection.Decode
+    exposing
+        ( decodeRoutingResponse
+        , decodeConnection
+        , decodeStation
+        )
 
 import Data.Connection.Types exposing (..)
 import Json.Decode as Decode exposing ((:=))

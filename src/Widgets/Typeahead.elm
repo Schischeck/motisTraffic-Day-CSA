@@ -1,4 +1,12 @@
-module Widgets.Typeahead exposing (Model, Msg, init, update, view)
+module Widgets.Typeahead
+    exposing
+        ( Model
+        , Msg
+        , init
+        , update
+        , view
+        , getSelectedStation
+        )
 
 import Html exposing (Html, div, ul, li, text)
 import Html.Attributes exposing (..)
@@ -6,20 +14,22 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (..)
 import String
 import Dict exposing (..)
-import Json.Encode as Encode
 import Json.Decode as Decode
 import Widgets.Input as Input
 import Util.View exposing (onStopAll)
-import Util.Core exposing ((=>))
+import Util.List exposing ((!!))
 import Util.Api as Api
 import Debounce
+import Data.Connection.Types exposing (Station)
+import Data.StationGuesser.Request exposing (encodeRequest)
+import Data.StationGuesser.Decode exposing (decodeStationGuesserResponse)
 
 
 -- MODEL
 
 
 type alias Model =
-    { suggestions : List String
+    { suggestions : List Station
     , input : String
     , selected : Int
     , visible : Bool
@@ -35,7 +45,7 @@ type alias Model =
 
 type Msg
     = NoOp
-    | ReceiveSuggestions (List String)
+    | ReceiveSuggestions (List Station)
     | InputChange String
     | EnterSelection
     | ClickElement Int
@@ -63,7 +73,7 @@ update msg model =
         EnterSelection ->
             { model
                 | visible = False
-                , input = Maybe.withDefault "" (nthElement model.selected model.suggestions)
+                , input = getStationName model model.selected
             }
                 ! []
 
@@ -71,7 +81,7 @@ update msg model =
             { model
                 | visible = False
                 , selected = 0
-                , input = Maybe.withDefault "" (nthElement i model.suggestions)
+                , input = getStationName model i
             }
                 ! []
 
@@ -109,6 +119,25 @@ update msg model =
                     else
                         Cmd.none
                   ]
+
+
+getStationName : Model -> Int -> String
+getStationName { suggestions } idx =
+    suggestions
+        !! idx
+        |> Maybe.map .name
+        |> Maybe.withDefault ""
+
+
+getSelectedStation : Model -> Maybe Station
+getSelectedStation model =
+    let
+        input =
+            model.input |> String.trim |> String.toLower
+    in
+        model.suggestions
+            |> List.filter (\station -> String.toLower station.name == input)
+            |> List.head
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -190,7 +219,7 @@ typeaheadView label icon model =
             , onStopAll "mousedown" NoOp
             ]
             [ ul [ class "proposals" ]
-                (List.indexedMap (proposalView model.selected) model.suggestions)
+                (List.indexedMap (proposalView model.selected) (List.map .name model.suggestions))
             ]
         ]
 
@@ -206,7 +235,7 @@ view label icon model =
 -- INIT
 
 
-init : String -> String -> Model
+init : String -> String -> ( Model, Cmd Msg )
 init remoteAddress initialValue =
     { suggestions = []
     , input = initialValue
@@ -216,54 +245,22 @@ init remoteAddress initialValue =
     , remoteAddress = remoteAddress
     , debounce = Debounce.init
     }
+        ! (if String.isEmpty initialValue then
+            []
+           else
+            [ requestSuggestions remoteAddress initialValue ]
+          )
 
 
 
 -- REMOTE SUGGESTIONS
 
 
-generateRequest : String -> Encode.Value
-generateRequest input =
-    Encode.object
-        [ "destination"
-            => Encode.object
-                [ "type" => Encode.string "Module"
-                , "target" => Encode.string "/guesser"
-                ]
-        , "content_type" => Encode.string "StationGuesserRequest"
-        , "content"
-            => Encode.object
-                [ "input" => Encode.string input
-                , "guess_count" => Encode.int 6
-                ]
-        ]
-
-
 requestSuggestions : String -> String -> Cmd Msg
 requestSuggestions remoteAddress input =
     Api.sendRequest
         remoteAddress
-        suggestionsDecoder
+        decodeStationGuesserResponse
         (\_ -> NoOp)
         ReceiveSuggestions
-        (generateRequest input)
-
-
-suggestionDecoder : Decode.Decoder String
-suggestionDecoder =
-    Decode.at [ "name" ] Decode.string
-
-
-suggestionsDecoder : Decode.Decoder (List String)
-suggestionsDecoder =
-    Decode.at [ "content", "guesses" ] (Decode.list suggestionDecoder)
-
-
-
--- UTIL
-
-
-nthElement : Int -> List a -> Maybe a
-nthElement index l =
-    List.drop index l
-        |> List.head
+        (encodeRequest 6 input)

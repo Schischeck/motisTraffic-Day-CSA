@@ -11,6 +11,7 @@ import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Routing.Request as RoutingRequest exposing (RoutingRequest)
+import Data.Connection.Types exposing (Station, Position)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
@@ -26,6 +27,7 @@ import Task
 import String
 import Navigation
 import Debounce
+import Maybe.Extra exposing (isJust)
 
 
 remoteAddress : String
@@ -77,10 +79,15 @@ init _ =
 
         ( mapModel, mapCmd ) =
             Map.init
+
+        ( fromLocationModel, fromLocationCmd ) =
+            Typeahead.init remoteAddress "Luisenplatz, Darmstadt"
+
+        ( toLocationModel, toLocationCmd ) =
+            Typeahead.init remoteAddress "Hamburg Berliner Tor"
     in
-        ( { fromLocation =
-                Typeahead.init remoteAddress "Luisenplatz, Darmstadt"
-          , toLocation = Typeahead.init remoteAddress "Hamburg Berliner Tor"
+        ( { fromLocation = fromLocationModel
+          , toLocation = toLocationModel
           , fromTransports = TagList.init
           , toTransports = TagList.init
           , date = dateModel
@@ -98,6 +105,8 @@ init _ =
             [ Cmd.map DateUpdate dateCmd
             , Cmd.map TimeUpdate timeCmd
             , Cmd.map MapUpdate mapCmd
+            , Cmd.map FromLocationUpdate fromLocationCmd
+            , Cmd.map ToLocationUpdate toLocationCmd
             , requestScheduleInfo remoteAddress
             ]
         )
@@ -291,16 +300,36 @@ requestScheduleInfo remoteAddress =
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
-    RoutingRequest.initialRequest
-        model.fromLocation.input
-        model.toLocation.input
-        (combineDateTime model.date.date model.time.date)
+    let
+        guessStation input =
+            Station "" input (Position 0 0)
+
+        getStation typeaheadModel =
+            Typeahead.getSelectedStation typeaheadModel
+                |> Maybe.withDefault (guessStation typeaheadModel.input)
+
+        fromStation =
+            getStation model.fromLocation
+
+        toStation =
+            getStation model.toLocation
+    in
+        RoutingRequest.initialRequest
+            fromStation
+            toStation
+            (combineDateTime model.date.date model.time.date)
 
 
 isCompleteQuery : Model -> Bool
 isCompleteQuery model =
-    not (String.isEmpty model.fromLocation.input)
-        && not (String.isEmpty model.toLocation.input)
+    let
+        fromStation =
+            Typeahead.getSelectedStation model.fromLocation
+
+        toStation =
+            Typeahead.getSelectedStation model.toLocation
+    in
+        isJust fromStation && isJust toStation
 
 
 checkRoutingRequest : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

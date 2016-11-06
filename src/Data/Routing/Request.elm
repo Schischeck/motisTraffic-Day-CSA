@@ -4,17 +4,18 @@ import Json.Encode as Encode
 import Date exposing (Date)
 import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
+import Data.Connection.Types exposing (Station)
 
 
 type alias RoutingRequest =
-    { from : String
-    , to : String
+    { from : Station
+    , to : Station
     , intervalStart : Int
     , intervalEnd : Int
     }
 
 
-initialRequest : String -> String -> Date -> RoutingRequest
+initialRequest : Station -> Station -> Date -> RoutingRequest
 initialRequest from to date =
     let
         selectedTime =
@@ -47,25 +48,25 @@ encodeRequest request =
                 [ "start_type" => Encode.string "PretripStart"
                 , "start"
                     => Encode.object
-                        [ "station"
-                            => Encode.object
-                                [ "name" => Encode.string request.from
-                                , "id" => Encode.string ""
-                                ]
+                        [ "station" => encodeInputStation request.from
                         , "interval"
                             => Encode.object
                                 [ "begin" => Encode.int request.intervalStart
                                 , "end" => Encode.int request.intervalEnd
                                 ]
                         ]
-                , "destination"
-                    => Encode.object
-                        [ "name" => Encode.string request.to
-                        , "id" => Encode.string ""
-                        ]
+                , "destination" => encodeInputStation request.to
                 , "search_type" => Encode.string "Default"
                 , "search_dir" => Encode.string "Forward"
                 , "via" => Encode.list []
                 , "additional_edges" => Encode.list []
                 ]
+        ]
+
+
+encodeInputStation : Station -> Encode.Value
+encodeInputStation station =
+    Encode.object
+        [ "name" => Encode.string station.name
+        , "id" => Encode.string station.id
         ]
