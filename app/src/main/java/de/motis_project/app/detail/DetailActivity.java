@@ -121,11 +121,11 @@ public class DetailActivity extends AppCompatActivity {
     private static int getNumberOfTransfers(Connection con) {
         int transfers = 0;
         for (int i = 0; i < con.stopsLength(); i++) {
-            if (con.stops(i).interchange()) {
+            if (con.stops(i).exit()) {
                 transfers++;
             }
         }
-        return transfers;
+        return transfers - 1;
     }
 
     public void expandSection(JourneyUtil.Section section) {

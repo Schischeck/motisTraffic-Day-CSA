@@ -16,6 +16,7 @@ import motis.Connection;
 import motis.Move;
 import motis.MoveWrapper;
 import motis.Range;
+import motis.Stop;
 import motis.Transport;
 import motis.Trip;
 import motis.Walk;
@@ -170,8 +171,11 @@ public class JourneyUtil {
     public static void printJourney(Connection con) {
         System.out.println("Stops:");
         for (int stopIdx = 0; stopIdx < con.stopsLength(); ++stopIdx) {
-            String sectionEnd = con.stops(stopIdx).interchange() || stopIdx == con.stopsLength() - 1 ? " [section end]" : "";
-            System.out.println("  " + stopIdx + ": " + con.stops(stopIdx).station().name() + sectionEnd);
+            Stop stop = con.stops(stopIdx);
+            System.out.print("  " + stopIdx + ": " + stop.station().name());
+            System.out.print(" enter=" + stop.enter());
+            System.out.print(" exit=" + stop.exit());
+            System.out.println();
         }
 
         System.out.println("Transports:");
