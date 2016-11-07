@@ -31,14 +31,13 @@ import Debounce
 import Maybe.Extra exposing (isJust)
 
 
-remoteAddress : String
-remoteAddress =
-    "http://localhost:8081"
+type alias ProgramFlags =
+    { apiEndpoint : String }
 
 
-main : Program Never
+main : Program ProgramFlags
 main =
-    Navigation.program urlParser
+    Navigation.programWithFlags urlParser
         { init = init
         , view = view
         , update = update
@@ -63,15 +62,19 @@ type alias Model =
     , selectedConnection : Maybe ConnectionDetails.State
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
+    , apiEndpoint : String
     , currentRoutingRequest : Maybe RoutingRequest
     , debounce : Debounce.State
     , connectionListScrollPos : Float
     }
 
 
-init : Result String Route -> ( Model, Cmd Msg )
-init _ =
+init : ProgramFlags -> Result String Route -> ( Model, Cmd Msg )
+init flags _ =
     let
+        remoteAddress =
+            flags.apiEndpoint
+
         ( dateModel, dateCmd ) =
             Calendar.init
 
@@ -98,6 +101,7 @@ init _ =
           , selectedConnection = Nothing
           , scheduleInfo = Nothing
           , locale = deLocalization
+          , apiEndpoint = remoteAddress
           , currentRoutingRequest = Nothing
           , debounce = Debounce.init
           , connectionListScrollPos = 0

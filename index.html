@@ -86,7 +86,10 @@
   </script>
 
   <script type="text/javascript">
-  var app = Elm.Main.embed(document.getElementById("app-container"));
+  var apiEndpoint = "http://" + window.location.hostname + ":8081/";
+  var app = Elm.Main.embed(document.getElementById("app-container"), {
+    apiEndpoint: apiEndpoint
+  });
 
   window.elmMaps = {};
 
