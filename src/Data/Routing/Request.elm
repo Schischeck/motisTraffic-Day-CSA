@@ -12,11 +12,12 @@ type alias RoutingRequest =
     , to : Station
     , intervalStart : Int
     , intervalEnd : Int
+    , minConnectionCount : Int
     }
 
 
-initialRequest : Station -> Station -> Date -> RoutingRequest
-initialRequest from to date =
+initialRequest : Int -> Station -> Station -> Date -> RoutingRequest
+initialRequest minConnectionCount from to date =
     let
         selectedTime =
             unixTime date
@@ -31,6 +32,7 @@ initialRequest from to date =
         , to = to
         , intervalStart = startTime
         , intervalEnd = endTime
+        , minConnectionCount = minConnectionCount
         }
 
 
@@ -58,6 +60,7 @@ encodeRequest request =
                 , "destination" => encodeInputStation request.to
                 , "search_type" => Encode.string "Default"
                 , "search_dir" => Encode.string "Forward"
+                , "min_connection_count" => Encode.int request.minConnectionCount
                 , "via" => Encode.list []
                 , "additional_edges" => Encode.list []
                 ]

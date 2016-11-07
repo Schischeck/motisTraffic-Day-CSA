@@ -195,12 +195,14 @@ extendSearchInterval direction base =
                     { base
                         | intervalStart = newIntervalStart
                         , intervalEnd = base.intervalStart
+                        , minConnectionCount = 0
                     }
 
                 ExtendAfter ->
                     { base
                         | intervalStart = base.intervalEnd
                         , intervalEnd = newIntervalEnd
+                        , minConnectionCount = 0
                     }
     in
         ( newRequest

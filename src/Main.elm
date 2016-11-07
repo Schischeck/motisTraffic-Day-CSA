@@ -313,8 +313,12 @@ buildRoutingRequest model =
 
         toStation =
             getStation model.toLocation
+
+        minConnectionCount =
+            5
     in
         RoutingRequest.initialRequest
+            minConnectionCount
             fromStation
             toStation
             (combineDateTime model.date.date model.time.date)
