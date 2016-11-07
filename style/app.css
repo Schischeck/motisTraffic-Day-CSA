@@ -520,25 +520,52 @@
   flex-direction: column;
 }
 
-.connection-details  .connection-info {
-  height: 110px;
+.connection-details .connection-info {
+  height: 150px;
   flex: 0 0 auto;
   margin: 0;
-  padding: 20px 24px;
+  padding: 16px 24px;
   font-weight: 300;
   border-bottom: 1px solid #4971E7;
 }
 
-.connection-details .connection-journey {
-    overflow-y: auto;
-    flex: 1 1 auto;
-    padding: 20px 20px 0 20px;
+.connection-info .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.connection-info .header .date {
+  font-weight: bold;
+  font-size: 120%;
+}
+
+.connection-info .header .actions {
+  display: flex;
+  justify-content: space-between;
+  width: 60px;
 }
 
 .connection-info .connection-times {
+  text-align: center;
+}
+
+.connection-info .connection-times > div {
+  display: inline-block;
+}
+
+.connection-info .connection-times .times {
   font-weight: 700;
   text-align: right;
   padding-right: 10px;
+}
+
+.connection-info .connection-times .locations {
+  text-align: left;
+}
+
+.connection-info .summary {
+  text-align: center;
 }
 
 .back {
@@ -550,6 +577,7 @@
   width: 44px;
   height: 44px;
   display: inline-block;
+  margin-right: 16px;
 }
 
 .back i {
@@ -574,4 +602,12 @@
 .connection-info .duration {
   margin-right: 20px;
 }
+
+.connection-details .connection-journey {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    padding: 20px 20px 0 20px;
+}
+
+
 

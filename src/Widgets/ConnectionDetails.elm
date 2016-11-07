@@ -113,21 +113,26 @@ connectionInfoView closeMsg { t, dateConfig } connection =
             arrivalTime connection |> Maybe.withDefault (Date.fromTime 0)
 
         depTimeText =
-            formatDateTime dateConfig depTime
+            formatTime depTime
 
         arrTimeText =
-            if isSameDay depTime arrTime then
-                formatTime arrTime
-            else
-                formatDateTime dateConfig arrTime
+            formatTime arrTime
+
+        dateText =
+            formatDate dateConfig depTime
     in
         div [ class "connection-info" ]
-            [ div [ class "pure-g" ]
-                [ div [ class "pure-u-3-24" ]
-                    [ div [ onClick closeMsg, class "back" ]
-                        [ i [ class "icon" ] [ text "arrow_back" ] ]
+            [ div [ class "header" ]
+                [ div [ onClick closeMsg, class "back" ]
+                    [ i [ class "icon" ] [ text "arrow_back" ] ]
+                , div [ class "date" ] [ text dateText ]
+                , div [ class "actions" ]
+                    [ i [ class "icon" ] [ text "save" ]
+                    , i [ class "icon" ] [ text "share" ]
                     ]
-                , div [ class "pure-u-6-24 connection-times" ]
+                ]
+            , div [ class "connection-times" ]
+                [ div [ class "times" ]
                     [ div [ class "connection-departure" ]
                         [ text depTimeText
                         ]
@@ -135,19 +140,19 @@ connectionInfoView closeMsg { t, dateConfig } connection =
                         [ text arrTimeText
                         ]
                     ]
-                , div [ class "pure-u-15-24" ]
+                , div [ class "locations" ]
                     [ div [] [ text (Maybe.map (.station >> .name) (List.head connection.stops) |> Maybe.withDefault "?") ]
                     , div [] [ text (Maybe.map (.station >> .name) (last connection.stops) |> Maybe.withDefault "?") ]
-                    , div [ class "summary" ]
-                        [ span [ class "duration" ]
-                            [ i [ class "icon" ] [ text "schedule" ]
-                            , text (Maybe.map durationText (duration connection) |> Maybe.withDefault "?")
-                            ]
-                        , span [ class "interchanges" ]
-                            [ i [ class "icon" ] [ text "transfer_within_a_station" ]
-                            , text <| t.connections.interchanges (interchanges connection)
-                            ]
-                        ]
+                    ]
+                ]
+            , div [ class "summary" ]
+                [ span [ class "duration" ]
+                    [ i [ class "icon" ] [ text "schedule" ]
+                    , text (Maybe.map durationText (duration connection) |> Maybe.withDefault "?")
+                    ]
+                , span [ class "interchanges" ]
+                    [ i [ class "icon" ] [ text "transfer_within_a_station" ]
+                    , text <| t.connections.interchanges (interchanges connection)
                     ]
                 ]
             ]
