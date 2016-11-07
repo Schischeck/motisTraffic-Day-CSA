@@ -1,7 +1,6 @@
 module Data.Connection.Decode
     exposing
-        ( decodeRoutingResponse
-        , decodeConnection
+        ( decodeConnection
         , decodeStation
         )
 
@@ -9,11 +8,6 @@ import Data.Connection.Types exposing (..)
 import Json.Decode as Decode exposing ((:=))
 import Json.Decode.Extra exposing ((|:), withDefault, maybeNull)
 import Util.Json exposing (decodeDate)
-
-
-decodeRoutingResponse : Decode.Decoder (List Connection)
-decodeRoutingResponse =
-    Decode.at [ "content", "connections" ] (Decode.list decodeConnection)
 
 
 decodeConnection : Decode.Decoder Connection

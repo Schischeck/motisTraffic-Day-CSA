@@ -14,19 +14,19 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
 import Html.Keyed
-import String
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (Duration(..))
 import Data.Connection.Types as Connection exposing (Connection, Stop)
-import Data.Connection.Decode
+import Data.Routing.Types exposing (RoutingRequest, RoutingResponse)
+import Data.Routing.Decode exposing (decodeRoutingResponse)
+import Data.Routing.Request exposing (encodeRequest)
 import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
-import Data.Routing.Request exposing (RoutingRequest, encodeRequest)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Widgets.JourneyTransportGraph as JourneyTransportGraph
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
-import Util.Date exposing (isSameDay)
+import Util.Date exposing (isSameDay, unixTime)
 import Util.Api as Api
     exposing
         ( ApiError(..)
@@ -72,7 +72,7 @@ type Msg
     = NoOp
     | Search SearchAction RoutingRequest
     | ExtendSearchInterval ExtendIntervalType
-    | ReceiveResponse SearchAction RoutingRequest (List Connection)
+    | ReceiveResponse SearchAction RoutingRequest RoutingResponse
     | ReceiveError SearchAction RoutingRequest ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
     | ResetNew
@@ -145,9 +145,9 @@ update msg model =
                 Nothing ->
                     model ! []
 
-        ReceiveResponse action request connections ->
+        ReceiveResponse action request response ->
             if belongsToCurrentSearch model request then
-                (updateModelWithNewResults model action request connections) ! []
+                (updateModelWithNewResults model action request response) ! []
             else
                 model ! []
 
@@ -217,10 +217,19 @@ updateModelWithNewResults :
     Model
     -> SearchAction
     -> RoutingRequest
-    -> List Connection
+    -> RoutingResponse
     -> Model
-updateModelWithNewResults model action request connections =
+updateModelWithNewResults model action request response =
     let
+        connections =
+            response.connections
+
+        updateInterval routingRequest =
+            { routingRequest
+                | intervalStart = unixTime response.intervalStart
+                , intervalEnd = unixTime response.intervalEnd
+            }
+
         base =
             case action of
                 ReplaceResults ->
@@ -229,6 +238,8 @@ updateModelWithNewResults model action request connections =
                         , errorMessage = Nothing
                         , errorBefore = Nothing
                         , errorAfter = Nothing
+                        , routingRequest =
+                            Maybe.map updateInterval model.routingRequest
                     }
 
                 PrependResults ->
@@ -636,7 +647,7 @@ sendRequest : String -> SearchAction -> RoutingRequest -> Cmd Msg
 sendRequest remoteAddress action request =
     Api.sendRequest
         remoteAddress
-        Data.Connection.Decode.decodeRoutingResponse
+        decodeRoutingResponse
         (ReceiveError action request)
         (ReceiveResponse action request)
         (encodeRequest request)

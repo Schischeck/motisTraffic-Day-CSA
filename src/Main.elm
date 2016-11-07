@@ -10,7 +10,8 @@ import Widgets.ConnectionDetails as ConnectionDetails
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
-import Data.Routing.Request as RoutingRequest exposing (RoutingRequest)
+import Data.Routing.Types exposing (RoutingRequest)
+import Data.Routing.Request as RoutingRequest
 import Data.Connection.Types exposing (Station, Position)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))

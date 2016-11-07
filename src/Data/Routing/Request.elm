@@ -5,15 +5,7 @@ import Date exposing (Date)
 import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
 import Data.Connection.Types exposing (Station)
-
-
-type alias RoutingRequest =
-    { from : Station
-    , to : Station
-    , intervalStart : Int
-    , intervalEnd : Int
-    , minConnectionCount : Int
-    }
+import Data.Routing.Types exposing (RoutingRequest)
 
 
 initialRequest : Int -> Station -> Station -> Date -> RoutingRequest
