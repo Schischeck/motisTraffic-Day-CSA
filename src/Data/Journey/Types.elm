@@ -93,7 +93,7 @@ groupTrains connection =
                     else
                         ( trains, in_train, end_idx )
             in
-                if stop.leave then
+                if stop.exit then
                     ( add_stop ((Train [] []) :: trains') stop, True, idx )
                 else if in_train' then
                     ( add_stop trains' stop, in_train', end_idx' )

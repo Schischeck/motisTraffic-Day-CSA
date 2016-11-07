@@ -17,7 +17,7 @@ type alias Stop =
     { station : Station
     , arrival : EventInfo
     , departure : EventInfo
-    , leave : Bool
+    , exit : Bool
     , enter : Bool
     }
 

@@ -30,7 +30,7 @@ decodeStop =
         |: ("station" := decodeStation)
         |: ("arrival" := decodeEventInfo)
         |: ("departure" := decodeEventInfo)
-        |: ("leave" := Decode.bool |> withDefault False)
+        |: ("exit" := Decode.bool |> withDefault False)
         |: ("enter" := Decode.bool |> withDefault False)
 
 
