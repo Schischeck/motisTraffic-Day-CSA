@@ -64,6 +64,23 @@ type Config msg
         }
 
 
+init : String -> Model
+init remoteAddress =
+    { loading = False
+    , loadingBefore = False
+    , loadingAfter = False
+    , remoteAddress = remoteAddress
+    , journeys = []
+    , indexOffset = 0
+    , errorMessage = Nothing
+    , errorBefore = Nothing
+    , errorAfter = Nothing
+    , scheduleInfo = Nothing
+    , routingRequest = Nothing
+    , newJourneys = []
+    }
+
+
 
 -- UPDATE
 
@@ -617,30 +634,7 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
 
 
 
--- SUBSCRIPTIONS
-{- no subs atm -}
--- INIT
-
-
-init : String -> Model
-init remoteAddress =
-    { loading = False
-    , loadingBefore = False
-    , loadingAfter = False
-    , remoteAddress = remoteAddress
-    , journeys = []
-    , indexOffset = 0
-    , errorMessage = Nothing
-    , errorBefore = Nothing
-    , errorAfter = Nothing
-    , scheduleInfo = Nothing
-    , routingRequest = Nothing
-    , newJourneys = []
-    }
-
-
-
--- ROUTING REQUEST / RESPONSE
+-- ROUTING REQUEST
 
 
 sendRequest : String -> SearchAction -> RoutingRequest -> Cmd Msg
