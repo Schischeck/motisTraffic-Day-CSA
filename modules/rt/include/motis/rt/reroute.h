@@ -335,6 +335,7 @@ inline void update_trip(schedule& sched, trip* trp,
   for (auto const& trp_e : *trp->edges_) {
     auto const e = trp_e.get_edge();
     e->m_.route_edge_.conns_[trp->lcon_idx_].valid_ = false;
+    std::cout << "invalidating " << std::endl;
   }
 
   std::vector<trip*> trps = {trp};

@@ -1,10 +1,10 @@
 sketch:
 
-    1 --walk-- 2 --walk-- 3 --S1,S2-- 4 --S2,S3-- 5 --walk-- 6 --walk-- 8
-                                                  |                     |
-                                                S4|S7                 S5|S8
-                                                  |                     |
-                                                 11                     9
+    1 --walk-- 2 --walk-- 3 --S1,S2,S6-- 4 --S2,S3,S6-- 5 --walk-- 6 --walk-- 8
+                                                        |                     |
+                                                      S4|S7                 S5|S8
+                                                        |                     |
+                                                       11                     9
 
 services:
   - S1: 3,4     [10:10,11:00]
@@ -27,8 +27,8 @@ foot edges:
   6->8 [10]
 
 test cases:
-  A: first enter
-  B: last leave
+  A: cancel first enter
+  B: cancel last leave
   C: leave+enter = interchange
      - walk(s) / same station
      - delay / cancel
