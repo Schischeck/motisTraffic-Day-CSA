@@ -31,6 +31,7 @@ routes::~routes() = default;
 
 void routes::init(registry& r) {
   db_ = load_db(database_path_);
+
   if (auto buf = db_->try_get("__index")) {
     lookup_ = std::make_unique<lookup_index>(*buf);
   } else {

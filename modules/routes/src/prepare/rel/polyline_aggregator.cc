@@ -7,6 +7,7 @@
 #include <set>
 
 #include "boost/optional.hpp"
+#include "geo/latlng.h"
 
 #include "motis/core/common/logging.h"
 

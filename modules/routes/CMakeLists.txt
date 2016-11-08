@@ -26,13 +26,10 @@ endif()
 file(GLOB_RECURSE motis-routes-prepare-files src/prepare.cc src/prepare/*.cc)
 
 file(GLOB_RECURSE motis-routes-files src/*.cc)
-foreach(file ${motis-routes-prepare-files})
-  list(REMOVE_ITEM motis-routes-files "${file}")
-endforeach()
 
 list(APPEND motis-routes-prepare-files src/db/rocksdb.cc src/db/db_builder.cc)
 
-add_library(motis-routes STATIC ${motis-routes-files})
+add_library(motis-routes STATIC ${motis-routes-files}) 
 add_dependencies(motis-routes generated-routes-fbs-headers)
 target_link_libraries(motis-routes
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
@@ -40,6 +37,7 @@ target_link_libraries(motis-routes
   expat
   rocksdb
   ${ZLIB_LIBRARIES}
+  geo
   motis-module
 )
 set_target_properties(motis-routes PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
