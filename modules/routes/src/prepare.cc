@@ -1,35 +1,32 @@
-#include "motis/routes/prepare/prepare_data.h"
-
 #include <iostream>
-
 #include <map>
 
+#include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
+
 #include "boost/filesystem.hpp"
+
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
 
 #include "parser/file.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/routes/db/db_builder.h"
 
-#include "motis/routes/db/kv_database.h"
+#include "motis/routes/db/rocksdb.h"
 #include "motis/routes/prepare/bus_stop_positions.h"
-#include "motis/routes/prepare/geojson.h"
-#include "motis/routes/prepare/parallel_for.h"
-#include "motis/routes/prepare/rel/relation_matcher.h"
-#include "motis/routes/prepare/seq/seq_graph_builder.h"
-#include "motis/routes/prepare/seq/seq_graph_dijkstra.h"
+#include "motis/routes/prepare/prepare_data.h"
 #include "motis/routes/prepare/station_sequences.h"
 #include "motis/routes/prepare/vector_utils.h"
 
+#include "motis/schedule-format/Schedule_generated.h"
+
 #include "version.h"
+
 namespace fs = boost::filesystem;
 using namespace parser;
 using namespace motis;
 using namespace motis::loader;
 using namespace motis::routes;
-using namespace geo;
 
 struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
@@ -85,33 +82,30 @@ int main(int argc, char** argv) {
   auto sequences = load_station_sequences(schedule);
 
   // auto const extent_polygon = read_poly_file(opt.extent_);
-  sequences.erase(
-      std::remove_if(begin(sequences), end(sequences),
-                     [&](auto const& seq) {
-                       if (seq.categories_.empty() ||
-                           std::none_of(
-                               begin(seq.categories_), end(seq.categories_),
-                               [](auto const& cat) { return cat < 6; })) {
-                         return true;
-                       }
+  erase_if(sequences, [&](auto const& seq) {
+    if (seq.categories_.empty() ||
+        std::none_of(begin(seq.categories_), end(seq.categories_),
+                     [](auto const& cat) { return cat < 6; })) {
+      return true;
+    }
 
-                       // if (std::any_of(begin(seq.coordinates_),
-                       // end(seq.coordinates_),
-                       //                 [&](auto const& coord) {
-                       //                   return !within(coord,
-                       //                   extent_polygon);
-                       //                 })) {
-                       //   return true;
-                       // }
+    // if (std::any_of(begin(seq.coordinates_),
+    // end(seq.coordinates_),
+    //                 [&](auto const& coord) {
+    //                   return !within(coord,
+    //                   extent_polygon);
+    //                 })) {
+    //   return true;
+    // }
 
-                       // if (seq.station_ids_.front() != "8000105" ||
-                       //     seq.station_ids_.back() != "8000126") {
-                       //   return true;
-                       // }
+    // if (seq.station_ids_.front() != "8000105" ||
+    //     seq.station_ids_.back() != "8000126") {
+    //   return true;
+    // }
 
-                       return false;
-                     }),
-      end(sequences));
+    return false;
+  });
+
   rocksdb_database db(opt.out_);
   prepare(sequences, stop_positions, opt.osm_, db);
 }

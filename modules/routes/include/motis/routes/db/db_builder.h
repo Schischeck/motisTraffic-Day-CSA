@@ -2,11 +2,13 @@
 
 #include <mutex>
 
-#include "motis/module/message.h"
-#include "motis/protocol/RoutesSeqResponse_generated.h"
-#include "motis/routes/db/rocksdb.h"
-#include "motis/routes/fbs/RouteIndex_generated.h"
 #include "geo/polygon.h"
+
+#include "motis/module/message.h"
+#include "motis/routes/db/rocksdb.h"
+
+#include "motis/protocol/RoutesSeqResponse_generated.h"
+#include "motis/routes/fbs/RouteIndex_generated.h"
 
 namespace motis {
 namespace routes {

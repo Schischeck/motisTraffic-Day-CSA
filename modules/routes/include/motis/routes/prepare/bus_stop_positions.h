@@ -2,14 +2,16 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
 #include "geo/latlng.h"
 
-#include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
-
-#include "motis/schedule-format/Schedule_generated.h"
-
 namespace motis {
+
+namespace loader {
+struct Schedule;
+}  // namespace loader
+
 namespace routes {
 
 std::map<std::string, std::vector<geo::latlng>> find_bus_stop_positions(

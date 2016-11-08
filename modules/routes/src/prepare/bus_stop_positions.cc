@@ -2,8 +2,12 @@
 
 #include <iostream>
 
+#include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
+
 #include "motis/routes/prepare/osm_util.h"
 #include "motis/routes/prepare/point_rtree.h"
+
+#include "motis/schedule-format/Schedule_generated.h"
 
 using namespace geo;
 

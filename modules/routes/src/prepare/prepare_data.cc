@@ -1,11 +1,9 @@
 #include "motis/routes/prepare/prepare_data.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/routes/db/db_builder.h"
 
+#include "motis/routes/db/db_builder.h"
 #include "motis/routes/db/kv_database.h"
-#include "motis/routes/prepare/bus_stop_positions.h"
-#include "motis/routes/prepare/geojson.h"
 #include "motis/routes/prepare/parallel_for.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
 #include "motis/routes/prepare/seq/seq_graph_builder.h"
@@ -13,12 +11,8 @@
 #include "motis/routes/prepare/station_sequences.h"
 #include "motis/routes/prepare/vector_utils.h"
 
-#include "version.h"
-
 using namespace motis;
-using namespace motis::loader;
 using namespace motis::routes;
-using namespace geo;
 
 namespace motis {
 namespace routes {
@@ -34,6 +28,7 @@ void prepare(
   for (auto i = 0u; i < sequences.size(); ++i) {
     results.emplace_back(sequences[i], rel_matches[i]);
   }
+
   parallel_for("searching routes", results, 250, [&](auto const& r) {
     auto const& seq = r.first;
     auto const& relations = r.second;
