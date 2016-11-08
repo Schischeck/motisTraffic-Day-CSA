@@ -23,7 +23,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
   for (auto const& s : access::stops(trp)) {
     journey::stop stop;
     stop.enter_ = false;
-    stop.leave_ = false;
+    stop.exit_ = false;
 
     auto station = s.get_station(sched);
     stop.eva_no_ = station.eva_nr_;

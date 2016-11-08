@@ -20,10 +20,10 @@ namespace cc {
 struct interchange {
   void reset() {
     enter_ = ev_key();
-    leave_ = ev_key();
+    exit_ = ev_key();
   }
-  std::size_t leave_stop_idx_, enter_stop_idx_;
-  ev_key leave_, enter_;
+  std::size_t exit_stop_idx_, enter_stop_idx_;
+  ev_key exit_, enter_;
 };
 
 po::options_description cc::desc() {
@@ -81,15 +81,15 @@ std::vector<interchange> get_interchanges(schedule const& sched,
   interchange ic;
   auto stop_idx = 0;
   for (auto const& s : *con->stops()) {
-    if (s->leave()) {
-      ic.leave_ = get_event_at(sched, con, stop_idx, event_type::ARR);
-      ic.leave_stop_idx_ = stop_idx;
+    if (s->exit()) {
+      ic.exit_ = get_event_at(sched, con, stop_idx, event_type::ARR);
+      ic.exit_stop_idx_ = stop_idx;
     }
 
     if (s->enter()) {
       ic.enter_ = get_event_at(sched, con, stop_idx, event_type::DEP);
       ic.enter_stop_idx_ = stop_idx;
-      if (ic.leave_.valid()) {
+      if (ic.exit_.valid()) {
         interchanges.emplace_back(std::move(ic));
       }
       ic.reset();
@@ -126,14 +126,14 @@ motis::time get_foot_edge_duration(schedule const& sched, Connection const* con,
 
 void check_interchange(schedule const& sched, Connection const* con,
                        interchange const& ic) {
-  auto const transfer_time = ic.enter_.get_time() - ic.leave_.get_time();
-  if (ic.leave_stop_idx_ == ic.enter_stop_idx_) {
+  auto const transfer_time = ic.enter_.get_time() - ic.exit_.get_time();
+  if (ic.exit_stop_idx_ == ic.enter_stop_idx_) {
     verify(transfer_time >=
                sched.stations_.at(ic.enter_.get_station_idx())->transfer_time_,
            "transfer time below station transfer time");
   } else {
     auto min_transfer_time = 0;
-    for (auto i = ic.leave_stop_idx_; i < ic.enter_stop_idx_; ++i) {
+    for (auto i = ic.exit_stop_idx_; i < ic.enter_stop_idx_; ++i) {
       min_transfer_time += get_foot_edge_duration(sched, con, i);
     }
     verify(transfer_time >= min_transfer_time,

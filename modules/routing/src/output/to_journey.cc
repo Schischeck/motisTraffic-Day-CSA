@@ -147,7 +147,7 @@ std::vector<journey::stop> generate_journey_stops(
   for (auto const& stop : stops) {
     auto const& station = *sched.stations_[stop.station_id_];
     journey_stops.push_back(
-        {stop.leave_, stop.enter_, station.name_, station.eva_nr_,
+        {stop.exit_, stop.enter_, station.name_, station.eva_nr_,
          station.width_, station.length_,
          stop.a_time_ != INVALID_TIME
              ? journey::stop::event_info{true, motis_to_unixtime(
@@ -178,13 +178,13 @@ std::vector<journey::stop> generate_journey_stops(
 std::vector<journey::attribute> generate_journey_attributes(
     std::vector<intermediate::transport> const& transports) {
   interval_map<attribute const*> attributes;
-  for (auto const& transport : transports) {
-    if (transport.con_ == nullptr) {
+  for (auto const& t : transports) {
+    if (t.con_ == nullptr) {
       continue;
     } else {
       for (auto const& attribute :
-           transport.con_->full_con_->con_info_->attributes_) {
-        attributes.add_entry(attribute, transport.from_, transport.to_);
+           t.con_->full_con_->con_info_->attributes_) {
+        attributes.add_entry(attribute, t.from_, t.to_);
       }
     }
   }

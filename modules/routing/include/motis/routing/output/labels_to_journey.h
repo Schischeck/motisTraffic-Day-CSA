@@ -63,7 +63,7 @@ journey labels_to_journey(schedule const& sched, Label* label,
   j.transfers_ =
       std::accumulate(begin(j.stops_), end(j.stops_), 0,
                       [](int transfers_count, journey::stop const& s) {
-                        return s.leave_ ? transfers_count + 1 : transfers_count;
+                        return s.exit_ ? transfers_count + 1 : transfers_count;
                       });
 
   j.db_costs_ = db_costs(*label);

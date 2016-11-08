@@ -111,20 +111,6 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
               reroute(s, cancelled_delays_,
                       reinterpret_cast<ris::RerouteMessage const*>(c));
 
-          auto const to_str = [](status const s) -> char const* {
-            switch (s) {
-              case status::OK: return "OK";
-              case status::TRIP_NOT_FOUND: return "TRIP_NOT_FOUND";
-              case status::EVENT_COUNT_MISMATCH: return "EVENT_COUNT_MISMATCH";
-              case status::STATION_MISMATCH: return "STATION_MISMATCH";
-              case status::EVENT_ORDER_MISMATCH: return "EVENT_ORDER_MISMATCH";
-              case status::RULE_SERVICE_REROUTE_NOT_SUPPORTED:
-                return "RULE_SERVICE_REROUTE_NOT_SUPPORTED";
-              default: return "?";
-            }
-          };
-          printf("%s\n", to_str(result.first));
-
           if (result.first == status::OK) {
             for (auto const& e : *result.second->edges_) {
               propagator_.add_delay(ev_key{e, 0, event_type::DEP});
@@ -213,8 +199,6 @@ msg_ptr rt_handler::flush(msg_ptr const&) {
   sched_.travel_time_lower_bounds_bwd_ =
       build_station_graph(sched_.station_nodes_, search_dir::BWD);
   lb_update.stop_and_print();
-
-  std::cout << stats_ << std::endl;
 
   verify(
       [this] {

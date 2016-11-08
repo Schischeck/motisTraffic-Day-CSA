@@ -16,10 +16,9 @@ unsigned travel_time(Connection const* c) {
 }
 
 unsigned transfers(Connection const* c) {
-  return std::accumulate(std::begin(*c->stops()), std::end(*c->stops()), 0,
-                         [](int acc, Stop const* s) {
-                           return s->leave() ? acc + 1 : acc;
-                         }) -
+  return std::accumulate(
+             std::begin(*c->stops()), std::end(*c->stops()), 0,
+             [](int acc, Stop const* s) { return s->exit() ? acc + 1 : acc; }) -
          1;
 }
 

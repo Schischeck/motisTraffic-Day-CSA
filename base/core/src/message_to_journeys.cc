@@ -26,7 +26,7 @@ journey::stop to_stop(Stop const& stop, unsigned int const index,
                       unsigned int const num_stops) {
   journey::stop s;
   s.eva_no_ = stop.station()->id()->c_str();
-  s.leave_ = static_cast<bool>(stop.leave());
+  s.exit_ = static_cast<bool>(stop.exit());
   s.enter_ = static_cast<bool>(stop.enter());
   s.lat_ = stop.station()->pos()->lat();
   s.lng_ = stop.station()->pos()->lng();
