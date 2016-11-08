@@ -131,20 +131,14 @@ TEST_F(cc_check_routed_connection_test, simple_result_ok) {
   check_schedule_okay("0000003", "0000008", 1700);
 }
 
-/*
- * std::string station_id,
- * int train_num,
- * std::string line_id,
-   event_type ev_type,
-   int schedule_time_hhmm
- */
 TEST_F(cc_check_routed_connection_test, first_enter_cancelled) {
   auto const routing_res = call(route("0000003", "0000005", 1700));
   publish(reroute_cancel(sched(), id_event{"0000003", 6, 1810},
                          {event{"0000003", 6, "", event_type::DEP, 1810},
                           event{"0000004", 6, "", event_type::ARR, 1900}}));
   publish(make_no_msg("/ris/system_time_changed"));
-  auto const check_res = check_connection(
-      motis_content(RoutingResponse, routing_res)->connections()->Get(0));
-  std::cout << check_res->to_json() << std::endl;
+  EXPECT_THROW(
+      call(check_connection(
+          motis_content(RoutingResponse, routing_res)->connections()->Get(0))),
+      std::runtime_error);
 }
