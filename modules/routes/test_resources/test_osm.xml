@@ -1,0 +1,27 @@
+<osm attribution="http://www.openstreetmap.org/copyright" copyright="OpenStreetMap and contributors" generator="CGImap 0.5.8 (16878 thorn-04.openstreetmap.org)" license="http://opendatacommons.org/licenses/odbl/1-0/" version="0.6">
+ <relation changeset="40409220" id="158567" visible="true">
+  <member ref="12345678" role="forward" type="way" />
+  <member ref="123456789" role="forward" type="way" />
+  <tag k="type" v="route" />
+  <tag k="route" v="railway" />
+ </relation>
+<way changeset="29009580" id="12345678" visible="true">
+  <nd ref="1234567890" />
+  <nd ref="12345678901" />
+  <tag k="name" v="Muenchen Hbf" />
+ </way>
+<way changeset="40409220" id="123456789" visible="true">
+  <nd ref="12345678901" />
+  <nd ref="123456789012" />
+  <nd ref="1234567890123" />
+  <tag k="name" v="Nuernberg Hbf" />
+ </way>
+<node changeset="24077990" id="1234567890" lat="48.140232" lon="11.558335" visible="true">
+ </node>
+ <node changeset="24077990" id="12345678901" lat="48.140234" lon="11.558336" visible="true">
+ </node>
+<node changeset="29245354" id="123456789012" lat="49.445615" lon="11.082988" visible="true">
+ </node>
+ <node changeset="29245354" id="1234567890123" lat="49.445616" lon="11.082989" visible="true">
+ </node>
+</osm>

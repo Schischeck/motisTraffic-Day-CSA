@@ -1,7 +1,8 @@
 #pragma once
 
-#include "motis/routes/db/kv_database.h"
 #include <map>
+
+#include "motis/routes/db/kv_database.h"
 
 namespace motis {
 namespace routes {

@@ -6,15 +6,12 @@
 namespace motis {
 namespace routes {
 
-map_database::map_database(std::string path) : path_(path) {
-  db_builder b(*this);
-  b.finish();
-}
+map_database::map_database(std::string path) : path_(path) {}
 
 map_database::~map_database() = default;
 
 void map_database::put(std::string const& key, std::string const& value) {
-  db_.emplace(std::make_pair(key, value));
+  db_.emplace(key, value);
 }
 
 std::string map_database::get(std::string const& key) {
@@ -30,7 +27,7 @@ boost::optional<std::string> map_database::try_get(std::string const& key) {
   if (it != end(db_)) {
     return it->second;
   }
-  throw std::system_error(error::not_found);
+  return {};
 }
 
 }  // namespace routes
