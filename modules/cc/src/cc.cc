@@ -148,7 +148,7 @@ msg_ptr cc::check_journey(msg_ptr const& msg) const {
   for (auto const& ic : get_interchanges(sched, con)) {
     check_interchange(sched, con, ic);
   }
-  return msg;
+  return make_success_msg();
 }
 
 }  // namespace cc
