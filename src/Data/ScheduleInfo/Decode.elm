@@ -1,8 +1,8 @@
 module Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 
 import Data.ScheduleInfo.Types exposing (..)
-import Json.Decode as Decode exposing ((:=))
-import Json.Decode.Extra exposing ((|:), withDefault, maybeNull)
+import Json.Decode as Decode exposing (string)
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Util.Json exposing (decodeDate)
 
 
@@ -13,7 +13,7 @@ decodeScheduleInfoResponse =
 
 decodeScheduleInfo : Decode.Decoder ScheduleInfo
 decodeScheduleInfo =
-    Decode.succeed ScheduleInfo
-        |: ("name" := Decode.string)
-        |: ("begin" := decodeDate)
-        |: ("end" := decodeDate)
+    decode ScheduleInfo
+        |> required "name" string
+        |> required "begin" decodeDate
+        |> required "end" decodeDate

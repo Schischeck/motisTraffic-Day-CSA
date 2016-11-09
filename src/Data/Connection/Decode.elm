@@ -5,51 +5,51 @@ module Data.Connection.Decode
         )
 
 import Data.Connection.Types exposing (..)
-import Json.Decode as Decode exposing ((:=))
-import Json.Decode.Extra exposing ((|:), withDefault, maybeNull)
+import Json.Decode as Decode exposing (list, string, int, float, bool, (:=))
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, nullable)
 import Util.Json exposing (decodeDate)
 
 
 decodeConnection : Decode.Decoder Connection
 decodeConnection =
-    Decode.succeed Connection
-        |: ("stops" := Decode.list decodeStop)
-        |: ("transports" := Decode.list decodeMove)
-        |: ("attributes" := Decode.list decodeAttribute)
+    decode Connection
+        |> required "stops" (list decodeStop)
+        |> required "transports" (list decodeMove)
+        |> required "attributes" (list decodeAttribute)
 
 
 decodeStop : Decode.Decoder Stop
 decodeStop =
-    Decode.succeed Stop
-        |: ("station" := decodeStation)
-        |: ("arrival" := decodeEventInfo)
-        |: ("departure" := decodeEventInfo)
-        |: ("exit" := Decode.bool |> withDefault False)
-        |: ("enter" := Decode.bool |> withDefault False)
+    decode Stop
+        |> required "station" decodeStation
+        |> required "arrival" decodeEventInfo
+        |> required "departure" decodeEventInfo
+        |> optional "exit" bool False
+        |> optional "enter" bool False
 
 
 decodeStation : Decode.Decoder Station
 decodeStation =
-    Decode.succeed Station
-        |: ("id" := Decode.string)
-        |: ("name" := Decode.string)
-        |: ("pos" := decodePosition)
+    decode Station
+        |> required "id" string
+        |> required "name" string
+        |> required "pos" decodePosition
 
 
 decodePosition : Decode.Decoder Position
 decodePosition =
-    Decode.succeed Position
-        |: ("lat" := Decode.float)
-        |: ("lng" := Decode.float)
+    decode Position
+        |> required "lat" float
+        |> required "lng" float
 
 
 decodeEventInfo : Decode.Decoder EventInfo
 decodeEventInfo =
-    Decode.succeed EventInfo
-        |: ("time" := decodeDate |> Decode.maybe)
-        |: ("schedule_time" := decodeDate |> Decode.maybe)
-        |: ("track" := Decode.string)
-        |: ("reason" := decodeTimestampReason |> withDefault Schedule)
+    decode EventInfo
+        |> optional "time" (nullable decodeDate) Nothing
+        |> optional "schedule_time" (nullable decodeDate) Nothing
+        |> required "track" string
+        |> optional "reason" decodeTimestampReason Schedule
 
 
 decodeMove : Decode.Decoder Move
@@ -59,52 +59,54 @@ decodeMove =
         move move_type =
             case move_type of
                 "Transport" ->
-                    Decode.object1 Transport ("move" := decodeTransportInfo)
+                    decode Transport
+                        |> required "move" decodeTransportInfo
 
                 "Walk" ->
-                    Decode.object1 Walk ("move" := decodeWalkInfo)
+                    decode Walk
+                        |> required "move" decodeWalkInfo
 
                 _ ->
                     Decode.fail ("move type " ++ move_type ++ " not supported")
     in
-        ("move_type" := Decode.string) `Decode.andThen` move
+        ("move_type" := string) `Decode.andThen` move
 
 
 decodeTransportInfo : Decode.Decoder TransportInfo
 decodeTransportInfo =
-    Decode.succeed TransportInfo
-        |: ("range" := decodeRange)
-        |: ("category_name" := Decode.string)
-        |: ("clasz" := Decode.int |> withDefault 0)
-        |: ("train_nr" := Decode.int |> Decode.maybe)
-        |: ("line_id" := Decode.string)
-        |: ("name" := Decode.string)
-        |: ("provider" := Decode.string)
-        |: ("direction" := Decode.string)
+    decode TransportInfo
+        |> required "range" decodeRange
+        |> required "category_name" string
+        |> optional "clasz" int 0
+        |> optional "train_nr" (nullable int) Nothing
+        |> required "line_id" string
+        |> required "name" string
+        |> required "provider" string
+        |> required "direction" string
 
 
 decodeWalkInfo : Decode.Decoder WalkInfo
 decodeWalkInfo =
-    Decode.succeed WalkInfo
-        |: ("range" := decodeRange)
-        |: ("mumo_id" := Decode.int)
-        |: ("price" := Decode.int |> Decode.maybe)
-        |: ("mumo_type" := Decode.string)
+    decode WalkInfo
+        |> required "range" decodeRange
+        |> required "mumo_id" int
+        |> optional "price" (nullable int) Nothing
+        |> required "mumo_type" string
 
 
 decodeAttribute : Decode.Decoder Attribute
 decodeAttribute =
-    Decode.succeed Attribute
-        |: ("range" := decodeRange)
-        |: ("code" := Decode.string)
-        |: ("text" := Decode.string)
+    decode Attribute
+        |> required "range" decodeRange
+        |> required "code" string
+        |> required "text" string
 
 
 decodeRange : Decode.Decoder Range
 decodeRange =
-    Decode.succeed Range
-        |: ("from" := Decode.int)
-        |: ("to" := Decode.int)
+    decode Range
+        |> required "from" int
+        |> required "to" int
 
 
 decodeTimestampReason : Decode.Decoder TimestampReason

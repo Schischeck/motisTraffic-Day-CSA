@@ -10,7 +10,7 @@ module Util.Api
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing ((:=))
-import Json.Decode.Extra exposing ((|:), withDefault, maybeNull)
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, nullable)
 import Http
 import Task exposing (Task, andThen, mapError, succeed, fail)
 import Util.Core exposing ((=>))
@@ -147,10 +147,10 @@ decodeErrorResponse =
 
 decodeMotisErrorDetail : Decode.Decoder MotisErrorDetail
 decodeMotisErrorDetail =
-    Decode.succeed MotisErrorDetail
-        |: ("error_code" := Decode.int)
-        |: ("category" := Decode.string)
-        |: ("reason" := Decode.string)
+    decode MotisErrorDetail
+        |> required "error_code" Decode.int
+        |> required "category" Decode.string
+        |> required "reason" Decode.string
 
 
 decodeMotisError : Decode.Decoder MotisErrorInfo
