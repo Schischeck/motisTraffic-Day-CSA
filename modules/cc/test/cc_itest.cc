@@ -70,7 +70,10 @@ struct updated_event {
 struct rerouted_event {
   rerouted_event(event ev, std::string category, std::string track,
                  bool withdrawal)
-      : ev_(ev), category_(category), track_(track), withdrawal_(withdrawal) {}
+      : ev_(std::move(ev)),
+        category_(std::move(category)),
+        track_(std::move(track)),
+        withdrawal_(withdrawal) {}
 
   Offset<ris::ReroutedEvent> to_fbs(schedule const& sched,
                                     FlatBufferBuilder& fbb) const {
@@ -208,6 +211,56 @@ TEST_F(cc_check_routed_connection_test, last_exit_cancelled) {
               {rerouted_event{event{"0000004", 6, "", event_type::DEP, 1910},
                               "IC", "", true},
                rerouted_event{event{"0000005", 6, "", event_type::ARR, 2000},
+                              "IC", "", true}}));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_NO_THROW(call(check_connection(
+      motis_content(RoutingResponse, routing_res)->connections()->Get(0))));
+}
+
+TEST_F(cc_check_routed_connection_test, interchange_arrival_cancelled) {
+  auto const routing_res = call(route("0000003", "0000012", 1700));
+  publish(reroute(sched(), id_event{"0000003", 6, 1810},
+                  {event{"0000004", 6, "", event_type::DEP, 1910},
+                   event{"0000005", 6, "", event_type::ARR, 2000}},
+                  {}));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_THROW(
+      call(check_connection(
+          motis_content(RoutingResponse, routing_res)->connections()->Get(0))),
+      std::runtime_error);
+
+  publish(
+      reroute(sched(), id_event{"0000003", 6, 1810}, {},
+              {rerouted_event{event{"0000004", 6, "", event_type::DEP, 1910},
+                              "IC", "", true},
+               rerouted_event{event{"0000005", 6, "", event_type::ARR, 2000},
+                              "IC", "", true}}));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_NO_THROW(call(check_connection(
+      motis_content(RoutingResponse, routing_res)->connections()->Get(0))));
+}
+
+TEST_F(cc_check_routed_connection_test, interchange_departure_cancelled) {
+  auto const routing_res = call(route("0000003", "0000012", 1700));
+  publish(
+      reroute(sched(), id_event{"0000005", 9, 2010},
+              {event{"0000005", 9, "", event_type::DEP, 2010},
+               event{"0000012", 9, "", event_type::ARR, 2100}},
+              {rerouted_event{event{"0000012", 9, "", event_type::DEP, 2110},
+                              "IC", "", false},
+               rerouted_event{event{"0000011", 9, "", event_type::ARR, 2200},
+                              "IC", "", false}}));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_THROW(
+      call(check_connection(
+          motis_content(RoutingResponse, routing_res)->connections()->Get(0))),
+      std::runtime_error);
+
+  publish(
+      reroute(sched(), id_event{"0000005", 9, 2010}, {},
+              {rerouted_event{event{"0000005", 9, "", event_type::DEP, 2010},
+                              "IC", "", true},
+               rerouted_event{event{"0000012", 9, "", event_type::ARR, 2100},
                               "IC", "", true}}));
   publish(make_no_msg("/ris/system_time_changed"));
   EXPECT_NO_THROW(call(check_connection(
