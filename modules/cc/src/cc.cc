@@ -46,7 +46,7 @@ ev_key get_event_at(schedule const& sched, Connection const* con,
                                         : stop->arrival()->schedule_time());
   verify(ev_time != INVALID_TIME, "interchange event time not valid");
 
-  auto const trip = std::find_if(
+  auto const trp_it = std::find_if(
       std::begin(*con->trips()), std::end(*con->trips()),
       [&ev_type, &stop_idx](Trip const* trp) {
         return (ev_type == event_type::ARR &&
@@ -54,10 +54,10 @@ ev_key get_event_at(schedule const& sched, Connection const* con,
                (ev_type == event_type::DEP &&
                 trp->range()->from() == static_cast<uint16_t>(stop_idx));
       });
-  verify(trip != std::end(*con->trips()), "no trip ends/starts at interchange");
-  auto const trp = from_fbs(sched, trip->id());
+  verify(trp_it != std::end(*con->trips()), "no trip end/start at interchange");
+  auto const trp = from_fbs(sched, trp_it->id());
 
-  auto const edge = std::find_if(
+  auto const edge_it = std::find_if(
       begin(*trp->edges_), end(*trp->edges_), [&](trip::route_edge const& e) {
         auto const k = ev_key{e, trp->lcon_idx_, ev_type};
         auto const schedule_time = get_schedule_time(sched, k);
@@ -69,9 +69,9 @@ ev_key get_event_at(schedule const& sched, Connection const* con,
                  e->from_->get_station()->id_ == station_idx &&
                  schedule_time == ev_time));
       });
-  verify(edge != end(*trp->edges_), "interchange event not in trip");
+  verify(edge_it != end(*trp->edges_), "interchange event not in trip");
 
-  return ev_key{*edge, trp->lcon_idx_, ev_type};
+  return ev_key{*edge_it, trp->lcon_idx_, ev_type};
 }
 
 std::vector<interchange> get_interchanges(schedule const& sched,
