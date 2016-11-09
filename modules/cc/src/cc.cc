@@ -69,7 +69,7 @@ ev_key get_event_at(schedule const& sched, Connection const* con,
                  e->from_->get_station()->id_ == station_idx &&
                  schedule_time == ev_time));
       });
-  verify(edge_it != end(*trp->edges_), "interchange event not in trip");
+  verify(edge_it != end(*trp->edges_), "important event not in trip");
 
   return ev_key{*edge_it, trp->lcon_idx_, ev_type};
 }
