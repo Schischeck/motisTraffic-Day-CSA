@@ -124,17 +124,6 @@ struct cc_check_routed_connection_test : public motis_instance_test {
     return make_msg(fbb);
   }
 
-  void check_schedule_okay(std::string const& from, std::string const& to,
-                           int hhmm) {
-    auto const routing_res = call(route(from, to, hhmm));
-    auto const connections =
-        motis_content(RoutingResponse, routing_res)->connections();
-    ASSERT_EQ(1, connections->size());
-
-    auto const cc_res = call(check_connection(connections->Get(0)));
-    EXPECT_NE(MsgContent_MotisError, cc_res->get()->content_type());
-  }
-
   msg_ptr reroute(schedule const& sched, id_event const& id,
                   std::vector<event> const& cancel_events,
                   std::vector<rerouted_event> const& rerouted_events) const {
@@ -162,9 +151,44 @@ struct cc_check_routed_connection_test : public motis_instance_test {
 
     return make_msg(mc);
   }
+
+  msg_ptr delay(schedule const& sched, id_event const& id,
+                std::vector<updated_event> const& delays, bool is_message) {
+    FlatBufferBuilder fbb;
+    fbb.Finish(ris::CreateMessage(
+        fbb, ris::MessageUnion_DelayMessage,
+        ris::CreateDelayMessage(
+            fbb, id.to_fbs(sched, fbb),
+            is_message ? ris::DelayType_Is : ris::DelayType_Forecast,
+            fbb.CreateVector(transform_to_vec(
+                delays, [&](auto const& ev) { return ev.to_fbs(sched, fbb); })))
+            .Union()));
+
+    message_creator mc;
+    auto const msg_holders =
+        std::vector<Offset<ris::MessageHolder>>{ris::CreateMessageHolder(
+            mc, mc.CreateVector(fbb.GetBufferPointer(), fbb.GetSize()))};
+    mc.create_and_finish(
+        MsgContent_RISBatch,
+        ris::CreateRISBatch(mc, mc.CreateVector(msg_holders)).Union(),
+        "/ris/messages", DestinationType_Topic);
+
+    return make_msg(mc);
+  }
 };
 
 TEST_F(cc_check_routed_connection_test, simple_result_ok) {
+  auto check_schedule_okay = [&](std::string const& from, std::string const& to,
+                                 int hhmm) {
+    auto const routing_res = call(route(from, to, hhmm));
+    auto const connections =
+        motis_content(RoutingResponse, routing_res)->connections();
+    ASSERT_EQ(1, connections->size());
+
+    auto const cc_res = call(check_connection(connections->Get(0)));
+    EXPECT_NE(MsgContent_MotisError, cc_res->get()->content_type());
+  };
+
   check_schedule_okay("0000002", "0000011", 1700);
   check_schedule_okay("0000001", "0000005", 1700);
   check_schedule_okay("0000003", "0000005", 1700);
@@ -262,6 +286,48 @@ TEST_F(cc_check_routed_connection_test, interchange_departure_cancelled) {
                               "IC", "", true},
                rerouted_event{event{"0000012", 9, "", event_type::ARR, 2100},
                               "IC", "", true}}));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_NO_THROW(call(check_connection(
+      motis_content(RoutingResponse, routing_res)->connections()->Get(0))));
+}
+
+TEST_F(cc_check_routed_connection_test, interchange_arrival_delay) {
+  auto const routing_res = call(route("0000003", "0000012", 1700));
+  publish(delay(
+      sched(), id_event{"0000003", 6, 1810},
+      {updated_event{event{"0000005", 6, "", event_type::ARR, 2000}, 2015}},
+      false));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_THROW(
+      call(check_connection(
+          motis_content(RoutingResponse, routing_res)->connections()->Get(0))),
+      std::runtime_error);
+
+  publish(delay(
+      sched(), id_event{"0000003", 6, 1810},
+      {updated_event{event{"0000005", 6, "", event_type::ARR, 2000}, 2001}},
+      true));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_NO_THROW(call(check_connection(
+      motis_content(RoutingResponse, routing_res)->connections()->Get(0))));
+}
+
+TEST_F(cc_check_routed_connection_test, walk_interchange_arrival_delay) {
+  auto const routing_res = call(route("0000003", "0000009", 1700));
+  publish(delay(
+      sched(), id_event{"0000003", 6, 1810},
+      {updated_event{event{"0000005", 6, "", event_type::ARR, 2000}, 2051}},
+      false));
+  publish(make_no_msg("/ris/system_time_changed"));
+  EXPECT_THROW(
+      call(check_connection(
+          motis_content(RoutingResponse, routing_res)->connections()->Get(0))),
+      std::runtime_error);
+
+  publish(delay(
+      sched(), id_event{"0000003", 6, 1810},
+      {updated_event{event{"0000005", 6, "", event_type::ARR, 2000}, 2001}},
+      true));
   publish(make_no_msg("/ris/system_time_changed"));
   EXPECT_NO_THROW(call(check_connection(
       motis_content(RoutingResponse, routing_res)->connections()->Get(0))));

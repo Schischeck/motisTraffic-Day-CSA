@@ -116,12 +116,13 @@ motis::time get_foot_edge_duration(schedule const& sched, Connection const* con,
 
   verify(from_node->foot_node_ != nullptr, "walk src node has no foot node");
   auto const& foot_edges = from_node->foot_node_->edges_;
-  auto const fe_it =
-      std::find_if(begin(foot_edges), end(foot_edges),
-                   [&to_node](edge const& e) { return e.to_ == to_node; });
+  auto const fe_it = std::find_if(
+      begin(foot_edges), end(foot_edges), [&to_node](edge const& e) {
+        return e.type() == edge::FOOT_EDGE && e.to_ == to_node;
+      });
   verify(fe_it != end(foot_edges), "foot edge not found");
 
-  return fe_it->get_minimum_cost().time_;
+  return fe_it->m_.foot_edge_.time_cost_;
 }
 
 void check_interchange(schedule const& sched, Connection const* con,
