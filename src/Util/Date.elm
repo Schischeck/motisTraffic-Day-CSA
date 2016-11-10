@@ -1,7 +1,7 @@
 module Util.Date exposing (..)
 
 import Date exposing (Date)
-import Date.Extra.Create exposing (dateFromFields)
+import Date.Extra.Create exposing (dateFromFields, timeFromFields)
 import Date.Extra.Core exposing (lastOfMonthDate, intToMonth)
 
 
@@ -19,6 +19,16 @@ combineDateTime date time =
         (Date.minute time)
         (Date.second time)
         (Date.millisecond time)
+
+
+noon : Date.Date
+noon =
+    timeFromFields 12 0 0 0
+
+
+atNoon : Date.Date -> Date.Date
+atNoon date =
+    combineDateTime date noon
 
 
 toDate : Int -> Int -> Int -> Date

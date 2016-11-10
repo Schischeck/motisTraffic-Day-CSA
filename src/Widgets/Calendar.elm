@@ -11,6 +11,7 @@ import Date.Extra.Utils exposing (dayList)
 import Date.Extra.Compare as Compare
 import Task
 import Util.View exposing (onStopAll, onStopPropagation)
+import Util.Date exposing (atNoon)
 import Util.DateFormat exposing (..)
 import Widgets.Input as Input
 import Widgets.Button as Button
@@ -85,11 +86,15 @@ update msg model =
                 { updated | inputWidget = Input.update msg' model.inputWidget }
 
         InitDate d ->
-            { model
-                | date = d
-                , inputStr = formatDate model.conf d
-                , today = d
-            }
+            let
+                d' =
+                    atNoon d
+            in
+                { model
+                    | date = d'
+                    , inputStr = formatDate model.conf d'
+                    , today = d'
+                }
 
         NewDate d ->
             { model
