@@ -16,6 +16,7 @@ import Html.Lazy exposing (..)
 import Html.Keyed
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (Duration(..))
+import Maybe.Extra exposing (isJust)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
 import Data.Routing.Types exposing (RoutingRequest, RoutingResponse)
 import Data.Routing.Decode exposing (decodeRoutingResponse)
@@ -514,7 +515,10 @@ view config locale model =
 
             Nothing ->
                 div [ class "no-results" ]
-                    [ div [] [ text locale.t.connections.noResults ]
+                    [ if isJust model.routingRequest then
+                        div [] [ text locale.t.connections.noResults ]
+                      else
+                        text ""
                     , scheduleRangeView locale model
                     ]
     else
