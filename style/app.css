@@ -74,7 +74,7 @@
 }
 
 .connection.new {
-  animation: fade-in-connection 1s;
+  animation: fade-in-connection 1.5s;
 }
 
 @keyframes fade-in-connection {
