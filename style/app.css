@@ -504,24 +504,33 @@
 }
 
 .connection-info .header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position: relative;
 }
 
-.connection-info .header .date {
-  font-weight: bold;
-  font-size: 120%;
+.connection-info .header .back {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.connection-info .header .details {
+  margin-left: 60px;
 }
 
 .connection-info .header .actions {
+  position: absolute;
+  right: 0;
+  top: 0;
   display: flex;
   justify-content: space-between;
   width: 60px;
 }
 
-.connection-info .connection-times {
-  text-align: center;
+.connection-info .header .date {
+  font-weight: bold;
+  font-size: 120%;
+  padding-top: 8px;
+  margin-bottom: 10px;
 }
 
 .connection-info .connection-times > div {
@@ -539,7 +548,7 @@
 }
 
 .connection-info .summary {
-  text-align: center;
+  margin-top: 10px;
 }
 
 .back {
@@ -561,10 +570,6 @@
 
 .back:hover {
   background: #eee;
-}
-
-.connection-info .summary {
-  margin-top: 5px;
 }
 
 .connection-info .duration i, .connection-info .interchanges i {
