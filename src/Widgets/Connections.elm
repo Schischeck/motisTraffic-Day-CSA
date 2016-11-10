@@ -510,7 +510,7 @@ view config locale model =
     else if List.isEmpty model.journeys then
         case model.errorMessage of
             Just err ->
-                errorView locale model err
+                errorView "main-error" locale model err
 
             Nothing ->
                 div [ class "no-results" ]
@@ -530,8 +530,8 @@ loadingSpinner =
         ]
 
 
-errorView : Localization -> Model -> ApiError -> Html msg
-errorView locale model err =
+errorView : String -> Localization -> Model -> ApiError -> Html msg
+errorView divClass locale model err =
     let
         errorMsg =
             case err of
@@ -550,7 +550,7 @@ errorView locale model err =
                 DecodeError msg ->
                     locale.t.connections.errors.decode msg
     in
-        div [ class "error" ]
+        div [ class divClass ]
             [ div [] [ text errorMsg ]
             , scheduleRangeView locale model
             ]
@@ -627,7 +627,7 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
                             [ text title ]
 
                     Just error ->
-                        errorView locale model error
+                        errorView "error" locale model error
               else
                 loadingSpinner
             ]

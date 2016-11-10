@@ -50,7 +50,7 @@
 }
 
 #connections .no-results,
-#connections .error,
+#connections .main-error,
 #connections .loading {
   display: flex;
   align-items: center;
@@ -62,6 +62,10 @@
 
 #connections .schedule-range {
   margin-top: 1em;
+}
+
+#connections .extend-search-interval .error .schedule-range {
+  margin-top: auto;
 }
 
 .connection {
