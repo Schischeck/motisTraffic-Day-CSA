@@ -72,11 +72,14 @@ type alias Model =
 init : ProgramFlags -> Result String Route -> ( Model, Cmd Msg )
 init flags _ =
     let
+        locale =
+            deLocalization
+
         remoteAddress =
             flags.apiEndpoint
 
         ( dateModel, dateCmd ) =
-            Calendar.init
+            Calendar.init locale.dateConfig
 
         ( timeModel, timeCmd ) =
             TimeInput.init
@@ -100,7 +103,7 @@ init flags _ =
           , connections = Connections.init remoteAddress
           , selectedConnection = Nothing
           , scheduleInfo = Nothing
-          , locale = deLocalization
+          , locale = locale
           , apiEndpoint = remoteAddress
           , currentRoutingRequest = Nothing
           , debounce = Debounce.init
@@ -141,6 +144,7 @@ type Msg
     | ScheduleInfoError ApiError
     | ScheduleInfoResponse ScheduleInfo
     | Deb (Debounce.Msg Msg)
+    | SetLocale Localization
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -291,6 +295,13 @@ update msg model =
 
         Deb a ->
             Debounce.update debounceCfg a model
+
+        SetLocale newLocale ->
+            { model
+                | locale = newLocale
+                , date = Calendar.update (Calendar.SetDateConfig newLocale.dateConfig) model.date
+            }
+                ! []
 
 
 requestScheduleInfo : String -> Cmd Msg

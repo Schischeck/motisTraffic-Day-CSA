@@ -31,14 +31,14 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( emptyModel, getCurrentDate )
+init : DateConfig -> ( Model, Cmd Msg )
+init dateConfig =
+    ( emptyModel dateConfig, getCurrentDate )
 
 
-emptyModel : Model
-emptyModel =
-    { conf = deDateConfig
+emptyModel : DateConfig -> Model
+emptyModel dateConfig =
+    { conf = dateConfig
     , today = Date.fromTime 0
     , date = Date.fromTime 0
     , visible = False
@@ -65,6 +65,7 @@ type Msg
     | ToggleVisibility
     | InputUpdate Input.Msg
     | SetValidRange (Maybe ( Date, Date ))
+    | SetDateConfig DateConfig
 
 
 update : Msg -> Model -> Model
@@ -159,6 +160,12 @@ update msg model =
 
         SetValidRange range ->
             { model | validRange = range }
+
+        SetDateConfig newConf ->
+            { model
+                | conf = newConf
+                , inputStr = formatDate newConf model.date
+            }
 
 
 
