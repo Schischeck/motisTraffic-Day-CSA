@@ -93,10 +93,14 @@
 .connections .date-header {
   font-size: 90%;
   text-align: center;
-  margin: 10px 0 -10px 0;
+  margin: 30px 0 -10px 0;
   display: table;
   white-space: nowrap;
   color: #4971E7;
+}
+
+.connections .date-header:first-of-type {
+  margin-top: 10px;
 }
 
 .connections .date-header::before,

@@ -435,21 +435,21 @@ searchView : Model -> List (Html Msg)
 searchView model =
     [ div [ id "search" ]
         [ div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-3-5" ]
+            [ div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map FromLocationUpdate <|
                     Typeahead.view 1 model.locale.t.search.start (Just "place") model.fromLocation
                 ]
-            , div [ class "pure-u-1 pure-u-sm-2-5" ]
+            , div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map DateUpdate <|
                     Calendar.view 3 model.locale.t.search.date model.date
                 ]
             ]
         , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-3-5" ]
+            [ div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map ToLocationUpdate <|
                     Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
                 ]
-            , div [ class "pure-u-1 pure-u-sm-2-5" ]
+            , div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map TimeUpdate <|
                     TimeInput.view 4 model.locale.t.search.time model.time
                 ]
