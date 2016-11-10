@@ -75,7 +75,7 @@ update msg model =
                 | visible = False
                 , input = getStationName model model.selected
             }
-                ! []
+                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
 
         ClickElement i ->
             { model
@@ -83,7 +83,7 @@ update msg model =
                 , selected = 0
                 , input = getStationName model i
             }
-                ! []
+                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
 
         SelectionUp ->
             { model | selected = (model.selected - 1) % List.length model.suggestions } ! []
