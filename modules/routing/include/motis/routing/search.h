@@ -12,12 +12,25 @@ namespace motis {
 namespace routing {
 
 struct search_query {
+  search_query()
+      : sched_(nullptr),
+        mem_(nullptr),
+        from_(nullptr),
+        to_(nullptr),
+        interval_begin_(0),
+        interval_end_(0),
+        extend_interval_earlier_(0),
+        extend_interval_later_(0),
+        min_journey_count_(0) {}
+
   schedule const* sched_;
   mem_manager* mem_;
   node const* from_;
   station_node const* to_;
   time interval_begin_;
   time interval_end_;
+  bool extend_interval_earlier_;
+  bool extend_interval_later_;
   std::vector<edge> query_edges_;
   unsigned min_journey_count_;
 };
@@ -124,8 +137,12 @@ struct search {
         break;
       }
 
-      auto const new_interval_begin = map_to_interval(interval_begin - 60);
-      auto const new_interval_end = map_to_interval(interval_end + 60);
+      auto const new_interval_begin = q.extend_interval_earlier_
+                                          ? map_to_interval(interval_begin - 60)
+                                          : interval_begin;
+      auto const new_interval_end = q.extend_interval_later_
+                                        ? map_to_interval(interval_end + 60)
+                                        : interval_end;
 
       if (interval_begin != schedule_begin) {
         add_start_labels(new_interval_begin,

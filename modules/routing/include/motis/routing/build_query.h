@@ -88,6 +88,9 @@ inline search_query build_query(schedule const& sched,
       q.from_ = get_station_node(sched, start->station());
       q.interval_begin_ = unix_to_motistime(sched, start->interval()->begin());
       q.interval_end_ = unix_to_motistime(sched, start->interval()->end());
+      q.min_journey_count_ = start->min_connection_count();
+      q.extend_interval_earlier_ = start->extend_interval_earlier();
+      q.extend_interval_later_ = start->extend_interval_later();
       break;
     }
 
@@ -114,7 +117,6 @@ inline search_query build_query(schedule const& sched,
     case Start_NONE: assert(false);
   }
 
-  q.min_journey_count_ = req->min_connection_count();
   q.sched_ = &sched;
   q.to_ = get_station_node(sched, req->destination());
   q.query_edges_ = create_additional_edges(req->additional_edges(), sched);
