@@ -7,10 +7,8 @@
 #include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/message_to_journeys.h"
 
-#include "boost/program_options.hpp"
 #include "motis/module/context/get_schedule.h"
 
-namespace po = boost::program_options;
 using namespace motis::module;
 
 namespace motis {
