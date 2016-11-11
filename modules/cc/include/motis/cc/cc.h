@@ -6,12 +6,7 @@ namespace motis {
 namespace cc {
 
 struct cc : public motis::module::module {
-  std::string name() const override { return "cc"; }
-
-  boost::program_options::options_description desc() override;
-  void print(std::ostream&) const override {}
-  bool empty_config() const override { return true; }
-
+  cc() : module("Connection Checker", "cc") {}
   void init(motis::module::registry&) override;
 
 private:

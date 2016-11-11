@@ -7,9 +7,8 @@
 #include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/message_to_journeys.h"
 
-#include "motis/module/context/get_schedule.h"
-
 #include "boost/program_options.hpp"
+#include "motis/module/context/get_schedule.h"
 
 namespace po = boost::program_options;
 using namespace motis::module;
@@ -25,10 +24,6 @@ struct interchange {
   std::size_t exit_stop_idx_, enter_stop_idx_;
   ev_key exit_, enter_;
 };
-
-po::options_description cc::desc() {
-  return po::options_description("RT Module");
-}
 
 void cc::init(motis::module::registry& reg) {
   namespace p = std::placeholders;
