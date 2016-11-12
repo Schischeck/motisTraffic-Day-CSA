@@ -47,6 +47,11 @@
   flex: 1 1 auto;
   overflow-y: auto;
   padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.connections {
+  padding-bottom: 20px;
 }
 
 #connections .no-results,
@@ -90,35 +95,86 @@
   display: inline-block;
 }
 
-.connections .date-header {
-  font-size: 90%;
-  text-align: center;
-  margin: 30px 0 -10px 0;
-  display: table;
-  white-space: nowrap;
-  color: #4971E7;
-}
-
-.connections .date-header:first-of-type {
-  margin-top: 10px;
-}
-
-.connections .date-header::before,
-.connections .date-header::after {
-  border-top: 1px solid #4971E7;
-  content: '';
-  display: table-cell;
+.connections .divider {
   position: relative;
-  top: 0.6em;
-  width: 45%;
+  z-index: -10;
+  text-align: center;
+  color: #4971E7;
+  margin: 30px 0 -10px 0;
 }
 
-.connections .date-header::before {
-  right: 1.5%;
+.connections .divider:first-of-type {
+  margin-top: -25px;
 }
 
-.connections .date-header::after {
-  left: 1.5%;
+.connections .divider.footer {
+  margin-bottom: 20px;
+}
+
+.connections .divider::before {
+  border-top: 1px solid #4971E7;
+  content: "";
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+.connections .divider span {
+  background: #fff;
+  padding: 0 15px;
+}
+
+.extend-search-interval {
+  margin: 0;
+  text-align: right;
+  min-height: 28px;
+  padding: 0 5px;
+  z-index: 15;
+}
+
+.extend-search-interval a {
+  cursor: pointer;
+  background: #4971E7;
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+  margin: 0 40px 0 0;
+  box-shadow: 4px 0px 0px 0px #fff, -4px 0px 0px 0px #fff;
+}
+
+.extend-search-interval .spinner {
+  display: inline-block;
+  margin: 0 30px 0 0;
+  background: #fff;
+  padding-top: 4px;
+}
+
+.extend-search-interval .error {
+  text-align: center;
+}
+
+.extend-search-interval.search-after {
+  margin-top: -13px;
+}
+
+.extend-search-interval.search-before .error {
+  margin: 10px 0 40px 0;
+}
+
+.extend-search-interval.search-after .error {
+  margin: 70px 0 15px 0;
 }
 
 .connections .connection-duration {
@@ -220,35 +276,6 @@
 .train-box.train-class-walk,
 .train-detail.train-class-walk .stop::before {
   background-color: #333;
-}
-
-.extend-search-interval {
-  margin: 5px auto;
-  text-align: center;
-  min-height: 24px;
-}
-
-.extend-search-interval a {
-  cursor: pointer;
-  background: #4971E7;
-  display: inline;
-  padding: .2em .6em .3em;
-  font-size: 75%;
-  font-weight: 700;
-  line-height: 1;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: baseline;
-  border-radius: .25em;
-}
-
-.extend-search-interval.search-before {
-  margin-bottom: 20px;
-}
-
-.extend-search-interval.search-after {
-  margin-top: 20px;
 }
 
 .neg-delay {
@@ -528,6 +555,7 @@
   display: flex;
   justify-content: space-between;
   width: 60px;
+  color: #4971E7;
 }
 
 .connection-info .header .date {

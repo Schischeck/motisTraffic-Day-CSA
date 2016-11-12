@@ -379,11 +379,33 @@ belongsToCurrentSearch model check =
 -- VIEW
 
 
+view : Config msg -> Localization -> Model -> Html msg
+view config locale model =
+    if model.loading then
+        div [ class "loading" ] [ loadingSpinner ]
+    else if List.isEmpty model.journeys then
+        case model.errorMessage of
+            Just err ->
+                errorView "main-error" locale model err
+
+            Nothing ->
+                div [ class "no-results" ]
+                    [ if isJust model.routingRequest then
+                        div [] [ text locale.t.connections.noResults ]
+                      else
+                        text ""
+                    , scheduleRangeView locale model
+                    ]
+    else
+        lazy3 connectionsView config locale model
+
+
 connectionsView : Config msg -> Localization -> Model -> Html msg
 connectionsView config locale model =
     div [ class "connections" ]
         [ extendIntervalButton ExtendBefore config locale model
         , connectionsWithDateHeaders config locale model
+        , div [ class "divider footer" ] []
         , extendIntervalButton ExtendAfter config locale model
         ]
 
@@ -450,7 +472,7 @@ connectionView (Config { internalMsg, selectMsg }) locale idx new j =
 
 dateHeader : Localization -> Date -> Html msg
 dateHeader { dateConfig } date =
-    div [ class "date-header" ] [ span [] [ text <| formatDate dateConfig date ] ]
+    div [ class "date-header divider" ] [ span [] [ text <| formatDate dateConfig date ] ]
 
 
 withDateHeaders :
@@ -501,27 +523,6 @@ scheduleRangeView { t } { scheduleInfo } =
 
         Nothing ->
             text ""
-
-
-view : Config msg -> Localization -> Model -> Html msg
-view config locale model =
-    if model.loading then
-        div [ class "loading" ] [ loadingSpinner ]
-    else if List.isEmpty model.journeys then
-        case model.errorMessage of
-            Just err ->
-                errorView "main-error" locale model err
-
-            Nothing ->
-                div [ class "no-results" ]
-                    [ if isJust model.routingRequest then
-                        div [] [ text locale.t.connections.noResults ]
-                      else
-                        text ""
-                    , scheduleRangeView locale model
-                    ]
-    else
-        lazy3 connectionsView config locale model
 
 
 loadingSpinner : Html msg
@@ -620,6 +621,7 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
                 [ "extend-search-interval" => True
                 , divClass => True
                 , "disabled" => not enabled
+                , "error" => (enabled && (isJust err))
                 ]
             ]
             [ if enabled then
