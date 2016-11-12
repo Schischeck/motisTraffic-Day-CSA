@@ -43,6 +43,25 @@
   padding-bottom: 0;
 }
 
+.from-location {
+  position: relative;
+}
+
+.swap-locations-btn {
+  position: absolute;
+  right: 20px;
+  top: 60px;
+}
+
+.swap-locations-btn .icon {
+  font-size: 22px !important;
+  transition: all 0.2s ease;
+}
+
+.flipped .icon {
+  transform: rotate(180deg);
+}
+
 .time-option {
   height: 50px;
   line-height: 15px;

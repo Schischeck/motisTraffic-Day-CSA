@@ -13,6 +13,7 @@ import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
 import Data.Routing.Request as RoutingRequest
 import Data.Connection.Types exposing (Station, Position)
+import Util.Core exposing ((=>))
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
@@ -59,6 +60,7 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
+    , inputsSwitched : Bool
     , map : Map.Model
     , connections : Connections.Model
     , selectedConnection : Maybe ConnectionDetails.State
@@ -102,6 +104,7 @@ init flags _ =
           , date = dateModel
           , time = timeModel
           , searchDirection = Forward
+          , inputsSwitched = False
           , map = mapModel
           , connections = Connections.init remoteAddress
           , selectedConnection = Nothing
@@ -137,6 +140,7 @@ type Msg
     | DateUpdate Calendar.Msg
     | TimeUpdate TimeInput.Msg
     | SearchDirectionUpdate SearchDirection
+    | SwitchInputs
     | MapUpdate Map.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
@@ -195,6 +199,15 @@ update msg model =
 
         SearchDirectionUpdate dir ->
             { model | searchDirection = dir }
+                ! []
+                |> checkRoutingRequest
+
+        SwitchInputs ->
+            { model
+                | inputsSwitched = not model.inputsSwitched
+                , fromLocation = model.toLocation
+                , toLocation = model.fromLocation
+            }
                 ! []
                 |> checkRoutingRequest
 
@@ -445,9 +458,10 @@ searchView : Model -> List (Html Msg)
 searchView model =
     [ div [ id "search" ]
         [ div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-1-2" ]
+            [ div [ class "pure-u-1 pure-u-sm-1-2 from-location" ]
                 [ App.map FromLocationUpdate <|
                     Typeahead.view 1 model.locale.t.search.start (Just "place") model.fromLocation
+                , (swapLocationsView model)
                 ]
             , div [ class "pure-u-1 pure-u-sm-1-2" ]
                 [ App.map DateUpdate <|
@@ -455,7 +469,7 @@ searchView model =
                 ]
             ]
         , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-12-24" ]
+            [ div [ class "pure-u-1 pure-u-sm-12-24 to-location" ]
                 [ App.map ToLocationUpdate <|
                     Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
                 ]
@@ -497,6 +511,22 @@ searchDirectionView model =
         , label [ for "search-backward" ] [ text "Ankunft" ]
         ]
     ]
+
+
+swapLocationsView : Model -> Html Msg
+swapLocationsView model =
+    div
+        [ classList
+            [ "swap-locations-btn" => True
+            , "flipped" => model.inputsSwitched
+            ]
+        ]
+        [ a
+            [ class "gb-button gb-button-small gb-button-circle gb-button-outline gb-button-PRIMARY_COLOR disable-select"
+            , onClick SwitchInputs
+            ]
+            [ i [ class "icon" ] [ text "swap_vert" ] ]
+        ]
 
 
 connectionConfig : Connections.Config Msg
