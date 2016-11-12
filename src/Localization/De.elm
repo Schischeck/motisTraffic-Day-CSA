@@ -74,5 +74,6 @@ deTranslations =
                     _ ->
                         "Fahrt " ++ (toString count) ++ " Stationen"
         , tripWalk = \duration -> "Fußweg (" ++ duration ++ ")"
+        , provider = "Betreiber"
         }
     }

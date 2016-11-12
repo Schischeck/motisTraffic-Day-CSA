@@ -74,5 +74,6 @@ enTranslations =
                     _ ->
                         (toString count) ++ " intermediate stops"
         , tripWalk = \duration -> "Walk (" ++ duration ++ ")"
+        , provider = "Provider"
         }
     }

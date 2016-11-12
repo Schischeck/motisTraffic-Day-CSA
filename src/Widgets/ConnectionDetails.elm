@@ -306,7 +306,7 @@ trainDetail internalMsg locale ( train, ic ) idx expanded =
                 div [ class <| "train-detail train-class-" ++ (toString t.class) ] <|
                     [ div [ class "left-border" ] []
                     , div [ class "top-border" ] []
-                    , (trainBox LongName t)
+                    , (trainBox LongName locale t)
                     , if String.isEmpty topLine then
                         text ""
                       else
