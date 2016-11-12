@@ -5,11 +5,17 @@ import Date exposing (Date)
 import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
 import Data.Connection.Types exposing (Station)
-import Data.Routing.Types exposing (RoutingRequest)
+import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
 
 
-initialRequest : Int -> Station -> Station -> Date -> RoutingRequest
-initialRequest minConnectionCount from to date =
+initialRequest :
+    Int
+    -> Station
+    -> Station
+    -> Date
+    -> SearchDirection
+    -> RoutingRequest
+initialRequest minConnectionCount from to date searchDirection =
     let
         selectedTime =
             unixTime date
@@ -25,6 +31,7 @@ initialRequest minConnectionCount from to date =
         , intervalStart = startTime
         , intervalEnd = endTime
         , minConnectionCount = minConnectionCount
+        , searchDirection = searchDirection
         }
 
 
@@ -51,7 +58,7 @@ encodeRequest request =
                         ]
                 , "destination" => encodeInputStation request.to
                 , "search_type" => Encode.string "Default"
-                , "search_dir" => Encode.string "Forward"
+                , "search_dir" => encodeSearchDirection request.searchDirection
                 , "min_connection_count" => Encode.int request.minConnectionCount
                 , "via" => Encode.list []
                 , "additional_edges" => Encode.list []
@@ -65,3 +72,13 @@ encodeInputStation station =
         [ "name" => Encode.string station.name
         , "id" => Encode.string station.id
         ]
+
+
+encodeSearchDirection : SearchDirection -> Encode.Value
+encodeSearchDirection direction =
+    case direction of
+        Forward ->
+            Encode.string "Forward"
+
+        Backward ->
+            Encode.string "Backward"

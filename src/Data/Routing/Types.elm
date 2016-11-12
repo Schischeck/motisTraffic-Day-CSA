@@ -17,4 +17,10 @@ type alias RoutingRequest =
     , intervalStart : Int
     , intervalEnd : Int
     , minConnectionCount : Int
+    , searchDirection : SearchDirection
     }
+
+
+type SearchDirection
+    = Forward
+    | Backward

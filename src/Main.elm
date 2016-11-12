@@ -10,7 +10,7 @@ import Widgets.ConnectionDetails as ConnectionDetails
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
-import Data.Routing.Types exposing (RoutingRequest)
+import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
 import Data.Routing.Request as RoutingRequest
 import Data.Connection.Types exposing (Station, Position)
 import Util.List exposing ((!!))
@@ -21,6 +21,7 @@ import Localization.De exposing (..)
 import Localization.En exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Html.App as App
 import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
@@ -57,6 +58,7 @@ type alias Model =
     , toTransports : TagList.Model
     , date : Calendar.Model
     , time : TimeInput.Model
+    , searchDirection : SearchDirection
     , map : Map.Model
     , connections : Connections.Model
     , selectedConnection : Maybe ConnectionDetails.State
@@ -99,6 +101,7 @@ init flags _ =
           , toTransports = TagList.init
           , date = dateModel
           , time = timeModel
+          , searchDirection = Forward
           , map = mapModel
           , connections = Connections.init remoteAddress
           , selectedConnection = Nothing
@@ -133,6 +136,7 @@ type Msg
     | ToTransportsUpdate TagList.Msg
     | DateUpdate Calendar.Msg
     | TimeUpdate TimeInput.Msg
+    | SearchDirectionUpdate SearchDirection
     | MapUpdate Map.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
@@ -188,6 +192,11 @@ update msg model =
 
         TimeUpdate msg' ->
             checkRoutingRequest ( { model | time = TimeInput.update msg' model.time }, Cmd.none )
+
+        SearchDirectionUpdate dir ->
+            { model | searchDirection = dir }
+                ! []
+                |> checkRoutingRequest
 
         ConnectionsUpdate msg' ->
             let
@@ -338,6 +347,7 @@ buildRoutingRequest model =
             fromStation
             toStation
             (combineDateTime model.date.date model.time.date)
+            model.searchDirection
 
 
 isCompleteQuery : Model -> Bool
@@ -445,18 +455,47 @@ searchView model =
                 ]
             ]
         , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-1-2" ]
+            [ div [ class "pure-u-1 pure-u-sm-12-24" ]
                 [ App.map ToLocationUpdate <|
                     Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
                 ]
-            , div [ class "pure-u-1 pure-u-sm-1-2" ]
+            , div [ class "pure-u-1 pure-u-sm-9-24" ]
                 [ App.map TimeUpdate <|
                     TimeInput.view 4 model.locale.t.search.time model.time
                 ]
+            , div [ class "pure-u-1 pure-u-sm-3-24 time-option" ]
+                (searchDirectionView model)
             ]
         ]
     , div [ id "connections" ]
         [ lazy3 Connections.view connectionConfig model.locale model.connections ]
+    ]
+
+
+searchDirectionView : Model -> List (Html Msg)
+searchDirectionView model =
+    [ div []
+        [ input
+            [ type' "radio"
+            , id "search-forward"
+            , name "time-option"
+            , checked (model.searchDirection == Forward)
+            , onClick (SearchDirectionUpdate Forward)
+            ]
+            []
+        , label [ for "search-forward" ] [ text "Abfahrt" ]
+        ]
+    , div []
+        [ input
+            [ type' "radio"
+            , id "search-backward"
+            , name "time-option"
+            , checked (model.searchDirection == Backward)
+            , onClick (SearchDirectionUpdate Backward)
+            ]
+            []
+        , label [ for "search-backward" ] [ text "Ankunft" ]
+        ]
     ]
 
 
