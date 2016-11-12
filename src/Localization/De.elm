@@ -21,6 +21,8 @@ deTranslations =
         , time = "Uhrzeit"
         , startTransports = "Verkehrsmittel am Start"
         , destinationTransports = "Verkehrsmittel am Ziel"
+        , departure = "Abfahrt"
+        , arrival = "Ankunft"
         }
     , connections =
         { timeHeader = "Zeit"

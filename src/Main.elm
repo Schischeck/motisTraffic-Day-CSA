@@ -494,7 +494,7 @@ searchDirectionView model =
             , onClick (SearchDirectionUpdate Forward)
             ]
             []
-        , label [ for "search-forward" ] [ text "Abfahrt" ]
+        , label [ for "search-forward" ] [ text model.locale.t.search.departure ]
         ]
     , div []
         [ input
@@ -505,7 +505,7 @@ searchDirectionView model =
             , onClick (SearchDirectionUpdate Backward)
             ]
             []
-        , label [ for "search-backward" ] [ text "Ankunft" ]
+        , label [ for "search-backward" ] [ text model.locale.t.search.arrival ]
         ]
     ]
 

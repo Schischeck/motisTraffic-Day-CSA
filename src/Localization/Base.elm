@@ -19,6 +19,8 @@ type alias Translations =
         , time : String
         , startTransports : String
         , destinationTransports : String
+        , departure : String
+        , arrival : String
         }
     , connections :
         { timeHeader : String

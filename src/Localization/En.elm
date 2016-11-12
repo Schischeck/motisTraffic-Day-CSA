@@ -21,6 +21,8 @@ enTranslations =
         , time = "Time"
         , startTransports = "Transports at the start"
         , destinationTransports = "Transports at the destination"
+        , departure = "Departure"
+        , arrival = "Arrival"
         }
     , connections =
         { timeHeader = "Time"
