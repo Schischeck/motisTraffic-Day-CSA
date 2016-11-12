@@ -53,12 +53,16 @@
   top: 60px;
 }
 
+.swap-locations-btn input {
+  display: none;
+}
+
 .swap-locations-btn .icon {
-  font-size: 22px !important;
+  font-size: 22px;
   transition: all 0.2s ease;
 }
 
-.flipped .icon {
+.swap-locations-btn :checked + .icon {
   transform: rotate(180deg);
 }
 

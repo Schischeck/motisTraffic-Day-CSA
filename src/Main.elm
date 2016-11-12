@@ -60,7 +60,6 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
-    , inputsSwitched : Bool
     , map : Map.Model
     , connections : Connections.Model
     , selectedConnection : Maybe ConnectionDetails.State
@@ -104,7 +103,6 @@ init flags _ =
           , date = dateModel
           , time = timeModel
           , searchDirection = Forward
-          , inputsSwitched = False
           , map = mapModel
           , connections = Connections.init remoteAddress
           , selectedConnection = Nothing
@@ -204,8 +202,7 @@ update msg model =
 
         SwitchInputs ->
             { model
-                | inputsSwitched = not model.inputsSwitched
-                , fromLocation = model.toLocation
+                | fromLocation = model.toLocation
                 , toLocation = model.fromLocation
             }
                 ! []
@@ -516,16 +513,16 @@ searchDirectionView model =
 swapLocationsView : Model -> Html Msg
 swapLocationsView model =
     div
-        [ classList
-            [ "swap-locations-btn" => True
-            , "flipped" => model.inputsSwitched
+        [ class "swap-locations-btn" ]
+        [ label
+            [ class "gb-button gb-button-small gb-button-circle gb-button-outline gb-button-PRIMARY_COLOR disable-select" ]
+            [ input
+                [ type' "checkbox"
+                , onClick SwitchInputs
+                ]
+                []
+            , i [ class "icon" ] [ text "swap_vert" ]
             ]
-        ]
-        [ a
-            [ class "gb-button gb-button-small gb-button-circle gb-button-outline gb-button-PRIMARY_COLOR disable-select"
-            , onClick SwitchInputs
-            ]
-            [ i [ class "icon" ] [ text "swap_vert" ] ]
         ]
 
 
