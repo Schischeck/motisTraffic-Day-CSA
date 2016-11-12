@@ -7,6 +7,8 @@ import Svg
 import Svg.Attributes exposing (xlinkHref)
 import Data.Connection.Types as Connection exposing (..)
 import String
+import Util.Core exposing ((=>))
+import Localization.Base exposing (..)
 
 
 useLineId : Int -> Bool
@@ -86,8 +88,8 @@ type TransportViewMode
     | IconOnlyNoSep
 
 
-trainBox : TransportViewMode -> TransportInfo -> Html msg
-trainBox viewMode t =
+trainBox : TransportViewMode -> Localization -> TransportInfo -> Html msg
+trainBox viewMode locale t =
     let
         icon =
             Svg.svg
@@ -110,8 +112,18 @@ trainBox viewMode t =
 
                 IconOnlyNoSep ->
                     ""
+
+        providerTooltip =
+            locale.t.connections.provider ++ ": " ++ t.provider
     in
-        div [ class <| "train-box train-class-" ++ (toString t.class) ]
+        div
+            [ classList
+                [ "train-box" => True
+                , ("train-class-" ++ (toString t.class)) => True
+                , "with-provider-info" => not (String.isEmpty t.provider)
+                ]
+            , attribute "data-provider" providerTooltip
+            ]
             [ icon
             , if String.isEmpty name then
                 text ""

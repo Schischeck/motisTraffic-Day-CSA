@@ -258,6 +258,7 @@
   margin: 4px;
   border-radius: 12px;
   display: inline-block;
+  cursor: default;
 }
 
 .train-box .train-icon {
@@ -271,6 +272,48 @@
 .train-box .train-name {
   margin: 0 4px 0 4px;
 }
+
+.train-box.with-provider-info {
+  position: relative;
+}
+
+.train-box.with-provider-info::after {
+  content: attr(data-provider);
+  display: inline;
+  position: absolute;
+  top: 22px; left: 0;
+  opacity: 0;
+  width: 200px;
+  font-size: 13px;
+  line-height: 1.5em;
+  padding: 0.5em 0.8em;
+  /*background: rgba(0,0,0,0.8);*/
+  /*background: rgba(109, 141, 236, 0.8);*/
+  background: #6D8DEC;
+  border-radius: 5px;
+  color: #fff;
+  pointer-events: none; /* This prevents the box from apearing when hovered. */
+  transition: opacity 250ms, top 250ms;
+}
+
+.train-box.with-provider-info::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 12px; left: 20px;
+  opacity: 0;
+  width: 0; height: 0;
+  border: solid transparent 5px;
+  /*border-bottom-color: rgba(0,0,0,0.8);*/
+  border-bottom-color: #6D8DEC;
+  transition: opacity 250ms, top 250ms;
+}
+
+.train-box.with-provider-info:hover {z-index: 2;} /* Keeps the info boxes on top of other elements */
+.train-box.with-provider-info:hover::after,
+.train-box.with-provider-info:hover::before {opacity: 1;}
+.train-box.with-provider-info:hover::after {top: 30px;}
+.train-box.with-provider-info:hover::before {top: 20px;}
 
 .train-sep {
   height: 1em;
