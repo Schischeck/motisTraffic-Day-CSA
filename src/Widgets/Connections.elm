@@ -276,7 +276,6 @@ updateModelWithNewResults model action request response =
         journeysToAdd =
             connections
                 |> List.map Journey.toJourney
-                |> List.filter (\j -> not <| List.member j model.journeys)
 
         newJourneys =
             case action of
