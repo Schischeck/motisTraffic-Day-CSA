@@ -1,20 +1,69 @@
+.transport-graph svg {
+  overflow: visible;
+}
+
 .transport-graph .train-icon {
-    fill: #fff;
+  fill: #fff;
 }
 
 .transport-graph line {
-    stroke-width: 4;
+  stroke-width: 4;
 }
 
 .transport-graph .destination {
-    fill: #666;
+  fill: #666;
 }
 
 .transport-graph text.train-name {
-    font-size: 12px;
-    color: #000;
+  font-size: 12px;
+  color: #000;
 }
 
+.transport-graph .background {
+  fill: #fff;
+  opacity: 0;
+}
+
+.transport-graph .tooltip {
+  font-size: 12px;
+  background: #fff;
+  color: #777;
+  border: 1px solid #BBB;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  border-radius: 2px;
+  padding: 2px 5px;
+  position: relative;
+  width: 240px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.transport-graph .tooltip .stations {
+  display: inline-block;
+  width: 165px;
+  padding-right: 5px;
+}
+
+.transport-graph .tooltip .stations > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.transport-graph .tooltip .stations .station {
+  width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.transport-graph .tooltip .transport-name {
+  display: flex;
+  width: 70px;
+  border-left: 1px dashed #777;
+  padding-left: 5px;
+  justify-content: center;
+  align-items: center;
+}
 
 
 .transport-graph .train-class-0 circle {

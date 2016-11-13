@@ -2,14 +2,18 @@ module Widgets.JourneyTransportGraph exposing (view)
 
 import String
 import Html exposing (Html, div)
+import Html.Attributes
 import Html.Lazy
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Data.Journey.Types as Journey exposing (Journey, Train, JourneyWalk)
+import Data.Connection.Types exposing (Stop)
 import Widgets.Helpers.ConnectionUtil exposing (..)
+import Util.Core exposing ((=>))
 import Util.List exposing (last)
+import Util.DateFormat exposing (formatTime)
 
 
 type alias Part =
@@ -18,6 +22,10 @@ type alias Part =
     , duration : Int
     , longName : String
     , shortName : String
+    , departureStation : String
+    , departureTime : Date
+    , arrivalStation : String
+    , arrivalTime : Date
     }
 
 
@@ -38,30 +46,34 @@ type NameDisplayType
 -- VIEW
 
 
-view : Int -> Journey -> Html msg
-view totalWidth journey =
-    Html.Lazy.lazy2 graphView totalWidth journey
+view : Int -> String -> Journey -> Html msg
+view totalWidth idBase journey =
+    Html.Lazy.lazy3 graphView totalWidth idBase journey
 
 
-graphView : Int -> Journey -> Html msg
-graphView totalWidth journey =
+graphView : Int -> String -> Journey -> Html msg
+graphView totalWidth idBase journey =
     div [ class "transport-graph" ]
-        [ transportsView totalWidth journey ]
+        [ transportsView totalWidth idBase journey ]
 
 
-transportsView : Int -> Journey -> Svg msg
-transportsView totalWidth journey =
+transportsView : Int -> String -> Journey -> Svg msg
+transportsView totalWidth idBase journey =
     let
         parts =
             journeyParts journey |> layoutParts totalWidth LongName
+
+        renderedParts =
+            List.map (partView totalWidth idBase) parts
     in
         svg
             [ width (toString totalWidth)
             , height (toString totalHeight)
             , viewBox <| "0 0 " ++ (toString totalWidth) ++ " " ++ (toString totalHeight)
             ]
-            [ g [] (List.map partView parts)
+            [ g [] (List.map fst renderedParts)
             , destinationView totalWidth
+            , g [] (List.map snd renderedParts)
             ]
 
 
@@ -77,8 +89,8 @@ destinationView totalWidth =
         ]
 
 
-partView : DisplayPart -> Svg msg
-partView { part, position, barLength, nameDisplayType } =
+partView : Int -> String -> DisplayPart -> ( Svg msg, Svg msg )
+partView totalWidth idBase { part, position, barLength, nameDisplayType } =
     let
         radius =
             toString circleRadius
@@ -103,34 +115,99 @@ partView { part, position, barLength, nameDisplayType } =
 
                 NoName ->
                     []
+
+        elementId =
+            idBase ++ "_" ++ (position |> floor |> toString)
+
+        graphPart =
+            g
+                [ class <| "train-class-" ++ part.colorClass ]
+            <|
+                [ line
+                    [ x1 (toString <| position)
+                    , y1 radius
+                    , x2 (toString <| lineEnd)
+                    , y2 radius
+                    , class "train-line"
+                    ]
+                    []
+                , circle
+                    [ cx (toString <| position + circleRadius)
+                    , cy radius
+                    , r radius
+                    , class "train-circle"
+                    ]
+                    []
+                , use
+                    [ xlinkHref <| "#" ++ part.icon
+                    , class "train-icon"
+                    , x (toString <| position + iconOffset)
+                    , y (toString <| iconOffset)
+                    , width (toString <| iconSize)
+                    , height (toString <| iconSize)
+                    ]
+                    []
+                ]
+                    ++ trainName
+
+        tooltipX =
+            Basics.min position ((toFloat totalWidth) - tooltipWidth)
+
+        tooltip =
+            g []
+                [ g
+                    [ visibility "hidden"
+                    , class "tooltip"
+                    ]
+                    [ switch []
+                        [ foreignObject
+                            [ x (tooltipX |> toString)
+                            , y (textOffset - 5 |> toString)
+                            , width (tooltipWidth |> toString)
+                            , height "50"
+                            ]
+                            [ Html.div
+                                [ Html.Attributes.class "tooltip" ]
+                                [ Html.div [ Html.Attributes.class "stations" ]
+                                    [ Html.div [ Html.Attributes.class "departure" ]
+                                        [ Html.span [ Html.Attributes.class "station" ]
+                                            [ text part.departureStation ]
+                                        , Html.span [ Html.Attributes.class "time" ]
+                                            [ text (formatTime part.departureTime) ]
+                                        ]
+                                    , Html.div [ Html.Attributes.class "arrival" ]
+                                        [ Html.span [ Html.Attributes.class "station" ]
+                                            [ text part.arrivalStation ]
+                                        , Html.span [ Html.Attributes.class "time" ]
+                                            [ text (formatTime part.arrivalTime) ]
+                                        ]
+                                    ]
+                                , Html.div [ Html.Attributes.class "transport-name" ]
+                                    [ Html.span [] [ Html.text part.longName ] ]
+                                ]
+                            ]
+                        ]
+                    , set
+                        [ attributeName "visibility"
+                        , from "hidden"
+                        , to "visible"
+                        , begin (elementId ++ ".mouseover")
+                        , end (elementId ++ ".mouseout")
+                        ]
+                        []
+                    ]
+                , rect
+                    [ x (position |> toString)
+                    , y "0"
+                    , width (position + partWidth |> toString)
+                    , height (circleRadius * 2 |> toString)
+                    , class "background"
+                    , id elementId
+                    ]
+                    []
+                ]
     in
-        g [ class <| "train-class-" ++ part.colorClass ] <|
-            [ line
-                [ x1 (toString <| position)
-                , y1 radius
-                , x2 (toString <| lineEnd)
-                , y2 radius
-                , class "train-line"
-                ]
-                []
-            , circle
-                [ cx (toString <| position + circleRadius)
-                , cy radius
-                , r radius
-                , class "train-circle"
-                ]
-                []
-            , use
-                [ xlinkHref <| "#" ++ part.icon
-                , class "train-icon"
-                , x (toString <| position + iconOffset)
-                , y (toString <| iconOffset)
-                , width (toString <| iconSize)
-                , height (toString <| iconSize)
-                ]
-                []
-            ]
-                ++ trainName
+        ( graphPart, tooltip )
 
 
 getTotalDuration : List Part -> Int
@@ -169,12 +246,30 @@ trainPart train =
         transport =
             List.head train.transports
 
+        departure =
+            List.head train.stops
+
+        arrival =
+            last train.stops
+
+        ( departureStation, departureTime ) =
+            Maybe.map departureInfo departure
+                |> Maybe.withDefault ( "", Date.fromTime 0 )
+
+        ( arrivalStation, arrivalTime ) =
+            Maybe.map arrivalInfo arrival
+                |> Maybe.withDefault ( "", Date.fromTime 0 )
+
         base =
             { icon = "train"
             , colorClass = "0"
             , duration = trainDuration train
             , longName = ""
             , shortName = ""
+            , departureStation = departureStation
+            , departureTime = departureTime
+            , arrivalStation = arrivalStation
+            , arrivalTime = arrivalTime
             }
     in
         case transport of
@@ -192,12 +287,49 @@ trainPart train =
 
 walkPart : JourneyWalk -> Part
 walkPart walk =
-    { icon = "walk"
-    , colorClass = "walk"
-    , duration = deltaRecordToMinutes walk.duration
-    , longName = ""
-    , shortName = ""
-    }
+    let
+        ( departureStation, departureTime ) =
+            departureInfo walk.from
+
+        ( arrivalStation, arrivalTime ) =
+            arrivalInfo walk.to
+    in
+        { icon = "walk"
+        , colorClass = "walk"
+        , duration = deltaRecordToMinutes walk.duration
+        , longName = ""
+        , shortName = ""
+        , departureStation = departureStation
+        , departureTime = departureTime
+        , arrivalStation = arrivalStation
+        , arrivalTime = arrivalTime
+        }
+
+
+departureInfo : Stop -> ( String, Date )
+departureInfo stop =
+    let
+        station =
+            stop.station.name
+
+        time =
+            stop.departure.schedule_time
+                |> Maybe.withDefault (Date.fromTime 0)
+    in
+        ( station, time )
+
+
+arrivalInfo : Stop -> ( String, Date )
+arrivalInfo stop =
+    let
+        station =
+            stop.station.name
+
+        time =
+            stop.arrival.schedule_time
+                |> Maybe.withDefault (Date.fromTime 0)
+    in
+        ( station, time )
 
 
 deltaRecordToMinutes : DeltaRecord -> Int
@@ -333,3 +465,8 @@ textHeight =
 totalHeight : number
 totalHeight =
     textOffset + textHeight
+
+
+tooltipWidth : number
+tooltipWidth =
+    240
