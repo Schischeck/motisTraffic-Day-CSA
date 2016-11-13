@@ -25,7 +25,13 @@ type alias DisplayPart =
     { part : Part
     , position : Float
     , barLength : Float
+    , nameDisplayType : NameDisplayType
     }
+
+
+type NameDisplayType
+    = LongName
+    | NoName
 
 
 
@@ -47,7 +53,7 @@ transportsView : Int -> Journey -> Svg msg
 transportsView totalWidth journey =
     let
         parts =
-            journeyParts journey |> layoutParts totalWidth
+            journeyParts journey |> layoutParts totalWidth LongName
     in
         svg
             [ width (toString totalWidth)
@@ -72,7 +78,7 @@ destinationView totalWidth =
 
 
 partView : DisplayPart -> Svg msg
-partView { part, position, barLength } =
+partView { part, position, barLength, nameDisplayType } =
     let
         radius =
             toString circleRadius
@@ -82,8 +88,23 @@ partView { part, position, barLength } =
 
         lineEnd =
             position + partWidth + (destinationRadius / 2)
+
+        trainName =
+            case nameDisplayType of
+                LongName ->
+                    [ text'
+                        [ x (toString <| position)
+                        , y (toString <| textOffset + textHeight)
+                        , textAnchor "start"
+                        , class "train-name"
+                        ]
+                        [ text part.longName ]
+                    ]
+
+                NoName ->
+                    []
     in
-        g [ class <| "train-class-" ++ part.colorClass ]
+        g [ class <| "train-class-" ++ part.colorClass ] <|
             [ line
                 [ x1 (toString <| position)
                 , y1 radius
@@ -108,14 +129,8 @@ partView { part, position, barLength } =
                 , height (toString <| iconSize)
                 ]
                 []
-            , text'
-                [ x (toString <| position)
-                , y (toString <| textOffset + textHeight)
-                , textAnchor "start"
-                , class "train-name"
-                ]
-                [ text part.longName ]
             ]
+                ++ trainName
 
 
 getTotalDuration : List Part -> Int
@@ -213,8 +228,8 @@ trainDuration { stops } =
         Maybe.map2 minutesBetween departure arrival |> Maybe.withDefault 0
 
 
-layoutParts : Int -> List Part -> List DisplayPart
-layoutParts totalWidth parts =
+layoutParts : Int -> NameDisplayType -> List Part -> List DisplayPart
+layoutParts totalWidth nameDisplayType parts =
     let
         totalDuration =
             getTotalDuration parts |> toFloat
@@ -223,7 +238,7 @@ layoutParts totalWidth parts =
             List.length parts
 
         baseBarLength =
-            5
+            2
 
         basePartSize =
             circleRadius * 2
@@ -235,7 +250,16 @@ layoutParts totalWidth parts =
             7
 
         requiredBaseBarLength part =
-            baseBarLength + (Basics.max 0 (avgCharWidth * (String.length part.longName) - basePartSize))
+            case nameDisplayType of
+                LongName ->
+                    baseBarLength
+                        + (Basics.max
+                            0
+                            (avgCharWidth * (String.length part.longName) - basePartSize)
+                          )
+
+                NoName ->
+                    baseBarLength
 
         totalBaseBarLength =
             parts
@@ -250,7 +274,8 @@ layoutParts totalWidth parts =
                 |> toFloat
 
         getBarLength part =
-            (requiredBaseBarLength part |> toFloat) + (((toFloat part.duration) / totalDuration) * scaleLineSpace)
+            (requiredBaseBarLength part |> toFloat)
+                + (((toFloat part.duration) / totalDuration) * scaleLineSpace)
 
         layout part ( pos, results ) =
             let
@@ -258,6 +283,7 @@ layoutParts totalWidth parts =
                     { part = part
                     , position = pos
                     , barLength = getBarLength part
+                    , nameDisplayType = nameDisplayType
                     }
 
                 nextPos =
@@ -268,7 +294,10 @@ layoutParts totalWidth parts =
         ( _, displayParts ) =
             List.foldl layout ( 0, [] ) parts
     in
-        displayParts
+        if scaleLineSpace <= 0 && nameDisplayType /= NoName then
+            layoutParts totalWidth NoName parts
+        else
+            displayParts
 
 
 iconSize : number
