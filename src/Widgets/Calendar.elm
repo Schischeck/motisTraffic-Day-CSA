@@ -57,7 +57,6 @@ type Msg
     | InitDate Date
     | NewDate Date
     | DateInput String
-    | NewDateError String
     | PrevDay
     | NextDay
     | PrevMonth
@@ -111,9 +110,6 @@ update msg model =
 
                 Just date ->
                     { model | date = date, inputStr = str }
-
-        NewDateError _ ->
-            model
 
         PrevDay ->
             let
@@ -264,7 +260,7 @@ type alias CalendarDay =
 
 getCurrentDate : Cmd Msg
 getCurrentDate =
-    Task.perform NewDateError InitDate Date.now
+    Task.perform InitDate Date.now
 
 
 daysInSixWeeks : Int

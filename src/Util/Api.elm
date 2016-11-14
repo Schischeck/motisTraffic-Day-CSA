@@ -9,8 +9,8 @@ module Util.Api
         )
 
 import Json.Encode as Encode
-import Json.Decode as Decode exposing ((:=))
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, nullable)
+import Json.Decode as Decode exposing (nullable)
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Http
 import Task exposing (Task, andThen, mapError, succeed, fail)
 import Util.Core exposing ((=>))
@@ -142,7 +142,8 @@ decodeErrorResponse =
                 _ ->
                     Decode.fail ("unexpected message type: " ++ content_type)
     in
-        ("content_type" := Decode.string) |> Decode.andThen decodeContent
+        (Decode.field "content_type" Decode.string)
+            |> Decode.andThen decodeContent
 
 
 decodeMotisErrorDetail : Decode.Decoder MotisErrorDetail

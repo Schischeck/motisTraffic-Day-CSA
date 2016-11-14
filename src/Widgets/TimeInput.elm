@@ -36,7 +36,7 @@ init =
 
 getCurrentDate : Cmd Msg
 getCurrentDate =
-    Task.perform NoOp InitDate Date.now
+    Task.perform InitDate Date.now
 
 
 

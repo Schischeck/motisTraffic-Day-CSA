@@ -88,8 +88,15 @@ update msg model =
 
         MapLoaded _ ->
             ( model
-            , Task.perform TextureError
-                TextureLoaded
+            , Task.attempt
+                (\r ->
+                    case r of
+                        Ok v ->
+                            TextureLoaded v
+
+                        Err v ->
+                            TextureError v
+                )
                 (WebGL.loadTexture "circle.png")
             )
 

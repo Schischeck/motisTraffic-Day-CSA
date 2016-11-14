@@ -5,8 +5,19 @@ module Data.Connection.Decode
         )
 
 import Data.Connection.Types exposing (..)
-import Json.Decode as Decode exposing (list, string, int, float, bool, (:=))
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, nullable)
+import Json.Decode as Decode
+    exposing
+        ( list
+        , string
+        , int
+        , float
+        , bool
+        , field
+        , nullable
+        , succeed
+        , fail
+        )
+import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Util.Json exposing (decodeDate)
 
 
@@ -69,7 +80,7 @@ decodeMove =
                 _ ->
                     Decode.fail ("move type " ++ move_type ++ " not supported")
     in
-        ("move_type" := string) |> Decode.andThen move
+        (field "move_type" string) |> Decode.andThen move
 
 
 decodeTransportInfo : Decode.Decoder TransportInfo
@@ -115,21 +126,21 @@ decodeTimestampReason =
         decodeToType string =
             case string of
                 "SCHEDULE" ->
-                    Result.Ok Schedule
+                    succeed Schedule
 
                 "IS" ->
-                    Result.Ok Is
+                    succeed Is
 
                 "REPAIR" ->
-                    Result.Ok Is
+                    succeed Is
 
                 "PROPAGATION" ->
-                    Result.Ok Propagation
+                    succeed Propagation
 
                 "FORECAST" ->
-                    Result.Ok Forecast
+                    succeed Forecast
 
                 _ ->
-                    Result.Err ("Not valid pattern for decoder to TimestampReason. Pattern: " ++ (toString string))
+                    fail ("Not valid pattern for decoder to TimestampReason. Pattern: " ++ (toString string))
     in
-        Decode.customDecoder Decode.string decodeToType
+        Decode.string |> Decode.andThen decodeToType
