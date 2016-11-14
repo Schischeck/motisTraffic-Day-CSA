@@ -251,7 +251,7 @@ update msg model =
         SelectConnection idx ->
             let
                 ( m, c ) =
-                    selectConnection True model idx
+                    selectConnection False model idx
             in
                 m
                     ! [ c
@@ -283,7 +283,7 @@ update msg model =
                 ( { model | selectedConnection = m }, Cmd.map ConnectionDetailsUpdate c )
 
         CloseConnectionDetails ->
-            closeSelectedConnection True model
+            closeSelectedConnection False model
 
         ScheduleInfoError _ ->
             let
