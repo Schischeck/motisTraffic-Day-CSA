@@ -56,6 +56,11 @@ type alias MotisErrorDetail =
     }
 
 
+type ApiResult a
+    = ApiSuccess a
+    | ApiFailure ApiError
+
+
 sendRequest :
     String
     -> Decode.Decoder a
@@ -64,70 +69,75 @@ sendRequest :
     -> Encode.Value
     -> Cmd msg
 sendRequest remoteAddress jsonDecoder onErr onOk value =
-    Http.send Http.defaultSettings
-        { verb = "POST"
-        , headers = [ "Content-Type" => "application/json" ]
-        , url = remoteAddress
-        , body = value |> Encode.encode 0 |> Http.string
-        }
-        |> handleResponse jsonDecoder
-        |> Task.perform onErr onOk
-
-
-handleResponse :
-    Decode.Decoder a
-    -> Task Http.RawError Http.Response
-    -> Task ApiError a
-handleResponse decoder response =
     let
-        decode str =
-            case Decode.decodeString decoder str of
-                Ok v ->
-                    succeed v
+        request =
+            Http.request
+                { method = "POST"
+                , headers = []
+                , url = remoteAddress
+                , body = value |> Http.jsonBody
+                , expect =
+                    Http.expectStringResponse (handleHttpResponse jsonDecoder)
+                , timeout = Nothing
+                , withCredentials = False
+                }
 
-                Err msg ->
-                    fail (DecodeError msg)
+        toMsg result =
+            case result of
+                Ok apiResult ->
+                    case apiResult of
+                        ApiSuccess x ->
+                            onOk x
+
+                        ApiFailure x ->
+                            onErr x
+
+                Err httpErr ->
+                    onErr (promoteError httpErr)
     in
-        mapError promoteError response
-            |> andThen (handleHttpResponse decode)
+        Http.send toMsg request
 
 
 handleHttpResponse :
-    (String -> Task ApiError a)
-    -> Http.Response
-    -> Task ApiError a
-handleHttpResponse handle response =
-    if response.status >= 200 && response.status < 300 then
-        case response.value of
-            Http.Text str ->
-                handle str
+    Decode.Decoder a
+    -> Http.Response String
+    -> Result String (ApiResult a)
+handleHttpResponse jsonDecoder response =
+    if response.status.code >= 200 && response.status.code < 300 then
+        case Decode.decodeString jsonDecoder response.body of
+            Ok value ->
+                Ok (ApiSuccess value)
 
-            _ ->
-                fail (DecodeError "Response body is a blob, expecting a string.")
-    else if response.status == 500 then
-        case response.value of
-            Http.Text str ->
-                case Decode.decodeString decodeErrorResponse str of
-                    Ok err ->
-                        fail (MotisError err)
+            Err msg ->
+                Ok (ApiFailure (DecodeError msg))
+    else if response.status.code == 500 then
+        case Decode.decodeString decodeErrorResponse response.body of
+            Ok value ->
+                Ok (ApiFailure (MotisError value))
 
-                    Err _ ->
-                        fail (HttpError response.status)
-
-            _ ->
-                fail (HttpError response.status)
+            Err msg ->
+                Ok (ApiFailure (DecodeError msg))
     else
-        fail (HttpError response.status)
+        Ok (ApiFailure (HttpError response.status.code))
 
 
-promoteError : Http.RawError -> ApiError
+promoteError : Http.Error -> ApiError
 promoteError rawError =
     case rawError of
-        Http.RawTimeout ->
+        Http.Timeout ->
             TimeoutError
 
-        Http.RawNetworkError ->
+        Http.NetworkError ->
             NetworkError
+
+        Http.BadPayload err _ ->
+            DecodeError err
+
+        Http.BadStatus res ->
+            HttpError res.status.code
+
+        Http.BadUrl _ ->
+            HttpError 0
 
 
 decodeErrorResponse : Decode.Decoder MotisErrorInfo
