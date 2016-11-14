@@ -93,7 +93,7 @@ sendRequest remoteAddress jsonDecoder onErr onOk value =
                             onErr x
 
                 Err httpErr ->
-                    onErr (promoteError httpErr)
+                    onErr (handleHttpError httpErr)
     in
         Http.send toMsg request
 
@@ -103,26 +103,16 @@ handleHttpResponse :
     -> Http.Response String
     -> Result String (ApiResult a)
 handleHttpResponse jsonDecoder response =
-    if response.status.code >= 200 && response.status.code < 300 then
-        case Decode.decodeString jsonDecoder response.body of
-            Ok value ->
-                Ok (ApiSuccess value)
+    case Decode.decodeString jsonDecoder response.body of
+        Ok value ->
+            Ok (ApiSuccess value)
 
-            Err msg ->
-                Ok (ApiFailure (DecodeError msg))
-    else if response.status.code == 500 then
-        case Decode.decodeString decodeErrorResponse response.body of
-            Ok value ->
-                Ok (ApiFailure (MotisError value))
-
-            Err msg ->
-                Ok (ApiFailure (DecodeError msg))
-    else
-        Ok (ApiFailure (HttpError response.status.code))
+        Err msg ->
+            Ok (ApiFailure (DecodeError msg))
 
 
-promoteError : Http.Error -> ApiError
-promoteError rawError =
+handleHttpError : Http.Error -> ApiError
+handleHttpError rawError =
     case rawError of
         Http.Timeout ->
             TimeoutError
@@ -134,7 +124,12 @@ promoteError rawError =
             DecodeError err
 
         Http.BadStatus res ->
-            HttpError res.status.code
+            case Decode.decodeString decodeErrorResponse res.body of
+                Ok value ->
+                    MotisError value
+
+                Err msg ->
+                    HttpError res.status.code
 
         Http.BadUrl _ ->
             HttpError 0
