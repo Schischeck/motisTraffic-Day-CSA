@@ -1,4 +1,13 @@
-module Widgets.ConnectionDetails exposing (State, Config(..), Msg, view, init, update)
+module Widgets.ConnectionDetails
+    exposing
+        ( State
+        , Config(..)
+        , Msg
+        , view
+        , init
+        , update
+        , getJourney
+        )
 
 import Html exposing (Html, div, ul, li, text, span, i)
 import Html.Attributes exposing (..)
@@ -8,16 +17,6 @@ import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Data.Connection.Types as Connection exposing (..)
 import Data.Journey.Types as Journey exposing (..)
-import Data.Lookup.Request exposing (encodeTripToConnection)
-import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
-import Util.Api as Api
-    exposing
-        ( ApiError(..)
-        , MotisErrorInfo(..)
-        , ModuleErrorInfo(..)
-        , RoutingErrorInfo(..)
-        , MotisErrorDetail
-        )
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
@@ -38,21 +37,19 @@ type Config msg
     = Config
         { internalMsg : Msg -> msg
         , closeMsg : msg
+        , selectTripMsg : Int -> msg
         }
 
 
-init : Journey -> State
-init journey =
+init : Bool -> Journey -> State
+init expanded journey =
     { journey = journey
-    , expanded = List.repeat (List.length journey.trains) False
+    , expanded = List.repeat (List.length journey.trains) expanded
     }
 
 
 type Msg
     = ToggleExpand Int
-    | LoadTrip Int
-    | ReceiveTripResponse Int Connection
-    | ReceiveTripError Int ApiError
 
 
 update : Msg -> State -> ( State, Cmd Msg )
@@ -60,35 +57,6 @@ update msg model =
     case msg of
         ToggleExpand idx ->
             { model | expanded = (toggle model.expanded idx) } ! []
-
-        LoadTrip idx ->
-            let
-                trip =
-                    (model.journey.trains !! idx) `Maybe.andThen` .trip
-            in
-                case trip of
-                    Just tripId ->
-                        model ! [ sendTripRequest "http://localhost:8081/" idx tripId ]
-
-                    Nothing ->
-                        model ! []
-
-        ReceiveTripResponse idx connection ->
-            let
-                journey =
-                    toJourney connection
-            in
-                { model
-                    | journey =
-                        { journey
-                            | isSingleCompleteTrip = True
-                        }
-                    , expanded = [ True ]
-                }
-                    ! []
-
-        ReceiveTripError idx error ->
-            model ! []
 
 
 toggle : List Bool -> Int -> List Bool
@@ -104,12 +72,17 @@ toggle list idx =
             []
 
 
+getJourney : State -> Journey
+getJourney state =
+    state.journey
+
+
 
 -- VIEW
 
 
 view : Config msg -> Localization -> State -> Html msg
-view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
+view (Config { internalMsg, closeMsg, selectTripMsg }) locale { journey, expanded } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -118,7 +91,11 @@ view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
             [0..List.length trains - 1]
 
         trainsView =
-            List.map3 (trainDetail internalMsg locale) trains indices expanded
+            List.map3
+                (trainDetail internalMsg selectTripMsg locale)
+                trains
+                indices
+                expanded
 
         walkView maybeWalk =
             case maybeWalk of
@@ -270,12 +247,13 @@ directionView direction =
 
 trainDetail :
     (Msg -> msg)
+    -> (Int -> msg)
     -> Localization
     -> ( Train, InterchangeInfo )
     -> Int
     -> Bool
     -> Html msg
-trainDetail internalMsg locale ( train, ic ) idx expanded =
+trainDetail internalMsg selectTripMsg locale ( train, ic ) idx expanded =
     let
         transport =
             List.head train.transports
@@ -347,7 +325,7 @@ trainDetail internalMsg locale ( train, ic ) idx expanded =
                 div [ class <| "train-detail train-class-" ++ (toString t.class) ] <|
                     [ div [ class "left-border" ] []
                     , div [ class "top-border" ] []
-                    , div [ onClick (internalMsg (LoadTrip idx)) ]
+                    , div [ onClick (selectTripMsg idx) ]
                         [ trainBox LongName locale t ]
                     , if String.isEmpty topLine then
                         text ""
@@ -414,17 +392,3 @@ walkDetail { t } walk =
             , div [ class "last-stop" ]
                 [ stopView Arrival walk.to ]
             ]
-
-
-
--- TRIP REQUEST
-
-
-sendTripRequest : String -> Int -> TripId -> Cmd Msg
-sendTripRequest remoteAddress idx tripId =
-    Api.sendRequest
-        remoteAddress
-        decodeTripToConnectionResponse
-        (ReceiveTripError idx)
-        (ReceiveTripResponse idx)
-        (encodeTripToConnection tripId)
