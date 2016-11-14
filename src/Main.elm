@@ -237,9 +237,15 @@ update msg model =
                     SelectConnection idx
             in
                 model
-                    ! [ Task.perform
-                            (always selectMsg)
-                            (StoreConnectionListScrollPos selectMsg)
+                    ! [ Task.attempt
+                            (\r ->
+                                case r of
+                                    Ok pos ->
+                                        StoreConnectionListScrollPos selectMsg pos
+
+                                    Err _ ->
+                                        selectMsg
+                            )
                             (Scroll.y "connections")
                       ]
 
@@ -250,8 +256,8 @@ update msg model =
             in
                 m
                     ! [ c
-                      , Task.perform noop noop <| Scroll.toTop "overlay-content"
-                      , Task.perform noop noop <| Scroll.toTop "connection-journey"
+                      , Task.attempt noop <| Scroll.toTop "overlay-content"
+                      , Task.attempt noop <| Scroll.toTop "connection-journey"
                       ]
 
         StoreConnectionListScrollPos msg_ pos ->
@@ -633,7 +639,7 @@ selectConnection updateUrl model idx =
 closeSelectedConnection : Bool -> Model -> ( Model, Cmd Msg )
 closeSelectedConnection updateUrl model =
     { model | selectedConnection = Nothing }
-        ! ([ Task.perform noop noop <| Scroll.toY "connections" model.connectionListScrollPos ]
+        ! ([ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos ]
             ++ if updateUrl then
                 [ Navigation.newUrl (toUrl Connections) ]
                else
