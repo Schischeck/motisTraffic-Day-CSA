@@ -15,6 +15,7 @@ decodeConnection =
     decode Connection
         |> required "stops" (list decodeStop)
         |> required "transports" (list decodeMove)
+        |> required "trips" (list decodeTrip)
         |> required "attributes" (list decodeAttribute)
 
 
@@ -133,3 +134,21 @@ decodeTimestampReason =
                     Result.Err ("Not valid pattern for decoder to TimestampReason. Pattern: " ++ (toString string))
     in
         Decode.customDecoder Decode.string decodeToType
+
+
+decodeTrip : Decode.Decoder Trip
+decodeTrip =
+    decode Trip
+        |> required "range" decodeRange
+        |> required "id" decodeTripId
+
+
+decodeTripId : Decode.Decoder TripId
+decodeTripId =
+    decode TripId
+        |> required "station_id" string
+        |> optional "train_nr" int 0
+        |> required "time" decodeDate
+        |> required "target_station_id" string
+        |> required "target_time" decodeDate
+        |> required "line_id" string

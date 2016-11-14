@@ -25,6 +25,7 @@ type alias Journey =
 type alias Train =
     { stops : List Stop
     , transports : List TransportInfo
+    , trip : Maybe TripId
     }
 
 
@@ -77,8 +78,19 @@ groupTrains connection =
         finish_train trains start_idx end_idx =
             case List.head trains of
                 Just train ->
-                    { train | transports = transportsForRange connection start_idx end_idx }
-                        :: (List.tail trains |> Maybe.withDefault [])
+                    let
+                        transports =
+                            transportsForRange connection start_idx end_idx
+
+                        trip =
+                            List.head transports
+                                `Maybe.andThen` (tripIdForTransport connection)
+                    in
+                        { train
+                            | transports = transports
+                            , trip = trip
+                        }
+                            :: (List.tail trains |> Maybe.withDefault [])
 
                 Nothing ->
                     -- should not happen
@@ -94,7 +106,7 @@ groupTrains connection =
                         ( trains, in_train, end_idx )
             in
                 if stop.exit then
-                    ( add_stop ((Train [] []) :: trains') stop, True, idx )
+                    ( add_stop ((Train [] [] Nothing) :: trains') stop, True, idx )
                 else if in_train' then
                     ( add_stop trains' stop, in_train', end_idx' )
                 else
