@@ -19,6 +19,7 @@ type alias Journey =
     , trains : List Train
     , leadingWalk : Maybe JourneyWalk
     , trailingWalk : Maybe JourneyWalk
+    , isSingleCompleteTrip : Bool
     }
 
 
@@ -53,6 +54,7 @@ toJourney connection =
     , trains = groupTrains connection
     , leadingWalk = extractLeadingWalk connection
     , trailingWalk = extractTrailingWalk connection
+    , isSingleCompleteTrip = False
     }
 
 

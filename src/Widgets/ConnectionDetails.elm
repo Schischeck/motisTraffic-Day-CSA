@@ -8,9 +8,18 @@ import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Data.Connection.Types as Connection exposing (..)
 import Data.Journey.Types as Journey exposing (..)
+import Data.Lookup.Request exposing (encodeTripToConnection)
+import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
+import Util.Api as Api
+    exposing
+        ( ApiError(..)
+        , MotisErrorInfo(..)
+        , ModuleErrorInfo(..)
+        , RoutingErrorInfo(..)
+        , MotisErrorDetail
+        )
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.Core exposing ((=>))
-import Util.Date exposing (isSameDay)
 import Util.DateFormat exposing (..)
 import Util.List exposing (..)
 import Localization.Base exposing (..)
@@ -41,6 +50,9 @@ init journey =
 
 type Msg
     = ToggleExpand Int
+    | LoadTrip Int
+    | ReceiveTripResponse Int Connection
+    | ReceiveTripError Int ApiError
 
 
 update : Msg -> State -> ( State, Cmd Msg )
@@ -48,6 +60,35 @@ update msg model =
     case msg of
         ToggleExpand idx ->
             { model | expanded = (toggle model.expanded idx) } ! []
+
+        LoadTrip idx ->
+            let
+                trip =
+                    (model.journey.trains !! idx) `Maybe.andThen` .trip
+            in
+                case trip of
+                    Just tripId ->
+                        model ! [ sendTripRequest "http://localhost:8081/" idx tripId ]
+
+                    Nothing ->
+                        model ! []
+
+        ReceiveTripResponse idx connection ->
+            let
+                journey =
+                    toJourney connection
+            in
+                { model
+                    | journey =
+                        { journey
+                            | isSingleCompleteTrip = True
+                        }
+                    , expanded = [ True ]
+                }
+                    ! []
+
+        ReceiveTripError idx error ->
+            model ! []
 
 
 toggle : List Bool -> Int -> List Bool
@@ -306,7 +347,8 @@ trainDetail internalMsg locale ( train, ic ) idx expanded =
                 div [ class <| "train-detail train-class-" ++ (toString t.class) ] <|
                     [ div [ class "left-border" ] []
                     , div [ class "top-border" ] []
-                    , (trainBox LongName locale t)
+                    , div [ onClick (internalMsg (LoadTrip idx)) ]
+                        [ trainBox LongName locale t ]
                     , if String.isEmpty topLine then
                         text ""
                       else
@@ -372,3 +414,17 @@ walkDetail { t } walk =
             , div [ class "last-stop" ]
                 [ stopView Arrival walk.to ]
             ]
+
+
+
+-- TRIP REQUEST
+
+
+sendTripRequest : String -> Int -> TripId -> Cmd Msg
+sendTripRequest remoteAddress idx tripId =
+    Api.sendRequest
+        remoteAddress
+        decodeTripToConnectionResponse
+        (ReceiveTripError idx)
+        (ReceiveTripResponse idx)
+        (encodeTripToConnection tripId)

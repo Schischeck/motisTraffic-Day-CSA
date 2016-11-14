@@ -279,7 +279,7 @@ update msg model =
                 ( { model | selectedConnection = m }, Cmd.map ConnectionDetailsUpdate c )
 
         CloseConnectionDetails ->
-            closeSelectedConnection True model
+            model ! [ Navigation.back 1 ]
 
         ScheduleInfoError _ ->
             let
