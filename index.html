@@ -24,10 +24,10 @@
 
 <body>
   <div id="app-container"></div>
-  <script type="text/javascript" src="external_lib/leaflet.min.js"></script>
+  <script type="text/javascript" src="external_lib/leaflet.js"></script>
   <script type="text/javascript" src="elm.js"></script>
   <script type="text/javascript">
-    var CanvasOverlay = L.Class.extend({
+    var CanvasOverlay = L.Layer.extend({
       initialize: function () {
         L.setOptions(this, {});
       },
