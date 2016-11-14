@@ -323,7 +323,7 @@ sortJourneys journeys =
         (.connection
             >> .stops
             >> List.head
-            >> (\m -> Maybe.andThen m (.departure >> .schedule_time))
+            >> Maybe.andThen (.departure >> .schedule_time)
             >> Maybe.map Date.toTime
             >> Maybe.withDefault 0
         )
@@ -426,7 +426,10 @@ connectionsWithDateHeaders config locale model =
 
         elements =
             List.map2 (,)
-                List.range model.indexOffset (model.indexOffset + List.length model.journeys - 1)
+                (List.range
+                    model.indexOffset
+                    (model.indexOffset + List.length model.journeys - 1)
+                )
                 model.journeys
     in
         Html.Keyed.node "div"
