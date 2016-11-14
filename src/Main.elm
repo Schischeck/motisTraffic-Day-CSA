@@ -27,7 +27,7 @@ import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
 import Task
 import String
-import Navigation
+import Navigation exposing (Location)
 import Debounce
 import Maybe.Extra exposing (isJust)
 
@@ -36,13 +36,12 @@ type alias ProgramFlags =
     { apiEndpoint : String }
 
 
-main : Program ProgramFlags
+main : Program ProgramFlags Model Msg
 main =
-    Navigation.programWithFlags urlParser
+    Navigation.programWithFlags locationToMsg
         { init = init
         , view = view
         , update = update
-        , urlUpdate = urlUpdate
         , subscriptions = subscriptions
         }
 
@@ -71,7 +70,7 @@ type alias Model =
     }
 
 
-init : ProgramFlags -> Result String Route -> ( Model, Cmd Msg )
+init : ProgramFlags -> Location -> ( Model, Cmd Msg )
 init flags _ =
     let
         locale =
@@ -588,24 +587,19 @@ fromUrl url =
                 Ok Connections
 
 
-urlParser : Navigation.Parser (Result String Route)
-urlParser =
-    Navigation.makeParser (fromUrl << .hash)
-
-
-urlUpdate : Result String Route -> Model -> ( Model, Cmd Msg )
-urlUpdate result model =
-    case result of
+locationToMsg : Location -> Msg
+locationToMsg location =
+    case (fromUrl location.hash) of
         Ok route ->
             case route of
                 Connections ->
-                    closeSelectedConnection False model
+                    CloseConnectionDetails
 
                 ConnectionDetails idx ->
-                    selectConnection False model idx
+                    SelectConnection idx
 
         Err _ ->
-            closeSelectedConnection False model
+            NoOp
 
 
 selectConnection : Bool -> Model -> Int -> ( Model, Cmd Msg )
