@@ -56,7 +56,7 @@ public class MotisServer extends Server {
                 m.content(err);
                 subscriber.onError(
                         new MotisErrorException(err.category(), err.reason(),
-                                err.errorCode()));
+                                                err.errorCode()));
             } else {
                 subscriber.onError(new UnexpectedMessageTypeException());
             }
@@ -99,8 +99,8 @@ public class MotisServer extends Server {
                 send(request);
                 listener =
                         new ResponseListener<T>(subscriber, responseType,
-                                response,
-                                responseId);
+                                                response,
+                                                responseId);
             } catch (DisconnectedException e) {
                 subscriber.onError(e);
             }
@@ -126,11 +126,15 @@ public class MotisServer extends Server {
             String fromId, String toId,
             boolean isArrival,
             Date intervalBegin, Date intervalEnd,
+            boolean extendIntervalEarlier,
+            boolean extendIntervalLater,
             int min_connection_count) {
         final int id = ++nextMsgId;
         return Observable.create(new ResponseSubscription<>(
-                MessageBuilder.route(id, fromId, toId, isArrival,
+                MessageBuilder.route(
+                        id, fromId, toId, isArrival,
                         intervalBegin, intervalEnd,
+                        extendIntervalEarlier, extendIntervalLater,
                         min_connection_count),
                 MsgContent.RoutingResponse,
                 new RoutingResponse(),

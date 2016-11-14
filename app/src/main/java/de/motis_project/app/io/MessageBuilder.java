@@ -51,21 +51,25 @@ public class MessageBuilder {
             String fromId, String toId,
             boolean isArrival,
             Date intervalBegin, Date intervalEnd,
-            int min_connection_count) {
+            boolean extendIntervalEarlier,
+            boolean extendIntervalLater,
+            int minConnectionCount) {
         FlatBufferBuilder b = new FlatBufferBuilder();
 
         String startStationId = isArrival ? toId : fromId;
         String targetStationId = isArrival ? fromId : toId;
 
         int start = createPreTripStart(
-                b, intervalBegin, intervalEnd, startStationId);
+                b, startStationId,
+                intervalBegin, intervalEnd,
+                extendIntervalEarlier, extendIntervalLater,
+                minConnectionCount);
         int routingRequest = RoutingRequest.createRoutingRequest(
                 b, Start.PretripStart, start,
                 InputStation.createInputStation(
                         b, b.createString(targetStationId), b.createString("")),
                 SearchType.Default,
                 isArrival ? SearchDir.Backward : SearchDir.Forward,
-                min_connection_count,
                 RoutingRequest.createViaVector(b, new int[]{}),
                 RoutingRequest.createAdditionalEdgesVector(b, new int[]{}));
         b.finish(Message.createMessage(
@@ -92,8 +96,10 @@ public class MessageBuilder {
 
     static private int createPreTripStart(
             FlatBufferBuilder b,
+            String startStationId,
             Date intervalBegin, Date intervalEnd,
-            String startStationId) {
+            boolean extendIntervalEarlier, boolean extendIntervalLater,
+            int minConnectionCount) {
         int station = InputStation.createInputStation(
                 b, b.createString(startStationId), b.createString(""));
 
@@ -103,6 +109,9 @@ public class MessageBuilder {
                 b, Interval.createInterval(
                         b, intervalBegin.getTime() / 1000,
                         intervalEnd.getTime() / 1000));
+        PretripStart.addExtendIntervalEarlier(b, extendIntervalEarlier);
+        PretripStart.addExtendIntervalLater(b, extendIntervalLater);
+        PretripStart.addMinConnectionCount(b, minConnectionCount);
         return PretripStart.endPretripStart(b);
     }
 

@@ -134,7 +134,7 @@ public class JourneyListView
         final Date searchIntervalEnd = new Date(intervalEnd.getTime());
         infiniteScroll.setLoading();
         updateVisibility();
-        route(searchIntervalBegin, searchIntervalEnd, 5, resObj -> {
+        route(searchIntervalBegin, searchIntervalEnd, true, true, 5, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
             logResponse(res, searchIntervalBegin, searchIntervalEnd, "INITIAL");
 
@@ -170,13 +170,16 @@ public class JourneyListView
     }
 
     public void route(Date searchIntervalBegin, Date searchIntervalEnd,
+                      boolean extendIntervalEarlier,
+                      boolean extendIntervalLater,
                       int min_connection_count,
                       Action1 action, Action1<Throwable> errorAction) {
         Subscription sub = Status.get().getServer()
                 .route(query.getFromId(), query.getToId(),
-                        query.isArrival(),
-                        searchIntervalBegin, searchIntervalEnd,
-                        min_connection_count)
+                       query.isArrival(),
+                       searchIntervalBegin, searchIntervalEnd,
+                       extendIntervalEarlier, extendIntervalLater,
+                       min_connection_count)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(action, errorAction);
@@ -196,7 +199,7 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime() - MINUTE_IN_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd, 0, resObj -> {
+        route(searchIntervalBegin, searchIntervalEnd, true, false, 3, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
             logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
 
@@ -240,7 +243,7 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalEnd.getTime() + MINUTE_IN_MS);
         final Date searchIntervalEnd = new Date(intervalEnd.getTime() + SEARCH_INTERVAL_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd, 0, resObj -> {
+        route(searchIntervalBegin, searchIntervalEnd, false, true, 0, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
             logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_AFTER");
 
@@ -298,10 +301,10 @@ public class JourneyListView
     private void logResponse(RoutingResponse res, Date intervalBegin, Date intervalEnd,
                              String type) {
         System.out.println(new StringBuilder().append(type).append("  ").append("Routing from ")
-                .append(TimeUtil.formatDate(intervalBegin)).append(", ")
-                .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
-                .append(TimeUtil.formatDate(intervalEnd)).append(", ")
-                .append(TimeUtil.formatTime(intervalEnd)));
+                                   .append(TimeUtil.formatDate(intervalBegin)).append(", ")
+                                   .append(TimeUtil.formatTime(intervalBegin)).append(" until ")
+                                   .append(TimeUtil.formatDate(intervalEnd)).append(", ")
+                                   .append(TimeUtil.formatTime(intervalEnd)));
         for (int i = 0; i < res.connectionsLength(); i++) {
             Connection con = res.connections(i);
             Date depTime = new Date(con.stops(0).departure().scheduleTime() * 1000);
