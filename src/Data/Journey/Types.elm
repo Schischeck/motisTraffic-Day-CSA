@@ -87,18 +87,18 @@ groupTrains connection =
         group : ( Int, Stop ) -> ( List Train, Bool, Int ) -> ( List Train, Bool, Int )
         group ( idx, stop ) ( trains, in_train, end_idx ) =
             let
-                ( trains', in_train', end_idx' ) =
+                ( trains_, in_train_, end_idx_ ) =
                     if stop.enter then
                         ( finish_train (add_stop trains stop) idx end_idx, False, -1 )
                     else
                         ( trains, in_train, end_idx )
             in
                 if stop.exit then
-                    ( add_stop ((Train [] []) :: trains') stop, True, idx )
-                else if in_train' then
-                    ( add_stop trains' stop, in_train', end_idx' )
+                    ( add_stop ((Train [] []) :: trains_) stop, True, idx )
+                else if in_train_ then
+                    ( add_stop trains_ stop, in_train_, end_idx_ )
                 else
-                    ( trains', in_train', end_idx' )
+                    ( trains_, in_train_, end_idx_ )
 
         ( trains, _, _ ) =
             List.foldr group ( [], False, -1 ) indexedStops
@@ -108,7 +108,7 @@ groupTrains connection =
 
 extractLeadingWalk : Connection -> Maybe JourneyWalk
 extractLeadingWalk connection =
-    (getWalkFrom 0 connection) `Maybe.andThen` (toJourneyWalk connection)
+    (getWalkFrom 0 connection) |> Maybe.andThen (toJourneyWalk connection)
 
 
 extractTrailingWalk : Connection -> Maybe JourneyWalk
@@ -117,7 +117,7 @@ extractTrailingWalk connection =
         lastStopIdx =
             (List.length connection.stops) - 1
     in
-        (getWalkTo lastStopIdx connection) `Maybe.andThen` (toJourneyWalk connection)
+        (getWalkTo lastStopIdx connection) |> Maybe.andThen (toJourneyWalk connection)
 
 
 

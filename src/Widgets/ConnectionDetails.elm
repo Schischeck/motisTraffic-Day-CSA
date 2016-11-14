@@ -74,7 +74,7 @@ view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
             trainsWithInterchangeInfo journey.trains
 
         indices =
-            [0..List.length trains - 1]
+            List.range 0 (List.length trains - 1)
 
         trainsView =
             List.map3 (trainDetail internalMsg locale) trains indices expanded
@@ -188,11 +188,11 @@ trainTopLine locale ( train, ic ) =
 
                 departureTime : Maybe Date
                 departureTime =
-                    (List.head train.stops) `Maybe.andThen` (.departure >> .schedule_time)
+                    (List.head train.stops) |> Maybe.andThen (.departure >> .schedule_time)
 
                 arrivalTime : Maybe Date
                 arrivalTime =
-                    (List.head train.stops) `Maybe.andThen` (.arrival >> .schedule_time)
+                    (List.head train.stops) |> Maybe.andThen (.arrival >> .schedule_time)
 
                 d : Maybe DeltaRecord
                 d =
@@ -262,8 +262,8 @@ trainDetail internalMsg locale ( train, ic ) idx expanded =
 
         duration =
             Maybe.map2 Duration.diff
-                (arrivalStop `Maybe.andThen` (.arrival >> .schedule_time))
-                (departureStop `Maybe.andThen` (.departure >> .schedule_time))
+                (arrivalStop |> Maybe.andThen (.arrival >> .schedule_time))
+                (departureStop |> Maybe.andThen (.departure >> .schedule_time))
 
         durationStr =
             Maybe.map durationText duration |> Maybe.withDefault "?"

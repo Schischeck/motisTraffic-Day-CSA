@@ -137,7 +137,7 @@ update msg model =
                                 ExtendAfter ->
                                     AppendResults
 
-                        loadingBefore' =
+                        loadingBefore_ =
                             case direction of
                                 ExtendBefore ->
                                     True
@@ -145,7 +145,7 @@ update msg model =
                                 ExtendAfter ->
                                     model.loadingBefore
 
-                        loadingAfter' =
+                        loadingAfter_ =
                             case direction of
                                 ExtendBefore ->
                                     model.loadingAfter
@@ -155,8 +155,8 @@ update msg model =
                     in
                         { model
                             | routingRequest = Just updatedFullRequest
-                            , loadingBefore = loadingBefore'
-                            , loadingAfter = loadingAfter'
+                            , loadingBefore = loadingBefore_
+                            , loadingAfter = loadingAfter_
                         }
                             ! [ sendRequest model.remoteAddress action newRequest ]
 
@@ -169,9 +169,9 @@ update msg model =
             else
                 model ! []
 
-        ReceiveError action request msg' ->
+        ReceiveError action request msg_ ->
             if belongsToCurrentSearch model request then
-                (handleRequestError model action request msg') ! []
+                (handleRequestError model action request msg_) ! []
             else
                 model ! []
 
@@ -305,10 +305,10 @@ updateModelWithNewResults model action request response =
                     []
 
                 PrependResults ->
-                    [newIndexOffset..(newIndexOffset + (List.length journeysToAdd) - 1)]
+                    List.range newIndexOffset (newIndexOffset + (List.length journeysToAdd) - 1)
 
                 AppendResults ->
-                    [newIndexOffset + (List.length model.journeys)..newIndexOffset + (List.length newJourneys) - 1]
+                    List.range (newIndexOffset + (List.length model.journeys)) (newIndexOffset + (List.length newJourneys) - 1)
     in
         { base
             | journeys = sortJourneys newJourneys
@@ -426,7 +426,7 @@ connectionsWithDateHeaders config locale model =
 
         elements =
             List.map2 (,)
-                [model.indexOffset..(model.indexOffset + List.length model.journeys - 1)]
+                List.range model.indexOffset (model.indexOffset + List.length model.journeys - 1)
                 model.journeys
     in
         Html.Keyed.node "div"
@@ -539,8 +539,8 @@ errorView divClass locale model err =
     let
         errorMsg =
             case err of
-                MotisError err' ->
-                    motisErrorMsg locale err'
+                MotisError err_ ->
+                    motisErrorMsg locale err_
 
                 TimeoutError ->
                     locale.t.connections.errors.timeout

@@ -92,7 +92,7 @@ partView { part, position, barLength, nameDisplayType } =
         trainName =
             case nameDisplayType of
                 LongName ->
-                    [ text'
+                    [ text_
                         [ x (toString <| position)
                         , y (toString <| textOffset + textHeight)
                         , textAnchor "start"
@@ -215,11 +215,11 @@ trainDuration { stops } =
     let
         departure : Maybe Date
         departure =
-            (List.head stops) `Maybe.andThen` (.departure >> .schedule_time)
+            (List.head stops) |> Maybe.andThen (.departure >> .schedule_time)
 
         arrival : Maybe Date
         arrival =
-            (last stops) `Maybe.andThen` (.arrival >> .schedule_time)
+            (last stops) |> Maybe.andThen (.arrival >> .schedule_time)
 
         minutesBetween : Date -> Date -> Int
         minutesBetween from to =

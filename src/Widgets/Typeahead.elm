@@ -97,17 +97,17 @@ update msg model =
         Hide ->
             { model | visible = False, selected = 0 } ! []
 
-        InputUpdate msg' ->
+        InputUpdate msg_ ->
             let
                 updated =
-                    case msg' of
+                    case msg_ of
                         Input.Focus ->
                             { model | visible = True }
 
                         Input.Blur ->
                             { model | visible = False, selected = 0 }
             in
-                { updated | inputWidget = Input.update msg' model.inputWidget } ! []
+                { updated | inputWidget = Input.update msg_ model.inputWidget } ! []
 
         Deb a ->
             Debounce.update debounceCfg a model

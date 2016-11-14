@@ -162,38 +162,38 @@ update msg model =
         Reset ->
             ( model, Cmd.none )
 
-        MapUpdate msg' ->
+        MapUpdate msg_ ->
             let
                 ( m, c ) =
-                    Map.update msg' model.map
+                    Map.update msg_ model.map
             in
                 ( { model | map = m }, Cmd.map MapUpdate c )
 
-        FromLocationUpdate msg' ->
+        FromLocationUpdate msg_ ->
             let
                 ( m, c ) =
-                    Typeahead.update msg' model.fromLocation
+                    Typeahead.update msg_ model.fromLocation
             in
                 checkRoutingRequest ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
 
-        ToLocationUpdate msg' ->
+        ToLocationUpdate msg_ ->
             let
                 ( m, c ) =
-                    Typeahead.update msg' model.toLocation
+                    Typeahead.update msg_ model.toLocation
             in
                 checkRoutingRequest ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
 
-        FromTransportsUpdate msg' ->
-            ( { model | fromTransports = TagList.update msg' model.fromTransports }, Cmd.none )
+        FromTransportsUpdate msg_ ->
+            ( { model | fromTransports = TagList.update msg_ model.fromTransports }, Cmd.none )
 
-        ToTransportsUpdate msg' ->
-            ( { model | toTransports = TagList.update msg' model.toTransports }, Cmd.none )
+        ToTransportsUpdate msg_ ->
+            ( { model | toTransports = TagList.update msg_ model.toTransports }, Cmd.none )
 
-        DateUpdate msg' ->
-            checkRoutingRequest ( { model | date = Calendar.update msg' model.date }, Cmd.none )
+        DateUpdate msg_ ->
+            checkRoutingRequest ( { model | date = Calendar.update msg_ model.date }, Cmd.none )
 
-        TimeUpdate msg' ->
-            checkRoutingRequest ( { model | time = TimeInput.update msg' model.time }, Cmd.none )
+        TimeUpdate msg_ ->
+            checkRoutingRequest ( { model | time = TimeInput.update msg_ model.time }, Cmd.none )
 
         SearchDirectionUpdate dir ->
             { model | searchDirection = dir }
@@ -208,10 +208,10 @@ update msg model =
                 ! []
                 |> checkRoutingRequest
 
-        ConnectionsUpdate msg' ->
+        ConnectionsUpdate msg_ ->
             let
                 ( m, c ) =
-                    Connections.update msg' model.connections
+                    Connections.update msg_ model.connections
             in
                 ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
 
@@ -255,23 +255,23 @@ update msg model =
                       , Task.perform noop noop <| Scroll.toTop "connection-journey"
                       ]
 
-        StoreConnectionListScrollPos msg' pos ->
+        StoreConnectionListScrollPos msg_ pos ->
             let
                 newModel =
                     { model | connectionListScrollPos = pos }
             in
-                update msg' newModel
+                update msg_ newModel
 
-        ConnectionDetailsUpdate msg' ->
+        ConnectionDetailsUpdate msg_ ->
             let
                 ( m, c ) =
                     case model.selectedConnection of
                         Just state ->
                             let
-                                ( m', c' ) =
-                                    ConnectionDetails.update msg' state
+                                ( m_, c_ ) =
+                                    ConnectionDetails.update msg_ state
                             in
-                                ( Just m', c' )
+                                ( Just m_, c_ )
 
                         Nothing ->
                             Nothing ! []
@@ -487,7 +487,7 @@ searchDirectionView : Model -> List (Html Msg)
 searchDirectionView model =
     [ div []
         [ input
-            [ type' "radio"
+            [ type_ "radio"
             , id "search-forward"
             , name "time-option"
             , checked (model.searchDirection == Forward)
@@ -498,7 +498,7 @@ searchDirectionView model =
         ]
     , div []
         [ input
-            [ type' "radio"
+            [ type_ "radio"
             , id "search-backward"
             , name "time-option"
             , checked (model.searchDirection == Backward)
@@ -517,7 +517,7 @@ swapLocationsView model =
         [ label
             [ class "gb-button gb-button-small gb-button-circle gb-button-outline gb-button-PRIMARY_COLOR disable-select" ]
             [ input
-                [ type' "checkbox"
+                [ type_ "checkbox"
                 , onClick SwitchInputs
                 ]
                 []

@@ -15,11 +15,11 @@ dropEnd : Int -> List a -> List a
 dropEnd n list =
     let
         f : a -> ( List a, Int ) -> ( List a, Int )
-        f x ( result, n' ) =
-            if n' <= 0 then
-                ( x :: result, n' )
+        f x ( result, n_ ) =
+            if n_ <= 0 then
+                ( x :: result, n_ )
             else
-                ( result, n' - 1 )
+                ( result, n_ - 1 )
 
         ( result, _ ) =
             List.foldr f ( [], n ) list

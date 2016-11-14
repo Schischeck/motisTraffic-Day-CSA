@@ -83,8 +83,8 @@ update msg model =
             in
                 { model | date = newDate, inputStr = formatDate newDate }
 
-        InputUpdate msg' ->
-            { model | inputWidget = Input.update msg' model.inputWidget }
+        InputUpdate msg_ ->
+            { model | inputWidget = Input.update msg_ model.inputWidget }
 
 
 parseInput : String -> Maybe Date

@@ -69,7 +69,7 @@ decodeMove =
                 _ ->
                     Decode.fail ("move type " ++ move_type ++ " not supported")
     in
-        ("move_type" := string) `Decode.andThen` move
+        ("move_type" := string) |> Decode.andThen move
 
 
 decodeTransportInfo : Decode.Decoder TransportInfo

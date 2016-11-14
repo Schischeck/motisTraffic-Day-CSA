@@ -100,12 +100,12 @@ arrivalEvent connection =
 
 departureTime : Connection -> Maybe Date
 departureTime connection =
-    departureEvent connection `Maybe.andThen` .schedule_time
+    departureEvent connection |> Maybe.andThen .schedule_time
 
 
 arrivalTime : Connection -> Maybe Date
 arrivalTime connection =
-    arrivalEvent connection `Maybe.andThen` .schedule_time
+    arrivalEvent connection |> Maybe.andThen .schedule_time
 
 
 duration : Connection -> Maybe DeltaRecord

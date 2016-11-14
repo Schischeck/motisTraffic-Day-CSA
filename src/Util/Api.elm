@@ -89,7 +89,7 @@ handleResponse decoder response =
                     fail (DecodeError msg)
     in
         mapError promoteError response
-            `andThen` handleHttpResponse decode
+            |> andThen (handleHttpResponse decode)
 
 
 handleHttpResponse :
@@ -142,7 +142,7 @@ decodeErrorResponse =
                 _ ->
                     Decode.fail ("unexpected message type: " ++ content_type)
     in
-        ("content_type" := Decode.string) `Decode.andThen` decodeContent
+        ("content_type" := Decode.string) |> Decode.andThen decodeContent
 
 
 decodeMotisErrorDetail : Decode.Decoder MotisErrorDetail
@@ -155,7 +155,7 @@ decodeMotisErrorDetail =
 
 decodeMotisError : Decode.Decoder MotisErrorInfo
 decodeMotisError =
-    decodeMotisErrorDetail `Decode.andThen` (Decode.succeed << mapMotisError)
+    decodeMotisErrorDetail |> Decode.andThen (Decode.succeed << mapMotisError)
 
 
 mapMotisError : MotisErrorDetail -> MotisErrorInfo

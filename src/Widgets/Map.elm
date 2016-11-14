@@ -93,8 +93,8 @@ update msg model =
                 (WebGL.loadTexture "circle.png")
             )
 
-        MapUpdate m' ->
-            ( { model | map = m' }, Cmd.none )
+        MapUpdate m_ ->
+            ( { model | map = m_ }, Cmd.none )
 
         TextureError err ->
             ( model, Cmd.none )

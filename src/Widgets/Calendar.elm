@@ -74,27 +74,27 @@ update msg model =
         NoOp ->
             model
 
-        InputUpdate msg' ->
+        InputUpdate msg_ ->
             let
                 updated =
-                    case msg' of
+                    case msg_ of
                         Input.Focus ->
                             { model | visible = True }
 
                         Input.Blur ->
                             { model | visible = False }
             in
-                { updated | inputWidget = Input.update msg' model.inputWidget }
+                { updated | inputWidget = Input.update msg_ model.inputWidget }
 
         InitDate d ->
             let
-                d' =
+                d_ =
                     atNoon d
             in
                 { model
-                    | date = d'
-                    , inputStr = formatDate model.conf d'
-                    , today = d'
+                    | date = d_
+                    , inputStr = formatDate model.conf d_
+                    , today = d_
                 }
 
         NewDate d ->
