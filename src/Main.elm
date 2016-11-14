@@ -23,7 +23,6 @@ import Localization.En exposing (..)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Html.App as App
 import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
 import Task
@@ -429,7 +428,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ App.map MapUpdate (Map.view model.map)
+        [ Html.map MapUpdate (Map.view model.map)
         , lazy overlayView model
         ]
 
@@ -456,22 +455,22 @@ searchView model =
     [ div [ id "search" ]
         [ div [ class "pure-g gutters" ]
             [ div [ class "pure-u-1 pure-u-sm-1-2 from-location" ]
-                [ App.map FromLocationUpdate <|
+                [ Html.map FromLocationUpdate <|
                     Typeahead.view 1 model.locale.t.search.start (Just "place") model.fromLocation
                 , (swapLocationsView model)
                 ]
             , div [ class "pure-u-1 pure-u-sm-1-2" ]
-                [ App.map DateUpdate <|
+                [ Html.map DateUpdate <|
                     Calendar.view 3 model.locale.t.search.date model.date
                 ]
             ]
         , div [ class "pure-g gutters" ]
             [ div [ class "pure-u-1 pure-u-sm-12-24 to-location" ]
-                [ App.map ToLocationUpdate <|
+                [ Html.map ToLocationUpdate <|
                     Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
                 ]
             , div [ class "pure-u-1 pure-u-sm-9-24" ]
-                [ App.map TimeUpdate <|
+                [ Html.map TimeUpdate <|
                     TimeInput.view 4 model.locale.t.search.time model.time
                 ]
             , div [ class "pure-u-1 pure-u-sm-3-24 time-option" ]
