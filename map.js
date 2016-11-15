@@ -84,7 +84,7 @@ var MapOverlays = {
       ov = L.circleMarker(spec.latlngs[0], spec.options);
     }
     if (spec.tooltip) {
-      ov = ov.bindTooltip(spec.tooltip);
+      ov = ov.bindTooltip(spec.tooltip, {sticky: true});
     }
     return ov;
   },
