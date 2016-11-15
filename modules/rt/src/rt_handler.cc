@@ -200,8 +200,6 @@ msg_ptr rt_handler::flush(msg_ptr const&) {
       build_station_graph(sched_.station_nodes_, search_dir::BWD);
   lb_update.stop_and_print();
 
-  std::cout << stats_ << std::endl;
-
   verify(
       [this] {
         for (auto const& sn : sched_.station_nodes_) {

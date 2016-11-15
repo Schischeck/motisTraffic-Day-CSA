@@ -209,15 +209,14 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
 
   auto interval = parse_interval(basic_data_file);
   auto schedule_name = parse_schedule_name(basic_data_file);
+  auto footpaths = create_footpaths(metas.footpaths_, stb, fbb);
   fbb.Finish(CreateSchedule(
       fbb, fbb.CreateVectorOfSortedTables(&sb.fbs_services_),
       fbb.CreateVector(values(stb.fbs_stations_)),
-      fbb.CreateVector(values(rb.routes_)), &interval,
-      create_footpaths(metas.footpaths_, stb.fbs_stations_, fbb),
+      fbb.CreateVector(values(rb.routes_)), &interval, footpaths,
       fbb.CreateVector(rsb.fbs_rule_services_),
       create_meta_stations(metas.meta_stations_, stb.fbs_stations_, fbb),
-      fbb.CreateString(schedule_name)
-      ));
+      fbb.CreateString(schedule_name)));
 }
 
 }  // namespace hrd
