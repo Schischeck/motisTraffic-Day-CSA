@@ -7,6 +7,7 @@
 #include "geo/polyline.h"
 
 #include "motis/routes/prepare/source_spec.h"
+#include "motis/routes/prepare/station_sequences.h"
 
 namespace motis {
 namespace routes {

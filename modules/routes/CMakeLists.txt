@@ -54,6 +54,7 @@ target_link_libraries(routes-prepare
   conf
   geo
   rocksdb
+  osrm
 )
 
 set_target_properties(routes-prepare PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

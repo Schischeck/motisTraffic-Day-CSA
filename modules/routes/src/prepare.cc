@@ -15,6 +15,7 @@
 #include "motis/routes/db/rocksdb.h"
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/prepare_data.h"
+#include "motis/routes/prepare/seq/osrm_routing.h"
 #include "motis/routes/prepare/station_sequences.h"
 #include "motis/routes/prepare/vector_utils.h"
 
@@ -32,18 +33,21 @@ struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
                             std::string const& osm = "germany-latest.osm.pbf",
                             std::string const& extent = "germany-latest.poly",
-                            std::string const& out = "routesdb")
+                            std::string const& out = "routesdb",
+                            std::string const& osrm = "osrm")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
     string_param(extent_, extent, "extent", "/path/to/germany-latest.poly");
     string_param(out_, out, "out", "/path/to/db");
+    string_param(osrm_, osrm, "osrm", "path/to/osrm/files");
   }
 
   std::string schedule_;
   std::string osm_;
   std::string extent_;
   std::string out_;
+  std::string osrm_;
 };
 
 int main(int argc, char** argv) {
@@ -75,6 +79,15 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  fs::path path(opt.osrm_);
+  auto directory = path.parent_path();
+  if (!is_directory(directory)) {
+    throw std::runtime_error("OSRM dataset is not a folder!");
+  }
+
+  auto const& profile = directory.filename().string();
+  motis::logging::scoped_timer timer("loading OSRM dataset: " + profile);
+
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
   auto const stop_positions = find_bus_stop_positions(schedule, opt.osm_);
@@ -83,11 +96,11 @@ int main(int argc, char** argv) {
 
   // auto const extent_polygon = read_poly_file(opt.extent_);
   erase_if(sequences, [&](auto const& seq) {
-    if (seq.categories_.empty() ||
-        std::none_of(begin(seq.categories_), end(seq.categories_),
-                     [](auto const& cat) { return cat < 6; })) {
-      return true;
-    }
+    // if (seq.categories_.empty() ||
+    //     std::none_of(begin(seq.categories_), end(seq.categories_),
+    //                  [](auto const& cat) { return cat < 6; })) {
+    //   return true;
+    // }
 
     // if (std::any_of(begin(seq.coordinates_),
     // end(seq.coordinates_),
@@ -107,5 +120,6 @@ int main(int argc, char** argv) {
   });
 
   rocksdb_database db(opt.out_);
+  osrm_routing strategy(opt.osrm_);
   prepare(sequences, stop_positions, opt.osm_, db);
 }

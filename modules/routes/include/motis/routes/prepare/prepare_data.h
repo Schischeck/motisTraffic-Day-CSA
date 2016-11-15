@@ -11,6 +11,7 @@ namespace routes {
 
 struct kv_database;
 struct station_seq;
+struct routing_strategy;
 
 void prepare(
     std::vector<station_seq>& sequences,
