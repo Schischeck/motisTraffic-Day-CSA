@@ -52,6 +52,7 @@ trainPolyline train =
     , options =
         { defaultOptions
             | color = trainColor train
+            , weight = Just 5
         }
     }
 
@@ -63,6 +64,7 @@ walkPolyline walk =
     , options =
         { defaultOptions
             | color = walkColor
+            , weight = Just 5
         }
     }
 
@@ -72,32 +74,19 @@ stopCircles stops =
     let
         interchangeOptions =
             { defaultOptions
-                | color = "red"
+                | color = "black"
                 , fill = True
-                , fillColor = Just "red"
-                , radius = Just 2
-            }
-
-        intermediateOptions =
-            { defaultOptions
-                | color = "#777"
-                , fill = True
-                , fillColor = Just "#777"
-                , radius = Just 2
+                , fillColor = Just "white"
+                , radius = Just 5
+                , weight = Just 2
+                , fillOpacity = Just 0.8
             }
 
         stopCircle stop =
-            let
-                options =
-                    if stop.exit || stop.enter then
-                        interchangeOptions
-                    else
-                        intermediateOptions
-            in
-                { shape = "circleMarker"
-                , latlngs = [ stopLatLng stop ]
-                , options = options
-                }
+            { shape = "circleMarker"
+            , latlngs = [ stopLatLng stop ]
+            , options = interchangeOptions
+            }
     in
         stops
             |> List.filter (\s -> s.exit || s.enter)
@@ -115,6 +104,8 @@ defaultOptions =
     , fill = False
     , fillColor = Nothing
     , radius = Nothing
+    , weight = Nothing
+    , fillOpacity = Nothing
     }
 
 

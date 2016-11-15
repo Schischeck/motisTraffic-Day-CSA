@@ -29,6 +29,8 @@ type alias MapOverlayOptions =
     , fill : Bool
     , fillColor : Maybe String
     , radius : Maybe Int
+    , weight : Maybe Int
+    , fillOpacity : Maybe Float
     }
 
 
