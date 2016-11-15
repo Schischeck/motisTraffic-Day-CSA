@@ -8,9 +8,9 @@ import Port exposing (..)
 import Data.Journey.Types exposing (..)
 import Data.Connection.Types exposing (..)
 import Localization.Base exposing (..)
+import Util.DateFormat exposing (..)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.List exposing ((!!))
-import Maybe.Extra
 
 
 hideOverlay : Cmd msg
@@ -18,14 +18,14 @@ hideOverlay =
     mapClearOverlays "map"
 
 
-showOverlay : Journey -> Cmd msg
-showOverlay journey =
+showOverlay : Localization -> Journey -> Cmd msg
+showOverlay locale journey =
     let
         trainLines =
             List.map trainPolyline journey.trains
 
         walkLines =
-            List.map walkPolyline journey.walks
+            List.map (walkPolyline locale) journey.walks
 
         stops =
             stopCircles journey.connection.stops
@@ -55,8 +55,8 @@ trainPolyline train =
     }
 
 
-walkPolyline : JourneyWalk -> MapOverlay
-walkPolyline walk =
+walkPolyline : Localization -> JourneyWalk -> MapOverlay
+walkPolyline locale walk =
     { shape = "polyline"
     , latlngs = List.map stopLatLng [ walk.from, walk.to ]
     , options =
@@ -64,7 +64,8 @@ walkPolyline walk =
             | color = walkColor
             , weight = Just 5
         }
-    , tooltip = Nothing
+    , tooltip =
+        Just (locale.t.connections.walkDuration (durationText walk.duration))
     }
 
 

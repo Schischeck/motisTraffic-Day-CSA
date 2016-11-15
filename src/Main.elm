@@ -629,7 +629,7 @@ selectConnection updateUrl model idx =
                     , connections = newConnections
                 }
                     ! [ navigationCmd
-                      , MapConnectionOverlay.showOverlay j
+                      , MapConnectionOverlay.showOverlay model.locale j
                       ]
 
             Nothing ->
