@@ -24,15 +24,8 @@ showOverlay journey =
         trainLines =
             List.map trainPolyline journey.trains
 
-        leadingWalkLines =
-            journey.leadingWalk
-                |> Maybe.map walkPolyline
-                |> Maybe.Extra.maybeToList
-
-        trailingWalkLines =
-            journey.trailingWalk
-                |> Maybe.map walkPolyline
-                |> Maybe.Extra.maybeToList
+        walkLines =
+            List.map walkPolyline journey.walks
 
         stops =
             stopCircles journey.connection.stops
@@ -40,9 +33,8 @@ showOverlay journey =
         mapSetOverlays
             { mapId = "map"
             , overlays =
-                leadingWalkLines
-                    ++ trainLines
-                    ++ trailingWalkLines
+                trainLines
+                    ++ walkLines
                     ++ stops
             }
 
