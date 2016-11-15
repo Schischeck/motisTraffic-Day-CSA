@@ -504,7 +504,7 @@ withDateHeaders getDate renderElement renderDateHeader elements =
 
 transportListViewWidth : Int
 transportListViewWidth =
-    390
+    335
 
 
 scheduleRangeView : Localization -> Model -> Html msg
