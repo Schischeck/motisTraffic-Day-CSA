@@ -31,6 +31,9 @@ showOverlay journey =
             journey.trailingWalk
                 |> Maybe.map walkPolyline
                 |> Maybe.Extra.maybeToList
+
+        stops =
+            stopCircles journey.connection.stops
     in
         mapSetOverlays
             { mapId = "map"
@@ -38,32 +41,79 @@ showOverlay journey =
                 leadingWalkLines
                     ++ trainLines
                     ++ trailingWalkLines
+                    ++ stops
             }
 
 
 trainPolyline : Train -> MapOverlay
 trainPolyline train =
     { shape = "polyline"
-    , latlngs = stopLatlngs train.stops
-    , options = { color = trainColor train }
+    , latlngs = List.map stopLatLng train.stops
+    , options =
+        { defaultOptions
+            | color = trainColor train
+        }
     }
 
 
 walkPolyline : JourneyWalk -> MapOverlay
 walkPolyline walk =
     { shape = "polyline"
-    , latlngs = stopLatlngs [ walk.from, walk.to ]
-    , options = { color = walkColor }
+    , latlngs = List.map stopLatLng [ walk.from, walk.to ]
+    , options =
+        { defaultOptions
+            | color = walkColor
+        }
     }
 
 
-stopLatlngs : List Stop -> List ( Float, Float )
-stopLatlngs stops =
+stopCircles : List Stop -> List MapOverlay
+stopCircles stops =
     let
-        coords stop =
-            ( stop.station.pos.lat, stop.station.pos.lng )
+        interchangeOptions =
+            { defaultOptions
+                | color = "red"
+                , fill = True
+                , fillColor = Just "red"
+                , radius = Just 2
+            }
+
+        intermediateOptions =
+            { defaultOptions
+                | color = "#777"
+                , fill = True
+                , fillColor = Just "#777"
+                , radius = Just 2
+            }
+
+        stopCircle stop =
+            let
+                options =
+                    if stop.exit || stop.enter then
+                        interchangeOptions
+                    else
+                        intermediateOptions
+            in
+                { shape = "circleMarker"
+                , latlngs = [ stopLatLng stop ]
+                , options = options
+                }
     in
-        List.map coords stops
+        List.map stopCircle stops
+
+
+stopLatLng : Stop -> ( Float, Float )
+stopLatLng stop =
+    ( stop.station.pos.lat, stop.station.pos.lng )
+
+
+defaultOptions : MapOverlayOptions
+defaultOptions =
+    { color = "#777"
+    , fill = False
+    , fillColor = Nothing
+    , radius = Nothing
+    }
 
 
 classColors : List String

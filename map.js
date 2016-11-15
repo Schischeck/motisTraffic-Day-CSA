@@ -64,7 +64,9 @@ var MapOverlays = {
 
     var bounds = L.latLngBounds([]);
     MapOverlays._overlays.forEach(function(overlay) {
-      bounds.extend(overlay.getBounds());
+      if (overlay.getBounds) {
+        bounds.extend(overlay.getBounds());
+      }
     });
     map.fitBounds(bounds);
   },
@@ -77,6 +79,8 @@ var MapOverlays = {
   _createOverlay: function(spec) {
     if (spec.shape == 'polyline') {
       return L.polyline(spec.latlngs, spec.options);
+    } else if (spec.shape == 'circleMarker') {
+      return L.circleMarker(spec.latlngs[0], spec.options);
     }
   },
 

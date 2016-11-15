@@ -25,7 +25,11 @@ type alias MapOverlay =
 
 
 type alias MapOverlayOptions =
-    { color : String }
+    { color : String
+    , fill : Bool
+    , fillColor : Maybe String
+    , radius : Maybe Int
+    }
 
 
 port mapInit : String -> Cmd msg
