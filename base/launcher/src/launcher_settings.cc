@@ -8,8 +8,8 @@
 #include "motis/core/common/date_time_util.h"
 #include "motis/core/common/util.h"
 
-#define LARGE_STATIONS "mode"
 #define MODULES "modules"
+#define MODE "mode"
 #define MODE_BATCH "batch"
 #define MODE_SERVER "server"
 #define MODE_TEST "test"

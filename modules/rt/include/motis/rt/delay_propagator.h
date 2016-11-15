@@ -6,6 +6,7 @@
 #include "motis/core/common/hash_set.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/event_access.h"
+#include "motis/core/access/realtime_access.h"
 
 namespace motis {
 namespace rt {
@@ -25,10 +26,11 @@ struct delay_propagator {
 
   hash_set<delay_info*> const& events() const { return events_; }
 
-  void add_delay(ev_key const& k, timestamp_reason const reason,
-                 time const updated_time) {
+  void add_delay(ev_key const& k,
+                 timestamp_reason const reason = timestamp_reason::SCHEDULE,
+                 time const updated_time = INVALID_TIME) {
     auto di = get_or_create_di(k);
-    if (di->set(reason, updated_time)) {
+    if (reason != timestamp_reason::SCHEDULE && di->set(reason, updated_time)) {
       expand(di->get_ev_key());
     }
   }
@@ -42,6 +44,11 @@ struct delay_propagator {
         expand(di->get_ev_key());
       }
     }
+  }
+
+  void reset() {
+    pq_ = pq();
+    events_.clear();
   }
 
 private:
@@ -98,7 +105,6 @@ private:
   }
 
   pq pq_;
-  std::vector<std::unique_ptr<delay_info>> delay_mem_;
   hash_set<delay_info*> events_;
   schedule& sched_;
 };

@@ -573,8 +573,14 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
 
   ASSERT_EQ(2, res->response()->connections()->size());
 
+  int conn1 = 0, conn2 = 1;
+  if ((*res->response()->connections())[0]->transports()->size() == 2) {
+    conn1 = 1;
+    conn2 = 0;
+  }
+
   {
-    auto const conn = (*res->response()->connections())[1];
+    auto const conn = (*res->response()->connections())[conn1];
     ASSERT_EQ(5000, conn->db_costs());
     ASSERT_EQ(0, conn->night_penalty());
     ASSERT_EQ(3, conn->transports()->size());
@@ -599,7 +605,7 @@ TEST_F(reliability_hotels_foot, late_conn_req_hotel) {
     }
   }
   {
-    auto const conn = (*res->response()->connections())[0];
+    auto const conn = (*res->response()->connections())[conn2];
     ASSERT_EQ(6150, conn->db_costs());
     ASSERT_EQ(300, conn->night_penalty());
     ASSERT_EQ(2, conn->transports()->size());

@@ -15,7 +15,8 @@ table Stop {
   station:motis.Station;
   arrival:EventInfo;
   departure:EventInfo;
-  interchange:bool;
+  exit:bool;
+  enter:bool;
 }
 
 struct Range {

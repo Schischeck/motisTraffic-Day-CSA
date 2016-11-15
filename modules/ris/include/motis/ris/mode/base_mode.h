@@ -8,6 +8,7 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_publish.h"
 #include "motis/module/message.h"
+
 #include "motis/ris/database.h"
 
 namespace motis {
@@ -42,8 +43,7 @@ protected:
     sched.last_update_timestamp_ =
         std::max(sched.last_update_timestamp_, last_update_timestamp);
 
-    motis::module::motis_publish(
-        motis::module::make_no_msg("/ris/system_time_changed"));
+    motis_publish(motis::module::make_no_msg("/ris/system_time_changed"));
   }
 
   db_ptr db_;

@@ -13,6 +13,7 @@ struct router {
 
   motis::module::msg_ptr one_to_many(OSRMOneToManyRequest const*) const;
   motis::module::msg_ptr via(OSRMViaRouteRequest const*) const;
+  motis::module::msg_ptr smooth_via(OSRMSmoothViaRouteRequest const*) const;
 
   struct impl;
   std::unique_ptr<impl> impl_;

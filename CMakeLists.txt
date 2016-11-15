@@ -10,6 +10,9 @@ endif()
 
 include_directories(${CMAKE_BINARY_DIR}/generated)
 
+set(USE_OPENMP OFF CACHE BOOL openmp FORCE)
+
+
 ################################
 # MOTIS Version
 ################################
@@ -94,13 +97,11 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
-include_directories(SYSTEM external_lib) # for osrm-backend
 include_directories(SYSTEM external_lib/expat/include)
 include_directories(SYSTEM external_lib/flatbuffers/include)
 include_directories(SYSTEM external_lib/googletest/googletest/include)
 include_directories(SYSTEM external_lib/osmium/include)
 include_directories(SYSTEM external_lib/miniz)
-include_directories(SYSTEM external_lib/osrm-backend)
 include_directories(SYSTEM external_lib/osrm-backend/include)
 include_directories(SYSTEM external_lib/osrm-backend/third_party)
 include_directories(SYSTEM external_lib/pugixml/src)
@@ -112,6 +113,7 @@ include_directories(SYSTEM external_lib/sqlpp11/include)
 include_directories(SYSTEM external_lib/sqlpp11-connector-sqlite3/include)
 include_directories(SYSTEM external_lib/websocketpp)
 include_directories(external_lib/conf/include)
+include_directories(external_lib/geo/include)
 include_directories(external_lib/guess/include)
 include_directories(external_lib/net/include)
 include_directories(external_lib/parser/include)
@@ -126,6 +128,7 @@ add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlite EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlpp11-connector-sqlite3/src EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/geo EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/guess EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
@@ -153,6 +156,7 @@ set(MODULES ${modules-option} CACHE STRING "Modules to load")
 
 string(REPLACE " " ";" modules "${MODULES}")
 list(REMOVE_ITEM modules
+  "reliability"
   "railviz"
 )
 

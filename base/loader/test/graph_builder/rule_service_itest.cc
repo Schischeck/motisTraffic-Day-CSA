@@ -99,7 +99,7 @@ TEST_F(loader_graph_builder_rule_service, search) {
 
   ASSERT_EQ(1, connections->size());
   for (unsigned i = 0; i < connections->Get(0)->stops()->size() - 2; ++i) {
-    EXPECT_FALSE(connections->Get(0)->stops()->Get(i)->interchange());
+    EXPECT_FALSE(connections->Get(0)->stops()->Get(i)->exit());
   }
 
   auto const trips = connections->Get(0)->trips();

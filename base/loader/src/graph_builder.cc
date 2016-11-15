@@ -99,7 +99,6 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
                     : nullptr;
     sched_.eva_to_station_.insert(
         std::make_pair(input_station->id()->str(), s.get()));
-    sched_.stations_.emplace_back(std::move(s));
 
     // Store DS100.
     if (input_station->external_ids()) {
@@ -107,6 +106,8 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
         sched_.ds100_to_station_.insert(std::make_pair(ds100->str(), s.get()));
       }
     }
+
+    sched_.stations_.emplace_back(std::move(s));
   }
 
   // First regular node id:
@@ -307,6 +308,7 @@ int graph_builder::get_index(
           begin(route_section),
           std::lower_bound(begin(route_section), end(route_section),
                            sections[section_idx]));
+      --section_idx;
     } else {
       // Check if departures stay sorted.
       bool earlier_eq_dep =
@@ -639,7 +641,7 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
         route_index, lcons[i],  //
         stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
         stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
-        last_route_section, route_section()));
+        last_route_section.to_route_node_, nullptr));
     last_route_section = route_sections->back();
   }
 
@@ -650,14 +652,14 @@ route_section graph_builder::add_route_section(
     int route_index, std::vector<light_connection> const& connections,
     Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
     Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
-    route_section prev_section, route_section next_section) {
+    node* from_route_node, node* to_route_node) {
   route_section section;
 
   auto const from_station_node = stations_[from_stop];
   auto const to_station_node = stations_[to_stop];
 
-  if (prev_section.is_valid()) {
-    section.from_route_node_ = prev_section.to_route_node_;
+  if (from_route_node != nullptr) {
+    section.from_route_node_ = from_route_node;
   } else {
     section.from_route_node_ = build_route_node(
         route_index, next_node_id_++, from_station_node,
@@ -665,8 +667,8 @@ route_section graph_builder::add_route_section(
         from_in_allowed, from_out_allowed);
   }
 
-  if (next_section.is_valid()) {
-    section.to_route_node_ = next_section.from_route_node_;
+  if (to_route_node != nullptr) {
+    section.to_route_node_ = to_route_node;
   } else {
     section.to_route_node_ =
         build_route_node(route_index, next_node_id_++, to_station_node,

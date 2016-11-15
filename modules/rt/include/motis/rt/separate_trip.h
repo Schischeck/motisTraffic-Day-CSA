@@ -7,44 +7,16 @@
 #include "motis/core/schedule/schedule.h"
 
 #include "motis/rt/bfs.h"
+#include "motis/rt/in_out_allowed.h"
+#include "motis/rt/incoming_edges.h"
 
 #include "motis/core/access/service_access.h"
 
 namespace motis {
 namespace rt {
 
-struct in_out_allowed {
-  in_out_allowed() = default;
-  in_out_allowed(bool in_allowed, bool out_allowed)
-      : in_allowed_(in_allowed), out_allowed_(out_allowed) {}
-  bool in_allowed_, out_allowed_;
-};
-
-inline std::set<edge const*> route_edges(ev_key const& k) {
+inline std::set<trip::route_edge> route_edges(ev_key const& k) {
   return route_bfs(k, bfs_direction::BOTH, true);
-}
-
-inline bool get_in_allowed(node const* n) {
-  for (auto const& e : n->incoming_edges_) {
-    if (e->from_ == n->get_station() && e->type() != edge::INVALID_EDGE) {
-      return true;
-    }
-  }
-  return false;
-}
-
-inline bool get_out_allowed(node const* n) {
-  for (auto const& e : n->edges_) {
-    if (e.get_destination() == n->get_station() &&
-        e.type() != edge::INVALID_EDGE) {
-      return true;
-    }
-  }
-  return false;
-}
-
-inline in_out_allowed get_in_out_allowed(node const* n) {
-  return {get_in_allowed(n), get_out_allowed(n)};
 }
 
 inline std::map<node const*, in_out_allowed> get_route_in_out_allowed(
@@ -70,9 +42,9 @@ inline edge copy_edge(edge const& original, node* from, node* to,
   return e;
 }
 
-inline void copy_trip_route(schedule& sched, ev_key const& k,
-                            std::map<node const*, node*>& nodes,
-                            std::map<edge const*, trip::route_edge>& edges) {
+inline void copy_trip_route(
+    schedule& sched, ev_key const& k, std::map<node const*, node*>& nodes,
+    std::map<trip::route_edge, trip::route_edge>& edges) {
   auto const route_id = sched.route_count_++;
 
   auto const build_node = [&](node const* orig) {
@@ -80,9 +52,9 @@ inline void copy_trip_route(schedule& sched, ev_key const& k,
   };
 
   for (auto const& e : route_edges(k)) {
-    auto from = get_or_create<node const*, node*>(
+    auto const from = get_or_create<node const*, node*>(
         nodes, e->from_, [&] { return build_node(e->from_); });
-    auto to = get_or_create<node const*, node*>(
+    auto const to = get_or_create<node const*, node*>(
         nodes, e->to_, [&] { return build_node(e->to_); });
 
     from->edges_.push_back(copy_edge(*e, from, to, k.lcon_idx_));
@@ -111,7 +83,7 @@ inline std::set<trip const*> route_trips(schedule const& sched,
 }
 
 inline void update_trips(schedule& sched, ev_key const& k,
-                         std::map<edge const*, trip::route_edge>& edges) {
+                         std::map<trip::route_edge, trip::route_edge>& edges) {
   for (auto const& t : route_trips(sched, k)) {
     sched.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(
@@ -164,87 +136,16 @@ inline std::set<station_node*> route_station_nodes(ev_key const& k) {
   return station_nodes;
 }
 
-inline bool station_contains_node(station_node const* s, node const* n) {
-  if (s == n) {
-    return true;
-  }
-  for (auto const& e : s->edges_) {
-    if (n == e.to_) {
-      return true;
-    }
-  }
-  return false;
-}
-
-inline std::map<node const*, std::vector<edge*>> incoming_non_station_edges(
-    std::set<station_node*> const& station_nodes) {
-  std::map<node const*, std::vector<edge*>> incoming;
-
-  auto const add_incoming = [&](station_node const* s, node const* n) {
-    for (auto const& e_in : n->incoming_edges_) {
-      if (!station_contains_node(s, e_in->from_)) {
-        incoming[n].push_back(e_in);
-      }
-    }
-  };
-
-  for (auto const& s : station_nodes) {
-    add_incoming(s, s);
-    for (auto const& e : s->edges_) {
-      add_incoming(s, e.to_);
-    }
-  }
-
-  return incoming;
-}
-
-inline void add_incoming_station_edges(
-    std::set<station_node*> const& station_nodes,
-    std::map<node const*, std::vector<edge*>>& incoming) {
-  for (auto& s : station_nodes) {
-    for (auto& station_edge : s->edges_) {
-      incoming[station_edge.to_].push_back(&station_edge);
-      for (auto& edge : station_edge.to_->edges_) {
-        if (station_contains_node(s, edge.to_)) {
-          incoming[edge.to_].push_back(&edge);
-        }
-      }
-    }
-  }
-}
-
-inline void add_incoming_edges_from_new_route(
-    std::map<edge const*, trip::route_edge> const& edges,
-    std::map<node const*, std::vector<edge*>>& in) {
-  for (auto const& trp_e : edges) {
-    auto e = trp_e.second.get_edge();
-    in[e->to_].push_back(e);
-  }
-}
-
-inline void rebuild_incoming_edges(
-    std::set<station_node*> const& station_nodes,
-    std::map<node const*, std::vector<edge*>> const& incoming) {
-  for (auto& s : station_nodes) {
-    auto const& s_in = incoming.at(s);
-    s->incoming_edges_ = array<edge*>(begin(s_in), end(s_in));
-
-    for (auto& station_edge : s->edges_) {
-      auto const& n_in = incoming.at(station_edge.to_);
-      station_edge.to_->incoming_edges_ = array<edge*>(begin(n_in), end(n_in));
-    }
-  }
-}
-
-inline void update_delays(std::size_t lcon_idx,
-                          std::map<edge const*, trip::route_edge> const& edges,
-                          schedule& sched,
-                          hash_map<ev_key, ev_key>& moved_events) {
+inline void update_delays(
+    std::size_t lcon_idx,
+    std::map<trip::route_edge, trip::route_edge> const& edges,
+    schedule& sched) {
   auto const update_di = [&](ev_key const& orig_k, ev_key const& new_k) {
-    moved_events[orig_k] = new_k;
-    auto it = sched.graph_to_delay_info_.find(orig_k);
+    auto const it = sched.graph_to_delay_info_.find(orig_k);
     if (it != end(sched.graph_to_delay_info_)) {
-      sched.graph_to_delay_info_[new_k] = it->second;
+      auto const di = it->second;
+      sched.graph_to_delay_info_[new_k] = di;
+      di->set_ev_key(new_k);
     }
   };
 
@@ -262,13 +163,12 @@ inline void update_delays(std::size_t lcon_idx,
   }
 }
 
-inline void seperate_trip(schedule& sched, ev_key const& k,
-                          hash_map<ev_key, ev_key>& moved_events) {
+inline void seperate_trip(schedule& sched, ev_key const& k) {
   auto const in_out_allowed = get_route_in_out_allowed(k);
   auto const station_nodes = route_station_nodes(k);
   auto incoming = incoming_non_station_edges(station_nodes);
   auto nodes = std::map<node const*, node*>{};
-  auto edges = std::map<edge const*, trip::route_edge>{};
+  auto edges = std::map<trip::route_edge, trip::route_edge>{};
 
   copy_trip_route(sched, k, nodes, edges);
   update_trips(sched, k, edges);
@@ -276,7 +176,13 @@ inline void seperate_trip(schedule& sched, ev_key const& k,
   add_incoming_station_edges(station_nodes, incoming);
   add_incoming_edges_from_new_route(edges, incoming);
   rebuild_incoming_edges(station_nodes, incoming);
-  update_delays(k.lcon_idx_, edges, sched, moved_events);
+  update_delays(k.lcon_idx_, edges, sched);
+}
+
+inline void seperate_trip(schedule& sched, trip const* trp) {
+  auto const first_dep =
+      ev_key{trp->edges_->front().get_edge(), trp->lcon_idx_, event_type::DEP};
+  seperate_trip(sched, first_dep);
 }
 
 }  // namespace rt

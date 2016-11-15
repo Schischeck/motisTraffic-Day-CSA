@@ -1,11 +1,9 @@
-namespace motis.osrm;
+include "base/Polyline.fbs";
 
-table Polyline {
-  coordinates: [double];
-}
+namespace motis.osrm;
 
 table OSRMViaRouteResponse {
   time:int;
   distance:double;
-  segments: [Polyline];
+  polyline: Polyline;
 }

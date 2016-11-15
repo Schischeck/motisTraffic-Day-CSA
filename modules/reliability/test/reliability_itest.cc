@@ -184,12 +184,12 @@ TEST_F(reliability_test_rating, rating_request) {
 }
 
 TEST_F(reliability_test_rating, empty_rating_response) {
+  auto const& sched = get_schedule();
   auto const req =
       request_builder()
           .add_pretrip_start(schedule2::STUTTGART.name_,
-                             schedule2::STUTTGART.eva_,
-                             test_util::hhmm_to_unixtime(get_schedule(), 0),
-                             test_util::hhmm_to_unixtime(get_schedule(), 0))
+                             schedule2::STUTTGART.eva_, sched.schedule_end_ - 1,
+                             sched.schedule_end_ - 1)
           .add_destination(schedule2::KASSEL.name_, schedule2::KASSEL.eva_)
           .build_rating_request(false, false, false);
   auto const res = call(req);

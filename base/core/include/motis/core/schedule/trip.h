@@ -80,22 +80,41 @@ struct full_trip_id {
 
 struct trip {
   struct route_edge {
-    route_edge() = default;
+    route_edge() : route_node_(nullptr), outgoing_edge_idx_(0) {}
 
-    explicit route_edge(edge const* e) : route_node_(e->from_) {
-      for (std::size_t i = 0; i < route_node_->edges_.size(); ++i) {
-        if (&route_node_->edges_[i] == e) {
-          outgoing_edge_idx_ = i;
-          return;
+    route_edge(edge const* e) : route_edge() {  // NOLINT
+      if (e != nullptr) {
+        route_node_ = e->from_;
+        for (std::size_t i = 0; i < route_node_->edges_.size(); ++i) {
+          if (&route_node_->edges_[i] == e) {
+            outgoing_edge_idx_ = i;
+            return;
+          }
         }
+        assert(false);
       }
-      assert(false);
     }
+
+    friend bool operator==(route_edge const& a, route_edge const& b) {
+      return std::tie(a.route_node_, a.outgoing_edge_idx_) ==
+             std::tie(b.route_node_, b.outgoing_edge_idx_);
+    }
+
+    friend bool operator<(route_edge const& a, route_edge const& b) {
+      return std::tie(a.route_node_, a.outgoing_edge_idx_) <
+             std::tie(b.route_node_, b.outgoing_edge_idx_);
+    }
+
+    bool valid() const { return route_node_ != nullptr; }
 
     edge* get_edge() const {
       assert(outgoing_edge_idx_ < route_node_->edges_.size());
       return &route_node_->edges_[outgoing_edge_idx_];
     }
+
+    edge* operator->() const { return get_edge(); }
+
+    operator edge*() const { return get_edge(); }
 
     node* route_node_;
     std::size_t outgoing_edge_idx_;
@@ -115,6 +134,16 @@ struct trip {
 }  // namespace motis
 
 namespace std {
+
+template <>
+struct hash<motis::trip::route_edge> {
+  std::size_t operator()(motis::trip::route_edge const& e) const {
+    std::size_t seed = 0;
+    motis::hash_combine(seed, e.route_node_);
+    motis::hash_combine(seed, e.outgoing_edge_idx_);
+    return seed;
+  }
+};
 
 template <>
 struct hash<motis::primary_trip_id> {

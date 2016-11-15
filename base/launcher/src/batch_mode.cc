@@ -29,8 +29,7 @@ public:
       : ios_(ios),
         receiver_(receiver),
         in_(input_file_path),
-        out_(output_file_path),
-        next_query_id_(0) {
+        out_(output_file_path) {
     in_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   }
@@ -58,16 +57,17 @@ private:
   }
 
   void inject_msg(std::shared_ptr<query_injector>) {
+    msg_ptr next;
     try {
-      auto next = next_query();
+      next = next_query();
       if (next) {
-        receiver_.on_msg(
-            next, ios_.wrap(std::bind(&query_injector::on_response, this,
-                                      shared_from_this(), ++next_query_id_,
-                                      p::_1, p::_2)));
+        receiver_.on_msg(next, ios_.wrap(std::bind(&query_injector::on_response,
+                                                   this, shared_from_this(),
+                                                   next->id(), p::_1, p::_2)));
       }
     } catch (std::system_error const& e) {
-      on_response(shared_from_this(), ++next_query_id_, msg_ptr(), e.code());
+      on_response(shared_from_this(), next ? next->id() : -1, msg_ptr(),
+                  e.code());
     }
   }
 
@@ -97,8 +97,6 @@ private:
 
   std::ifstream in_;
   std::ofstream out_;
-
-  int next_query_id_;
 };
 
 void inject_queries(boost::asio::io_service& ios,

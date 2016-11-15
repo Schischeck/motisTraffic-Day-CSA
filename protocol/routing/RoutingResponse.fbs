@@ -24,4 +24,6 @@ struct Statistics {
 table RoutingResponse {
   statistics:Statistics;
   connections:[motis.Connection];
+  interval_begin:ulong;
+  interval_end:ulong;
 }

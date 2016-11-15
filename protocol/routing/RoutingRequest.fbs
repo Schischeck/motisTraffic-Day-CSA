@@ -65,6 +65,9 @@ table OntripStationStart {
 table PretripStart {
   station:InputStation;
   interval:motis.Interval;
+  min_connection_count:uint;
+  extend_interval_earlier:bool;
+  extend_interval_later:bool;
 }
 
 union Start {

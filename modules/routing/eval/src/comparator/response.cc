@@ -16,9 +16,11 @@ unsigned travel_time(Connection const* c) {
 }
 
 unsigned transfers(Connection const* c) {
-  return std::accumulate(
-      std::begin(*c->stops()), std::end(*c->stops()), 0,
-      [](int acc, Stop const* s) { return s->interchange() ? acc + 1 : acc; });
+  auto const exit_count =
+      std::count_if(std::begin(*c->stops()), std::end(*c->stops()),
+                    [](Stop const* s) { return s->exit(); }) -
+      1;
+  return std::max(0u, exit_count);
 }
 
 unsigned price(Connection const*) { return 0; }

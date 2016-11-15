@@ -37,12 +37,26 @@ std::unique_ptr<Parser> init_parser() {
   }
   return parser;
 }
-static std::unique_ptr<Parser> parser = init_parser();
+
+reflection::Schema const& init_schema(Parser& parser) {
+  parser.Serialize();
+  return *reflection::GetSchema(parser.builder_.GetBufferPointer());
+}
+
+static std::unique_ptr<Parser> json_parser = init_parser();
+static std::unique_ptr<Parser> reflection_parser = init_parser();
+static reflection::Schema const& schema = init_schema(*reflection_parser);
 
 std::string message::to_json() const {
   std::string json;
-  flatbuffers::GenerateText(*parser, data(), &json);
+  flatbuffers::GenerateText(*json_parser, data(), &json);
   return json;
+}
+
+reflection::Schema const& message::get_schema() { return schema; }
+
+reflection::Object const* message::get_objectref(char const* name) {
+  return get_schema().objects()->LookupByKey(name);
 }
 
 msg_ptr make_msg(std::string const& json) {
@@ -51,21 +65,21 @@ msg_ptr make_msg(std::string const& json) {
     throw std::system_error(error::unable_to_parse_msg);
   }
 
-  bool parse_ok = parser->Parse(json.c_str());
+  bool parse_ok = json_parser->Parse(json.c_str());
   if (!parse_ok) {
-    LOG(motis::logging::error) << "parse error: " << parser->error_;
+    LOG(motis::logging::error) << "parse error: " << json_parser->error_;
     throw std::system_error(error::unable_to_parse_msg);
   }
 
-  flatbuffers::Verifier verifier(parser->builder_.GetBufferPointer(),
-                                 parser->builder_.GetSize());
+  flatbuffers::Verifier verifier(json_parser->builder_.GetBufferPointer(),
+                                 json_parser->builder_.GetSize());
   if (!VerifyMessageBuffer(verifier)) {
     throw std::system_error(error::malformed_msg);
   }
-  auto size = parser->builder_.GetSize();
-  auto buffer = parser->builder_.ReleaseBufferPointer();
+  auto size = json_parser->builder_.GetSize();
+  auto buffer = json_parser->builder_.ReleaseBufferPointer();
 
-  parser->builder_.Clear();
+  json_parser->builder_.Clear();
   return std::make_shared<message>(size, std::move(buffer));
 }
 
