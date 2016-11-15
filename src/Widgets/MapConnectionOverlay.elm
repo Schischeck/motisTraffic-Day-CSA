@@ -99,7 +99,9 @@ stopCircles stops =
                 , options = options
                 }
     in
-        List.map stopCircle stops
+        stops
+            |> List.filter (\s -> s.exit || s.enter)
+            |> List.map stopCircle
 
 
 stopLatLng : Stop -> ( Float, Float )
