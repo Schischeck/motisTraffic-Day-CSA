@@ -38,8 +38,8 @@ struct search_query {
 struct search_result {
   search_result() = default;
   search_result(statistics stats, std::vector<journey> journeys,
-                time interval_begin, time interval_end)  // NOLINT
-      : stats_(stats),
+                time interval_begin, time interval_end)
+      : stats_(std::move(stats)),  // NOLINT
         journeys_(std::move(journeys)),
         interval_begin_(interval_begin),
         interval_end_(interval_end) {}
