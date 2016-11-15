@@ -7,6 +7,8 @@ module Widgets.MapConnectionOverlay
 import Port exposing (..)
 import Data.Journey.Types exposing (..)
 import Data.Connection.Types exposing (..)
+import Localization.Base exposing (..)
+import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.List exposing ((!!))
 import Maybe.Extra
 
@@ -54,6 +56,10 @@ trainPolyline train =
             | color = trainColor train
             , weight = Just 5
         }
+    , tooltip =
+        train.transports
+            |> List.head
+            |> Maybe.map longTransportNameWithoutIcon
     }
 
 
@@ -66,6 +72,7 @@ walkPolyline walk =
             | color = walkColor
             , weight = Just 5
         }
+    , tooltip = Nothing
     }
 
 
@@ -86,6 +93,7 @@ stopCircles stops =
             { shape = "circleMarker"
             , latlngs = [ stopLatLng stop ]
             , options = interchangeOptions
+            , tooltip = Just stop.station.name
             }
     in
         stops

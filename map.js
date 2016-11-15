@@ -77,11 +77,16 @@ var MapOverlays = {
   },
 
   _createOverlay: function(spec) {
+    var ov;
     if (spec.shape == 'polyline') {
-      return L.polyline(spec.latlngs, spec.options);
+      ov = L.polyline(spec.latlngs, spec.options);
     } else if (spec.shape == 'circleMarker') {
-      return L.circleMarker(spec.latlngs[0], spec.options);
+      ov = L.circleMarker(spec.latlngs[0], spec.options);
     }
+    if (spec.tooltip) {
+      ov = ov.bindTooltip(spec.tooltip);
+    }
+    return ov;
   },
 
 };

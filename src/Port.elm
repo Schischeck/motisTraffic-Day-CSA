@@ -21,6 +21,7 @@ type alias MapOverlay =
     { shape : String
     , latlngs : List ( Float, Float )
     , options : MapOverlayOptions
+    , tooltip : Maybe String
     }
 
 
