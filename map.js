@@ -54,6 +54,33 @@ var CanvasOverlay = L.Layer.extend({
 
 });
 
+var MapOverlays = {
+  _overlays: [],
+
+  setOverlays: function(map, specs) {
+    MapOverlays.clearOverlays();
+    MapOverlays._overlays = specs.map(MapOverlays._createOverlay);
+    MapOverlays._overlays.forEach(function(overlay) { overlay.addTo(map); });
+
+    var bounds = L.latLngBounds([]);
+    MapOverlays._overlays.forEach(function(overlay) {
+      bounds.extend(overlay.getBounds());
+    });
+    map.fitBounds(bounds);
+  },
+
+  clearOverlays: function() {
+    MapOverlays._overlays.forEach(function(overlay) { overlay.remove(); });
+    MapOverlays._overlays = [];
+  },
+
+  _createOverlay: function(spec) {
+    if (spec.shape == 'polyline') {
+      return L.polyline(spec.latlngs, spec.options);
+    }
+  },
+
+};
 
 function initPorts(app) {
   app.ports.mapInit.subscribe(function(id) {
@@ -74,5 +101,14 @@ function initPorts(app) {
     var c = new CanvasOverlay();
     c._el = map.getContainer().querySelector('.leaflet-overlay');
     map.addLayer(c);
+  });
+
+  app.ports.mapSetOverlays.subscribe(function(m) {
+    var map = window.elmMaps[m.mapId];
+    MapOverlays.setOverlays(map, m.overlays);
+  });
+
+  app.ports.mapClearOverlays.subscribe(function(id) {
+    MapOverlays.clearOverlays();
   });
 }

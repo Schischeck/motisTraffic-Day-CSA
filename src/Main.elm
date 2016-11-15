@@ -5,6 +5,7 @@ import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Widgets.Map as Map
+import Widgets.MapConnectionOverlay as MapConnectionOverlay
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
@@ -614,6 +615,12 @@ selectConnection updateUrl model idx =
 
         ( newConnections, _ ) =
             Connections.update Connections.ResetNew model.connections
+
+        navigationCmd =
+            if updateUrl then
+                Navigation.newUrl (toUrl (ConnectionDetails idx))
+            else
+                Cmd.none
     in
         case journey of
             Just j ->
@@ -621,11 +628,9 @@ selectConnection updateUrl model idx =
                     | selectedConnection = Maybe.map ConnectionDetails.init journey
                     , connections = newConnections
                 }
-                    ! (if updateUrl then
-                        [ Navigation.newUrl (toUrl (ConnectionDetails idx)) ]
-                       else
-                        []
-                      )
+                    ! [ navigationCmd
+                      , MapConnectionOverlay.showOverlay j
+                      ]
 
             Nothing ->
                 closeSelectedConnection updateUrl model
@@ -633,10 +638,15 @@ selectConnection updateUrl model idx =
 
 closeSelectedConnection : Bool -> Model -> ( Model, Cmd Msg )
 closeSelectedConnection updateUrl model =
-    { model | selectedConnection = Nothing }
-        ! ([ Task.perform noop noop <| Scroll.toY "connections" model.connectionListScrollPos ]
-            ++ if updateUrl then
-                [ Navigation.newUrl (toUrl Connections) ]
-               else
-                []
-          )
+    let
+        navigationCmd =
+            if updateUrl then
+                Navigation.newUrl (toUrl Connections)
+            else
+                Cmd.none
+    in
+        { model | selectedConnection = Nothing }
+            ! [ Task.perform noop noop <| Scroll.toY "connections" model.connectionListScrollPos
+              , navigationCmd
+              , MapConnectionOverlay.hideOverlay
+              ]

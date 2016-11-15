@@ -1,4 +1,12 @@
-module Widgets.Map exposing (Model, Msg, init, view, update, subscriptions)
+module Widgets.Map
+    exposing
+        ( Model
+        , Msg
+        , init
+        , view
+        , update
+        , subscriptions
+        )
 
 import Html exposing (Html, Attribute, div, text)
 import Html.Attributes exposing (..)
