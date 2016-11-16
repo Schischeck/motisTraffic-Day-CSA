@@ -92,10 +92,10 @@ init flags _ =
             Map.init
 
         ( fromLocationModel, fromLocationCmd ) =
-            Typeahead.init remoteAddress "Luisenplatz, Darmstadt"
+            Typeahead.init remoteAddress "Bahra An der Brücke, Bad Gottleuba-Berggießhübel"
 
         ( toLocationModel, toLocationCmd ) =
-            Typeahead.init remoteAddress "Hamburg Berliner Tor"
+            Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
     in
         ( { fromLocation = fromLocationModel
           , toLocation = toLocationModel

@@ -494,6 +494,7 @@
 
 .train-detail .stop {
   margin-bottom: 1em;
+  display: flex;
 }
 
 .train-detail .stop span {
@@ -605,13 +606,22 @@
 .train-detail .stop .time {
   font-weight: bold;
   width: 4em;
+  flex: 0 0 4em;
   display: inline-block;
 }
 
 .train-detail .stop .delay {
   font-weight: bold;
   width: 4em;
+  flex: 0 0 4em;
   display: inline-block;
+}
+
+.train-detail .stop .station {
+  flex: 1 1 auto;
+  /*white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;*/
 }
 
 .connection-details {
