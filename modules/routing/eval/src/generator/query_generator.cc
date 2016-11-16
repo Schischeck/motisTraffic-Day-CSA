@@ -209,12 +209,14 @@ std::pair<std::string, std::string> random_station_ids(
   auto motis_interval_end = unix_to_motistime(sched, interval_end);
   if (motis_interval_start == INVALID_TIME ||
       motis_interval_end == INVALID_TIME) {
-    printf("schedule: %d - %d\n", sched.schedule_begin_, sched.schedule_end_);
-    printf("interval_start = %d -> %s\n", interval_start,
-           format_time(motis_interval_start).c_str());
-    printf("interval_end = %d -> %s\n", interval_end,
-           format_time(motis_interval_end).c_str());
-    assert(false);
+    std::cout << "ERROR: generated timestamp not valid:\n";
+    std::cout << "  schedule range: " << sched.schedule_begin_ << " - "
+              << sched.schedule_end_ << "\n";
+    std::cout << "  interval_start = " << interval_start << " ("
+              << format_time(motis_interval_start) << ")\n";
+    std::cout << "  interval_end = " << interval_end << " ("
+              << format_time(motis_interval_end) << ")\n";
+    std::terminate();
   }
   do {
     from = sched.stations_
@@ -266,7 +268,7 @@ int main(int argc, char** argv) {
 
   std::vector<station_node const*> station_nodes;
   if (generator_opt.large_stations_) {
-    constexpr auto NUM_STATIONS = 1000ul;
+    auto const num_stations = 1000ul;
     auto stations = transform_to_vec(
         sched.stations_, [](station_ptr const& s) { return s.get(); });
 
@@ -284,7 +286,7 @@ int main(int argc, char** argv) {
                 return sizes[a->index_] > sizes[b->index_];
               });
 
-    auto const n = std::min(NUM_STATIONS, stations.size());
+    auto const n = std::min(num_stations, stations.size());
     for (auto i = 0ul; i < n; ++i) {
       station_nodes.push_back(
           sched.station_nodes_.at(stations[i]->index_).get());
