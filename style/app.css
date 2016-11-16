@@ -283,15 +283,15 @@
   position: absolute;
   top: 22px; left: 0;
   opacity: 0;
-  width: 200px;
-  font-size: 13px;
+  width: 240px;
   line-height: 1.5em;
   padding: 0.5em 0.8em;
-  /*background: rgba(0,0,0,0.8);*/
-  /*background: rgba(109, 141, 236, 0.8);*/
-  background: #6D8DEC;
-  border-radius: 5px;
-  color: #fff;
+  font-size: 12px;
+  background: #fff;
+  color: #777;
+  border: 1px solid #BBB;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  border-radius: 2px;
   pointer-events: none; /* This prevents the box from apearing when hovered. */
   transition: opacity 250ms, top 250ms;
 }
@@ -304,8 +304,7 @@
   opacity: 0;
   width: 0; height: 0;
   border: solid transparent 5px;
-  /*border-bottom-color: rgba(0,0,0,0.8);*/
-  border-bottom-color: #6D8DEC;
+  border-bottom-color: #fff;
   transition: opacity 250ms, top 250ms;
 }
 
