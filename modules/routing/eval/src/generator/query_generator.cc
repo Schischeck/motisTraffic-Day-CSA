@@ -268,7 +268,8 @@ int main(int argc, char** argv) {
 
   std::vector<station_node const*> station_nodes;
   if (generator_opt.large_stations_) {
-    auto const num_stations = 1000ul;
+    auto const num_stations = 1000;
+
     auto stations = transform_to_vec(
         sched.stations_, [](station_ptr const& s) { return s.get(); });
 
@@ -286,8 +287,8 @@ int main(int argc, char** argv) {
                 return sizes[a->index_] > sizes[b->index_];
               });
 
-    auto const n = std::min(num_stations, stations.size());
-    for (auto i = 0ul; i < n; ++i) {
+    auto const n = std::min(static_cast<size_t>(num_stations), stations.size());
+    for (auto i = 0u; i < n; ++i) {
       station_nodes.push_back(
           sched.station_nodes_.at(stations[i]->index_).get());
     }
