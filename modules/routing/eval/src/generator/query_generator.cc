@@ -10,6 +10,7 @@
 #include "conf/options_parser.h"
 
 #include "motis/core/schedule/time.h"
+#include "motis/core/access/time_access.h"
 #include "motis/module/message.h"
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/motis_instance.h"
@@ -24,14 +25,16 @@ using namespace motis::routing;
 #define QUERY_COUNT "query_count"
 #define TARGET_FILE_FWD "target_file_fwd"
 #define TARGET_FILE_BWD "target_file_bwd"
+#define LARGE_STATIONS "large_stations"
 
 class generator_settings : public conf::configuration {
 public:
   generator_settings(int query_count, std::string target_file,
-                     std::string target_file_bwd)
+                     std::string target_file_bwd, bool large_stations)
       : query_count_(query_count),
         target_file_fwd_(std::move(target_file)),
-        target_file_bwd_(std::move(target_file_bwd)) {}
+        target_file_bwd_(std::move(target_file_bwd)),
+        large_stations_(large_stations) {}
 
   ~generator_settings() override = default;
 
@@ -47,7 +50,10 @@ public:
           "file to write generated queries to")
       (TARGET_FILE_BWD,
           po::value<std::string>(&target_file_bwd_)->default_value(target_file_bwd_),
-          "file to write generated queries to");
+          "file to write generated queries to")
+      (LARGE_STATIONS,
+          po::value<bool>(&large_stations_)->default_value(large_stations_),
+          "use only large stations");
     // clang-format on
     return desc;
   }
@@ -55,12 +61,14 @@ public:
   void print(std::ostream& out) const override {
     out << "  " << QUERY_COUNT << ": " << query_count_ << "\n"
         << "  " << TARGET_FILE_FWD << ": " << target_file_fwd_ << "\n"
-        << "  " << TARGET_FILE_BWD << ": " << target_file_bwd_;
+        << "  " << TARGET_FILE_BWD << ": " << target_file_bwd_ << "\n"
+        << "  " << LARGE_STATIONS << ": " << large_stations_;
   }
 
   int query_count_;
   std::string target_file_fwd_;
   std::string target_file_bwd_;
+  bool large_stations_;
 };
 
 struct search_interval_generator {
@@ -180,30 +188,45 @@ bool has_events(station_node const& s, motis::time from, motis::time to) {
   return false;
 }
 
-std::string random_station_id(schedule const& sched, time_t interval_start,
-                              time_t interval_end) {
-  auto first = std::next(begin(sched.station_nodes_), 2);
-  auto last = end(sched.station_nodes_);
-
-  auto motis_interval_start =
-      unix_to_motistime(sched.schedule_begin_, interval_start);
-  auto motis_interval_end =
-      unix_to_motistime(sched.schedule_begin_, interval_end);
+int random_station_id(std::vector<station_node const*> const& station_nodes,
+                      time_t motis_interval_start, time_t motis_interval_end) {
+  auto first = std::next(begin(station_nodes), 2);
+  auto last = end(station_nodes);
 
   station_node const* s;
   do {
-    s = rand_in(first, last)->get();
+    s = *rand_in(first, last);
   } while (!has_events(*s, motis_interval_start, motis_interval_end));
-  return sched.stations_[s->id_]->eva_nr_;
+  return s->id_;
 }
 
-std::pair<std::string, std::string> random_station_ids(schedule const& sched,
-                                                       time_t interval_start,
-                                                       time_t interval_end) {
+std::pair<std::string, std::string> random_station_ids(
+    schedule const& sched,
+    std::vector<station_node const*> const& station_nodes,
+    time_t interval_start, time_t interval_end) {
   std::string from, to;
+  auto motis_interval_start = unix_to_motistime(sched, interval_start);
+  auto motis_interval_end = unix_to_motistime(sched, interval_end);
+  if (motis_interval_start == INVALID_TIME ||
+      motis_interval_end == INVALID_TIME) {
+    std::cout << "ERROR: generated timestamp not valid:\n";
+    std::cout << "  schedule range: " << sched.schedule_begin_ << " - "
+              << sched.schedule_end_ << "\n";
+    std::cout << "  interval_start = " << interval_start << " ("
+              << format_time(motis_interval_start) << ")\n";
+    std::cout << "  interval_end = " << interval_end << " ("
+              << format_time(motis_interval_end) << ")\n";
+    std::terminate();
+  }
   do {
-    from = random_station_id(sched, interval_start, interval_end);
-    to = random_station_id(sched, interval_start, interval_end);
+    from = sched.stations_
+               .at(random_station_id(station_nodes, motis_interval_start,
+                                     motis_interval_end))
+               ->eva_nr_;
+    to = sched.stations_
+             .at(random_station_id(station_nodes, motis_interval_start,
+                                   motis_interval_end))
+             ->eva_nr_;
   } while (from == to);
   return std::make_pair(from, to);
 }
@@ -211,7 +234,8 @@ std::pair<std::string, std::string> random_station_ids(schedule const& sched,
 int main(int argc, char** argv) {
   dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, false, false,
                                false);
-  generator_settings generator_opt(1000, "queries_fwd.txt", "queries_bwd.txt");
+  generator_settings generator_opt(1000, "queries_fwd.txt", "queries_bwd.txt",
+                                   false);
 
   conf::options_parser parser({&dataset_opt, &generator_opt});
   parser.read_command_line_args(argc, argv);
@@ -242,9 +266,43 @@ int main(int argc, char** argv) {
       sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60,
       sched.schedule_end_);
 
+  std::vector<station_node const*> station_nodes;
+  if (generator_opt.large_stations_) {
+    auto const num_stations = 1000;
+
+    auto stations = transform_to_vec(
+        sched.stations_, [](station_ptr const& s) { return s.get(); });
+
+    std::vector<double> sizes(stations.size());
+    for (auto i = 0u; i < stations.size(); ++i) {
+      auto& factor = sizes[i];
+      auto const& events = stations[i]->dep_class_events_;
+      for (unsigned i = 0; i < events.size(); ++i) {
+        factor += std::pow(10, (9 - i) / 3) * events.at(i);
+      }
+    }
+
+    std::sort(begin(stations), end(stations),
+              [&](station const* a, station const* b) {
+                return sizes[a->index_] > sizes[b->index_];
+              });
+
+    auto const n = std::min(static_cast<size_t>(num_stations), stations.size());
+    for (auto i = 0u; i < n; ++i) {
+      station_nodes.push_back(
+          sched.station_nodes_.at(stations[i]->index_).get());
+    }
+  } else {
+    station_nodes =
+        transform_to_vec(sched.station_nodes_, [](station_node_ptr const& s) {
+          return static_cast<station_node const*>(s.get());
+        });
+  }
+
   for (int i = 1; i <= generator_opt.query_count_; ++i) {
     auto interval = interval_gen.random_interval();
-    auto evas = random_station_ids(sched, interval.first, interval.second);
+    auto evas = random_station_ids(sched, station_nodes, interval.first,
+                                   interval.second);
     out_fwd << query(i, interval.first, interval.second, evas.first,
                      evas.second, SearchDir_Forward)
             << "\n";
