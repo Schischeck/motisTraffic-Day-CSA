@@ -4,6 +4,7 @@ module Widgets.JourneyTransportGraph
         , Msg
         , init
         , update
+        , hideTooltips
         , view
         )
 
@@ -97,6 +98,11 @@ update msg model =
 
                 _ ->
                     model
+
+
+hideTooltips : Model -> Model
+hideTooltips model =
+    { model | hover = Nothing }
 
 
 

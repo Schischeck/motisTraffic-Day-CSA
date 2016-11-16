@@ -184,7 +184,14 @@ update msg model =
             { model | scheduleInfo = si } ! []
 
         ResetNew ->
-            { model | newJourneys = [] } ! []
+            { model
+                | newJourneys = []
+                , journeyTransportGraphs =
+                    List.map
+                        JourneyTransportGraph.hideTooltips
+                        model.journeyTransportGraphs
+            }
+                ! []
 
         JTGUpdate idx msg' ->
             { model
