@@ -22,6 +22,7 @@ import Data.Connection.Types exposing (Stop)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.List exposing (last)
 import Util.DateFormat exposing (formatTime)
+import Util.Core exposing ((=>))
 import Localization.Base exposing (..)
 
 
@@ -117,10 +118,10 @@ view locale model =
 graphView : Localization -> Model -> Html Msg
 graphView locale model =
     div [ class "transport-graph" ]
-        [ transportsView locale model ]
+        (transportsView locale model)
 
 
-transportsView : Localization -> Model -> Svg Msg
+transportsView : Localization -> Model -> List (Html Msg)
 transportsView locale model =
     let
         isHovered displayPart =
@@ -136,15 +137,16 @@ transportsView locale model =
                 (\p -> partView locale model.totalWidth (isHovered p) p)
                 model.displayParts
     in
-        svg
+        [ svg
             [ width (toString model.totalWidth)
             , height (toString totalHeight)
             , viewBox <| "0 0 " ++ (toString model.totalWidth) ++ " " ++ (toString totalHeight)
             ]
             [ g [] (List.map fst renderedParts)
             , destinationView model.totalWidth
-            , g [] (List.map snd renderedParts)
             ]
+        ]
+            ++ (List.map snd renderedParts)
 
 
 destinationView : Int -> Svg msg
@@ -159,7 +161,7 @@ destinationView totalWidth =
         ]
 
 
-partView : Localization -> Int -> Bool -> DisplayPart -> ( Svg Msg, Svg Msg )
+partView : Localization -> Int -> Bool -> DisplayPart -> ( Svg Msg, Html Msg )
 partView locale totalWidth tooltipVisible displayPart =
     let
         { part, position, barLength, nameDisplayType } =
@@ -177,17 +179,16 @@ partView locale totalWidth tooltipVisible displayPart =
         trainName =
             case nameDisplayType of
                 LongName ->
-                    [ text'
+                    text'
                         [ x (toString <| position)
                         , y (toString <| textOffset + textHeight)
                         , textAnchor "start"
                         , class "train-name"
                         ]
                         [ text part.longName ]
-                    ]
 
                 NoName ->
-                    []
+                    text ""
 
         graphPart =
             g
@@ -217,59 +218,7 @@ partView locale totalWidth tooltipVisible displayPart =
                     , height (toString <| iconSize)
                     ]
                     []
-                ]
-                    ++ trainName
-
-        tooltipX =
-            Basics.min position ((toFloat totalWidth) - tooltipWidth)
-
-        tooltipVisiblity =
-            if tooltipVisible then
-                "visible"
-            else
-                "hidden"
-
-        tooltipTransportName =
-            if part.icon == "walk" then
-                locale.t.connections.walk
-            else
-                part.longName
-
-        tooltip =
-            g []
-                [ g
-                    [ visibility tooltipVisiblity
-                    , class "tooltip"
-                    ]
-                    [ switch []
-                        [ foreignObject
-                            [ x (tooltipX |> toString)
-                            , y (textOffset - 5 |> toString)
-                            , width (tooltipWidth |> toString)
-                            , height "50"
-                            ]
-                            [ Html.div
-                                [ Html.Attributes.class "tooltip" ]
-                                [ Html.div [ Html.Attributes.class "stations" ]
-                                    [ Html.div [ Html.Attributes.class "departure" ]
-                                        [ Html.span [ Html.Attributes.class "station" ]
-                                            [ text part.departureStation ]
-                                        , Html.span [ Html.Attributes.class "time" ]
-                                            [ text (formatTime part.departureTime) ]
-                                        ]
-                                    , Html.div [ Html.Attributes.class "arrival" ]
-                                        [ Html.span [ Html.Attributes.class "station" ]
-                                            [ text part.arrivalStation ]
-                                        , Html.span [ Html.Attributes.class "time" ]
-                                            [ text (formatTime part.arrivalTime) ]
-                                        ]
-                                    ]
-                                , Html.div [ Html.Attributes.class "transport-name" ]
-                                    [ Html.span [] [ Html.text tooltipTransportName ] ]
-                                ]
-                            ]
-                        ]
-                    ]
+                , trainName
                 , rect
                     [ x (position |> toString)
                     , y "0"
@@ -280,6 +229,47 @@ partView locale totalWidth tooltipVisible displayPart =
                     , onMouseOut (MouseOut displayPart)
                     ]
                     []
+                ]
+
+        tooltipX =
+            Basics.min position ((toFloat totalWidth) - tooltipWidth)
+
+        tooltipTransportName =
+            if part.icon == "walk" then
+                locale.t.connections.walk
+            else
+                part.longName
+
+        tooltip =
+            Html.div
+                [ Html.Attributes.classList
+                    [ "tooltip" => True
+                    , "visible" => tooltipVisible
+                    ]
+                , Html.Attributes.style
+                    [ "position" => "absolute"
+                    , "left" => ((toString tooltipX) ++ "px")
+                    , "top" => ((toString (textOffset - 5)) ++ "px")
+                    , "width" => (toString tooltipWidth)
+                    , "height" => "50"
+                    ]
+                ]
+                [ Html.div [ Html.Attributes.class "stations" ]
+                    [ Html.div [ Html.Attributes.class "departure" ]
+                        [ Html.span [ Html.Attributes.class "station" ]
+                            [ text part.departureStation ]
+                        , Html.span [ Html.Attributes.class "time" ]
+                            [ text (formatTime part.departureTime) ]
+                        ]
+                    , Html.div [ Html.Attributes.class "arrival" ]
+                        [ Html.span [ Html.Attributes.class "station" ]
+                            [ text part.arrivalStation ]
+                        , Html.span [ Html.Attributes.class "time" ]
+                            [ text (formatTime part.arrivalTime) ]
+                        ]
+                    ]
+                , Html.div [ Html.Attributes.class "transport-name" ]
+                    [ Html.span [] [ Html.text tooltipTransportName ] ]
                 ]
     in
         ( graphPart, tooltip )
