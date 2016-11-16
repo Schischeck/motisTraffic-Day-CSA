@@ -490,7 +490,7 @@ connectionView (Config { internalMsg, selectMsg }) locale idx new j jtg =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-16-24 connection-trains" ]
-                [ Html.App.map (\m -> internalMsg (JTGUpdate idx m)) <| JourneyTransportGraph.view jtg ]
+                [ Html.App.map (\m -> internalMsg (JTGUpdate idx m)) <| JourneyTransportGraph.view locale jtg ]
             ]
         ]
 

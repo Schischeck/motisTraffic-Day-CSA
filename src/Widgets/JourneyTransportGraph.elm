@@ -21,6 +21,7 @@ import Data.Connection.Types exposing (Stop)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.List exposing (last)
 import Util.DateFormat exposing (formatTime)
+import Localization.Base exposing (..)
 
 
 -- MODEL
@@ -102,19 +103,19 @@ update msg model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    Html.Lazy.lazy graphView model
+view : Localization -> Model -> Html Msg
+view locale model =
+    Html.Lazy.lazy2 graphView locale model
 
 
-graphView : Model -> Html Msg
-graphView model =
+graphView : Localization -> Model -> Html Msg
+graphView locale model =
     div [ class "transport-graph" ]
-        [ transportsView model ]
+        [ transportsView locale model ]
 
 
-transportsView : Model -> Svg Msg
-transportsView model =
+transportsView : Localization -> Model -> Svg Msg
+transportsView locale model =
     let
         isHovered displayPart =
             case model.hover of
@@ -126,7 +127,7 @@ transportsView model =
 
         renderedParts =
             List.map
-                (\p -> partView model.totalWidth (isHovered p) p)
+                (\p -> partView locale model.totalWidth (isHovered p) p)
                 model.displayParts
     in
         svg
@@ -152,8 +153,8 @@ destinationView totalWidth =
         ]
 
 
-partView : Int -> Bool -> DisplayPart -> ( Svg Msg, Svg Msg )
-partView totalWidth tooltipVisible displayPart =
+partView : Localization -> Int -> Bool -> DisplayPart -> ( Svg Msg, Svg Msg )
+partView locale totalWidth tooltipVisible displayPart =
     let
         { part, position, barLength, nameDisplayType } =
             displayPart
@@ -222,6 +223,12 @@ partView totalWidth tooltipVisible displayPart =
             else
                 "hidden"
 
+        tooltipTransportName =
+            if part.icon == "walk" then
+                locale.t.connections.walk
+            else
+                part.longName
+
         tooltip =
             g []
                 [ g
@@ -252,7 +259,7 @@ partView totalWidth tooltipVisible displayPart =
                                         ]
                                     ]
                                 , Html.div [ Html.Attributes.class "transport-name" ]
-                                    [ Html.span [] [ Html.text part.longName ] ]
+                                    [ Html.span [] [ Html.text tooltipTransportName ] ]
                                 ]
                             ]
                         ]

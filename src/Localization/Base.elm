@@ -47,5 +47,6 @@ type alias Translations =
         , tripIntermediateStops : Int -> String
         , tripWalk : String -> String
         , provider : String
+        , walk : String
         }
     }
