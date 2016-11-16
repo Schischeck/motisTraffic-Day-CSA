@@ -19,7 +19,7 @@
   color: #000;
 }
 
-.transport-graph .background {
+.transport-graph .tooltipTrigger {
   fill: #fff;
   opacity: 0;
 }

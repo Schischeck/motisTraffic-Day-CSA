@@ -1,4 +1,11 @@
-module Widgets.JourneyTransportGraph exposing (view)
+module Widgets.JourneyTransportGraph
+    exposing
+        ( Model
+        , Msg
+        , init
+        , update
+        , view
+        )
 
 import String
 import Html exposing (Html, div)
@@ -6,14 +13,24 @@ import Html.Attributes
 import Html.Lazy
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Svg.Events exposing (..)
 import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Data.Journey.Types as Journey exposing (Journey, Train, JourneyWalk)
 import Data.Connection.Types exposing (Stop)
 import Widgets.Helpers.ConnectionUtil exposing (..)
-import Util.Core exposing ((=>))
 import Util.List exposing (last)
 import Util.DateFormat exposing (formatTime)
+
+
+-- MODEL
+
+
+type alias Model =
+    { displayParts : List DisplayPart
+    , totalWidth : Int
+    , hover : Maybe DisplayPart
+    }
 
 
 type alias Part =
@@ -42,37 +59,83 @@ type NameDisplayType
     | NoName
 
 
+init : Int -> Journey -> Model
+init totalWidth journey =
+    let
+        parts =
+            journeyParts journey |> layoutParts totalWidth LongName
+    in
+        { displayParts = parts
+        , totalWidth = totalWidth
+        , hover = Nothing
+        }
+
+
+
+-- UPDATE
+
+
+type Msg
+    = MouseOver DisplayPart
+    | MouseOut DisplayPart
+
+
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        MouseOver part ->
+            { model | hover = Just part }
+
+        MouseOut part ->
+            case model.hover of
+                Just hoveredPart ->
+                    if hoveredPart == part then
+                        { model | hover = Nothing }
+                    else
+                        model
+
+                _ ->
+                    model
+
+
 
 -- VIEW
 
 
-view : Int -> String -> Journey -> Html msg
-view totalWidth idBase journey =
-    Html.Lazy.lazy3 graphView totalWidth idBase journey
+view : Model -> Html Msg
+view model =
+    Html.Lazy.lazy graphView model
 
 
-graphView : Int -> String -> Journey -> Html msg
-graphView totalWidth idBase journey =
+graphView : Model -> Html Msg
+graphView model =
     div [ class "transport-graph" ]
-        [ transportsView totalWidth idBase journey ]
+        [ transportsView model ]
 
 
-transportsView : Int -> String -> Journey -> Svg msg
-transportsView totalWidth idBase journey =
+transportsView : Model -> Svg Msg
+transportsView model =
     let
-        parts =
-            journeyParts journey |> layoutParts totalWidth LongName
+        isHovered displayPart =
+            case model.hover of
+                Just hoveredPart ->
+                    hoveredPart == displayPart
+
+                Nothing ->
+                    False
 
         renderedParts =
-            List.map (partView totalWidth idBase) parts
+            List.map
+                (\p -> partView model.totalWidth (isHovered p) p)
+                model.displayParts
     in
         svg
-            [ width (toString totalWidth)
+            [ width (toString model.totalWidth)
             , height (toString totalHeight)
-            , viewBox <| "0 0 " ++ (toString totalWidth) ++ " " ++ (toString totalHeight)
+            , viewBox <| "0 0 " ++ (toString model.totalWidth) ++ " " ++ (toString totalHeight)
             ]
             [ g [] (List.map fst renderedParts)
-            , destinationView totalWidth
+            , destinationView model.totalWidth
             , g [] (List.map snd renderedParts)
             ]
 
@@ -89,9 +152,12 @@ destinationView totalWidth =
         ]
 
 
-partView : Int -> String -> DisplayPart -> ( Svg msg, Svg msg )
-partView totalWidth idBase { part, position, barLength, nameDisplayType } =
+partView : Int -> Bool -> DisplayPart -> ( Svg Msg, Svg Msg )
+partView totalWidth tooltipVisible displayPart =
     let
+        { part, position, barLength, nameDisplayType } =
+            displayPart
+
         radius =
             toString circleRadius
 
@@ -115,9 +181,6 @@ partView totalWidth idBase { part, position, barLength, nameDisplayType } =
 
                 NoName ->
                     []
-
-        elementId =
-            idBase ++ "_" ++ (position |> floor |> toString)
 
         graphPart =
             g
@@ -153,10 +216,16 @@ partView totalWidth idBase { part, position, barLength, nameDisplayType } =
         tooltipX =
             Basics.min position ((toFloat totalWidth) - tooltipWidth)
 
+        tooltipVisiblity =
+            if tooltipVisible then
+                "visible"
+            else
+                "hidden"
+
         tooltip =
             g []
                 [ g
-                    [ visibility "hidden"
+                    [ visibility tooltipVisiblity
                     , class "tooltip"
                     ]
                     [ switch []
@@ -187,22 +256,15 @@ partView totalWidth idBase { part, position, barLength, nameDisplayType } =
                                 ]
                             ]
                         ]
-                    , set
-                        [ attributeName "visibility"
-                        , from "hidden"
-                        , to "visible"
-                        , begin (elementId ++ ".mouseover")
-                        , end (elementId ++ ".mouseout")
-                        ]
-                        []
                     ]
                 , rect
                     [ x (position |> toString)
                     , y "0"
                     , width (position + partWidth |> toString)
                     , height (circleRadius * 2 |> toString)
-                    , class "background"
-                    , id elementId
+                    , class "tooltipTrigger"
+                    , onMouseOver (MouseOver displayPart)
+                    , onMouseOut (MouseOut displayPart)
                     ]
                     []
                 ]
