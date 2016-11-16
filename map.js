@@ -58,12 +58,12 @@ var MapOverlays = {
   _overlays: [],
 
   setOverlays: function(map, specs) {
-    MapOverlays.clearOverlays();
-    MapOverlays._overlays = specs.map(MapOverlays._createOverlay);
-    MapOverlays._overlays.forEach(function(overlay) { overlay.addTo(map); });
+    this.clearOverlays();
+    this._overlays = specs.map(this._createOverlay);
+    this._overlays.forEach(function(overlay) { overlay.addTo(map); });
 
     var bounds = L.latLngBounds([]);
-    MapOverlays._overlays.forEach(function(overlay) {
+    this._overlays.forEach(function(overlay) {
       if (overlay.getBounds) {
         bounds.extend(overlay.getBounds());
       }
@@ -72,8 +72,8 @@ var MapOverlays = {
   },
 
   clearOverlays: function() {
-    MapOverlays._overlays.forEach(function(overlay) { overlay.remove(); });
-    MapOverlays._overlays = [];
+    this._overlays.forEach(function(overlay) { overlay.remove(); });
+    this._overlays = [];
   },
 
   _createOverlay: function(spec) {
