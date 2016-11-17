@@ -8,6 +8,7 @@
 
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/conv/event_type_conv.h"
 
 #include "motis/rt/find_trip_fuzzy.h"
 
@@ -15,6 +16,17 @@ namespace motis {
 namespace rt {
 
 struct event_info {
+  event_info(uint32_t station_idx, time sched_time, event_type ev_type)
+      : station_idx_(station_idx), sched_time_(sched_time), ev_type_(ev_type) {}
+
+  friend bool operator<(event_info const& a, event_info const& b) {
+    // For correct event chains: arrivals first.
+    auto const a_is_dep = (a.ev_type_ == event_type::DEP);
+    auto const b_is_dep = (b.ev_type_ == event_type::DEP);
+    return std::tie(a.sched_time_, a.station_idx_, a_is_dep) <
+           std::tie(b.sched_time_, b.station_idx_, b_is_dep);
+  }
+
   uint32_t station_idx_;
   time sched_time_;
   event_type ev_type_;
@@ -102,6 +114,12 @@ inline std::vector<boost::optional<ev_key>> resolve_events(
   if (trp == nullptr) {
     return {};
   }
+  return resolve_to_ev_keys(sched, trp, resolve_event_info(sched, evs));
+}
+
+inline std::vector<boost::optional<ev_key>> resolve_events(
+    schedule const& sched, trip const* trp,
+    std::vector<ris::Event const*> const& evs) {
   return resolve_to_ev_keys(sched, trp, resolve_event_info(sched, evs));
 }
 

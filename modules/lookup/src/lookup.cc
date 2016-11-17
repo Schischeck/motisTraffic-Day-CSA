@@ -1,6 +1,9 @@
 #include "motis/lookup/lookup.h"
 
+#include "motis/core/access/time_access.h"
+
 #include "motis/module/context/get_schedule.h"
+
 #include "motis/lookup/error.h"
 #include "motis/lookup/lookup_geo_station.h"
 #include "motis/lookup/lookup_id_train.h"
@@ -129,7 +132,10 @@ msg_ptr lookup::lookup_schedule_info() const {
   message_creator b;
   b.create_and_finish(
       MsgContent_LookupScheduleInfoResponse,
-      CreateLookupScheduleInfoResponse(b, b.CreateString(sched.name_)).Union());
+      CreateLookupScheduleInfoResponse(b, b.CreateString(sched.name_),
+                                       external_schedule_begin(sched),
+                                       external_schedule_end(sched))
+          .Union());
   return make_msg(b);
 }
 

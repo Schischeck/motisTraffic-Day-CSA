@@ -15,6 +15,8 @@
 #include "parser/cstr.h"
 #include "parser/file.h"
 
+#include "motis/core/common/transform_to_vec.h"
+
 namespace motis {
 namespace loader {
 
@@ -47,14 +49,10 @@ flatbuffers64::Offset<flatbuffers64::String> to_fbs_string(
                                        std::distance(out_begin, out)));
 }
 
-template <typename IndexType, typename ValueType>
-inline std::vector<ValueType> values(std::map<IndexType, ValueType> const& m) {
-  std::vector<ValueType> v(m.size());
-  std::transform(begin(m), end(m), begin(v),
-                 [](std::pair<IndexType, ValueType> const& entry) {
-                   return entry.second;
-                 });
-  return v;
+template <typename MapType>
+inline std::vector<typename MapType::value_type::second_type> values(
+    MapType const& m) {
+  return transform_to_vec(m, [](auto&& el) { return el.second; });
 }
 
 template <typename IntType>
@@ -72,7 +70,7 @@ inline It find_nth(It begin, It end, std::size_t n, Predicate fun) {
   while (it != end && num_elements_found != n) {
     it = std::find_if(it, end, fun);
     ++num_elements_found;
-    if (num_elements_found != n) {
+    if (it != end && num_elements_found != n) {
       ++it;
     }
   }

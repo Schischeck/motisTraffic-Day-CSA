@@ -206,7 +206,7 @@ struct graph_builder {
       int route_index, std::vector<light_connection> const& connections,
       Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
       Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
-      route_section prev_section, route_section next_section);
+      node* from_route_node, node* to_route_node);
 
   unsigned duplicate_count_;
   unsigned lcon_count_;

@@ -39,7 +39,6 @@ struct motis_instance_test : public ::testing::Test {
       std::vector<module::msg_ptr>*);
 
   schedule const& sched() const { return *instance_->sched_; }
-  schedule& sched() { return *instance_->sched_; }
 
   std::time_t unix_time(int hhmm, int day_idx = 0,
                         int timezone_offset = kDefaultTimezoneOffset) const {
@@ -47,17 +46,16 @@ struct motis_instance_test : public ::testing::Test {
   }
 
   template <typename Module>
-  Module& get_module(std::string const module_name) {
+  Module& get_module(std::string const& module_name) {
     auto it = std::find_if(
         instance_->modules_.begin(), instance_->modules_.end(),
-        [module_name](auto const& m) { return m->name() == module_name; });
+        [&module_name](auto const& m) { return m->name() == module_name; });
     if (it == instance_->modules_.end()) {
       throw std::runtime_error("module not found");
     }
     return *reinterpret_cast<Module*>(it->get());
   }
 
-private:
   bootstrap::motis_instance_ptr instance_;
 };
 

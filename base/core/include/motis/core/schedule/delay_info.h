@@ -96,7 +96,7 @@ struct delay_info {
     }
   }
 
-  inline ev_key get_ev_key() const { return ev_; }
+  inline ev_key const& get_ev_key() const { return ev_; }
 
   inline void set_ev_key(ev_key const& k) { ev_ = k; }
 

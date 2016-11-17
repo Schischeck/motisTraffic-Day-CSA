@@ -9,7 +9,6 @@
 #include "motis/core/common/util.h"
 
 #define MODE "mode"
-#define MODULES "modules"
 #define MODE_BATCH "batch"
 #define MODE_SERVER "server"
 #define MODE_TEST "test"

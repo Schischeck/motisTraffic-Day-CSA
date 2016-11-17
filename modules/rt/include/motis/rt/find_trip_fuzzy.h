@@ -1,6 +1,7 @@
 #pragma once
 
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/trip_access.h"
 
 #include "motis/protocol/RISMessage_generated.h"
 

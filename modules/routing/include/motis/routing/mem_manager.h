@@ -20,6 +20,9 @@ public:
   void reset() {
     allocator_.reset();
     used_size_ = 0;
+    for (auto& labels : node_labels_) {
+      labels.clear();
+    }
   }
 
   template <typename T, typename... Args>
@@ -45,12 +48,20 @@ public:
     return stats;
   }
 
+  template <typename T>
+  std::vector<std::vector<T*>>* get_node_labels(std::size_t size) {
+    node_labels_.resize(size);
+    return reinterpret_cast<std::vector<std::vector<T*>>*>(&node_labels_);
+  }
+
 private:
   freelist_allocator<in_block_allocator<
       increasing_block_allocator<default_allocator, 16 * 1024 * 1024>>>
       allocator_;
   std::size_t used_size_;
   std::size_t max_size_;
+
+  std::vector<std::vector<void*>> node_labels_;
 };
 
 }  // namespace routing

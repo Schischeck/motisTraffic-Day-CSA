@@ -36,8 +36,11 @@ struct connection_info {
         hash_combine(seed, attr);
       }
       hash_combine(seed, c.line_identifier_);
+      hash_combine(seed, c.dir_);
+      hash_combine(seed, c.provider_);
       hash_combine(seed, c.family_);
       hash_combine(seed, c.train_nr_);
+      hash_combine(seed, c.original_train_nr_);
       hash_combine(seed, c.merged_with_);
       return seed;
     }
@@ -51,16 +54,19 @@ struct connection_info {
         original_train_nr_(0),
         merged_with_(nullptr) {}
 
-  bool operator==(connection_info const& o) const {
-    return train_nr_ == o.train_nr_ && family_ == o.family_ && dir_ == o.dir_ &&
-           line_identifier_ == o.line_identifier_ &&
-           attributes_ == o.attributes_ && merged_with_ == o.merged_with_;
+  friend bool operator==(connection_info const& a, connection_info const& b) {
+    return std::tie(a.attributes_, a.line_identifier_, a.dir_, a.provider_,
+                    a.family_, a.train_nr_, a.original_train_nr_,
+                    a.merged_with_) ==
+           std::tie(b.attributes_, b.line_identifier_, b.dir_, b.provider_,
+                    b.family_, b.train_nr_, b.original_train_nr_,
+                    b.merged_with_);
   }
 
   friend bool operator<(connection_info const& a, connection_info const& b) {
     return std::tie(a.attributes_, a.line_identifier_, a.dir_, a.provider_,
                     a.family_, a.train_nr_, a.original_train_nr_,
-                    a.merged_with_) ==
+                    a.merged_with_) <
            std::tie(b.attributes_, b.line_identifier_, b.dir_, b.provider_,
                     b.family_, b.train_nr_, b.original_train_nr_,
                     b.merged_with_);

@@ -39,7 +39,7 @@ struct journey {
   };
 
   struct stop {
-    bool interchange_;
+    bool exit_, enter_;
     std::string name_;
     std::string eva_no_;
     double lat_, lng_;

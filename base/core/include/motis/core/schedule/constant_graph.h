@@ -166,11 +166,6 @@ public:
     std::size_t operator()(label const& l) const { return l.dist_; }
   };
 
-  struct compare {
-    // not necessary
-    bool operator()(label const&, label const&) { return false; }
-  };
-
   enum : dist_t { UNREACHABLE = std::numeric_limits<dist_t>::max() };
 
   constant_graph_dijkstra(
@@ -220,7 +215,7 @@ public:
   inline bool is_reachable(dist_t val) { return val != UNREACHABLE; }
 
   std::vector<std::vector<simple_edge>> const& graph_;
-  dial<label, MaxValue, get_bucket, compare, false> pq_;
+  dial<label, MaxValue, get_bucket> pq_;
   std::vector<dist_t> dists_;
   hash_map<int, std::vector<simple_edge>> const& additional_edges_;
   MapNodeFn map_node_;

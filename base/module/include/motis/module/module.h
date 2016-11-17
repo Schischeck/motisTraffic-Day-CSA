@@ -17,21 +17,20 @@ namespace motis {
 namespace module {
 
 struct module : public conf::simple_config {
-  module(std::string name, std::string prefix)
+  explicit module(std::string name = "", std::string prefix = "")
       : simple_config(std::move(name), std::move(prefix)),
         schedule_(nullptr),
         ios_(nullptr) {}
 
-  module() : module("", "") {}
-
   ~module() override = default;
+
+  virtual std::string name() const { return prefix_; }
 
   void set_context(motis::schedule& schedule, boost::asio::io_service& ios) {
     schedule_ = &schedule;
     ios_ = &ios;
   }
 
-  virtual std::string name() const = 0;
   virtual void init(registry&) {}
 
 protected:

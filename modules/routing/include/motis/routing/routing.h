@@ -25,6 +25,7 @@ struct routing : public motis::module::module {
 private:
   motis::module::msg_ptr ontrip_train(motis::module::msg_ptr const&);
   motis::module::msg_ptr route(motis::module::msg_ptr const&);
+  motis::module::msg_ptr trip_to_connection(motis::module::msg_ptr const&);
 
   std::size_t max_label_bytes_;
   std::mutex mem_pool_mutex_;

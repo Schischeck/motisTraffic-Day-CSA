@@ -5,21 +5,22 @@
 namespace motis {
 namespace rt {
 
-std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir,
-                                bool with_through_edges) {
-  std::set<edge const*> visited;
-  std::queue<edge const*> q;
+std::set<trip::route_edge> route_bfs(ev_key const& k, bfs_direction const dir,
+                                     bool with_through_edges) {
+  std::set<trip::route_edge> visited;
+  std::queue<trip::route_edge> q;
 
   visited.insert(k.route_edge_);
   q.push(k.route_edge_);
 
   while (!q.empty()) {
-    auto const e = q.front();
+    auto const e = q.front().get_edge();
     q.pop();
 
     if (dir == bfs_direction::BOTH || dir == bfs_direction::BACKWARD) {
       for (auto const& in : e->from_->incoming_edges_) {
-        if (in->type() != edge::THROUGH_EDGE && in->empty()) {
+        if (in->type() != edge::THROUGH_EDGE &&
+            in->type() != edge::ROUTE_EDGE) {
           continue;
         }
 
@@ -31,7 +32,8 @@ std::set<edge const*> route_bfs(ev_key const& k, bfs_direction const dir,
 
     if (dir == bfs_direction::BOTH || dir == bfs_direction::FORWARD) {
       for (auto const& out : e->to_->edges_) {
-        if (out.type() != edge::THROUGH_EDGE && out.empty()) {
+        if (out.type() != edge::THROUGH_EDGE &&
+            out.type() != edge::ROUTE_EDGE) {
           continue;
         }
 
