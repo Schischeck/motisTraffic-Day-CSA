@@ -146,7 +146,7 @@ struct http_server::impl {
       } else if (!ec) {
         rep = reply::stock_reply(reply::ok);
       } else {
-        rep.content = ec.message();
+        rep.content = make_error_msg(ec)->to_json();
       }
       add_cors_headers(rep);
     } catch (...) {
