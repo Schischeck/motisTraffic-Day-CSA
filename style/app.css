@@ -283,7 +283,6 @@
   position: absolute;
   top: 22px; left: 0;
   opacity: 0;
-  width: 240px;
   line-height: 1.5em;
   padding: 0.5em 0.8em;
   font-size: 12px;
@@ -294,6 +293,7 @@
   border-radius: 2px;
   pointer-events: none; /* This prevents the box from apearing when hovered. */
   transition: opacity 250ms, top 250ms;
+  white-space: nowrap;
 }
 
 .train-box.with-provider-info::before {
