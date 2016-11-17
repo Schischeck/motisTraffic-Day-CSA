@@ -3,8 +3,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <algorithm>
-#include <list>
-#include <memory>
+#include <vector>
 
 namespace motis {
 namespace routing {
@@ -140,7 +139,7 @@ private:
   mem_stats stats_;
   BaseAllocator parent_;
   std::size_t next_size_;
-  std::list<memory_block> allocated_blocks_;
+  std::vector<memory_block> allocated_blocks_;
 };
 
 template <typename BaseAllocator>
