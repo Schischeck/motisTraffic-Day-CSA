@@ -29,6 +29,8 @@ import Dom.Scroll as Scroll
 import Task
 import String
 import Navigation exposing (Location)
+import UrlParser
+import Routes exposing (..)
 import Debounce
 import Maybe.Extra exposing (isJust)
 
@@ -119,6 +121,7 @@ init flags _ =
             , Cmd.map FromLocationUpdate fromLocationCmd
             , Cmd.map ToLocationUpdate toLocationCmd
             , requestScheduleInfo remoteAddress
+            , Navigation.modifyUrl (toUrl Connections)
             ]
         )
 
@@ -150,6 +153,8 @@ type Msg
     | ScheduleInfoResponse ScheduleInfo
     | Deb (Debounce.Msg Msg)
     | SetLocale Localization
+    | NavigateTo Route
+    | ReplaceLocation Route
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -234,7 +239,7 @@ update msg model =
         PrepareSelectConnection idx ->
             let
                 selectMsg =
-                    SelectConnection idx
+                    NavigateTo (ConnectionDetails idx)
             in
                 model
                     ! [ Task.attempt
@@ -252,7 +257,7 @@ update msg model =
         SelectConnection idx ->
             let
                 ( m, c ) =
-                    selectConnection False model idx
+                    selectConnection model idx
             in
                 m
                     ! [ c
@@ -284,7 +289,7 @@ update msg model =
                 ( { model | selectedConnection = m }, Cmd.map ConnectionDetailsUpdate c )
 
         CloseConnectionDetails ->
-            closeSelectedConnection False model
+            closeSelectedConnection model
 
         ScheduleInfoError _ ->
             let
@@ -326,6 +331,12 @@ update msg model =
                 , date = Calendar.update (Calendar.SetDateConfig newLocale.dateConfig) model.date
             }
                 ! []
+
+        NavigateTo route ->
+            model ! [ Navigation.newUrl (toUrl route) ]
+
+        ReplaceLocation route ->
+            model ! [ Navigation.modifyUrl (toUrl route) ]
 
 
 requestScheduleInfo : String -> Cmd Msg
@@ -548,7 +559,6 @@ detailsConfig : ConnectionDetails.Config Msg
 detailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
-        , closeMsg = CloseConnectionDetails
         }
 
 
@@ -556,55 +566,28 @@ detailsConfig =
 -- NAVIGATION
 
 
-type Route
-    = Connections
-    | ConnectionDetails Int
-
-
-toUrl : Route -> String
-toUrl route =
-    case route of
-        Connections ->
-            "#!"
-
-        ConnectionDetails idx ->
-            "#!" ++ toString idx
-
-
-fromUrl : String -> Result String Route
-fromUrl url =
-    let
-        path =
-            String.dropLeft 2 url
-
-        int =
-            String.toInt path
-    in
-        case int of
-            Ok idx ->
-                Ok (ConnectionDetails idx)
-
-            Err _ ->
-                Ok Connections
-
-
 locationToMsg : Location -> Msg
 locationToMsg location =
-    case (fromUrl location.hash) of
-        Ok route ->
-            case route of
-                Connections ->
-                    CloseConnectionDetails
+    case (UrlParser.parseHash urlParser location) of
+        Just route ->
+            routeToMsg route
 
-                ConnectionDetails idx ->
-                    SelectConnection idx
-
-        Err _ ->
-            NoOp
+        Nothing ->
+            ReplaceLocation Connections
 
 
-selectConnection : Bool -> Model -> Int -> ( Model, Cmd Msg )
-selectConnection updateUrl model idx =
+routeToMsg : Route -> Msg
+routeToMsg route =
+    case route of
+        Connections ->
+            CloseConnectionDetails
+
+        ConnectionDetails idx ->
+            SelectConnection idx
+
+
+selectConnection : Model -> Int -> ( Model, Cmd Msg )
+selectConnection model idx =
     let
         realIndex =
             idx - model.connections.indexOffset
@@ -614,12 +597,6 @@ selectConnection updateUrl model idx =
 
         ( newConnections, _ ) =
             Connections.update Connections.ResetNew model.connections
-
-        navigationCmd =
-            if updateUrl then
-                Navigation.newUrl (toUrl (ConnectionDetails idx))
-            else
-                Cmd.none
     in
         case journey of
             Just j ->
@@ -627,25 +604,15 @@ selectConnection updateUrl model idx =
                     | selectedConnection = Maybe.map ConnectionDetails.init journey
                     , connections = newConnections
                 }
-                    ! [ navigationCmd
-                      , MapConnectionOverlay.showOverlay model.locale j
-                      ]
+                    ! [ MapConnectionOverlay.showOverlay model.locale j ]
 
             Nothing ->
-                closeSelectedConnection updateUrl model
+                update (ReplaceLocation Connections) model
 
 
-closeSelectedConnection : Bool -> Model -> ( Model, Cmd Msg )
-closeSelectedConnection updateUrl model =
-    let
-        navigationCmd =
-            if updateUrl then
-                Navigation.newUrl (toUrl Connections)
-            else
-                Cmd.none
-    in
-        { model | selectedConnection = Nothing }
-            ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
-              , navigationCmd
-              , MapConnectionOverlay.hideOverlay
-              ]
+closeSelectedConnection : Model -> ( Model, Cmd Msg )
+closeSelectedConnection model =
+    { model | selectedConnection = Nothing }
+        ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
+          , MapConnectionOverlay.hideOverlay
+          ]

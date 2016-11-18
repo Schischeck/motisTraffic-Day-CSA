@@ -10,10 +10,10 @@ import Data.Connection.Types as Connection exposing (..)
 import Data.Journey.Types as Journey exposing (..)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.Core exposing ((=>))
-import Util.Date exposing (isSameDay)
 import Util.DateFormat exposing (..)
 import Util.List exposing (..)
 import Localization.Base exposing (..)
+import Navigation
 
 
 -- MODEL
@@ -28,7 +28,6 @@ type alias State =
 type Config msg
     = Config
         { internalMsg : Msg -> msg
-        , closeMsg : msg
         }
 
 
@@ -41,6 +40,7 @@ init journey =
 
 type Msg
     = ToggleExpand Int
+    | GoBack
 
 
 update : Msg -> State -> ( State, Cmd Msg )
@@ -48,6 +48,9 @@ update msg model =
     case msg of
         ToggleExpand idx ->
             { model | expanded = (toggle model.expanded idx) } ! []
+
+        GoBack ->
+            model ! [ Navigation.back 1 ]
 
 
 toggle : List Bool -> Int -> List Bool
@@ -68,7 +71,7 @@ toggle list idx =
 
 
 view : Config msg -> Localization -> State -> Html msg
-view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
+view (Config { internalMsg }) locale { journey, expanded } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -97,14 +100,14 @@ view (Config { internalMsg, closeMsg }) locale { journey, expanded } =
             leadingWalkView ++ trainsView ++ trailingWalkView
     in
         div [ class "connection-details" ]
-            [ connectionInfoView closeMsg locale journey.connection
+            [ connectionInfoView internalMsg locale journey.connection
             , div [ class "connection-journey", id "connection-journey" ]
                 transportsView
             ]
 
 
-connectionInfoView : msg -> Localization -> Connection -> Html msg
-connectionInfoView closeMsg { t, dateConfig } connection =
+connectionInfoView : (Msg -> msg) -> Localization -> Connection -> Html msg
+connectionInfoView internalMsg { t, dateConfig } connection =
     let
         depTime =
             departureTime connection |> Maybe.withDefault (Date.fromTime 0)
@@ -123,7 +126,7 @@ connectionInfoView closeMsg { t, dateConfig } connection =
     in
         div [ class "connection-info" ]
             [ div [ class "header" ]
-                [ div [ onClick closeMsg, class "back" ]
+                [ div [ onClick (internalMsg GoBack), class "back" ]
                     [ i [ class "icon" ] [ text "arrow_back" ] ]
                 , div [ class "details" ]
                     [ div [ class "date" ] [ text dateText ]
