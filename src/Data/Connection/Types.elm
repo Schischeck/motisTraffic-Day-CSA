@@ -9,6 +9,7 @@ import Util.List exposing (..)
 type alias Connection =
     { stops : List Stop
     , transports : List Move
+    , trips : List Trip
     , attributes : List Attribute
     }
 
@@ -88,6 +89,22 @@ type alias Range =
     }
 
 
+type alias TripId =
+    { station_id : String
+    , train_nr : Int
+    , time : Date
+    , target_station_id : String
+    , target_time : Date
+    , line_id : String
+    }
+
+
+type alias Trip =
+    { range : Range
+    , id : TripId
+    }
+
+
 departureEvent : Connection -> Maybe EventInfo
 departureEvent connection =
     List.head connection.stops |> Maybe.map .departure
@@ -134,6 +151,15 @@ transportsForRange connection from to =
                     Nothing
     in
         List.filterMap checkMove connection.transports
+
+
+tripIdForTransport : Connection -> TransportInfo -> Maybe TripId
+tripIdForTransport connection transport =
+    connection.trips
+        |> List.filter (\t -> t.range.from == transport.range.from)
+        |> List.sortBy (.range >> .to)
+        |> last
+        |> Maybe.map .id
 
 
 transportCategories : Connection -> Set String

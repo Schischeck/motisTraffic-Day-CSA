@@ -13,7 +13,10 @@ import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
 import Data.Routing.Request as RoutingRequest
-import Data.Connection.Types exposing (Station, Position)
+import Data.Connection.Types exposing (Station, Position, TripId, Connection)
+import Data.Journey.Types exposing (toJourney)
+import Data.Lookup.Request exposing (encodeTripToConnection)
+import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
 import Util.Core exposing ((=>))
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
@@ -149,6 +152,9 @@ type Msg
     | StoreConnectionListScrollPos Msg Float
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
+    | SelectTrip Int
+    | TripToConnectionError Int Int ApiError
+    | TripToConnectionResponse Int Int Connection
     | ScheduleInfoError ApiError
     | ScheduleInfoResponse ScheduleInfo
     | Deb (Debounce.Msg Msg)
@@ -291,6 +297,28 @@ update msg model =
         CloseConnectionDetails ->
             closeSelectedConnection model
 
+        SelectTrip idx ->
+            let
+                _ =
+                    Debug.log "SelectTrip" idx
+            in
+                loadTrip model idx
+
+        TripToConnectionError connIdx tripIdx err ->
+            -- TODO
+            let
+                _ =
+                    Debug.log "TripToConnectionError" err
+            in
+                model ! []
+
+        TripToConnectionResponse connIdx tripIdx connection ->
+            let
+                _ =
+                    Debug.log "TripToConnectionResponse" ( connIdx, tripIdx )
+            in
+                showFullTripConnection model connection
+
         ScheduleInfoError _ ->
             let
                 ( newConnections, c ) =
@@ -337,16 +365,6 @@ update msg model =
 
         ReplaceLocation route ->
             model ! [ Navigation.modifyUrl (toUrl route) ]
-
-
-requestScheduleInfo : String -> Cmd Msg
-requestScheduleInfo remoteAddress =
-    Api.sendRequest
-        remoteAddress
-        decodeScheduleInfoResponse
-        ScheduleInfoError
-        ScheduleInfoResponse
-        ScheduleInfo.request
 
 
 buildRoutingRequest : Model -> RoutingRequest
@@ -423,6 +441,43 @@ debounceCfg =
 noop : a -> Msg
 noop =
     \_ -> NoOp
+
+
+loadTrip : Model -> Int -> ( Model, Cmd Msg )
+loadTrip model idx =
+    case model.selectedConnection of
+        Just cdm ->
+            let
+                journey =
+                    ConnectionDetails.getJourney cdm
+
+                trip =
+                    (journey.trains !! idx) |> Maybe.andThen .trip
+            in
+                case trip of
+                    Just tripId ->
+                        model ! [ sendTripRequest model.apiEndpoint 0 idx tripId ]
+
+                    Nothing ->
+                        model ! []
+
+        Nothing ->
+            model ! []
+
+
+showFullTripConnection : Model -> Connection -> ( Model, Cmd Msg )
+showFullTripConnection model connection =
+    let
+        journey =
+            toJourney connection
+
+        tripJourney =
+            { journey | isSingleCompleteTrip = True }
+    in
+        { model
+            | selectedConnection = Just (ConnectionDetails.init True tripJourney)
+        }
+            ! [ Navigation.newUrl (toUrl (ConnectionDetails 0)) ]
 
 
 
@@ -559,7 +614,32 @@ detailsConfig : ConnectionDetails.Config Msg
 detailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
+        , selectTripMsg = SelectTrip
         }
+
+
+
+-- REQUESTS
+
+
+requestScheduleInfo : String -> Cmd Msg
+requestScheduleInfo remoteAddress =
+    Api.sendRequest
+        remoteAddress
+        decodeScheduleInfoResponse
+        ScheduleInfoError
+        ScheduleInfoResponse
+        ScheduleInfo.request
+
+
+sendTripRequest : String -> Int -> Int -> TripId -> Cmd Msg
+sendTripRequest remoteAddress connIdx tripIdx tripId =
+    Api.sendRequest
+        remoteAddress
+        decodeTripToConnectionResponse
+        (TripToConnectionError connIdx tripIdx)
+        (TripToConnectionResponse connIdx tripIdx)
+        (encodeTripToConnection tripId)
 
 
 
@@ -601,7 +681,8 @@ selectConnection model idx =
         case journey of
             Just j ->
                 { model
-                    | selectedConnection = Maybe.map ConnectionDetails.init journey
+                    | selectedConnection =
+                        Maybe.map (ConnectionDetails.init False) journey
                     , connections = newConnections
                 }
                     ! [ MapConnectionOverlay.showOverlay model.locale j ]

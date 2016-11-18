@@ -27,6 +27,7 @@ type ApiError
 type MotisErrorInfo
     = ModuleError ModuleErrorInfo
     | RoutingError RoutingErrorInfo
+    | LookupError LookupErrorInfo
     | UnknownMotisError MotisErrorDetail
 
 
@@ -47,6 +48,14 @@ type RoutingErrorInfo
     | EdgeTypeNotSupported
     | TooManyStartLabels
     | UnknownRoutingError MotisErrorDetail
+
+
+type LookupErrorInfo
+    = LookupNotInSchedulePeriod
+    | LookupStationNotFound
+    | LookupRouteNotFound
+    | LookupRouteEdgeNotFound
+    | UnknownLookupError MotisErrorDetail
 
 
 type alias MotisErrorDetail =
@@ -173,6 +182,9 @@ mapMotisError err =
         "motis::routing" ->
             RoutingError (mapRoutingError err)
 
+        "motis::lookup" ->
+            LookupError (mapLookupError err)
+
         _ ->
             UnknownMotisError err
 
@@ -225,3 +237,22 @@ mapRoutingError err =
 
         _ ->
             UnknownRoutingError err
+
+
+mapLookupError : MotisErrorDetail -> LookupErrorInfo
+mapLookupError err =
+    case err.errorCode of
+        2 ->
+            LookupNotInSchedulePeriod
+
+        3 ->
+            LookupStationNotFound
+
+        4 ->
+            LookupRouteNotFound
+
+        5 ->
+            LookupRouteEdgeNotFound
+
+        _ ->
+            UnknownLookupError err
