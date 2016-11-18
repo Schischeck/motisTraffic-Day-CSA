@@ -31,6 +31,8 @@ type alias Vertex =
     latLngToWorldCoord 49.8728 8.61
 ( x2, y2 ) =
     latLngToWorldCoord 49.8728 8.65
+
+
 mesh : Float -> Drawable Vertex
 mesh p =
     let

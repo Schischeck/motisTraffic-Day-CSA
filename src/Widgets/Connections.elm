@@ -192,11 +192,11 @@ update msg model =
             }
                 ! []
 
-        JTGUpdate idx msg' ->
+        JTGUpdate idx msg_ ->
             { model
                 | journeyTransportGraphs =
                     updateAt (idx - model.indexOffset)
-                        (JourneyTransportGraph.update msg')
+                        (JourneyTransportGraph.update msg_)
                         model.journeyTransportGraphs
                         |> Maybe.withDefault model.journeyTransportGraphs
             }

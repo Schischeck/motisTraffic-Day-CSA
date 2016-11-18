@@ -142,11 +142,11 @@ transportsView locale model =
             , height (toString totalHeight)
             , viewBox <| "0 0 " ++ (toString model.totalWidth) ++ " " ++ (toString totalHeight)
             ]
-            [ g [] (List.map fst renderedParts)
+            [ g [] (List.map Tuple.first renderedParts)
             , destinationView model.totalWidth
             ]
         ]
-            ++ (List.map snd renderedParts)
+            ++ (List.map Tuple.second renderedParts)
 
 
 destinationView : Int -> Svg msg
