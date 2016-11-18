@@ -19,6 +19,7 @@ type alias Journey =
     , trains : List Train
     , leadingWalk : Maybe JourneyWalk
     , trailingWalk : Maybe JourneyWalk
+    , walks : List JourneyWalk
     }
 
 
@@ -52,6 +53,7 @@ toJourney connection =
     , trains = groupTrains connection
     , leadingWalk = extractLeadingWalk connection
     , trailingWalk = extractTrailingWalk connection
+    , walks = extractWalks connection
     }
 
 
@@ -118,6 +120,21 @@ extractTrailingWalk connection =
             (List.length connection.stops) - 1
     in
         (getWalkTo lastStopIdx connection) |> Maybe.andThen (toJourneyWalk connection)
+
+
+extractWalks : Connection -> List JourneyWalk
+extractWalks connection =
+    let
+        convertWalk : Move -> Maybe JourneyWalk
+        convertWalk move =
+            case move of
+                Walk walk ->
+                    toJourneyWalk connection walk
+
+                Transport _ ->
+                    Nothing
+    in
+        List.filterMap convertWalk connection.transports
 
 
 

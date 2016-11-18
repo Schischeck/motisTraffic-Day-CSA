@@ -37,6 +37,7 @@ import Util.Api as Api
         , MotisErrorDetail
         )
 import Localization.Base exposing (..)
+import List.Extra exposing (updateAt)
 
 
 -- MODEL
@@ -48,6 +49,7 @@ type alias Model =
     , loadingAfter : Bool
     , remoteAddress : String
     , journeys : List Journey
+    , journeyTransportGraphs : List JourneyTransportGraph.Model
     , indexOffset : Int
     , errorMessage : Maybe ApiError
     , errorBefore : Maybe ApiError
@@ -72,6 +74,7 @@ init remoteAddress =
     , loadingAfter = False
     , remoteAddress = remoteAddress
     , journeys = []
+    , journeyTransportGraphs = []
     , indexOffset = 0
     , errorMessage = Nothing
     , errorBefore = Nothing
@@ -94,6 +97,7 @@ type Msg
     | ReceiveError SearchAction RoutingRequest ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
     | ResetNew
+    | JTGUpdate Int JourneyTransportGraph.Msg
 
 
 type ExtendIntervalType
@@ -179,7 +183,24 @@ update msg model =
             { model | scheduleInfo = si } ! []
 
         ResetNew ->
-            { model | newJourneys = [] } ! []
+            { model
+                | newJourneys = []
+                , journeyTransportGraphs =
+                    List.map
+                        JourneyTransportGraph.hideTooltips
+                        model.journeyTransportGraphs
+            }
+                ! []
+
+        JTGUpdate idx msg' ->
+            { model
+                | journeyTransportGraphs =
+                    updateAt (idx - model.indexOffset)
+                        (JourneyTransportGraph.update msg')
+                        model.journeyTransportGraphs
+                        |> Maybe.withDefault model.journeyTransportGraphs
+            }
+                ! []
 
 
 extendSearchInterval :
@@ -309,9 +330,18 @@ updateModelWithNewResults model action request response =
 
                 AppendResults ->
                     List.range (newIndexOffset + (List.length model.journeys)) (newIndexOffset + (List.length newJourneys) - 1)
+
+        sortedJourneys =
+            sortJourneys newJourneys
+
+        journeyTransportGraphs =
+            List.map
+                (JourneyTransportGraph.init transportListViewWidth)
+                sortedJourneys
     in
         { base
-            | journeys = sortJourneys newJourneys
+            | journeys = sortedJourneys
+            , journeyTransportGraphs = journeyTransportGraphs
             , indexOffset = newIndexOffset
             , newJourneys = newNewJourneys
         }
@@ -345,6 +375,7 @@ handleRequestError model action request msg =
                         | loading = False
                         , errorMessage = Just msg
                         , journeys = []
+                        , journeyTransportGraphs = []
                     }
 
                 PrependResults ->
@@ -413,24 +444,25 @@ connectionsView config locale model =
 connectionsWithDateHeaders : Config msg -> Localization -> Model -> Html msg
 connectionsWithDateHeaders config locale model =
     let
-        getDate ( idx, journey ) =
+        getDate ( idx, journey, _ ) =
             Connection.departureTime journey.connection |> Maybe.withDefault (Date.fromTime 0)
 
-        renderConnection ( idx, journey ) =
+        renderConnection ( idx, journey, jtg ) =
             ( "connection-" ++ (toString idx)
-            , connectionView config locale idx (List.member idx model.newJourneys) journey
+            , connectionView config locale idx (List.member idx model.newJourneys) journey jtg
             )
 
         renderDateHeader date =
             ( "header-" ++ (toString (Date.toTime date)), dateHeader locale date )
 
         elements =
-            List.map2 (,)
+            List.map3 (\a b c -> ( a, b, c ))
                 (List.range
                     model.indexOffset
                     (model.indexOffset + List.length model.journeys - 1)
                 )
                 model.journeys
+                model.journeyTransportGraphs
     in
         Html.Keyed.node "div"
             [ class "connection-list" ]
@@ -443,8 +475,9 @@ connectionView :
     -> Int
     -> Bool
     -> Journey
+    -> JourneyTransportGraph.Model
     -> Html msg
-connectionView (Config { internalMsg, selectMsg }) locale idx new j =
+connectionView (Config { internalMsg, selectMsg }) locale idx new j jtg =
     div
         [ classList
             [ "connection" => True
@@ -468,7 +501,7 @@ connectionView (Config { internalMsg, selectMsg }) locale idx new j =
             , div [ class "pure-u-4-24 connection-duration" ]
                 [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
             , div [ class "pure-u-16-24 connection-trains" ]
-                [ JourneyTransportGraph.view transportListViewWidth j ]
+                [ Html.map (\m -> internalMsg (JTGUpdate idx m)) <| JourneyTransportGraph.view locale jtg ]
             ]
         ]
 
@@ -507,7 +540,7 @@ withDateHeaders getDate renderElement renderDateHeader elements =
 
 transportListViewWidth : Int
 transportListViewWidth =
-    390
+    335
 
 
 scheduleRangeView : Localization -> Model -> Html msg
