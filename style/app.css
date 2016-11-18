@@ -728,3 +728,7 @@
 .connection-details .train-box {
   cursor: pointer;
 }
+
+.connection-details .train-box.train-class-walk {
+  cursor: default;
+}

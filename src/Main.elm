@@ -298,11 +298,7 @@ update msg model =
             closeSelectedConnection model
 
         SelectTrip idx ->
-            let
-                _ =
-                    Debug.log "SelectTrip" idx
-            in
-                loadTrip model idx
+            loadTrip model idx
 
         TripToConnectionError connIdx tripIdx err ->
             -- TODO
@@ -313,11 +309,7 @@ update msg model =
                 model ! []
 
         TripToConnectionResponse connIdx tripIdx connection ->
-            let
-                _ =
-                    Debug.log "TripToConnectionResponse" ( connIdx, tripIdx )
-            in
-                showFullTripConnection model connection
+            showFullTripConnection model connection
 
         ScheduleInfoError _ ->
             let
@@ -463,21 +455,6 @@ loadTrip model idx =
 
         Nothing ->
             model ! []
-
-
-showFullTripConnection : Model -> Connection -> ( Model, Cmd Msg )
-showFullTripConnection model connection =
-    let
-        journey =
-            toJourney connection
-
-        tripJourney =
-            { journey | isSingleCompleteTrip = True }
-    in
-        { model
-            | selectedConnection = Just (ConnectionDetails.init True tripJourney)
-        }
-            ! [ Navigation.newUrl (toUrl (ConnectionDetails 0)) ]
 
 
 
@@ -665,6 +642,9 @@ routeToMsg route =
         ConnectionDetails idx ->
             SelectConnection idx
 
+        ConnectionFullTripDetails ->
+            NoOp
+
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )
 selectConnection model idx =
@@ -697,3 +677,22 @@ closeSelectedConnection model =
         ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
           , MapConnectionOverlay.hideOverlay
           ]
+
+
+showFullTripConnection : Model -> Connection -> ( Model, Cmd Msg )
+showFullTripConnection model connection =
+    let
+        journey =
+            toJourney connection
+
+        tripJourney =
+            { journey | isSingleCompleteTrip = True }
+    in
+        { model
+            | selectedConnection = Just (ConnectionDetails.init True tripJourney)
+        }
+            ! [ Navigation.newUrl (toUrl ConnectionFullTripDetails)
+              , MapConnectionOverlay.showOverlay model.locale journey
+              , Task.attempt noop <| Scroll.toTop "overlay-content"
+              , Task.attempt noop <| Scroll.toTop "connection-journey"
+              ]
