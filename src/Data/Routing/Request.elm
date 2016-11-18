@@ -32,6 +32,8 @@ initialRequest minConnectionCount from to date searchDirection =
         , intervalEnd = endTime
         , minConnectionCount = minConnectionCount
         , searchDirection = searchDirection
+        , extendIntervalEarlier = True
+        , extendIntervalLater = True
         }
 
 
@@ -55,11 +57,16 @@ encodeRequest request =
                                 [ "begin" => Encode.int request.intervalStart
                                 , "end" => Encode.int request.intervalEnd
                                 ]
+                        , "min_connection_count"
+                            => Encode.int request.minConnectionCount
+                        , "extend_interval_earlier"
+                            => Encode.bool request.extendIntervalEarlier
+                        , "extend_interval_later"
+                            => Encode.bool request.extendIntervalLater
                         ]
                 , "destination" => encodeInputStation request.to
                 , "search_type" => Encode.string "Default"
                 , "search_dir" => encodeSearchDirection request.searchDirection
-                , "min_connection_count" => Encode.int request.minConnectionCount
                 , "via" => Encode.list []
                 , "additional_edges" => Encode.list []
                 ]

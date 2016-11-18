@@ -212,6 +212,9 @@ extendSearchInterval direction base =
         extendBy =
             3600 * 2
 
+        minConnectionCount =
+            3
+
         newIntervalStart =
             case direction of
                 ExtendBefore ->
@@ -233,15 +236,19 @@ extendSearchInterval direction base =
                 ExtendBefore ->
                     { base
                         | intervalStart = newIntervalStart
-                        , intervalEnd = base.intervalStart
-                        , minConnectionCount = 0
+                        , intervalEnd = base.intervalStart - 1
+                        , minConnectionCount = minConnectionCount
+                        , extendIntervalEarlier = True
+                        , extendIntervalLater = False
                     }
 
                 ExtendAfter ->
                     { base
-                        | intervalStart = base.intervalEnd
+                        | intervalStart = base.intervalEnd + 1
                         , intervalEnd = newIntervalEnd
-                        , minConnectionCount = 0
+                        , minConnectionCount = minConnectionCount
+                        , extendIntervalEarlier = False
+                        , extendIntervalLater = True
                     }
     in
         ( newRequest
@@ -263,10 +270,18 @@ updateModelWithNewResults model action request response =
         connections =
             response.connections
 
-        updateInterval routingRequest =
+        updateInterval updateStart updateEnd routingRequest =
             { routingRequest
-                | intervalStart = unixTime response.intervalStart
-                , intervalEnd = unixTime response.intervalEnd
+                | intervalStart =
+                    if updateStart then
+                        unixTime response.intervalStart
+                    else
+                        routingRequest.intervalStart
+                , intervalEnd =
+                    if updateEnd then
+                        unixTime response.intervalEnd
+                    else
+                        routingRequest.intervalEnd
             }
 
         base =
@@ -278,19 +293,23 @@ updateModelWithNewResults model action request response =
                         , errorBefore = Nothing
                         , errorAfter = Nothing
                         , routingRequest =
-                            Maybe.map updateInterval model.routingRequest
+                            Maybe.map (updateInterval True True) model.routingRequest
                     }
 
                 PrependResults ->
                     { model
                         | loadingBefore = False
                         , errorBefore = Nothing
+                        , routingRequest =
+                            Maybe.map (updateInterval True False) model.routingRequest
                     }
 
                 AppendResults ->
                     { model
                         | loadingAfter = False
                         , errorAfter = Nothing
+                        , routingRequest =
+                            Maybe.map (updateInterval False True) model.routingRequest
                     }
 
         journeysToAdd : List Journey

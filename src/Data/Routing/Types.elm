@@ -18,6 +18,8 @@ type alias RoutingRequest =
     , intervalEnd : Int
     , minConnectionCount : Int
     , searchDirection : SearchDirection
+    , extendIntervalEarlier : Bool
+    , extendIntervalLater : Bool
     }
 
 
