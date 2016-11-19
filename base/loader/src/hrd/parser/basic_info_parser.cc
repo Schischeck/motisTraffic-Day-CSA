@@ -36,9 +36,9 @@ time_t str_to_unixtime(cstr s) {
 }
 
 std::pair<cstr, cstr> mask_dates(cstr str) {
-  auto from_line = parser::get_line(str);
-  str += from_line.len + 1;
-  auto to_line = parser::get_line(str);
+  auto from_line = get_line(str);
+  skip_line(str);
+  auto to_line = get_line(str);
 
   verify_line_format(from_line);
   verify_line_format(to_line);
@@ -62,9 +62,9 @@ boost::gregorian::date get_first_schedule_date(loaded_file const& lf) {
 
 std::string parse_schedule_name(loaded_file const& basic_info_file) {
   cstr str = basic_info_file.content();
-  parser::skip_line(str); // from
-  parser::skip_line(str); // to
-  return parser::get_line(str).to_str(); // schedule name
+  skip_line(str); // from
+  skip_line(str); // to
+  return get_line(str).to_str(); // schedule name
 }
 
 }  // namespace hrd
