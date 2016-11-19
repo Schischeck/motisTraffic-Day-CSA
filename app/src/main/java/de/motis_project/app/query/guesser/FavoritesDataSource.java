@@ -15,18 +15,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class FavoritesDataSource {
-    public static class FavoriteStation {
-        final String eva;
-        final String name;
-        final int count;
-
-        public FavoriteStation(String eva, String name, int count) {
-            this.eva = eva;
-            this.name = name;
-            this.count = count;
-        }
-    }
-
     private class FavoritesDbHelper extends SQLiteOpenHelper {
         static final int DATABASE_VERSION = 1;
         static final String DATABASE_NAME = "stations.db";
@@ -70,7 +58,7 @@ public class FavoritesDataSource {
         sqlBrite = new SqlBrite.Builder().logger(
                 message -> System.out.println("DATABASE message = [" + message + "]")).build();
         db = sqlBrite.wrapDatabaseHelper(new FavoritesDbHelper(ctx), Schedulers.io());
-        db.setLoggingEnabled(true);
+        db.setLoggingEnabled(false);
         favoritesObs = db.createQuery(FavoritesDbHelper.TABLE, SQL_GET_TOP);
     }
 
@@ -88,12 +76,12 @@ public class FavoritesDataSource {
         }
     }
 
-    public Observable<List<FavoriteStation>> getFavorites() {
+    public Observable<List<StationGuess>> getFavorites() {
         return favoritesObs.mapToList(c -> {
             String eva = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_ID));
             String name = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_NAME));
             int count = c.getInt(c.getColumnIndex(FavoritesDbHelper.COL_SELECTED_COUNT));
-            return new FavoriteStation(eva, name, count);
+            return new StationGuess(eva, name, count);
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 

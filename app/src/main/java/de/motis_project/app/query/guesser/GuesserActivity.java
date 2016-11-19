@@ -4,11 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.widget.ArrayAdapter;
+import android.support.v4.util.Pair;
 import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -18,7 +19,6 @@ import butterknife.OnItemClick;
 import butterknife.OnTextChanged;
 import de.motis_project.app.R;
 import de.motis_project.app.io.Status;
-import motis.guesser.StationGuesserResponse;
 import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
@@ -29,11 +29,12 @@ public class GuesserActivity extends FragmentActivity {
     public static final String RESULT_ID = "result_id";
     public static final String QUERY = "route";
 
-    private List<String> resultIds = new ArrayList<>();
+    private GuesserListAdapter adapter;
 
     Observable observable;
 
-    FavoritesDataSource favorites = new FavoritesDataSource(this);
+    FavoritesDataSource favDataSource;
+    Observable<List<StationGuess>> favorites;
 
     @BindView(R.id.suggestionslist)
     ListView suggestions;
@@ -50,20 +51,21 @@ public class GuesserActivity extends FragmentActivity {
     @OnClick(R.id.clearButton)
     void clearInput() {
         searchInput.setText("");
-        setResults(new ArrayList<>(), new ArrayList<>());
+        adapter.clear();
     }
 
     @OnItemClick(R.id.suggestionslist)
     void onSuggestionSelected(int pos) {
         Intent i = new Intent();
-        String eva = resultIds.get(pos).toString();
-        String stationName = suggestions.getAdapter().getItem(pos).toString();
+        StationGuess selected = adapter.getItem(pos);
+        String eva = selected.eva;
+        String stationName = selected.name;
         i.putExtra(RESULT_NAME,
-                   stationName);
+                stationName);
         i.putExtra(RESULT_ID, eva);
         setResult(Activity.RESULT_OK, i);
 
-        favorites.addOrIncrement(eva, stationName);
+        favDataSource.addOrIncrement(eva, stationName);
 
         finish();
     }
@@ -74,11 +76,32 @@ public class GuesserActivity extends FragmentActivity {
             return;
         }
 
-        Observable o = Status.get().getServer()
+        Observable<List<StationGuess>> guesses = Status.get().getServer()
                 .guess(inputText.toString())
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-        o.subscribe(new Subscriber<StationGuesserResponse>() {
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(res -> {
+                    final int totalGuesses = res.guessesLength();
+                    List<StationGuess> guessList = new ArrayList<>(totalGuesses);
+                    for (int i = 0; i < totalGuesses; i++) {
+                        final String name = res.guesses(i).name();
+                        final String id = res.guesses(i).id();
+                        guessList.add(new StationGuess(id, name, i));
+                    }
+                    return guessList;
+                }).startWith(new ArrayList<StationGuess>());
+
+        Observable<Pair<List<StationGuess>, List<StationGuess>>> o =
+                Observable.combineLatest(guesses, favorites, (g, f) -> {
+                    List<StationGuess> guessList = new ArrayList<>(g.size() + f.size());
+                    Collections.sort(f, (lhs, rhs) -> Integer.compare(rhs.count, lhs.count));
+                    Collections.sort(g, (lhs, rhs) -> Integer.compare(lhs.count, rhs.count));
+                    guessList.addAll(f);
+                    guessList.addAll(g);
+                    return new Pair<>(f, g);
+                });
+
+        o.subscribe(new Subscriber<Pair<List<StationGuess>, List<StationGuess>>>() {
             @Override
             public void onCompleted() {
             }
@@ -88,22 +111,15 @@ public class GuesserActivity extends FragmentActivity {
             }
 
             @Override
-            public void onNext(StationGuesserResponse res) {
-                final ArrayList<String>
-                        names = new ArrayList<>(res.guessesLength()),
-                        ids = new ArrayList<>(res.guessesLength());
-                for (int i = 0; i < res.guessesLength(); i++) {
-                    names.add(res.guesses(i).name());
-                    ids.add(res.guesses(i).id());
-                }
-                setResults(names, ids);
+            public void onNext(Pair<List<StationGuess>, List<StationGuess>> guesses) {
+                adapter.setContent(guesses.first, guesses.second);
             }
         });
 
-        if (observable != null) {
-            observable.unsubscribeOn(AndroidSchedulers.mainThread());
+        if (this.observable != null) {
+            this.observable.unsubscribeOn(AndroidSchedulers.mainThread());
         }
-        observable = o;
+        this.observable = o;
     }
 
     @Override
@@ -111,42 +127,25 @@ public class GuesserActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.query_guesser_activity);
         ButterKnife.bind(this);
-        setResults(new ArrayList<>(), new ArrayList<>());
+
+        adapter = new GuesserListAdapter(this);
+        suggestions.setAdapter(adapter);
+
+        favDataSource = new FavoritesDataSource(this);
+        favorites = favDataSource.getFavorites().startWith(new ArrayList<StationGuess>());
 
         String query = getIntent().getStringExtra(QUERY);
         if (query != null) {
             searchInput.setText(query);
             searchInput.setSelection(query.length());
+            getSuggestions(query);
         }
-
-        favorites.getFavorites().subscribe(new Subscriber<List<FavoritesDataSource.FavoriteStation>>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onNext(List<FavoritesDataSource.FavoriteStation> favs) {
-
-            }
-        });
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        favorites.closeDb();
-    }
-
-    public void setResults(ArrayList<String> names, ArrayList<String> ids) {
-        suggestions.setAdapter(new ArrayAdapter<>(
-                GuesserActivity.this,
-                R.layout.query_guesser_list_item,
-                R.id.guess_text, names));
-        resultIds = ids;
+        favDataSource.closeDb();
     }
 
     @Override
