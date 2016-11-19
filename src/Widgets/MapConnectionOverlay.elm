@@ -88,10 +88,15 @@ stopCircles stops =
             , options = interchangeOptions
             , tooltip = Just stop.station.name
             }
+
+        lastIndex =
+            List.length stops - 1
     in
         stops
-            |> List.filter (\s -> s.exit || s.enter)
-            |> List.map stopCircle
+            |> List.indexedMap (,)
+            |> List.filter
+                (\( i, s ) -> s.exit || s.enter || i == 0 || i == lastIndex)
+            |> List.map (\( i, s ) -> stopCircle s)
 
 
 stopLatLng : Stop -> ( Float, Float )
