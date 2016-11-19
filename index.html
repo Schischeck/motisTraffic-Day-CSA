@@ -36,6 +36,22 @@
   window.elmMaps = {};
 
   initPorts(app);
+
+  function handleDrop(element) {
+    element.addEventListener('drop', function(e) {
+      var file = e.dataTransfer.files[0];
+      var reader = new FileReader();
+      reader.addEventListener('load', function(ev) {
+        app.ports.setRoutingResponse.send(ev.target.result);
+      });
+      reader.readAsText(file);
+      e.preventDefault();
+    });
+    element.addEventListener('dragenter', function(e) {e.preventDefault();});
+    element.addEventListener('dragover', function(e) {e.preventDefault();});
+  }
+
+  handleDrop(document.getElementById("app-container"));
   </script>
 
   <svg style="display:none">

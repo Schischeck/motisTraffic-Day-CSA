@@ -13,6 +13,7 @@ import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
 import Data.Routing.Request as RoutingRequest
+import Data.Routing.Decode exposing (decodeRoutingResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
 import Data.Journey.Types exposing (toJourney)
 import Data.Lookup.Request exposing (encodeTripToConnection)
@@ -36,6 +37,8 @@ import UrlParser
 import Routes exposing (..)
 import Debounce
 import Maybe.Extra exposing (isJust)
+import Port
+import Json.Decode as Decode
 
 
 type alias ProgramFlags =
@@ -161,6 +164,7 @@ type Msg
     | SetLocale Localization
     | NavigateTo Route
     | ReplaceLocation Route
+    | SetRoutingResponse String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -358,6 +362,24 @@ update msg model =
         ReplaceLocation route ->
             model ! [ Navigation.modifyUrl (toUrl route) ]
 
+        SetRoutingResponse json ->
+            let
+                result =
+                    Decode.decodeString decodeRoutingResponse json
+            in
+                case result of
+                    Ok routingResponse ->
+                        update
+                            (ConnectionsUpdate (Connections.SetRoutingResponse routingResponse))
+                            model
+
+                    Err msg_ ->
+                        let
+                            _ =
+                                Debug.log "Could not decode routing response:" msg_
+                        in
+                            model ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -467,6 +489,7 @@ subscriptions model =
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
         , Sub.map MapUpdate (Map.subscriptions model.map)
+        , Port.setRoutingResponse SetRoutingResponse
         ]
 
 

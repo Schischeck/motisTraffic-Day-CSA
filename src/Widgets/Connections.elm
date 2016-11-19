@@ -18,9 +18,9 @@ import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (Duration(..))
 import Maybe.Extra exposing (isJust)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
-import Data.Routing.Types exposing (RoutingRequest, RoutingResponse)
+import Data.Routing.Types exposing (RoutingRequest, RoutingResponse, SearchDirection(..))
 import Data.Routing.Decode exposing (decodeRoutingResponse)
-import Data.Routing.Request exposing (encodeRequest)
+import Data.Routing.Request as RoutingRequest exposing (encodeRequest)
 import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.Helpers.ConnectionUtil exposing (..)
@@ -98,6 +98,7 @@ type Msg
     | UpdateScheduleInfo (Maybe ScheduleInfo)
     | ResetNew
     | JTGUpdate Int JourneyTransportGraph.Msg
+    | SetRoutingResponse RoutingResponse
 
 
 type ExtendIntervalType
@@ -178,6 +179,24 @@ update msg model =
                 (handleRequestError model action request msg_) ! []
             else
                 model ! []
+
+        SetRoutingResponse response ->
+            let
+                placeholderStation =
+                    { id = ""
+                    , name = ""
+                    , pos = { lat = 0, lng = 0 }
+                    }
+
+                request =
+                    RoutingRequest.initialRequest
+                        0
+                        placeholderStation
+                        placeholderStation
+                        (Date.fromTime 0)
+                        Forward
+            in
+                (updateModelWithNewResults model ReplaceResults request response) ! []
 
         UpdateScheduleInfo si ->
             { model | scheduleInfo = si } ! []
