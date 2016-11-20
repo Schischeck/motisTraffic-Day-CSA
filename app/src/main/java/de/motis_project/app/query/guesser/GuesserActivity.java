@@ -34,7 +34,6 @@ public class GuesserActivity extends FragmentActivity {
     Observable observable;
 
     FavoritesDataSource favDataSource;
-    Observable<List<StationGuess>> favorites;
 
     @BindView(R.id.suggestionslist)
     ListView suggestions;
@@ -72,24 +71,29 @@ public class GuesserActivity extends FragmentActivity {
 
     @OnTextChanged(R.id.searchInput)
     void getSuggestions(CharSequence inputText) {
+        Observable<List<StationGuess>> guesses;
         if (inputText.length() < 3) {
-            return;
+            guesses = Observable.empty();
+        } else {
+            guesses = Status.get().getServer()
+                    .guess(inputText.toString())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .map(res -> {
+                        final int totalGuesses = res.guessesLength();
+                        List<StationGuess> guessList = new ArrayList<>(totalGuesses);
+                        for (int i = 0; i < totalGuesses; i++) {
+                            final String name = res.guesses(i).name();
+                            final String id = res.guesses(i).id();
+                            guessList.add(new StationGuess(id, name, i));
+                        }
+                        return guessList;
+                    });
         }
 
-        Observable<List<StationGuess>> guesses = Status.get().getServer()
-                .guess(inputText.toString())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map(res -> {
-                    final int totalGuesses = res.guessesLength();
-                    List<StationGuess> guessList = new ArrayList<>(totalGuesses);
-                    for (int i = 0; i < totalGuesses; i++) {
-                        final String name = res.guesses(i).name();
-                        final String id = res.guesses(i).id();
-                        guessList.add(new StationGuess(id, name, i));
-                    }
-                    return guessList;
-                }).startWith(new ArrayList<StationGuess>());
+        guesses = guesses.startWith(new ArrayList<StationGuess>());
+        Observable<List<StationGuess>> favorites = favDataSource.getFavorites(inputText)
+                .startWith(new ArrayList<StationGuess>());
 
         Observable<Pair<List<StationGuess>, List<StationGuess>>> o =
                 Observable.combineLatest(guesses, favorites, (g, f) -> {
@@ -132,7 +136,6 @@ public class GuesserActivity extends FragmentActivity {
         suggestions.setAdapter(adapter);
 
         favDataSource = new FavoritesDataSource(this);
-        favorites = favDataSource.getFavorites().startWith(new ArrayList<StationGuess>());
 
         String query = getIntent().getStringExtra(QUERY);
         if (query != null) {

@@ -47,19 +47,18 @@ public class FavoritesDataSource {
 
     private static final String SQL_GET_TOP = "" +
             "SELECT * FROM " + FavoritesDbHelper.TABLE +
+            " WHERE " + FavoritesDbHelper.COL_STATION_NAME + " LIKE '%%%s%%'" +
             " ORDER BY " + FavoritesDbHelper.COL_SELECTED_COUNT +
             " DESC LIMIT 5";
 
     private final SqlBrite sqlBrite;
     private final BriteDatabase db;
-    private final QueryObservable favoritesObs;
 
     public FavoritesDataSource(Context ctx) {
         sqlBrite = new SqlBrite.Builder().logger(
                 message -> System.out.println("DATABASE message = [" + message + "]")).build();
         db = sqlBrite.wrapDatabaseHelper(new FavoritesDbHelper(ctx), Schedulers.io());
-        db.setLoggingEnabled(false);
-        favoritesObs = db.createQuery(FavoritesDbHelper.TABLE, SQL_GET_TOP);
+        db.setLoggingEnabled(true);
     }
 
     public void addOrIncrement(String eva, String stationName) {
@@ -76,8 +75,10 @@ public class FavoritesDataSource {
         }
     }
 
-    public Observable<List<StationGuess>> getFavorites() {
-        return favoritesObs.mapToList(c -> {
+    public Observable<List<StationGuess>> getFavorites(CharSequence queryString) {
+        String query = String.format(SQL_GET_TOP, queryString);
+        QueryObservable obs = db.createQuery(FavoritesDbHelper.TABLE, query);
+        return obs.mapToList(c -> {
             String eva = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_ID));
             String name = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_NAME));
             int count = c.getInt(c.getColumnIndex(FavoritesDbHelper.COL_SELECTED_COUNT));
