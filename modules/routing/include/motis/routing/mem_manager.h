@@ -11,14 +11,20 @@ struct mem_manager {
 public:
   explicit mem_manager(std::size_t size)
       : size_(size),
-        memory_buffer_(reinterpret_cast<unsigned char*>(operator new(size_))),
-        next_position_(memory_buffer_.get()) {}
+        memory_buffer_(static_cast<unsigned char*>(std::malloc(size_))),
+        next_position_(memory_buffer_) {
+    if (memory_buffer_ == nullptr) {
+      throw std::runtime_error("out of memory");
+    }
+  }
 
   mem_manager(mem_manager const&) = delete;
   mem_manager& operator=(mem_manager const&) = delete;
 
+  ~mem_manager() { std::free(memory_buffer_); }
+
   void reset() {
-    next_position_ = memory_buffer_.get();
+    next_position_ = memory_buffer_;
     for (auto& labels : node_labels_) {
       labels.clear();
     }
@@ -26,14 +32,14 @@ public:
 
   template <typename T, typename... Args>
   T* create(Args&&... args) {
-    assert(next_position_ + sizeof(T) < memory_buffer_.get() + size());
+    assert(next_position_ + sizeof(T) < memory_buffer_ + size());
     auto el = reinterpret_cast<T*>(next_position_);
     next_position_ += sizeof(T);
     return new (el) T(std::forward<Args>(args)...);
   }
 
   std::size_t used_size() const {
-    return std::distance(memory_buffer_.get(), next_position_);
+    return std::distance(memory_buffer_, next_position_);
   }
 
   std::size_t size() const { return size_; }
@@ -46,7 +52,7 @@ public:
 
 private:
   std::size_t size_;
-  std::unique_ptr<unsigned char> memory_buffer_;
+  unsigned char* memory_buffer_;
   unsigned char* next_position_;
 
   std::vector<std::vector<void*>> node_labels_;
