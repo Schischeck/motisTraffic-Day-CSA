@@ -98,6 +98,7 @@ public class GuesserActivity extends FragmentActivity {
         Observable<Pair<List<StationGuess>, List<StationGuess>>> o =
                 Observable.combineLatest(guesses, favorites, (g, f) -> {
                     List<StationGuess> guessList = new ArrayList<>(g.size() + f.size());
+                    g.removeAll(f);
                     Collections.sort(f, (lhs, rhs) -> Integer.compare(rhs.count, lhs.count));
                     Collections.sort(g, (lhs, rhs) -> Integer.compare(lhs.count, rhs.count));
                     guessList.addAll(f);

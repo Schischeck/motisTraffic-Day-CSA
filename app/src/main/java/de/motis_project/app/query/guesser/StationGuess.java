@@ -15,4 +15,18 @@ public class StationGuess {
     public String toString() {
         return name;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof StationGuess) {
+            StationGuess other = (StationGuess) obj;
+            return eva.equals(other.eva);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return eva.hashCode();
+    }
 }
