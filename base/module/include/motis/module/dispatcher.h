@@ -5,6 +5,7 @@
 #include "motis/module/ctx_data.h"
 #include "motis/module/error.h"
 #include "motis/module/future.h"
+#include "motis/module/message.h"
 #include "motis/module/receiver.h"
 #include "motis/module/registry.h"
 
@@ -40,6 +41,10 @@ struct dispatcher : public receiver {
   }
 
   void on_msg(msg_ptr const& msg, callback const& cb) override {
+    if (!std::strcmp("/api", msg->get()->destination()->target()->c_str())) {
+      return cb(api(), std::error_code());
+    }
+
     ctx::op_id id;
     id.created_at = "dispatcher::on_msg";
     id.parent_index = 0;
@@ -60,6 +65,43 @@ struct dispatcher : public receiver {
                                 }
                               },
                               id);
+  }
+
+  msg_ptr api() const {
+    message_creator fbb;
+
+    std::vector<char const*> fbs_def;
+    auto def = message::get_fbs_definitions();
+    for (auto i = 0u; i < def.second; ++i) {
+      fbs_def.push_back(def.first[i]);
+    }
+
+    struct method {
+      method(std::string path, std::string in, std::string out)
+          : path_(std::move(path)), in_(std::move(in)), out_(std::move(out)) {}
+      std::string path_, in_, out_;
+    };
+    std::vector<method> methods = {
+        {"/routing", "RoutingRequest", "RoutingResponse"},
+        {"/guesser", "StationGuesserRequest", "StationGuesserResponse"}};
+
+    fbb.create_and_finish(
+        MsgContent_ApiDescription,
+        CreateApiDescription(
+            fbb,
+            fbb.CreateVector(transform_to_vec(
+                fbs_def,
+                [&fbb](char const* str) { return fbb.CreateString(str); })),
+            fbb.CreateVector(transform_to_vec(methods,
+                                              [&fbb](method const& m) {
+                                                return CreateMethod(
+                                                    fbb,
+                                                    fbb.CreateString(m.path_),
+                                                    fbb.CreateString(m.in_),
+                                                    fbb.CreateString(m.out_));
+                                              })))
+            .Union());
+    return make_msg(fbb);
   }
 
   ctx::scheduler<ctx_data> scheduler_;

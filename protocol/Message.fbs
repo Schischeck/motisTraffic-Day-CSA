@@ -81,7 +81,19 @@ table MotisSuccess {
 table MotisNoMessage {
 }
 
+table Method {
+  path:string;
+  in:string;
+  out:string;
+}
+
+table ApiDescription {
+  fbs:[string];
+  methods:[Method]; 
+}
+
 union MsgContent {
+  motis.ApiDescription,
   motis.Connection,
   motis.MotisNoMessage,
   motis.MotisError,
