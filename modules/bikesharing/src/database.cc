@@ -124,9 +124,7 @@ database::database(std::string const& path)
                                : new database_impl(path)) {}
 database::~database() = default;
 
-bool database::is_initialized() const {
-  return impl_->is_initialized();
-}
+bool database::is_initialized() const { return impl_->is_initialized(); }
 
 persistable_terminal database::get(std::string const& id) const {
   return impl_->get(id);

@@ -62,9 +62,9 @@ boost::gregorian::date get_first_schedule_date(loaded_file const& lf) {
 
 std::string parse_schedule_name(loaded_file const& basic_info_file) {
   cstr str = basic_info_file.content();
-  skip_line(str); // from
-  skip_line(str); // to
-  return get_line(str).to_str(); // schedule name
+  skip_line(str);  // from
+  skip_line(str);  // to
+  return get_line(str).to_str();  // schedule name
 }
 
 }  // namespace hrd
