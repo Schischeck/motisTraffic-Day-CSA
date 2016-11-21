@@ -166,7 +166,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
             d_time = succ.connection_->d_time_;
 
             auto d_di = get_delay_info(sched, get_node(*s1), succ.connection_,
-              event_type::DEP);
+                                       event_type::DEP);
             d_sched_time = d_di.get_schedule_time();
             d_reason = d_di.get_reason();
           }
