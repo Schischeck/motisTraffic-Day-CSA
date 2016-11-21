@@ -2,6 +2,8 @@
 
 #include "ctx/ctx.h"
 
+#include "motis/core/common/transform_to_vec.h"
+
 #include "motis/module/ctx_data.h"
 #include "motis/module/error.h"
 #include "motis/module/future.h"
