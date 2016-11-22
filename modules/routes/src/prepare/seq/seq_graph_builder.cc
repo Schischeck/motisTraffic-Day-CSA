@@ -2,6 +2,8 @@
 
 #include "motis/core/common/transform_to_vec.h"
 
+#include "motis/routes/prepare/prepare_data.h"
+
 using namespace geo;
 
 namespace motis {
@@ -30,18 +32,32 @@ void add_matches(seq_graph& g, source_spec::category const& category,
                         begin(m.polyline_) + prev_station.second,
                         begin(m.polyline_) + station.second + 1);
 
-        nodes[node_idx - 1]->edges_.emplace_back(
-            nodes[node_idx - 1].get(), nodes[node_idx].get(), polyline,
-            source_spec(0, category, source_spec::type::POLYLINE), 0);
+        nodes[node_idx - 1]->edges_.emplace_back(nodes[node_idx - 1].get(),
+                                                 nodes[node_idx].get(),
+                                                 polyline, m.source_, 0);
       }
     }
   }
 }
 
+node_ref create_ref(station_seq const& seq, std::string const& id) {
+  auto it = std::find(begin(seq.station_ids_), end(seq.station_ids_), id);
+  node_ref ref;
+  if (it == end(seq.station_ids_)) {
+    return ref;
+  }
+  ref.coords_ = seq.coordinates_[std::distance(begin(seq.station_ids_), it)];
+  ref.id_ = -1;
+  return ref;
+}
+
 void add_close_nodes(seq_graph& g, station_seq const& seq,
-                     routing_strategy& strategy) {
+                     strategies& routing_strategies,
+                     source_spec::category const& category) {
   for (auto i = 0u; i < seq.station_ids_.size(); ++i) {
-    for (auto const& node : strategy.close_nodes(seq.station_ids_[i])) {
+    for (auto const& node :
+         get_strategy(routing_strategies, category)
+             ->close_nodes(create_ref(seq, seq.station_ids_[i]))) {
       g.nodes_.emplace_back(
           std::make_unique<seq_node>(g.nodes_.size(), i, node));
       g.station_to_nodes_[i].push_back(g.nodes_.back().get());
@@ -69,38 +85,40 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
       }
 
       auto const& p = polylines[i][j];
-      source_spec source(p.source_.id_, p.source_.category_, p.source_.type_);
-      source.station_ = from->station_idx_ == to->station_idx_;
-      from->edges_.emplace_back(from, to, p.polyline_, source, p.weight_);
+      polyline polyline;
+      from->edges_.emplace_back(from, to, polyline, p.source_, p.weight_);
     }
   }
 }
 
-void create_edges(seq_graph& g, routing_strategy& strategy) {
-  auto const refs = transform_to_vec(g.station_to_nodes_, [](auto const& sn) {
+void create_edges(seq_graph& g, strategies& routing_strategies,
+                  source_spec::category const& category) {
+  auto refs = transform_to_vec(g.station_to_nodes_, [](auto const& sn) {
     return transform_to_vec(sn, [](auto const& node) { return node->ref_; });
   });
 
   for (auto i = 0u; i < g.station_to_nodes_.size() - 1; ++i) {
     if (i != 0) {
       connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i],
-                    strategy.find_routes(refs[i], refs[i]));
+                    get_strategy(routing_strategies, category)
+                        ->find_routes(refs[i], refs[i]));
     }
 
     connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i + 1],
-                  strategy.find_routes(refs[i], refs[i + 1]));
+                  get_strategy(routing_strategies, category)
+                      ->find_routes(refs[i], refs[i + 1]));
   }
 }
 
 seq_graph build_seq_graph(source_spec::category const& category,
                           station_seq const& seq,
                           std::vector<match_seq> const& matches,
-                          routing_strategy& strategy) {
+                          strategies& routing_strategies) {
   seq_graph g{seq.station_ids_.size()};
 
   add_matches(g, category, matches);
-  add_close_nodes(g, seq, strategy);
-  create_edges(g, strategy);
+  add_close_nodes(g, seq, routing_strategies, category);
+  create_edges(g, routing_strategies, category);
 
   g.initials_ = transform_to_vec(g.station_to_nodes_.front(),
                                  [](auto&& node) { return node->idx_; });

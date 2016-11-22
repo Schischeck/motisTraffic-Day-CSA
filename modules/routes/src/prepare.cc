@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <memory>
 
 #include "motis/routes/prepare/fbs/use_64bit_flatbuffers.h"
 
@@ -87,39 +88,23 @@ int main(int argc, char** argv) {
 
   auto const& profile = directory.filename().string();
   motis::logging::scoped_timer timer("loading OSRM dataset: " + profile);
-
+  prepare_data data;
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
-  auto const stop_positions = find_bus_stop_positions(schedule, opt.osm_);
+  data.stop_positions_ = find_bus_stop_positions(schedule, opt.osm_);
 
-  auto sequences = load_station_sequences(schedule);
+  data.sequences_ = load_station_sequences(schedule);
 
   // auto const extent_polygon = read_poly_file(opt.extent_);
-  erase_if(sequences, [&](auto const& seq) {
-    // if (seq.categories_.empty() ||
-    //     std::none_of(begin(seq.categories_), end(seq.categories_),
-    //                  [](auto const& cat) { return cat < 6; })) {
-    //   return true;
-    // }
-
-    // if (std::any_of(begin(seq.coordinates_),
-    // end(seq.coordinates_),
-    //                 [&](auto const& coord) {
-    //                   return !within(coord,
-    //                   extent_polygon);
-    //                 })) {
-    //   return true;
-    // }
-
-    // if (seq.station_ids_.front() != "8000105" ||
-    //     seq.station_ids_.back() != "8000126") {
-    //   return true;
-    // }
-
-    return false;
-  });
 
   rocksdb_database db(opt.out_);
-  osrm_routing strategy(opt.osrm_);
-  prepare(sequences, stop_positions, opt.osm_, db);
+  strategies routing_strategies;
+  routing_strategies.strategies_.push_back(std::make_unique<stub_routing>(0));
+  // routing_strategies.strategies_.push_back(
+  //    std::make_unique<osrm_routing>(1, opt.osrm_));
+  routing_strategies.class_to_strategy_.emplace(
+      source_spec::category::UNKNOWN, routing_strategies.strategies_[0].get());
+  // routing_strategies.class_to_strategy_.emplace(
+  //    source_spec::category::BUS, routing_strategies.strategies_[1].get());
+  prepare(data, routing_strategies, db, opt.osm_);
 }

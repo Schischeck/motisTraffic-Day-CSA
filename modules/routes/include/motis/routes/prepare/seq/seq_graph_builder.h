@@ -8,8 +8,11 @@
 namespace motis {
 namespace routes {
 
+struct strategies;
+
 seq_graph build_seq_graph(source_spec::category const&, station_seq const&,
-                          std::vector<match_seq> const&, routing_strategy&);
+                          std::vector<match_seq> const&,
+                          strategies& routing_strategies);
 
 }  // namespace routes
 }  // namespace motis

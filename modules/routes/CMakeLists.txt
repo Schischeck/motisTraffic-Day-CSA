@@ -50,6 +50,7 @@ target_link_libraries(routes-prepare
   ${Boost_THREAD_LIBRARY}
   ${ZLIB_LIBRARIES}
   expat
+  motis-module
   motis-loader
   conf
   geo

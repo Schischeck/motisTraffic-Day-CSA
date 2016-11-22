@@ -34,6 +34,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
     auto const route = relation.get_value_by_key("route", "");
     auto const is_rail = std::any_of(begin(rail_routes), end(rail_routes),
                                      [&](auto&& r) { return r == route; });
+    auto const is_bus = route == "bus";
 
     if (!is_rail && std::none_of(begin(other_routes), end(other_routes),
                                  [&](auto&& r) { return r == route; })) {
@@ -53,7 +54,8 @@ parsed_relations parse_relations(std::string const& osm_file_) {
     }
 
     auto cat = is_rail ? source_spec::category::RAILWAY
-                       : source_spec::category::UNKNOWN;
+                       : is_bus ? source_spec::category::BUS
+                                : source_spec::category::UNKNOWN;
     result.relations_.push_back(
         {{relation.id(), cat, source_spec::type::RELATION}, ways});
   });
