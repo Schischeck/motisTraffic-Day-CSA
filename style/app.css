@@ -40,6 +40,11 @@
   height: 210px;
   flex: 0 0 auto;
   padding-bottom: 0;
+  transition: filter 1s;
+}
+
+#search.disabled {
+  filter: grayscale(100%) opacity(10%);
 }
 
 .from-location {
@@ -273,12 +278,12 @@
   margin: 0 4px 0 4px;
 }
 
-.train-box.with-provider-info {
+.with-tooltip {
   position: relative;
 }
 
-.train-box.with-provider-info::after {
-  content: attr(data-provider);
+.with-tooltip::after {
+  content: attr(data-tooltip);
   display: inline;
   position: absolute;
   top: 22px; left: 0;
@@ -296,7 +301,7 @@
   white-space: nowrap;
 }
 
-.train-box.with-provider-info::before {
+.with-tooltip::before {
   content: '';
   display: block;
   position: absolute;
@@ -308,11 +313,11 @@
   transition: opacity 250ms, top 250ms;
 }
 
-.train-box.with-provider-info:hover {z-index: 2;} /* Keeps the info boxes on top of other elements */
-.train-box.with-provider-info:hover::after,
-.train-box.with-provider-info:hover::before {opacity: 1;}
-.train-box.with-provider-info:hover::after {top: 30px;}
-.train-box.with-provider-info:hover::before {top: 20px;}
+.with-tooltip:hover {z-index: 2;} /* Keeps the info boxes on top of other elements */
+.with-tooltip:hover::after,
+.with-tooltip:hover::before {opacity: 1;}
+.with-tooltip:hover::after {top: 30px;}
+.with-tooltip:hover::before {top: 20px;}
 
 .train-sep {
   height: 1em;
@@ -421,6 +426,7 @@
   font-size: 14px;
   font-weight: 300;
   color: #777;
+  z-index: -10;
 }
 
 .train-detail .train-top-line span {

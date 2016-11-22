@@ -120,9 +120,9 @@ trainBox viewMode locale t =
             [ classList
                 [ "train-box" => True
                 , ("train-class-" ++ (toString t.class)) => True
-                , "with-provider-info" => not (String.isEmpty t.provider)
+                , "with-tooltip" => not (String.isEmpty t.provider)
                 ]
-            , attribute "data-provider" providerTooltip
+            , attribute "data-tooltip" providerTooltip
             ]
             [ icon
             , if String.isEmpty name then
