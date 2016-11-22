@@ -57,6 +57,7 @@ type alias Model =
     , scheduleInfo : Maybe ScheduleInfo
     , routingRequest : Maybe RoutingRequest
     , newJourneys : List Int
+    , allowExtend : Bool
     }
 
 
@@ -82,6 +83,7 @@ init remoteAddress =
     , scheduleInfo = Nothing
     , routingRequest = Nothing
     , newJourneys = []
+    , allowExtend = True
     }
 
 
@@ -170,7 +172,11 @@ update msg model =
 
         ReceiveResponse action request response ->
             if belongsToCurrentSearch model request then
-                (updateModelWithNewResults model action request response) ! []
+                let
+                    model_ =
+                        { model | allowExtend = True }
+                in
+                    (updateModelWithNewResults model_ action request response) ! []
             else
                 model ! []
 
@@ -195,8 +201,11 @@ update msg model =
                         placeholderStation
                         (Date.fromTime 0)
                         Forward
+
+                model_ =
+                    { model | allowExtend = False }
             in
-                (updateModelWithNewResults model ReplaceResults request response) ! []
+                (updateModelWithNewResults model_ ReplaceResults request response) ! []
 
         UpdateScheduleInfo si ->
             { model | scheduleInfo = si } ! []
@@ -653,12 +662,13 @@ extendIntervalButton :
 extendIntervalButton direction (Config { internalMsg }) locale model =
     let
         enabled =
-            case direction of
-                ExtendBefore ->
-                    not model.loadingBefore
+            model.allowExtend
+                && case direction of
+                    ExtendBefore ->
+                        not model.loadingBefore
 
-                ExtendAfter ->
-                    not model.loadingAfter
+                    ExtendAfter ->
+                        not model.loadingAfter
 
         divClass =
             case direction of
@@ -707,8 +717,10 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
 
                     Just error ->
                         errorView "error" locale model error
-              else
+              else if model.allowExtend then
                 loadingSpinner
+              else
+                text ""
             ]
 
 
