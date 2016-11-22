@@ -24,6 +24,7 @@ import Util.List exposing (last)
 import Util.DateFormat exposing (formatTime)
 import Util.Core exposing ((=>))
 import Localization.Base exposing (..)
+import List.Extra
 
 
 -- MODEL
@@ -425,61 +426,42 @@ trainDuration { stops } =
         Maybe.map2 minutesBetween departure arrival |> Maybe.withDefault 0
 
 
+type alias LayoutPart =
+    { part : Part
+    , minWidth : Float
+    , idealWidth : Float
+    , finalWidth : Float
+    }
+
+
+isFinal : LayoutPart -> Bool
+isFinal part =
+    part.finalWidth > 0
+
+
+isNotFinal : LayoutPart -> Bool
+isNotFinal part =
+    part.finalWidth == 0
+
+
 layoutParts : Int -> NameDisplayType -> List Part -> List DisplayPart
-layoutParts totalWidth nameDisplayType parts =
+layoutParts totalWidth desiredNameDisplayType parts =
     let
-        totalDuration =
-            getTotalDuration parts |> toFloat
-
-        partCount =
-            List.length parts
-
-        baseBarLength =
-            2
-
-        basePartSize =
-            circleRadius * 2
-
         destinationWidth =
             destinationRadius * 2
 
-        avgCharWidth =
-            7
+        ( parts_, nameDisplayType ) =
+            calcPartWidths
+                (totalWidth - destinationWidth)
+                desiredNameDisplayType
+                parts
 
-        requiredBaseBarLength part =
-            case nameDisplayType of
-                LongName ->
-                    baseBarLength
-                        + (Basics.max
-                            0
-                            (avgCharWidth * (String.length part.longName) - basePartSize)
-                          )
-
-                NoName ->
-                    baseBarLength
-
-        totalBaseBarLength =
-            parts
-                |> List.map requiredBaseBarLength
-                |> List.sum
-
-        scaleLineSpace =
-            totalWidth
-                - (partCount * basePartSize)
-                - totalBaseBarLength
-                - destinationWidth
-                |> toFloat
-
-        getBarLength part =
-            (requiredBaseBarLength part |> toFloat)
-                + (((toFloat part.duration) / totalDuration) * scaleLineSpace)
-
-        layout part ( pos, results ) =
+        setPosition lp ( pos, results ) =
             let
                 displayPart =
-                    { part = part
+                    { part = lp.part
                     , position = pos
-                    , barLength = getBarLength part
+                    , barLength = lp.finalWidth - basePartSize
                     , nameDisplayType = nameDisplayType
                     }
 
@@ -489,12 +471,100 @@ layoutParts totalWidth nameDisplayType parts =
                 ( nextPos, results ++ [ displayPart ] )
 
         ( _, displayParts ) =
-            List.foldl layout ( 0, [] ) parts
+            List.foldl setPosition ( 0, [] ) parts_
     in
-        if scaleLineSpace <= 0 && nameDisplayType /= NoName then
-            layoutParts totalWidth NoName parts
+        displayParts
+
+
+calcPartWidths : Int -> NameDisplayType -> List Part -> ( List LayoutPart, NameDisplayType )
+calcPartWidths availableWidth nameDisplayType parts =
+    let
+        baseBarLength =
+            2
+
+        avgCharWidth =
+            7
+
+        getMinLength part =
+            case nameDisplayType of
+                LongName ->
+                    Basics.max
+                        (basePartSize + baseBarLength)
+                        (avgCharWidth * (String.length part.longName))
+                        |> toFloat
+
+                NoName ->
+                    basePartSize + baseBarLength |> toFloat
+
+        initialLayoutPart part =
+            { part = part
+            , minWidth = getMinLength part
+            , idealWidth = 0
+            , finalWidth = 0
+            }
+
+        initialLayoutParts =
+            List.map initialLayoutPart parts
+
+        minRequiredSpace =
+            initialLayoutParts
+                |> List.map .minWidth
+                |> List.sum
+    in
+        if minRequiredSpace <= (toFloat availableWidth) then
+            ( calcFinalPartWidths
+                (toFloat availableWidth)
+                nameDisplayType
+                initialLayoutParts
+            , nameDisplayType
+            )
         else
-            displayParts
+            calcPartWidths availableWidth NoName parts
+
+
+calcFinalPartWidths : Float -> NameDisplayType -> List LayoutPart -> List LayoutPart
+calcFinalPartWidths totalAvailableWidth nameDisplayType parts =
+    let
+        remainingDuration =
+            parts
+                |> List.filter isNotFinal
+                |> List.map (.part >> .duration)
+                |> List.sum
+                |> toFloat
+
+        finalPartsWidth p =
+            p
+                |> List.map .finalWidth
+                |> List.sum
+
+        availableWidth =
+            totalAvailableWidth - (finalPartsWidth parts)
+
+        getIdealWidth part =
+            (toFloat part.part.duration) / remainingDuration * availableWidth
+
+        idealParts =
+            List.Extra.updateIf
+                isNotFinal
+                (\p -> { p | idealWidth = getIdealWidth p })
+                parts
+
+        finalizedParts =
+            List.Extra.updateIf
+                (\p -> isNotFinal p && p.minWidth >= p.idealWidth)
+                (\p -> { p | finalWidth = p.minWidth })
+                idealParts
+
+        done =
+            idealParts == finalizedParts
+    in
+        if done then
+            finalizedParts
+                |> List.Extra.updateIf
+                    isNotFinal
+                    (\p -> { p | finalWidth = p.idealWidth })
+        else
+            calcFinalPartWidths totalAvailableWidth nameDisplayType finalizedParts
 
 
 iconSize : number
@@ -505,6 +575,11 @@ iconSize =
 circleRadius : number
 circleRadius =
     12
+
+
+basePartSize : number
+basePartSize =
+    circleRadius * 2
 
 
 iconOffset : Float
