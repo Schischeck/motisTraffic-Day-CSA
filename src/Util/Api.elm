@@ -12,8 +12,6 @@ import Json.Encode as Encode
 import Json.Decode as Decode exposing (nullable)
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Http
-import Task exposing (Task, andThen, mapError, succeed, fail)
-import Util.Core exposing ((=>))
 
 
 type ApiError
