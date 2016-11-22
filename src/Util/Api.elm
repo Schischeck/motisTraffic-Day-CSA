@@ -28,6 +28,7 @@ type MotisErrorInfo
     = ModuleError ModuleErrorInfo
     | RoutingError RoutingErrorInfo
     | LookupError LookupErrorInfo
+    | AccessError AccessErrorInfo
     | UnknownMotisError MotisErrorDetail
 
 
@@ -56,6 +57,12 @@ type LookupErrorInfo
     | LookupRouteNotFound
     | LookupRouteEdgeNotFound
     | UnknownLookupError MotisErrorDetail
+
+
+type AccessErrorInfo
+    = AccessStationNotFound
+    | AccessServiceNotFound
+    | UnknownAccessError MotisErrorDetail
 
 
 type alias MotisErrorDetail =
@@ -185,6 +192,9 @@ mapMotisError err =
         "motis::lookup" ->
             LookupError (mapLookupError err)
 
+        "motis::access" ->
+            AccessError (mapAccessError err)
+
         _ ->
             UnknownMotisError err
 
@@ -256,3 +266,16 @@ mapLookupError err =
 
         _ ->
             UnknownLookupError err
+
+
+mapAccessError : MotisErrorDetail -> AccessErrorInfo
+mapAccessError err =
+    case err.errorCode of
+        2 ->
+            AccessStationNotFound
+
+        3 ->
+            AccessServiceNotFound
+
+        _ ->
+            UnknownAccessError err
