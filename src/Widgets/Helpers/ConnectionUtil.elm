@@ -176,7 +176,7 @@ delay event =
     in
         case event.reason of
             Schedule ->
-                span [ class "delay" ] []
+                text ""
 
             _ ->
                 case diff of
@@ -204,4 +204,4 @@ delay event =
                                 ]
 
                     Nothing ->
-                        div [ class "delay" ] []
+                        text ""

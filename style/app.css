@@ -495,22 +495,38 @@
 .train-detail .stop {
   margin-bottom: 1em;
   display: flex;
+  position: relative;
 }
 
 .train-detail .stop span {
-  background-color: white;
   padding: 0 6px;
+  background-color: white;
+  /*box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;*/
+}
+
+.train-detail .stop .station {
+  padding: 0 6px;
+}
+
+.train-detail .stop .station span {
+  padding: 0;
+  box-shadow: 6px 0 0 #fff, -6px 0 0 #fff;
 }
 
 .train-detail .intermediate-stops .stop {
   margin-bottom: 2em;
 }
 
+.train-detail .last-stop {
+  position: relative;
+}
+
 .train-detail .intermediate-stops .stop::before,
 .train-detail:last-of-type .last-stop .stop::before {
   content: "";
   position: absolute;
-  left: 7px;
+  left: -25px;
   margin-top: 6px;
   width: 10px;
   height: 10px;
@@ -522,20 +538,20 @@
 .train-detail:last-of-type .last-stop .stop::after {
   content: "";
   position: absolute;
-  left: 10px;
+  left: -22px;
   margin-top: 10px;
   width: 0px;
-  height: 2.5em;
+  height: 4em;
   border-left: 4px solid #fff;
   z-index: 5;
-  box-shadow: 7px 0px 0px 0px #fff;
+  /*box-shadow: 7px 0px 0px 0px #fff;*/
 }
 
 .train-detail:last-of-type .last-stop::after {
   content: "";
   position: absolute;
-  bottom: 33px;
-  left: 0;
+  top: 11px;
+  left: -11px;
   width: 100%;
   border-top: 1px solid #ccc;
   z-index: -10;
@@ -610,7 +626,7 @@
   display: inline-block;
 }
 
-.train-detail .stop .delay {
+.train-detail .stop div.delay {
   font-weight: bold;
   width: 4em;
   flex: 0 0 4em;
