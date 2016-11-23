@@ -18,7 +18,6 @@ import Data.Connection.Types exposing (Station, Position, TripId, Connection)
 import Data.Journey.Types exposing (toJourney)
 import Data.Lookup.Request exposing (encodeTripToConnection)
 import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
-import Util.Core exposing ((=>))
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
@@ -31,7 +30,6 @@ import Html.Events exposing (..)
 import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
 import Task
-import String
 import Navigation exposing (Location)
 import UrlParser
 import Routes exposing (..)
@@ -69,7 +67,9 @@ type alias Model =
     , searchDirection : SearchDirection
     , map : Map.Model
     , connections : Connections.Model
-    , selectedConnection : Maybe ConnectionDetails.State
+    , connectionDetails : Maybe ConnectionDetails.State
+    , selectedConnectionIdx : Maybe Int
+    , selectedTripIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
     , apiEndpoint : String
@@ -112,7 +112,9 @@ init flags _ =
           , searchDirection = Forward
           , map = mapModel
           , connections = Connections.init remoteAddress
-          , selectedConnection = Nothing
+          , connectionDetails = Nothing
+          , selectedConnectionIdx = Nothing
+          , selectedTripIdx = Nothing
           , scheduleInfo = Nothing
           , locale = locale
           , apiEndpoint = remoteAddress
@@ -285,7 +287,7 @@ update msg model =
         ConnectionDetailsUpdate msg_ ->
             let
                 ( m, c ) =
-                    case model.selectedConnection of
+                    case model.connectionDetails of
                         Just state ->
                             let
                                 ( m_, c_ ) =
@@ -296,7 +298,8 @@ update msg model =
                         Nothing ->
                             Nothing ! []
             in
-                ( { model | selectedConnection = m }, Cmd.map ConnectionDetailsUpdate c )
+                { model | connectionDetails = m }
+                    ! [ Cmd.map ConnectionDetailsUpdate c ]
 
         CloseConnectionDetails ->
             closeSelectedConnection model
@@ -459,7 +462,7 @@ noop =
 
 loadTrip : Model -> Int -> ( Model, Cmd Msg )
 loadTrip model idx =
-    case model.selectedConnection of
+    case model.connectionDetails of
         Just cdm ->
             let
                 journey =
@@ -509,7 +512,7 @@ overlayView : Model -> Html Msg
 overlayView model =
     let
         content =
-            case model.selectedConnection of
+            case model.connectionDetails of
                 Nothing ->
                     searchView model
 
@@ -681,9 +684,11 @@ selectConnection model idx =
         case journey of
             Just j ->
                 { model
-                    | selectedConnection =
+                    | connectionDetails =
                         Maybe.map (ConnectionDetails.init False) journey
                     , connections = newConnections
+                    , selectedConnectionIdx = Just idx
+                    , selectedTripIdx = Nothing
                 }
                     ! [ MapConnectionOverlay.showOverlay model.locale j ]
 
@@ -693,7 +698,11 @@ selectConnection model idx =
 
 closeSelectedConnection : Model -> ( Model, Cmd Msg )
 closeSelectedConnection model =
-    { model | selectedConnection = Nothing }
+    { model
+        | connectionDetails = Nothing
+        , selectedConnectionIdx = Nothing
+        , selectedTripIdx = Nothing
+    }
         ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
           , MapConnectionOverlay.hideOverlay
           ]
@@ -709,7 +718,7 @@ showFullTripConnection model connection =
             { journey | isSingleCompleteTrip = True }
     in
         { model
-            | selectedConnection = Just (ConnectionDetails.init True tripJourney)
+            | connectionDetails = Just (ConnectionDetails.init True tripJourney)
         }
             ! [ Navigation.newUrl (toUrl ConnectionFullTripDetails)
               , MapConnectionOverlay.showOverlay model.locale journey
