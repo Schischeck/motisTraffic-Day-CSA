@@ -93,7 +93,7 @@ var MapOverlays = {
 
 function initPorts(app) {
   app.ports.mapInit.subscribe(function(id) {
-    var map = L.map('map').setView([49.8728, 8.6512], 14);
+    var map = L.map('map', {zoomControl: false}).setView([49.8728, 8.6512], 14);
 
     L.tileLayer(
          'https://tiles.motis-project.de/osm_light/{z}/{x}/{y}.png?token={accessToken}',
@@ -104,6 +104,8 @@ function initPorts(app) {
                '862bdec137edd4e88029304609458291f0ec760b668c5816ccdd83d0beae76a4'
          })
         .addTo(map);
+
+    L.control.zoom({position: 'topright'}).addTo(map);
 
     window.elmMaps[id] = map;
 
