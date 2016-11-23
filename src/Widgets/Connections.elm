@@ -7,6 +7,8 @@ module Widgets.Connections
         , init
         , update
         , view
+        , connectionIdxToListIdx
+        , getJourney
         )
 
 import Html exposing (Html, div, ul, li, text, span, i, a)
@@ -28,6 +30,7 @@ import Widgets.JourneyTransportGraph as JourneyTransportGraph
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Date exposing (isSameDay, unixTime)
+import Util.List exposing ((!!))
 import Util.Api as Api
     exposing
         ( ApiError(..)
@@ -85,6 +88,16 @@ init remoteAddress =
     , newJourneys = []
     , allowExtend = True
     }
+
+
+connectionIdxToListIdx : Model -> Int -> Int
+connectionIdxToListIdx model connectionIdx =
+    connectionIdx - model.indexOffset
+
+
+getJourney : Model -> Int -> Maybe Journey
+getJourney model connectionIdx =
+    model.journeys !! (connectionIdxToListIdx model connectionIdx)
 
 
 
@@ -223,7 +236,7 @@ update msg model =
         JTGUpdate idx msg_ ->
             { model
                 | journeyTransportGraphs =
-                    updateAt (idx - model.indexOffset)
+                    updateAt (connectionIdxToListIdx model idx)
                         (JourneyTransportGraph.update msg_)
                         model.journeyTransportGraphs
                         |> Maybe.withDefault model.journeyTransportGraphs

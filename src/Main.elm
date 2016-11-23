@@ -672,11 +672,8 @@ routeToMsg route =
 selectConnection : Model -> Int -> ( Model, Cmd Msg )
 selectConnection model idx =
     let
-        realIndex =
-            idx - model.connections.indexOffset
-
         journey =
-            model.connections.journeys !! realIndex
+            Connections.getJourney model.connections idx
 
         ( newConnections, _ ) =
             Connections.update Connections.ResetNew model.connections
