@@ -6,7 +6,7 @@ import UrlParser exposing (Parser, (</>), s, int, string, map, oneOf, parseHash,
 type Route
     = Connections
     | ConnectionDetails Int
-    | ConnectionFullTripDetails
+    | ConnectionFullTripDetails Int Int
 
 
 urlParser : Parser (Route -> a) a
@@ -14,7 +14,7 @@ urlParser =
     oneOf
         [ map Connections top
         , map ConnectionDetails (s "connection" </> int)
-        , map ConnectionFullTripDetails (s "trip")
+        , map ConnectionFullTripDetails (s "connection" </> int </> s "trip" </> int)
         ]
 
 
@@ -27,5 +27,5 @@ toUrl route =
         ConnectionDetails idx ->
             "#/connection/" ++ toString idx
 
-        ConnectionFullTripDetails ->
-            "#/trip"
+        ConnectionFullTripDetails connIdx tripIdx ->
+            "#/connection/" ++ toString connIdx ++ "/trip/" ++ toString tripIdx

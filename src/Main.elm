@@ -157,7 +157,8 @@ type Msg
     | StoreConnectionListScrollPos Msg Float
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
-    | SelectTrip Int
+    | PrepareSelectTrip Int
+    | SelectTrip Int Int
     | TripToConnectionError Int Int ApiError
     | TripToConnectionResponse Int Int Connection
     | ScheduleInfoError ApiError
@@ -304,8 +305,16 @@ update msg model =
         CloseConnectionDetails ->
             closeSelectedConnection model
 
-        SelectTrip idx ->
-            loadTrip model idx
+        PrepareSelectTrip tripIdx ->
+            case model.selectedConnectionIdx of
+                Just connIdx ->
+                    update (NavigateTo (ConnectionFullTripDetails connIdx tripIdx)) model
+
+                Nothing ->
+                    model ! []
+
+        SelectTrip connIdx tripIdx ->
+            loadTrip model connIdx tripIdx
 
         TripToConnectionError connIdx tripIdx err ->
             -- TODO
@@ -460,26 +469,27 @@ noop =
     \_ -> NoOp
 
 
-loadTrip : Model -> Int -> ( Model, Cmd Msg )
-loadTrip model idx =
-    case model.connectionDetails of
-        Just cdm ->
-            let
-                journey =
-                    ConnectionDetails.getJourney cdm
+loadTrip : Model -> Int -> Int -> ( Model, Cmd Msg )
+loadTrip model connIdx tripIdx =
+    let
+        journey =
+            Connections.getJourney model.connections connIdx
 
-                trip =
-                    (journey.trains !! idx) |> Maybe.andThen .trip
-            in
-                case trip of
-                    Just tripId ->
-                        model ! [ sendTripRequest model.apiEndpoint 0 idx tripId ]
+        trip =
+            journey
+                |> Maybe.andThen (\j -> j.trains !! tripIdx)
+                |> Maybe.andThen .trip
+    in
+        case trip of
+            Just tripId ->
+                { model
+                    | selectedConnectionIdx = Just connIdx
+                    , selectedTripIdx = Just tripIdx
+                }
+                    ! [ sendTripRequest model.apiEndpoint connIdx tripIdx tripId ]
 
-                    Nothing ->
-                        model ! []
-
-        Nothing ->
-            model ! []
+            Nothing ->
+                update (ReplaceLocation Connections) model
 
 
 
@@ -617,7 +627,7 @@ detailsConfig : ConnectionDetails.Config Msg
 detailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
-        , selectTripMsg = SelectTrip
+        , selectTripMsg = PrepareSelectTrip
         }
 
 
@@ -668,8 +678,8 @@ routeToMsg route =
         ConnectionDetails idx ->
             SelectConnection idx
 
-        ConnectionFullTripDetails ->
-            NoOp
+        ConnectionFullTripDetails connIdx tripIdx ->
+            SelectTrip connIdx tripIdx
 
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )
@@ -720,8 +730,7 @@ showFullTripConnection model connection =
         { model
             | connectionDetails = Just (ConnectionDetails.init True tripJourney)
         }
-            ! [ Navigation.newUrl (toUrl ConnectionFullTripDetails)
-              , MapConnectionOverlay.showOverlay model.locale journey
+            ! [ MapConnectionOverlay.showOverlay model.locale journey
               , Task.attempt noop <| Scroll.toTop "overlay-content"
               , Task.attempt noop <| Scroll.toTop "connection-journey"
               ]
