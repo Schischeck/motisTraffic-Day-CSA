@@ -8,6 +8,14 @@
   justify-content: flex-start;
 }
 
+.overlay-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+}
+
 .overlay {
   z-index: 10;
   background-color: white;
@@ -17,13 +25,13 @@
   width: 550px;
   flex: 0 0 auto;
   order: 1;
-  margin: 20px;
+  height: 100%;
 }
 
 #overlay-content {
-  height: 90vh;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 #map {

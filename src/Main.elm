@@ -529,9 +529,11 @@ overlayView model =
                 Just c ->
                     detailsView model.locale c
     in
-        div [ class "overlay" ] <|
-            [ div [ id "overlay-content" ]
-                content
+        div [ class "overlay-container" ]
+            [ div [ class "overlay" ] <|
+                [ div [ id "overlay-content" ]
+                    content
+                ]
             ]
 
 
