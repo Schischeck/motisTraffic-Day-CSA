@@ -137,7 +137,7 @@
 }
 
 .connection {
-  margin-top: 20px;
+  margin-top: 25px;
   cursor: pointer;
 }
 
@@ -457,7 +457,7 @@
 }
 
 .train-detail .train-arr-track {
-  bottom: 20px;
+  top: -4px;
   right: 0px;
 }
 
