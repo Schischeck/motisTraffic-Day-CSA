@@ -51,7 +51,7 @@ type alias Model =
     , loadingBefore : Bool
     , loadingAfter : Bool
     , remoteAddress : String
-    , journeys : List Journey
+    , journeys : List LabeledJourney
     , journeyTransportGraphs : List JourneyTransportGraph.Model
     , indexOffset : Int
     , errorMessage : Maybe ApiError
@@ -61,6 +61,12 @@ type alias Model =
     , routingRequest : Maybe RoutingRequest
     , newJourneys : List Int
     , allowExtend : Bool
+    }
+
+
+type alias LabeledJourney =
+    { journey : Journey
+    , labels : List Int
     }
 
 
@@ -97,7 +103,9 @@ connectionIdxToListIdx model connectionIdx =
 
 getJourney : Model -> Int -> Maybe Journey
 getJourney model connectionIdx =
-    model.journeys !! (connectionIdxToListIdx model connectionIdx)
+    model.journeys
+        !! (connectionIdxToListIdx model connectionIdx)
+        |> Maybe.map .journey
 
 
 
@@ -353,10 +361,11 @@ updateModelWithNewResults model action request response =
                             Maybe.map (updateInterval False True) model.routingRequest
                     }
 
-        journeysToAdd : List Journey
+        journeysToAdd : List LabeledJourney
         journeysToAdd =
             connections
                 |> List.map Journey.toJourney
+                |> List.map (\j -> { journey = j, labels = [] })
 
         newJourneys =
             case action of
@@ -396,7 +405,7 @@ updateModelWithNewResults model action request response =
 
         journeyTransportGraphs =
             List.map
-                (JourneyTransportGraph.init transportListViewWidth)
+                (\lj -> JourneyTransportGraph.init transportListViewWidth lj.journey)
                 sortedJourneys
     in
         { base
@@ -407,10 +416,11 @@ updateModelWithNewResults model action request response =
         }
 
 
-sortJourneys : List Journey -> List Journey
+sortJourneys : List LabeledJourney -> List LabeledJourney
 sortJourneys journeys =
     List.sortBy
-        (.connection
+        (.journey
+            >> .connection
             >> .stops
             >> List.head
             >> Maybe.andThen (.departure >> .schedule_time)
@@ -504,8 +514,9 @@ connectionsView config locale model =
 connectionsWithDateHeaders : Config msg -> Localization -> Model -> Html msg
 connectionsWithDateHeaders config locale model =
     let
-        getDate ( idx, journey, _ ) =
-            Connection.departureTime journey.connection |> Maybe.withDefault (Date.fromTime 0)
+        getDate ( idx, labeledJourney, _ ) =
+            Connection.departureTime labeledJourney.journey.connection
+                |> Maybe.withDefault (Date.fromTime 0)
 
         renderConnection ( idx, journey, jtg ) =
             ( "connection-" ++ (toString idx)
@@ -534,36 +545,40 @@ connectionView :
     -> Localization
     -> Int
     -> Bool
-    -> Journey
+    -> LabeledJourney
     -> JourneyTransportGraph.Model
     -> Html msg
-connectionView (Config { internalMsg, selectMsg }) locale idx new j jtg =
-    div
-        [ classList
-            [ "connection" => True
-            , "new" => new
-            ]
-        , onClick (selectMsg idx)
-        ]
-        [ div [ class "pure-g" ]
-            [ div [ class "pure-u-4-24 connection-times" ]
-                [ div [ class "connection-departure" ]
-                    [ text (Maybe.map formatTime (Connection.departureTime j.connection) |> Maybe.withDefault "?")
-                    , text " "
-                    , Maybe.map delay (Connection.departureEvent j.connection) |> Maybe.withDefault (text "")
-                    ]
-                , div [ class "connection-arrival" ]
-                    [ text (Maybe.map formatTime (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
-                    , text " "
-                    , Maybe.map delay (Connection.arrivalEvent j.connection) |> Maybe.withDefault (text "")
-                    ]
+connectionView (Config { internalMsg, selectMsg }) locale idx new labeledJourney jtg =
+    let
+        j =
+            labeledJourney.journey
+    in
+        div
+            [ classList
+                [ "connection" => True
+                , "new" => new
                 ]
-            , div [ class "pure-u-4-24 connection-duration" ]
-                [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
-            , div [ class "pure-u-16-24 connection-trains" ]
-                [ Html.map (\m -> internalMsg (JTGUpdate idx m)) <| JourneyTransportGraph.view locale jtg ]
+            , onClick (selectMsg idx)
             ]
-        ]
+            [ div [ class "pure-g" ]
+                [ div [ class "pure-u-4-24 connection-times" ]
+                    [ div [ class "connection-departure" ]
+                        [ text (Maybe.map formatTime (Connection.departureTime j.connection) |> Maybe.withDefault "?")
+                        , text " "
+                        , Maybe.map delay (Connection.departureEvent j.connection) |> Maybe.withDefault (text "")
+                        ]
+                    , div [ class "connection-arrival" ]
+                        [ text (Maybe.map formatTime (Connection.arrivalTime j.connection) |> Maybe.withDefault "?")
+                        , text " "
+                        , Maybe.map delay (Connection.arrivalEvent j.connection) |> Maybe.withDefault (text "")
+                        ]
+                    ]
+                , div [ class "pure-u-4-24 connection-duration" ]
+                    [ div [] [ text (Maybe.map durationText (Connection.duration j.connection) |> Maybe.withDefault "?") ] ]
+                , div [ class "pure-u-16-24 connection-trains" ]
+                    [ Html.map (\m -> internalMsg (JTGUpdate idx m)) <| JourneyTransportGraph.view locale jtg ]
+                ]
+            ]
 
 
 dateHeader : Localization -> Date -> Html msg
