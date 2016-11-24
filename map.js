@@ -68,7 +68,7 @@ var MapOverlays = {
         bounds.extend(overlay.getBounds());
       }
     });
-    map.fitBounds(bounds);
+    map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
   },
 
   clearOverlays: function() {
