@@ -96,7 +96,7 @@ view (Config { internalMsg, selectTripMsg }) locale { journey, expanded } =
 
         trainsView =
             List.map3
-                (trainDetail internalMsg selectTripMsg locale)
+                (trainDetail journey.isSingleCompleteTrip internalMsg selectTripMsg locale)
                 trains
                 indices
                 expanded
@@ -118,7 +118,12 @@ view (Config { internalMsg, selectTripMsg }) locale { journey, expanded } =
         transportsView =
             leadingWalkView ++ trainsView ++ trailingWalkView
     in
-        div [ class "connection-details" ]
+        div
+            [ classList
+                [ "connection-details" => True
+                , "trip-view" => journey.isSingleCompleteTrip
+                ]
+            ]
             [ connectionInfoView internalMsg locale journey.connection
             , div [ class "connection-journey", id "connection-journey" ]
                 transportsView
@@ -250,14 +255,15 @@ directionView direction =
 
 
 trainDetail :
-    (Msg -> msg)
+    Bool
+    -> (Msg -> msg)
     -> (Int -> msg)
     -> Localization
     -> ( Train, InterchangeInfo )
     -> Int
     -> Bool
     -> Html msg
-trainDetail internalMsg selectTripMsg locale ( train, ic ) idx expanded =
+trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expanded =
     let
         transport =
             List.head train.transports
@@ -323,13 +329,20 @@ trainDetail internalMsg selectTripMsg locale ( train, ic ) idx expanded =
 
                 Nothing ->
                     Nothing
+
+        trainBoxOnClick =
+            if isTripView then
+                []
+            else
+                [ onClick (selectTripMsg idx) ]
     in
         case transport of
             Just t ->
-                div [ class <| "train-detail train-class-" ++ (toString t.class) ] <|
+                div
+                    [ class <| "train-detail train-class-" ++ (toString t.class) ]
                     [ div [ class "left-border" ] []
                     , div [ class "top-border" ] []
-                    , div [ onClick (selectTripMsg idx) ]
+                    , div trainBoxOnClick
                         [ trainBox LongName locale t ]
                     , if String.isEmpty topLine then
                         text ""

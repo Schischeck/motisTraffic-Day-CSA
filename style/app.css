@@ -761,6 +761,10 @@
   cursor: pointer;
 }
 
+.connection-details.trip-view .train-box {
+  cursor: default;
+}
+
 .connection-details .train-box.train-class-walk {
   cursor: default;
 }
