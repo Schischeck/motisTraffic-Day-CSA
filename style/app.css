@@ -451,6 +451,16 @@
   color: #777;
   font-weight: 300;
   flex: 0 0 auto;
+  display: none;
+}
+
+.trip-view .train-detail .first-stop .track,
+.trip-view .train-detail .intermediate-stops .track {
+  display: block;
+}
+
+.trip-view .train-dep-track {
+  display: none;
 }
 
 .train-detail .train-dep-track,

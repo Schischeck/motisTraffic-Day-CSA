@@ -226,18 +226,13 @@ stopView stopViewType eventType locale stop =
                     ]
 
         trackCell =
-            case stopViewType of
-                CompactStopView ->
-                    text ""
-
-                DetailedStopView ->
-                    if String.isEmpty event.track then
-                        text ""
-                    else
-                        div [ class "track" ]
-                            [ span []
-                                [ text (locale.t.connections.track ++ " " ++ event.track) ]
-                            ]
+            if String.isEmpty event.track then
+                text ""
+            else
+                div [ class "track" ]
+                    [ span []
+                        [ text (locale.t.connections.track ++ " " ++ event.track) ]
+                    ]
     in
         div [ class "stop" ]
             [ div [ class "time" ] timeCell
