@@ -187,8 +187,13 @@ connectionInfoView internalMsg { t, dateConfig } connection =
             ]
 
 
-stopView : EventType -> Stop -> Html msg
-stopView eventType stop =
+type StopViewType
+    = CompactStopView
+    | DetailedStopView
+
+
+stopView : StopViewType -> EventType -> Stop -> Html msg
+stopView stopViewType eventType stop =
     let
         event : EventInfo
         event =
@@ -196,10 +201,33 @@ stopView eventType stop =
                 stop.departure
             else
                 stop.arrival
+
+        timeView e =
+            span [] [ text (Maybe.map formatTime e.schedule_time |> Maybe.withDefault "?") ]
+
+        timeCell =
+            case stopViewType of
+                CompactStopView ->
+                    [ timeView event ]
+
+                DetailedStopView ->
+                    [ div [ class "arrival" ] [ timeView stop.arrival ]
+                    , div [ class "departure" ] [ timeView stop.departure ]
+                    ]
+
+        delayCell =
+            case stopViewType of
+                CompactStopView ->
+                    [ delay event ]
+
+                DetailedStopView ->
+                    [ div [ class "arrival" ] [ delay stop.arrival ]
+                    , div [ class "departure" ] [ delay stop.departure ]
+                    ]
     in
         div [ class "stop" ]
-            [ div [ class "time" ] [ span [] [ text (Maybe.map formatTime event.schedule_time |> Maybe.withDefault "?") ] ]
-            , div [ class "delay" ] [ delay event ]
+            [ div [ class "time" ] timeCell
+            , div [ class "delay" ] delayCell
             , div [ class "station" ] [ span [] [ text stop.station.name ] ]
             ]
 
@@ -335,6 +363,12 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                 []
             else
                 [ onClick (selectTripMsg idx) ]
+
+        intermediateStopViewType =
+            if isTripView then
+                DetailedStopView
+            else
+                CompactStopView
     in
         case transport of
             Just t ->
@@ -355,7 +389,7 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                         div [ class "train-dep-track" ]
                             [ text <| locale.t.connections.track ++ " " ++ departureTrack ]
                     , div [ class "first-stop" ]
-                        [ Maybe.map (stopView Departure) departureStop |> Maybe.withDefault (text "") ]
+                        [ Maybe.map (stopView CompactStopView Departure) departureStop |> Maybe.withDefault (text "") ]
                     , Maybe.map directionView direction |> Maybe.withDefault (text "")
                     , div
                         ([ classList
@@ -375,9 +409,9 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                             , "collapsed" => not expanded
                             ]
                         ]
-                        (List.map (stopView Departure) intermediateStops)
+                        (List.map (stopView intermediateStopViewType Departure) intermediateStops)
                     , div [ class "last-stop" ]
-                        [ Maybe.map (stopView Arrival) arrivalStop |> Maybe.withDefault (text "")
+                        [ Maybe.map (stopView CompactStopView Arrival) arrivalStop |> Maybe.withDefault (text "")
                         , if String.isEmpty arrivalTrack then
                             text ""
                           else
@@ -401,11 +435,11 @@ walkDetail { t } walk =
             , div [ class "top-border" ] []
             , walkBox
             , div [ class "first-stop" ]
-                [ stopView Departure walk.from ]
+                [ stopView CompactStopView Departure walk.from ]
             , div [ class "intermediate-stops-toggle" ]
                 [ div [ class "expand-icon" ] []
                 , span [] [ text <| t.connections.tripWalk durationStr ]
                 ]
             , div [ class "last-stop" ]
-                [ stopView Arrival walk.to ]
+                [ stopView CompactStopView Arrival walk.to ]
             ]
