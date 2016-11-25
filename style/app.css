@@ -447,6 +447,12 @@
   background: white;
 }
 
+.train-detail .track {
+  color: #777;
+  font-weight: 300;
+  flex: 0 0 auto;
+}
+
 .train-detail .train-dep-track,
 .train-detail .train-arr-track {
   position: absolute;

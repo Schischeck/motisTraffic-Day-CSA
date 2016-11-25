@@ -192,8 +192,8 @@ type StopViewType
     | DetailedStopView
 
 
-stopView : StopViewType -> EventType -> Stop -> Html msg
-stopView stopViewType eventType stop =
+stopView : StopViewType -> EventType -> Localization -> Stop -> Html msg
+stopView stopViewType eventType locale stop =
     let
         event : EventInfo
         event =
@@ -224,11 +224,26 @@ stopView stopViewType eventType stop =
                     [ div [ class "arrival" ] [ delay stop.arrival ]
                     , div [ class "departure" ] [ delay stop.departure ]
                     ]
+
+        trackCell =
+            case stopViewType of
+                CompactStopView ->
+                    text ""
+
+                DetailedStopView ->
+                    if String.isEmpty event.track then
+                        text ""
+                    else
+                        div [ class "track" ]
+                            [ span []
+                                [ text (locale.t.connections.track ++ " " ++ event.track) ]
+                            ]
     in
         div [ class "stop" ]
             [ div [ class "time" ] timeCell
             , div [ class "delay" ] delayCell
             , div [ class "station" ] [ span [] [ text stop.station.name ] ]
+            , trackCell
             ]
 
 
@@ -389,7 +404,7 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                         div [ class "train-dep-track" ]
                             [ text <| locale.t.connections.track ++ " " ++ departureTrack ]
                     , div [ class "first-stop" ]
-                        [ Maybe.map (stopView CompactStopView Departure) departureStop |> Maybe.withDefault (text "") ]
+                        [ Maybe.map (stopView CompactStopView Departure locale) departureStop |> Maybe.withDefault (text "") ]
                     , Maybe.map directionView direction |> Maybe.withDefault (text "")
                     , div
                         ([ classList
@@ -409,9 +424,9 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                             , "collapsed" => not expanded
                             ]
                         ]
-                        (List.map (stopView intermediateStopViewType Departure) intermediateStops)
+                        (List.map (stopView intermediateStopViewType Departure locale) intermediateStops)
                     , div [ class "last-stop" ]
-                        [ Maybe.map (stopView CompactStopView Arrival) arrivalStop |> Maybe.withDefault (text "")
+                        [ Maybe.map (stopView CompactStopView Arrival locale) arrivalStop |> Maybe.withDefault (text "")
                         , if String.isEmpty arrivalTrack then
                             text ""
                           else
@@ -425,7 +440,7 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
 
 
 walkDetail : Localization -> JourneyWalk -> Html msg
-walkDetail { t } walk =
+walkDetail locale walk =
     let
         durationStr =
             durationText walk.duration
@@ -435,11 +450,11 @@ walkDetail { t } walk =
             , div [ class "top-border" ] []
             , walkBox
             , div [ class "first-stop" ]
-                [ stopView CompactStopView Departure walk.from ]
+                [ stopView CompactStopView Departure locale walk.from ]
             , div [ class "intermediate-stops-toggle" ]
                 [ div [ class "expand-icon" ] []
-                , span [] [ text <| t.connections.tripWalk durationStr ]
+                , span [] [ text <| locale.t.connections.tripWalk durationStr ]
                 ]
             , div [ class "last-stop" ]
-                [ stopView CompactStopView Arrival walk.to ]
+                [ stopView CompactStopView Arrival locale walk.to ]
             ]
