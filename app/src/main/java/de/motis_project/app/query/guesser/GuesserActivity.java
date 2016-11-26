@@ -79,7 +79,7 @@ public class GuesserActivity extends FragmentActivity {
 
         String query = getIntent().getStringExtra(QUERY);
         if (query != null) {
-            subscription = setupSubscription();
+            subscription = setupSubscription(query);
             searchInput.setText(query);
             searchInput.setSelection(query.length());
         }
@@ -102,11 +102,12 @@ public class GuesserActivity extends FragmentActivity {
         super.onStop();
     }
 
-    Subscription setupSubscription() {
+    private Subscription setupSubscription(String init) {
         Observable<List<StationGuess>> favoriteGuesses =
                 RxTextView.textChangeEvents(searchInput)
                         .map(TextViewTextChangeEvent::text)
                         .map(CharSequence::toString)
+                        .startWith(init)
                         .map(String::toLowerCase)
                         .flatMap(in -> favDataSource.getFavorites(in));
 
@@ -114,6 +115,7 @@ public class GuesserActivity extends FragmentActivity {
                 RxTextView.textChangeEvents(searchInput)
                         .map(TextViewTextChangeEvent::text)
                         .map(CharSequence::toString)
+                        .startWith(init)
                         .map(String::toLowerCase)
                         .filter(in -> in.length() >= 3)
                         .flatMap(in -> Status.get().getServer().guess(in))
@@ -127,7 +129,8 @@ public class GuesserActivity extends FragmentActivity {
                                         StationGuess.SERVER_GUESS));
                             }
                             return guesses;
-                        });
+                        })
+                        .startWith(new ArrayList<StationGuess>());
 
         return Observable
                 .combineLatest(favoriteGuesses, serverGuesses, (f, g) -> {
