@@ -1,14 +1,19 @@
 package de.motis_project.app.query.guesser;
 
-public class StationGuess {
+public class StationGuess implements  Comparable<StationGuess> {
+    static final int SERVER_GUESS = 0;
+    static final int FAVORITE_GUESS = 1;
+
     final String eva;
     final String name;
-    final int count;
+    final int priority;
+    final int type;
 
-    public StationGuess(String eva, String name, int count) {
+    public StationGuess(String eva, String name, int count, int type) {
         this.eva = eva;
         this.name = name;
-        this.count = count;
+        this.priority = count;
+        this.type = type;
     }
 
     @Override
@@ -28,5 +33,10 @@ public class StationGuess {
     @Override
     public int hashCode() {
         return eva.hashCode();
+    }
+
+    @Override
+    public int compareTo(StationGuess o) {
+        return Integer.compare(o.priority, priority);
     }
 }

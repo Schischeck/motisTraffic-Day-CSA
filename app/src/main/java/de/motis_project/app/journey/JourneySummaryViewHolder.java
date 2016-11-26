@@ -103,10 +103,11 @@ public class JourneySummaryViewHolder extends JourneyViewHolder {
     }
 
     static private ViewMode getViewMode(List<JourneyUtil.DisplayTransport> transports) {
-        final int MAX_SIZE = 25;
-        if (getTextLengthSum(transports, ViewMode.LONG) + transports.size() <= MAX_SIZE) {
+        final long MAX_SIZE = 30;
+        final long transportsTerm = 2 * transports.size();
+        if (getTextLengthSum(transports, ViewMode.LONG) + transportsTerm <= MAX_SIZE) {
             return ViewMode.LONG;
-        } else if (getTextLengthSum(transports, ViewMode.SHORT) + transports.size() <= MAX_SIZE) {
+        } else if (getTextLengthSum(transports, ViewMode.SHORT) + transportsTerm <= MAX_SIZE) {
             return ViewMode.SHORT;
         } else {
             return ViewMode.OFF;

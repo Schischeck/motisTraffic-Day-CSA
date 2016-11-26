@@ -11,7 +11,6 @@ import com.squareup.sqlbrite.SqlBrite;
 import java.util.List;
 
 import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class FavoritesDataSource {
@@ -22,7 +21,7 @@ public class FavoritesDataSource {
         static final String TABLE = "favorites";
         static final String COL_STATION_ID = "_id";
         static final String COL_STATION_NAME = "name";
-        static final String COL_SELECTED_COUNT = "count";
+        static final String COL_SELECTED_COUNT = "priority";
 
         private static final String CREATE_LIST = ""
                 + "CREATE TABLE " + TABLE + "("
@@ -55,8 +54,9 @@ public class FavoritesDataSource {
     private final BriteDatabase db;
 
     public FavoritesDataSource(Context ctx) {
-        sqlBrite = new SqlBrite.Builder().logger(
-                message -> System.out.println("DATABASE message = [" + message + "]")).build();
+        sqlBrite = new SqlBrite.Builder()
+                .logger(message -> System.out.println("DATABASE message = [" + message + "]"))
+                .build();
         db = sqlBrite.wrapDatabaseHelper(new FavoritesDbHelper(ctx), Schedulers.io());
         db.setLoggingEnabled(true);
     }
@@ -82,8 +82,8 @@ public class FavoritesDataSource {
             String eva = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_ID));
             String name = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_NAME));
             int count = c.getInt(c.getColumnIndex(FavoritesDbHelper.COL_SELECTED_COUNT));
-            return new StationGuess(eva, name, count);
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+            return new StationGuess(eva, name, count, StationGuess.FAVORITE_GUESS);
+        });
     }
 
     public void closeDb() {
