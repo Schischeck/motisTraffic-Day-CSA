@@ -26,36 +26,35 @@ public class GuesserListAdapter extends ArrayAdapter<StationGuess> {
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setContent(List<StationGuess> favorites, List<StationGuess> suggestions) {
+    public void setContent(List<StationGuess> suggestions) {
         clear();
-        addAll(favorites);
         addAll(suggestions);
-        favoriteCount = favorites.size();
     }
 
     @Override
     public int getItemViewType(int position) {
-        return position < favoriteCount ? FAVORITE_ITEM : SUGGESTED_ITEM;
+        return getItem(position).type;
     }
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.query_guesser_list_item, parent, false);
+    public View getView(int position, View view, ViewGroup parent) {
+        if (view == null) {
+            view = inflater.inflate(R.layout.query_guesser_list_item, parent, false);
         }
 
-        int viewType = getItemViewType(position);
-        TextView tv = (TextView) convertView.findViewById(R.id.guess_text);
-        ImageView icon = (ImageView) convertView.findViewById(R.id.guess_icon);
+        StationGuess item = getItem(position);
 
-        tv.setText(getItem(position).name);
-        if (viewType == FAVORITE_ITEM) {
-            icon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_favorite_black_24dp));
-        } else {
-            icon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_place_black_24dp));
-        }
-        return convertView;
+        TextView tv = (TextView) view.findViewById(R.id.guess_text);
+        tv.setText(item.name);
+
+        int drawable = item.type == StationGuess.FAVORITE_GUESS
+                       ? R.drawable.ic_favorite_black_24dp
+                       : R.drawable.ic_place_black_24dp;
+        ImageView icon = (ImageView) view.findViewById(R.id.guess_icon);
+        icon.setImageDrawable(ContextCompat.getDrawable(getContext(), drawable));
+
+        return view;
     }
 
     @Override

@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.util.Pair;
 import android.widget.EditText;
 import android.widget.ListView;
+
+import com.jakewharton.rxbinding.widget.RxTextView;
+import com.jakewharton.rxbinding.widget.TextViewTextChangeEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,13 +18,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
-import butterknife.OnTextChanged;
 import de.motis_project.app.R;
 import de.motis_project.app.io.Status;
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import rx.Subscription;
 
 public class GuesserActivity extends FragmentActivity {
     public static final String RESULT_NAME = "result_name";
@@ -30,8 +30,7 @@ public class GuesserActivity extends FragmentActivity {
     public static final String QUERY = "route";
 
     private GuesserListAdapter adapter;
-
-    Observable observable;
+    private Subscription subscription;
 
     FavoritesDataSource favDataSource;
 
@@ -55,76 +54,16 @@ public class GuesserActivity extends FragmentActivity {
 
     @OnItemClick(R.id.suggestionslist)
     void onSuggestionSelected(int pos) {
-        Intent i = new Intent();
         StationGuess selected = adapter.getItem(pos);
-        String eva = selected.eva;
-        String stationName = selected.name;
-        i.putExtra(RESULT_NAME,
-                stationName);
-        i.putExtra(RESULT_ID, eva);
+
+        Intent i = new Intent();
+        i.putExtra(RESULT_NAME, selected.name);
+        i.putExtra(RESULT_ID, selected.eva);
         setResult(Activity.RESULT_OK, i);
 
-        favDataSource.addOrIncrement(eva, stationName);
+        favDataSource.addOrIncrement(selected.eva, selected.name);
 
         finish();
-    }
-
-    @OnTextChanged(R.id.searchInput)
-    void getSuggestions(CharSequence inputText) {
-        Observable<List<StationGuess>> guesses;
-        if (inputText.length() < 3) {
-            guesses = Observable.empty();
-        } else {
-            guesses = Status.get().getServer()
-                    .guess(inputText.toString())
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .map(res -> {
-                        final int totalGuesses = res.guessesLength();
-                        List<StationGuess> guessList = new ArrayList<>(totalGuesses);
-                        for (int i = 0; i < totalGuesses; i++) {
-                            final String name = res.guesses(i).name();
-                            final String id = res.guesses(i).id();
-                            guessList.add(new StationGuess(id, name, i));
-                        }
-                        return guessList;
-                    });
-        }
-
-        guesses = guesses.startWith(new ArrayList<StationGuess>());
-        Observable<List<StationGuess>> favorites = favDataSource.getFavorites(inputText)
-                .startWith(new ArrayList<StationGuess>());
-
-        Observable<Pair<List<StationGuess>, List<StationGuess>>> o =
-                Observable.combineLatest(guesses, favorites, (g, f) -> {
-                    List<StationGuess> guessList = new ArrayList<>(g.size() + f.size());
-                    g.removeAll(f);
-                    Collections.sort(f, (lhs, rhs) -> Integer.compare(rhs.count, lhs.count));
-                    Collections.sort(g, (lhs, rhs) -> Integer.compare(lhs.count, rhs.count));
-                    guessList.addAll(f);
-                    guessList.addAll(g);
-                    return new Pair<>(f, g);
-                });
-
-        o.subscribe(new Subscriber<Pair<List<StationGuess>, List<StationGuess>>>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onNext(Pair<List<StationGuess>, List<StationGuess>> guesses) {
-                adapter.setContent(guesses.first, guesses.second);
-            }
-        });
-
-        if (this.observable != null) {
-            this.observable.unsubscribeOn(AndroidSchedulers.mainThread());
-        }
-        this.observable = o;
     }
 
     @Override
@@ -140,9 +79,9 @@ public class GuesserActivity extends FragmentActivity {
 
         String query = getIntent().getStringExtra(QUERY);
         if (query != null) {
+            subscription = setupSubscription();
             searchInput.setText(query);
             searchInput.setSelection(query.length());
-            getSuggestions(query);
         }
     }
 
@@ -150,6 +89,7 @@ public class GuesserActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         favDataSource.closeDb();
+        subscription.unsubscribe();
     }
 
     @Override
@@ -160,5 +100,57 @@ public class GuesserActivity extends FragmentActivity {
     @Override
     public void onStop() {
         super.onStop();
+    }
+
+    Subscription setupSubscription() {
+        Observable<List<StationGuess>> favoriteGuesses =
+                RxTextView.textChangeEvents(searchInput)
+                        .map(TextViewTextChangeEvent::text)
+                        .map(CharSequence::toString)
+                        .map(String::toLowerCase)
+                        .flatMap(in -> favDataSource.getFavorites(in));
+
+        Observable<List<StationGuess>> serverGuesses =
+                RxTextView.textChangeEvents(searchInput)
+                        .map(TextViewTextChangeEvent::text)
+                        .map(CharSequence::toString)
+                        .map(String::toLowerCase)
+                        .filter(in -> in.length() >= 3)
+                        .flatMap(in -> Status.get().getServer().guess(in))
+                        .map(res -> {
+                            List<StationGuess> guesses = new ArrayList<>(res.guessesLength());
+                            for (int i = 0; i < res.guessesLength(); i++) {
+                                guesses.add(new StationGuess(
+                                        res.guesses(i).id(),
+                                        res.guesses(i).name(),
+                                        -i - 1,
+                                        StationGuess.SERVER_GUESS));
+                            }
+                            return guesses;
+                        });
+
+        return Observable
+                .combineLatest(favoriteGuesses, serverGuesses, (f, g) -> {
+                    final List<StationGuess> guesses = new ArrayList<>();
+                    g.removeAll(f);
+                    guesses.addAll(f);
+                    guesses.addAll(g);
+                    Collections.sort(guesses);
+                    return guesses;
+                })
+                .subscribe(new Subscriber<List<StationGuess>>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onNext(List<StationGuess> guesses) {
+                        runOnUiThread(() -> adapter.setContent(guesses));
+                    }
+                });
     }
 }
