@@ -20,6 +20,7 @@ import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
+import de.motis_project.app.journey.CopyConnection;
 import motis.Connection;
 
 public class DetailActivity extends AppCompatActivity {
@@ -89,6 +90,18 @@ public class DetailActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case android.R.id.home:
                 finish();
+                return true;
+            case R.id.detail_save_connection:
+                System.out.println("DetailActivity.onOptionsItemSelected --> SAVE CONNECTION");
+                if (con != null) {
+                    try {
+                        CopyConnection.copyConnection(con);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("CON == NULL!");
+                }
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
