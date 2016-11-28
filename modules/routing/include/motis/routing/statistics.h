@@ -74,10 +74,9 @@ struct statistics {
              << "\tnum_bytes_in_use:" << s.num_bytes_in_use_ << "\n";
   }
 
-  friend flatbuffers::Offset<Statistics> to_fbs(
-      flatbuffers::FlatBufferBuilder& fbb, statistics const& s) {
-    return CreateStatistics(
-        fbb, s.max_label_quit_, s.labels_created_, s.start_label_count_,
+  friend Statistics to_fbs(statistics const& s) {
+    return Statistics(
+        s.max_label_quit_, s.labels_created_, s.start_label_count_,
         s.labels_popped_, s.labels_equals_popped_, s.labels_filtered_,
         s.labels_dominated_by_results_, s.labels_dominated_by_former_labels_,
         s.labels_dominated_by_later_labels_,

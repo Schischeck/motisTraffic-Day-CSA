@@ -44,7 +44,7 @@ auto guess = [](msg_ptr const&) {
   b.create_and_finish(
       MsgContent_StationGuesserResponse,
       motis::guesser::CreateStationGuesserResponse(
-          b, b.CreateVector(std::vector<flatbuffers::Offset<Station> >(
+          b, b.CreateVector(std::vector<flatbuffers::Offset<Station>>(
                  {CreateStation(b, b.CreateString("Darmstadt Hbf"),
                                 b.CreateString("8600068"), &pos)})))
           .Union());
@@ -60,12 +60,11 @@ auto route = [](msg_ptr const&) -> msg_ptr {
       "/guesser");
   auto station = motis_call(make_msg(b));
 
-  Statistics stats(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  routing::Statistics s(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
   b.create_and_finish(
       MsgContent_RoutingResponse,
       motis::routing::CreateRoutingResponse(
-          b, &stats,
-          b.CreateVector(std::vector<flatbuffers::Offset<Connection> >()))
+          b, &s, b.CreateVector(std::vector<flatbuffers::Offset<Connection>>()))
           .Union());
   return make_msg(b);
 };

@@ -2,7 +2,7 @@ include "base/Connection.fbs";
 
 namespace motis.routing;
 
-table Statistics {
+struct Statistics {
   max_label_quit:bool;
   labels_created:uint;
   start_label_count:uint;
