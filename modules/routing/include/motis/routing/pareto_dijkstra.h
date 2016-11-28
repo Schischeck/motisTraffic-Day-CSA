@@ -121,38 +121,36 @@ private:
                         edge.get_source<Dir>()->get_station() == goal_ &&
                             edge.get_destination<Dir>() == goal_);
     if (!created) {
+      ++stats_.labels_filtered_;
       return;
     }
 
-    auto new_label = label_store_.create<Label>(blank);
-    ++stats_.labels_created_;
-
-    if (edge.get_destination<Dir>() == goal_) {
-      add_result(new_label);
+    auto const dest = edge.get_destination<Dir>();
+    if (dest == goal_) {
+      add_result(label_store_.create<Label>(blank));
       if (stats_.labels_popped_until_first_result_ == -1) {
         stats_.labels_popped_until_first_result_ = stats_.labels_popped_;
       }
       return;
-    }
-
-    // if the label is not dominated by a former one for the same node...
-    //...add it to the queue
-    if (!dominated_by_results(new_label)) {
-      if (add_label_to_node(new_label, edge.get_destination<Dir>())) {
-        // if the new_label is as good as label we don't have to push it into
-        // the queue
-        if (!FORWARDING || l < new_label) {
-          queue_.push(new_label);
-        } else {
-          equals_.push_back(new_label);
-        }
-      } else {
-        label_store_.release(new_label);
-        stats_.labels_dominated_by_former_labels_++;
-      }
     } else {
-      label_store_.release(new_label);
-      stats_.labels_dominated_by_results_++;
+      if (dominated_by_results(&blank)) {
+        ++stats_.labels_dominated_by_results_;
+        return;
+      }
+
+      auto& dest_labels = node_labels_[dest->id_];
+      if (dominated_by_node_labels(&blank, dest_labels)) {
+        ++stats_.labels_dominated_by_former_labels_;
+        return;
+      }
+
+      auto new_label = label_store_.create<Label>(blank);
+      dest_labels.insert(begin(dest_labels), new_label);
+      if (!FORWARDING || l < new_label) {
+        queue_.push(new_label);
+      } else {
+        equals_.push_back(new_label);
+      }
     }
   }
 
@@ -173,26 +171,22 @@ private:
     return true;
   }
 
-  bool add_label_to_node(Label* new_label, node const* dest) {
-    auto& dest_labels = node_labels_[dest->id_];
-    for (auto it = dest_labels.begin(); it != dest_labels.end();) {
-      Label* o = *it;
-      if (o->dominates(*new_label)) {
-        return false;
+  bool dominated_by_node_labels(Label* new_label,
+                                std::vector<Label*>& node_labels) {
+    for (auto it = node_labels.begin(); it != node_labels.end();) {
+      Label* node_label = *it;
+      if (node_label->dominates(*new_label)) {
+        return true;
       }
 
-      if (new_label->dominates(*o)) {
-        it = dest_labels.erase(it);
-        o->dominated_ = true;
+      if (new_label->dominates(*node_label)) {
+        it = node_labels.erase(it);
+        node_label->dominated_ = true;
       } else {
         ++it;
       }
     }
-
-    // it is very important for the performance to push front here
-    // because earlier labels tend not to dominate later ones (not comparable)
-    dest_labels.insert(std::begin(dest_labels), new_label);
-    return true;
+    return false;
   }
 
   bool dominated_by_results(Label* label) {
