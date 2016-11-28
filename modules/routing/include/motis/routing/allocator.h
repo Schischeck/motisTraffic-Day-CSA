@@ -69,5 +69,5 @@ private:
   } list_;
 };
 
-}  // namepsace routing
+}  // namespace routing
 }  // namespace motis
