@@ -59,6 +59,10 @@ reflection::Object const* message::get_objectref(char const* name) {
   return get_schema().objects()->LookupByKey(name);
 }
 
+std::pair<const char**, size_t> message::get_fbs_definitions() {
+  return std::make_pair(symbols, number_of_symbols);
+}
+
 msg_ptr make_msg(std::string const& json) {
   if (json.empty()) {
     LOG(motis::logging::error) << "empty request";

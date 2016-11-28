@@ -158,17 +158,18 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
         walk_arrival = INVALID_TIME;
 
         auto s1 = std::next(it, 1);
-        auto s2 = std::next(it, 2);
-        if (s1 != end(labels) && s2 != end(labels) &&
-            s2->connection_ != nullptr) {
-          auto const& succ = *s2;
-          d_track = succ.connection_->full_con_->d_track_;
-          d_time = succ.connection_->d_time_;
+        if (s1 != end(labels)) {
+          auto s2 = std::next(it, 2);
+          if (s2 != end(labels) && s2->connection_ != nullptr) {
+            auto const& succ = *s2;
+            d_track = succ.connection_->full_con_->d_track_;
+            d_time = succ.connection_->d_time_;
 
-          auto d_di = get_delay_info(sched, get_node(*s1), succ.connection_,
-                                     event_type::DEP);
-          d_sched_time = d_di.get_schedule_time();
-          d_reason = d_di.get_reason();
+            auto d_di = get_delay_info(sched, get_node(*s1), succ.connection_,
+                                       event_type::DEP);
+            d_sched_time = d_di.get_schedule_time();
+            d_reason = d_di.get_reason();
+          }
         }
 
         stops.emplace_back(static_cast<unsigned int>(++stop_index),

@@ -28,8 +28,7 @@ public:
   template <typename T, typename... Args>
   T* create(Args&&... args) {
     ++allocations_;
-    auto const mem_ptr = alloc_.alloc(sizeof(T));
-    return new (mem_ptr) T(std::forward<Args>(args)...);
+    return new (alloc_.alloc(sizeof(T))) T(std::forward<Args>(args)...);
   }
 
   template <typename T>

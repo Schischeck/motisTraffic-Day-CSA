@@ -229,7 +229,7 @@ TEST_F(bikesharing_nextbike_itest, geo_terminals) {
   auto resp = motis_content(BikesharingGeoTerminalsResponse, msg);
 
   ASSERT_EQ(2, resp->terminals()->size());
-  for(auto&& terminal : *resp->terminals()) {
+  for (auto&& terminal : *resp->terminals()) {
     if (terminal->id()->str() == "1") {
       EXPECT_DOUBLE_EQ(49.8780247, terminal->pos()->lat());
       EXPECT_DOUBLE_EQ(8.6545839, terminal->pos()->lng());

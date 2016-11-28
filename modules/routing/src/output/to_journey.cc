@@ -182,8 +182,7 @@ std::vector<journey::attribute> generate_journey_attributes(
     if (t.con_ == nullptr) {
       continue;
     } else {
-      for (auto const& attribute :
-           t.con_->full_con_->con_info_->attributes_) {
+      for (auto const& attribute : t.con_->full_con_->con_info_->attributes_) {
         attributes.add_entry(attribute, t.from_, t.to_);
       }
     }

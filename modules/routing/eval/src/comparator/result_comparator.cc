@@ -284,4 +284,3 @@ int main(int argc, char* argv[]) {
             << "  #errors  = " << stats.mismatches_ << "/" << stats.total()
             << "\n";
 }
-

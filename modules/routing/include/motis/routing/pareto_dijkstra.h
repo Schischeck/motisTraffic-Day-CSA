@@ -74,7 +74,7 @@ struct pareto_dijkstra {
 
       // is label already made obsolete
       if (label->dominated_) {
-        label_store_.release<Label>(label);
+        label_store_.release(label);
         stats_.labels_dominated_by_later_labels_++;
         continue;
       }
@@ -147,11 +147,11 @@ private:
           equals_.push_back(new_label);
         }
       } else {
-        label_store_.release<Label>(new_label);
+        label_store_.release(new_label);
         stats_.labels_dominated_by_former_labels_++;
       }
     } else {
-      label_store_.release<Label>(new_label);
+      label_store_.release(new_label);
       stats_.labels_dominated_by_results_++;
     }
   }
@@ -160,7 +160,7 @@ private:
     for (auto it = results_.begin(); it != results_.end();) {
       Label* o = *it;
       if (terminal_label->dominates(*o)) {
-        label_store_.release<Label>(o);
+        label_store_.release(o);
         it = results_.erase(it);
       } else if (o->dominates(*terminal_label)) {
         return false;

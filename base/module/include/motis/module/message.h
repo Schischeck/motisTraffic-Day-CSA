@@ -36,6 +36,7 @@ struct message : public typed_flatbuffer<Message> {
 
   static reflection::Schema const& get_schema();
   static reflection::Object const* get_objectref(char const* name);
+  static std::pair<const char**, size_t> get_fbs_definitions();
 };
 
 typedef std::shared_ptr<message> msg_ptr;

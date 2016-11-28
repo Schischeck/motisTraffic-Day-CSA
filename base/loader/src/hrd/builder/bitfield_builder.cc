@@ -34,7 +34,8 @@ Offset<String> bitfield_builder::get_or_create_bitfield(
 }
 
 Offset<String> bitfield_builder::get_or_create_bitfield(
-    bitfield const& b, flatbuffers64::FlatBufferBuilder& fbb, int bitfield_num) {
+    bitfield const& b, flatbuffers64::FlatBufferBuilder& fbb,
+    int bitfield_num) {
   auto fbs_bitfields_it = fbs_bitfields_.find(b);
   if (fbs_bitfields_it == end(fbs_bitfields_)) {
     auto serialized = fbb.CreateString(serialize_bitset<BIT_COUNT>(b));
