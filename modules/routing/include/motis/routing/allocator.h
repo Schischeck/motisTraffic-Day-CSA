@@ -13,11 +13,7 @@ struct allocator {
     clear();
   }
 
-  inline void dealloc(void* p) {
-    auto const mem_ptr = reinterpret_cast<node*>(p);
-    mem_ptr->next_ = list_.next_;
-    list_.next_ = mem_ptr;
-  }
+  inline void dealloc(void* p) { list_.push(p); }
 
   inline void* alloc(size_t const size) {
     if (list_.next_ != nullptr) {
@@ -59,10 +55,15 @@ private:
   unsigned char* end_ptr_;
 
   struct node {
-    void* take() {
+    inline void* take() {
       auto const ptr = next_;
       next_ = next_->next_;
       return ptr;
+    }
+    inline void push(void* p) {
+      auto const mem_ptr = reinterpret_cast<node*>(p);
+      mem_ptr->next_ = next_;
+      next_ = mem_ptr;
     }
     node* next_;
   } list_;
