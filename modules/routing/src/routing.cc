@@ -9,12 +9,15 @@
 #include "motis/core/common/timing.h"
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/edge_access.h"
+#include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/build_query.h"
 #include "motis/routing/error.h"
+#include "motis/routing/label/configs.h"
 #include "motis/routing/label/configs.h"
 #include "motis/routing/mem_manager.h"
 #include "motis/routing/mem_retriever.h"
@@ -32,8 +35,7 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing()
-    : max_label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}
+routing::routing() : max_label_bytes_(32 * 1024 * 1024) {}
 
 routing::~routing() = default;
 
@@ -73,12 +75,13 @@ msg_ptr routing::route(msg_ptr const& msg) {
 
   MOTIS_STOP_TIMING(routing_timing);
   res.stats_.total_calculation_time_ = MOTIS_TIMING_MS(routing_timing);
+  res.stats_.num_bytes_in_use_ = query.mem_->get_num_bytes_in_use();
 
   message_creator fbb;
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
       CreateRoutingResponse(
-          fbb, to_fbs(fbb, res.stats_, query.mem_->get_mem_stats()),
+          fbb, to_fbs(fbb, res.stats_),
           fbb.CreateVector(transform_to_vec(
               res.journeys_,
               [&](journey const& j) { return to_connection(fbb, j); })),
@@ -87,10 +90,6 @@ msg_ptr routing::route(msg_ptr const& msg) {
           .Union());
   return make_msg(fbb);
 }
-
-#include "motis/core/conv/trip_conv.h"
-#include "motis/core/access/edge_access.h"
-#include "motis/routing/label/configs.h"
 
 msg_ptr routing::trip_to_connection(msg_ptr const& msg) {
   using label = default_label<search_dir::FWD>;

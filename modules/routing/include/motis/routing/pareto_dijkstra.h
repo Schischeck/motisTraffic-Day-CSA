@@ -35,7 +35,7 @@ struct pareto_dijkstra {
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
-        max_labels_(label_store.size() / sizeof(Label) - 1000) {}
+        max_labels_(1024 * 1024 * 128) {}
 
   void add_start_labels(std::vector<Label*> const& start_labels) {
     for (auto const& l : start_labels) {
@@ -48,7 +48,7 @@ struct pareto_dijkstra {
 
   void search() {
     stats_.start_label_count_ = queue_.size();
-    stats_.labels_created_ = label_store_.used_size() / sizeof(Label);
+    stats_.labels_created_ = label_store_.allocations();
 
     while (!queue_.empty() || !equals_.empty()) {
       if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||

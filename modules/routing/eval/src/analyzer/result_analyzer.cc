@@ -25,28 +25,7 @@ struct response {
         total_time_(r->statistics()->total_calculation_time()),
         travel_time_lb_time_(r->statistics()->travel_time_lb()),
         transfers_lb_time_(r->statistics()->transfers_lb()),
-        allocations_(get_stats(r->statistics(), "freelist").get_allocs()),
-        deallocations_(get_stats(r->statistics(), "freelist").get_deallocs()),
-        freelist_hits_(get_stats(r->statistics(), "freelist").get_hits()),
-        block_allocations_(
-            get_stats(r->statistics(), "inc_block").get_allocs()) {}
-
-  static mem_stats get_stats(Statistics const* stats, char const* name) {
-    auto it = std::find_if(std::begin(*stats->mem_stats()),
-                           std::end(*stats->mem_stats()),
-                           [&name](MemStats const* ms) {
-                             return std::strcmp(ms->name()->c_str(), name) == 0;
-                           });
-    if (it == std::end(*stats->mem_stats())) {
-      return mem_stats();
-    } else {
-      mem_stats s;
-      s.count_allocation(it->allocations());
-      s.count_deallocation(it->deallocations());
-      s.count_hit(it->hits());
-      return s;
-    }
-  }
+        num_bytes_in_use_(r->statistics()->num_bytes_in_use()) {}
 
   unsigned labels_until_first_;
   unsigned labels_after_last_;
@@ -58,11 +37,7 @@ struct response {
   unsigned total_time_;
   unsigned travel_time_lb_time_;
   unsigned transfers_lb_time_;
-
-  unsigned allocations_;
-  unsigned deallocations_;
-  unsigned freelist_hits_;
-  unsigned block_allocations_;
+  size_t num_bytes_in_use_;
 };
 
 int main(int argc, char* argv[]) {
@@ -87,10 +62,7 @@ int main(int argc, char* argv[]) {
   uint64_t labels_popped_after_last_result = 0;
   uint64_t no_labels_created = 0;
   uint64_t start_labels = 0;
-  uint64_t allocations = 0;
-  uint64_t deallocations = 0;
-  uint64_t freelist_hits = 0;
-  uint64_t block_allocations = 0;
+  uint64_t num_bytes_in_use = 0;
 
   while (in.peek() != EOF && !in.eof()) {
     std::getline(in, line);
@@ -116,10 +88,7 @@ int main(int argc, char* argv[]) {
     travel_time_lb_time_sum += res.travel_time_lb_time_;
     transfers_lb_time_sum += res.transfers_lb_time_;
     start_labels += res.start_labels_;
-    allocations += res.allocations_;
-    deallocations += res.deallocations_;
-    freelist_hits += res.freelist_hits_;
-    block_allocations += res.block_allocations_;
+    num_bytes_in_use += res.num_bytes_in_use_;
     ++count;
   }
 
@@ -192,41 +161,14 @@ int main(int argc, char* argv[]) {
             << "50 quantile number of labels created: "
             << quantile(&response::labels_created_, responses, 0.5f) << "\n\n";
 
-  std::cout << "    average number of allocations: "
-            << allocations / static_cast<double>(count) << "\n"
+  std::cout << "    average number of bytes: "
+            << num_bytes_in_use / static_cast<double>(count) << "\n"
             << "90 quantile number of allocations: "
-            << quantile(&response::allocations_, responses, 0.9f) << "\n"
+            << quantile(&response::num_bytes_in_use_, responses, 0.9f) << "\n"
             << "80 quantile number of allocations: "
-            << quantile(&response::allocations_, responses, 0.8f) << "\n"
+            << quantile(&response::num_bytes_in_use_, responses, 0.8f) << "\n"
             << "50 quantile number of allocations: "
-            << quantile(&response::allocations_, responses, 0.5f) << "\n\n";
-
-  std::cout << "    average number of deallocations: "
-            << deallocations / static_cast<double>(count) << "\n"
-            << "90 quantile number of deallocations: "
-            << quantile(&response::deallocations_, responses, 0.9f) << "\n"
-            << "80 quantile number of deallocations: "
-            << quantile(&response::deallocations_, responses, 0.8f) << "\n"
-            << "50 quantile number of deallocations: "
-            << quantile(&response::deallocations_, responses, 0.5f) << "\n\n";
-
-  std::cout << "    average number of freelist hits: "
-            << freelist_hits / static_cast<double>(count) << "\n"
-            << "90 quantile number of freelist hits: "
-            << quantile(&response::freelist_hits_, responses, 0.9f) << "\n"
-            << "80 quantile number of freelist hits: "
-            << quantile(&response::freelist_hits_, responses, 0.8f) << "\n"
-            << "50 quantile number of freelist hits: "
-            << quantile(&response::freelist_hits_, responses, 0.5f) << "\n\n";
-
-  std::cout << "    average number of block allocations: "
-            << block_allocations / static_cast<double>(count) << "\n"
-            << "90 quantile number of block allocations: "
-            << quantile(&response::block_allocations_, responses, 0.9f) << "\n"
-            << "80 quantile number of block allocations: "
-            << quantile(&response::block_allocations_, responses, 0.8f) << "\n"
-            << "50 quantile number of block allocations: "
-            << quantile(&response::block_allocations_, responses, 0.5f)
+            << quantile(&response::num_bytes_in_use_, responses, 0.5f)
             << "\n\n";
 
   std::cout << "avg labels popped:\n";
