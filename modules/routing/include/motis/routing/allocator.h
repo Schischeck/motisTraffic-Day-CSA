@@ -8,7 +8,7 @@ namespace motis {
 namespace routing {
 
 struct allocator {
-  allocator(size_t const initial_size) {
+  explicit allocator(size_t const initial_size) {
     mem_.emplace_back(parser::buffer(initial_size));
     clear();
   }
