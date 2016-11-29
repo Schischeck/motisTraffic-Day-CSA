@@ -291,14 +291,20 @@
 
 .connection .labels {
   position: absolute;
-  top: 8px;
-  left: -10px;
+  top: 0px;
+  left: -14px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2px;
 }
 
 .connection .labels .connection-label {
   width: 6px;
   height: 6px;
   border-radius: 6px;
+  margin: 2px;
 }
 
 .connection-label.label-0 {
@@ -319,6 +325,14 @@
 
 .connection-label.label-4 {
   background: #9c27b0;
+}
+
+.connection-label.label-5 {
+  background: #9e9e9e;
+}
+
+.connection-label.label-6 {
+  background: #3f51b5;
 }
 
 .connections .connection-duration {
