@@ -24,7 +24,7 @@ void prepare(prepare_data& data, strategies& routing_strategies,
       match_osm_relations(osm, data.sequences_, data.stop_positions_);
   db_builder builder(db);
   std::vector<std::pair<station_seq, std::vector<match_seq>>> results;
-  for (auto i = 0u; i < 2; ++i) {
+  for (auto i = 0u; i < data.sequences_.size(); ++i) {
     results.emplace_back(data.sequences_[i], rel_matches[i]);
   }
   parallel_for("searching routes", results, 250, [&](auto const& r) {

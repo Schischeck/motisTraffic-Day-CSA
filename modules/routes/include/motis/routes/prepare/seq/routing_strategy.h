@@ -31,7 +31,9 @@ struct routing_result {
 };
 
 struct routing_strategy {
-  routing_strategy(size_t router_id) : router_id_(router_id) {}
+
+  routing_strategy(std::size_t router_id) : router_id_(router_id) {}
+  virtual ~routing_strategy() = default;
 
   virtual std::vector<node_ref> close_nodes(node_ref const& station) = 0;
   virtual std::vector<std::vector<routing_result>> find_routes(
@@ -39,12 +41,13 @@ struct routing_strategy {
   virtual geo::polyline get_polyline(node_ref const& from,
                                      node_ref const& to) = 0;
 
-  size_t router_id_ = 0;
+  size_t router_id_;
 };
 
 struct stub_routing : routing_strategy {
 
-  stub_routing(size_t router_id) : routing_strategy(router_id) {}
+  stub_routing(std::size_t router_id) : routing_strategy(router_id) {}
+  ~stub_routing() = default;
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {

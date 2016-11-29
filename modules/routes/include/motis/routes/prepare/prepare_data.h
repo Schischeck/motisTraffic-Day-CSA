@@ -7,6 +7,7 @@
 
 #include "geo/polygon.h"
 
+#include "motis/routes/prepare/seq/osrm_routing.h"
 #include "motis/routes/prepare/seq/routing_strategy.h"
 #include "motis/routes/prepare/source_spec.h"
 

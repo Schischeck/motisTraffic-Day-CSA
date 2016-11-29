@@ -9,7 +9,7 @@ namespace routes {
 
 struct osrm_routing : public routing_strategy {
 
-  osrm_routing(size_t router_id, std::string path);
+  explicit osrm_routing(std::size_t router_id, std::string path);
   ~osrm_routing();
 
   std::vector<std::vector<routing_result>> find_routes(

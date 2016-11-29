@@ -1,7 +1,5 @@
 #include "motis/routes/prepare/seq/osrm_routing.h"
 
-#include <mutex>
-
 #include "osrm/engine_config.hpp"
 #include "osrm/multi_target_parameters.hpp"
 #include "osrm/nearest_parameters.hpp"
@@ -24,26 +22,9 @@ using namespace osrm::util::json;
 namespace motis {
 namespace routes {
 
-struct cost {
-  cost() = default;
-  cost(int distance, int duration) : distance_(distance), duration_(duration) {}
-
-  friend bool operator<(cost const& lhs, cost const& rhs) {
-    return std::tie(lhs.distance_, lhs.duration_) <
-           std::tie(rhs.distance_, rhs.duration_);
-  }
-
-  friend bool operator==(cost const& lhs, cost const& rhs) {
-    return std::tie(lhs.distance_, lhs.duration_) ==
-           std::tie(rhs.distance_, rhs.duration_);
-  }
-
-  int distance_;
-  int duration_;
-};
-
 struct osrm_routing::impl {
-  impl(size_t router_id, std::string path) : router_id_(router_id) {
+  explicit impl(std::size_t router_id, std::string const& path)
+      : router_id_(router_id) {
     EngineConfig config;
     config.storage_config = {path};
     config.use_shared_memory = false;
@@ -55,8 +36,8 @@ struct osrm_routing::impl {
     return FloatCoordinate{FloatLongitude{l.lng_}, FloatLatitude{l.lat_}};
   }
 
-  std::vector<cost> one_to_many(geo::latlng const& one,
-                                std::vector<geo::latlng> const& many) {
+  std::vector<int> one_to_many(geo::latlng const& one,
+                               std::vector<geo::latlng> const& many) {
     MultiTargetParameters params;
     params.forward = true;  // ??
 
@@ -72,11 +53,10 @@ struct osrm_routing::impl {
       return {};
     }
 
-    std::vector<cost> costs;
+    std::vector<int> costs;
     for (auto const& cost : result.values["costs"].get<Array>().values) {
       auto const& cost_obj = cost.get<Object>();
-      costs.emplace_back(cost_obj.values.at("duration").get<Number>().value,
-                         cost_obj.values.at("distance").get<Number>().value);
+      costs.emplace_back(cost_obj.values.at("distance").get<Number>().value);
     }
     return costs;
   }
@@ -123,7 +103,7 @@ struct osrm_routing::impl {
         source_spec s(id_, source_spec::category::UNKNOWN,
                       source_spec::type::ROUTE);
         s.router_id_ = router_id_;
-        from_result.emplace_back(s, costs[i].distance_);
+        from_result.emplace_back(s, costs[i]);
         id_++;
       }
       result.push_back(std::move(from_result));
@@ -154,14 +134,13 @@ struct osrm_routing::impl {
   }
 
   std::unique_ptr<OSRM> osrm_;
-  size_t id_;
+  size_t id_ = 0;
   size_t router_id_;
-  std::mutex m_;
 };
 
-osrm_routing::osrm_routing(size_t router_id, std::string path)
+osrm_routing::osrm_routing(std::size_t router_id, std::string path)
     : routing_strategy(router_id),
-      impl_(std::make_unique<osrm_routing::impl>(router_id, std::move(path))) {}
+      impl_(std::make_unique<osrm_routing::impl>(router_id, path)) {}
 osrm_routing::~osrm_routing() = default;
 
 std::vector<std::vector<routing_result>> osrm_routing::find_routes(

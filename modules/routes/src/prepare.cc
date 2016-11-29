@@ -99,12 +99,13 @@ int main(int argc, char** argv) {
 
   rocksdb_database db(opt.out_);
   strategies routing_strategies;
-  routing_strategies.strategies_.push_back(std::make_unique<stub_routing>(0));
-  // routing_strategies.strategies_.push_back(
-  //    std::make_unique<osrm_routing>(1, opt.osrm_));
+  auto osrm = std::make_unique<osrm_routing>(1, opt.osrm_);
+  auto stub = std::make_unique<stub_routing>(0);
+  routing_strategies.strategies_.push_back(std::move(stub));
+  routing_strategies.strategies_.push_back(std::move(osrm));
   routing_strategies.class_to_strategy_.emplace(
       source_spec::category::UNKNOWN, routing_strategies.strategies_[0].get());
-  // routing_strategies.class_to_strategy_.emplace(
-  //    source_spec::category::BUS, routing_strategies.strategies_[1].get());
-  prepare(data, routing_strategies, db, opt.osm_);
+  routing_strategies.class_to_strategy_.emplace(
+      source_spec::category::BUS, routing_strategies.strategies_[1].get());
+  // prepare(data, routing_strategies, db, opt.osm_);
 }
