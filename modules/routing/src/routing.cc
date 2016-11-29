@@ -37,7 +37,7 @@ namespace routing {
 
 routing::routing() : module("Routing", "routing") {}
 
-routing::~routing() {}
+routing::~routing() = default;
 
 void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
