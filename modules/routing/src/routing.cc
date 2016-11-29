@@ -59,6 +59,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
 
   MOTIS_STOP_TIMING(routing_timing);
   res.stats_.total_calculation_time_ = MOTIS_TIMING_MS(routing_timing);
+  res.stats_.labels_created_ = query.mem_->allocations();
   res.stats_.num_bytes_in_use_ = query.mem_->get_num_bytes_in_use();
 
   auto stats = to_fbs(res.stats_);
