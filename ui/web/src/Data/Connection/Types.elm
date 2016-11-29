@@ -4,6 +4,8 @@ import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Set exposing (Set)
 import Util.List exposing (..)
+import Maybe.Extra
+import Date.Extra.Compare exposing (Compare2(..))
 
 
 type alias Connection =
@@ -175,3 +177,19 @@ transportCategories connection =
                     Nothing
     in
         List.filterMap category connection.transports |> Set.fromList
+
+
+eventIsInThePast : Date -> EventInfo -> Bool
+eventIsInThePast currentTime event =
+    let
+        eventTime =
+            Maybe.Extra.or
+                event.time
+                event.schedule_time
+    in
+        case eventTime of
+            Just t ->
+                Date.Extra.Compare.is SameOrBefore t currentTime
+
+            Nothing ->
+                False

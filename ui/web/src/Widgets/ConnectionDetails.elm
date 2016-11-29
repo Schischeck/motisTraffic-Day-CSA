@@ -85,8 +85,8 @@ getJourney state =
 -- VIEW
 
 
-view : Config msg -> Localization -> State -> Html msg
-view (Config { internalMsg, selectTripMsg }) locale { journey, expanded } =
+view : Config msg -> Localization -> Date -> State -> Html msg
+view (Config { internalMsg, selectTripMsg }) locale currentTime { journey, expanded } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -96,7 +96,7 @@ view (Config { internalMsg, selectTripMsg }) locale { journey, expanded } =
 
         trainsView =
             List.map3
-                (trainDetail journey.isSingleCompleteTrip internalMsg selectTripMsg locale)
+                (trainDetail journey.isSingleCompleteTrip internalMsg selectTripMsg locale currentTime)
                 trains
                 indices
                 expanded
@@ -104,7 +104,7 @@ view (Config { internalMsg, selectTripMsg }) locale { journey, expanded } =
         walkView maybeWalk =
             case maybeWalk of
                 Just walk ->
-                    [ walkDetail locale walk ]
+                    [ walkDetail locale currentTime walk ]
 
                 Nothing ->
                     []
@@ -192,8 +192,8 @@ type StopViewType
     | DetailedStopView
 
 
-stopView : StopViewType -> EventType -> Localization -> Stop -> Html msg
-stopView stopViewType eventType locale stop =
+stopView : StopViewType -> EventType -> Localization -> Date -> Stop -> Html msg
+stopView stopViewType eventType locale currentTime stop =
     let
         event : EventInfo
         event =
@@ -203,7 +203,8 @@ stopView stopViewType eventType locale stop =
                 stop.arrival
 
         timeView e =
-            span [] [ text (Maybe.map formatTime e.schedule_time |> Maybe.withDefault "?") ]
+            span [ class (timestampClass currentTime e) ]
+                [ text (Maybe.map formatTime e.schedule_time |> Maybe.withDefault "?") ]
 
         timeCell =
             case stopViewType of
@@ -240,6 +241,14 @@ stopView stopViewType eventType locale stop =
             , div [ class "station" ] [ span [] [ text stop.station.name ] ]
             , trackCell
             ]
+
+
+timestampClass : Date -> EventInfo -> String
+timestampClass currentTime event =
+    if eventIsInThePast currentTime event then
+        "past-event"
+    else
+        "future-event"
 
 
 trainTopLine : Localization -> ( Train, InterchangeInfo ) -> String
@@ -297,11 +306,12 @@ trainDetail :
     -> (Msg -> msg)
     -> (Int -> msg)
     -> Localization
+    -> Date
     -> ( Train, InterchangeInfo )
     -> Int
     -> Bool
     -> Html msg
-trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expanded =
+trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic ) idx expanded =
     let
         transport =
             List.head train.transports
@@ -399,7 +409,11 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                         div [ class "train-dep-track" ]
                             [ text <| locale.t.connections.track ++ " " ++ departureTrack ]
                     , div [ class "first-stop" ]
-                        [ Maybe.map (stopView CompactStopView Departure locale) departureStop |> Maybe.withDefault (text "") ]
+                        [ Maybe.map
+                            (stopView CompactStopView Departure locale currentTime)
+                            departureStop
+                            |> Maybe.withDefault (text "")
+                        ]
                     , Maybe.map directionView direction |> Maybe.withDefault (text "")
                     , div
                         ([ classList
@@ -419,9 +433,15 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                             , "collapsed" => not expanded
                             ]
                         ]
-                        (List.map (stopView intermediateStopViewType Departure locale) intermediateStops)
+                        (List.map
+                            (stopView intermediateStopViewType Departure locale currentTime)
+                            intermediateStops
+                        )
                     , div [ class "last-stop" ]
-                        [ Maybe.map (stopView CompactStopView Arrival locale) arrivalStop |> Maybe.withDefault (text "")
+                        [ Maybe.map
+                            (stopView CompactStopView Arrival locale currentTime)
+                            arrivalStop
+                            |> Maybe.withDefault (text "")
                         , if String.isEmpty arrivalTrack then
                             text ""
                           else
@@ -434,8 +454,8 @@ trainDetail isTripView internalMsg selectTripMsg locale ( train, ic ) idx expand
                 text ""
 
 
-walkDetail : Localization -> JourneyWalk -> Html msg
-walkDetail locale walk =
+walkDetail : Localization -> Date -> JourneyWalk -> Html msg
+walkDetail locale currentTime walk =
     let
         durationStr =
             durationText walk.duration
@@ -445,11 +465,11 @@ walkDetail locale walk =
             , div [ class "top-border" ] []
             , walkBox
             , div [ class "first-stop" ]
-                [ stopView CompactStopView Departure locale walk.from ]
+                [ stopView CompactStopView Departure locale currentTime walk.from ]
             , div [ class "intermediate-stops-toggle" ]
                 [ div [ class "expand-icon" ] []
                 , span [] [ text <| locale.t.connections.tripWalk durationStr ]
                 ]
             , div [ class "last-stop" ]
-                [ stopView CompactStopView Arrival locale walk.to ]
+                [ stopView CompactStopView Arrival locale currentTime walk.to ]
             ]

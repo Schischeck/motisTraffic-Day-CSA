@@ -708,6 +708,10 @@
   display: inline-block;
 }
 
+.time .past-event {
+  color: #777;
+}
+
 .train-detail .stop div.delay {
   font-weight: bold;
   width: 4em;

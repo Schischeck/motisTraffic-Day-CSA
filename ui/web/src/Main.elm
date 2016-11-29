@@ -37,6 +37,8 @@ import Debounce
 import Maybe.Extra exposing (isJust)
 import Port
 import Json.Decode as Decode
+import Date exposing (Date)
+import Time exposing (Time)
 
 
 type alias ProgramFlags =
@@ -76,6 +78,7 @@ type alias Model =
     , currentRoutingRequest : Maybe RoutingRequest
     , debounce : Debounce.State
     , connectionListScrollPos : Float
+    , currentTime : Date
     }
 
 
@@ -121,6 +124,7 @@ init flags _ =
           , currentRoutingRequest = Nothing
           , debounce = Debounce.init
           , connectionListScrollPos = 0
+          , currentTime = Date.fromTime 0
           }
         , Cmd.batch
             [ Cmd.map DateUpdate dateCmd
@@ -130,6 +134,7 @@ init flags _ =
             , Cmd.map ToLocationUpdate toLocationCmd
             , requestScheduleInfo remoteAddress
             , Navigation.modifyUrl (toUrl Connections)
+            , Task.perform UpdateCurrentTime Time.now
             ]
         )
 
@@ -168,6 +173,7 @@ type Msg
     | NavigateTo Route
     | ReplaceLocation Route
     | SetRoutingResponses (List ( String, String ))
+    | UpdateCurrentTime Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -409,6 +415,9 @@ update msg model =
                     (ConnectionsUpdate (Connections.SetRoutingResponses valid))
                     model
 
+        UpdateCurrentTime time ->
+            { model | currentTime = Date.fromTime time } ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -520,6 +529,7 @@ subscriptions model =
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
         , Sub.map MapUpdate (Map.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
+        , Time.every (10 * Time.second) UpdateCurrentTime
         ]
 
 
@@ -544,7 +554,7 @@ overlayView model =
                     searchView model
 
                 Just c ->
-                    detailsView model.locale c
+                    detailsView model.locale model.currentTime c
     in
         div [ class "overlay-container" ]
             [ div [ class "overlay" ] <|
@@ -637,9 +647,9 @@ connectionConfig =
         }
 
 
-detailsView : Localization -> ConnectionDetails.State -> List (Html Msg)
-detailsView locale state =
-    [ ConnectionDetails.view detailsConfig locale state ]
+detailsView : Localization -> Date -> ConnectionDetails.State -> List (Html Msg)
+detailsView locale currentTime state =
+    [ ConnectionDetails.view detailsConfig locale currentTime state ]
 
 
 detailsConfig : ConnectionDetails.Config Msg
