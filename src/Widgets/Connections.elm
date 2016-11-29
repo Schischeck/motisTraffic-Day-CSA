@@ -61,6 +61,7 @@ type alias Model =
     , routingRequest : Maybe RoutingRequest
     , newJourneys : List Int
     , allowExtend : Bool
+    , labels : List String
     }
 
 
@@ -93,6 +94,7 @@ init remoteAddress =
     , routingRequest = Nothing
     , newJourneys = []
     , allowExtend = True
+    , labels = []
     }
 
 
@@ -417,12 +419,26 @@ updateModelWithNewResults model action request responses =
             List.map
                 (\lj -> JourneyTransportGraph.init transportListViewWidth lj.journey)
                 sortedJourneys
+
+        labelsToAdd =
+            responses
+                |> List.map Tuple.first
+                |> List.Extra.unique
+
+        newLabels =
+            case action of
+                ReplaceResults ->
+                    labelsToAdd
+
+                _ ->
+                    List.Extra.unique (model.labels ++ labelsToAdd)
     in
         { base
             | journeys = sortedJourneys
             , journeyTransportGraphs = journeyTransportGraphs
             , indexOffset = newIndexOffset
             , newJourneys = newNewJourneys
+            , labels = newLabels
         }
 
 
@@ -564,7 +580,7 @@ connectionsWithDateHeaders config locale model =
 
         renderConnection ( idx, journey, jtg ) =
             ( "connection-" ++ (toString idx)
-            , connectionView config locale idx (List.member idx model.newJourneys) journey jtg
+            , connectionView config locale model.labels idx (List.member idx model.newJourneys) journey jtg
             )
 
         renderDateHeader date =
@@ -587,15 +603,22 @@ connectionsWithDateHeaders config locale model =
 connectionView :
     Config msg
     -> Localization
+    -> List String
     -> Int
     -> Bool
     -> LabeledJourney
     -> JourneyTransportGraph.Model
     -> Html msg
-connectionView (Config { internalMsg, selectMsg }) locale idx new labeledJourney jtg =
+connectionView (Config { internalMsg, selectMsg }) locale allLabels idx new labeledJourney jtg =
     let
         j =
             labeledJourney.journey
+
+        renderedLabels =
+            if List.length allLabels > 1 then
+                labelsView allLabels labeledJourney.labels
+            else
+                text ""
     in
         div
             [ classList
@@ -604,7 +627,8 @@ connectionView (Config { internalMsg, selectMsg }) locale idx new labeledJourney
                 ]
             , onClick (selectMsg idx)
             ]
-            [ div [ class "pure-g" ]
+            [ renderedLabels
+            , div [ class "pure-g" ]
                 [ div [ class "pure-u-4-24 connection-times" ]
                     [ div [ class "connection-departure" ]
                         [ text (Maybe.map formatTime (Connection.departureTime j.connection) |> Maybe.withDefault "?")
@@ -623,6 +647,25 @@ connectionView (Config { internalMsg, selectMsg }) locale idx new labeledJourney
                     [ Html.map (\m -> internalMsg (JTGUpdate idx m)) <| JourneyTransportGraph.view locale jtg ]
                 ]
             ]
+
+
+labelsView : List String -> List String -> Html msg
+labelsView allLabels journeyLabels =
+    let
+        labelClass label =
+            List.Extra.elemIndex label allLabels
+                |> Maybe.withDefault 0
+                |> toString
+
+        labelView label =
+            div
+                [ class ("connection-label with-tooltip label-" ++ (labelClass label))
+                , attribute "data-tooltip" label
+                ]
+                []
+    in
+        div [ class "labels" ]
+            (List.map labelView journeyLabels)
 
 
 dateHeader : Localization -> Date -> Html msg
