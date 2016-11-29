@@ -1,9 +1,0 @@
-include "BusStopPosition.fbs";
-
-namespace motis.routes;
-
-table RoutesAuxiliary {
-  bus_stop_positions: [BusStopPosition];
-}
-
-root_type RoutesAuxiliary;
