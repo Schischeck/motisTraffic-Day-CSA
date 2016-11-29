@@ -25,10 +25,7 @@ motis_instance_test::motis_instance_test(
   }
 
   conf::options_parser parser(confs);
-  std::vector<std::string> opt(begin(modules_cmdline_opt),
-                               end(modules_cmdline_opt));
-  opt.push_back("--routing.label_store_size=32000");
-  parser.read_command_line_args(opt);
+  parser.read_command_line_args(modules_cmdline_opt);
 
   instance_->init_schedule(dataset_opt);
   instance_->init_modules(modules);

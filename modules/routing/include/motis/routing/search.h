@@ -118,6 +118,7 @@ struct search {
 
     add_start_labels(q.interval_begin_, q.interval_end_);
 
+    MOTIS_START_TIMING(pareto_dijkstra_timing);
     auto pareto_dijkstra_total = 0u;
     auto max_interval_reached = false;
     auto interval_begin = q.interval_begin_;
@@ -126,9 +127,7 @@ struct search {
       max_interval_reached =
           (interval_begin == schedule_begin && interval_end == schedule_end);
 
-      MOTIS_START_TIMING(pareto_dijkstra_timing);
       pd.search();
-      MOTIS_STOP_TIMING(pareto_dijkstra_timing);
       pareto_dijkstra_total += MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
       if (pd.get_results().size() >= q.min_journey_count_) {
@@ -154,10 +153,12 @@ struct search {
       interval_begin = new_interval_begin;
       interval_end = new_interval_end;
     }
+    MOTIS_STOP_TIMING(pareto_dijkstra_timing);
 
     auto stats = pd.get_statistics();
     stats.travel_time_lb_ = MOTIS_TIMING_MS(travel_time_lb_timing);
     stats.transfers_lb_ = MOTIS_TIMING_MS(transfers_lb_timing);
+    stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
     return search_result(stats,
                          transform_to_vec(pd.get_results(),

@@ -25,34 +25,18 @@
 #include "motis/routing/search_dispatch.h"
 #include "motis/routing/start_label_gen.h"
 
-#define LABEL_MEMORY_NUM_BYTES "routing.label_store_size"
+#define LABEL_STORE_START_SIZE (64 * 1024 * 1024)  // 64MB default start size
 
 namespace p = std::placeholders;
-namespace po = boost::program_options;
 using namespace motis::logging;
 using namespace motis::module;
 
 namespace motis {
 namespace routing {
 
-routing::routing() : max_label_bytes_(32 * 1024 * 1024) {}
+routing::routing() : module("Routing", "routing") {}
 
 routing::~routing() = default;
-
-po::options_description routing::desc() {
-  po::options_description desc("Routing Module");
-  // clang-format off
-  desc.add_options()
-    (LABEL_MEMORY_NUM_BYTES,
-     po::value<std::size_t>(&max_label_bytes_)->default_value(max_label_bytes_),
-     "max size of the label store in bytes");
-  // clang-format on
-  return desc;
-}
-
-void routing::print(std::ostream& out) const {
-  out << "  " << LABEL_MEMORY_NUM_BYTES << ": " << max_label_bytes_;
-}
 
 void routing::init(motis::module::registry& reg) {
   reg.register_op("/routing", std::bind(&routing::route, this, p::_1));
@@ -67,7 +51,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
   auto const& sched = get_schedule();
   auto query = build_query(sched, req);
 
-  mem_retriever mem(mem_pool_mutex_, mem_pool_, max_label_bytes_);
+  mem_retriever mem(mem_pool_mutex_, mem_pool_, LABEL_STORE_START_SIZE);
   query.mem_ = &mem.get();
 
   auto res = search_dispatch(query, req->start_type(), req->search_type(),
@@ -75,6 +59,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
 
   MOTIS_STOP_TIMING(routing_timing);
   res.stats_.total_calculation_time_ = MOTIS_TIMING_MS(routing_timing);
+  res.stats_.labels_created_ = query.mem_->allocations();
   res.stats_.num_bytes_in_use_ = query.mem_->get_num_bytes_in_use();
 
   auto stats = to_fbs(res.stats_);
