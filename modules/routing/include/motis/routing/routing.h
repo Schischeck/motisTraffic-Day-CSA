@@ -13,7 +13,7 @@ struct memory;
 
 struct routing : public motis::module::module {
   routing();
-  ~routing();
+  ~routing() override;
 
   void init(motis::module::registry&) override;
 
