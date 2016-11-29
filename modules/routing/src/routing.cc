@@ -28,7 +28,6 @@
 #define LABEL_STORE_START_SIZE (64 * 1024 * 1024)  // 64MB default start size
 
 namespace p = std::placeholders;
-namespace po = boost::program_options;
 using namespace motis::logging;
 using namespace motis::module;
 
