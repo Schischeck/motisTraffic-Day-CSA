@@ -53,8 +53,6 @@ struct search_result {
 template <search_dir Dir, typename StartLabelGenerator, typename Label>
 struct search {
   static search_result get_connections(search_query const& q) {
-    q.mem_->reset();
-
     hash_map<int, std::vector<simple_edge>> travel_time_lb_graph_edges;
     hash_map<int, std::vector<simple_edge>> transfers_lb_graph_edges;
     travel_time_lb_graph_edges.set_empty_key(std::numeric_limits<int>::max());

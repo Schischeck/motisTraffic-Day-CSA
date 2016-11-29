@@ -19,6 +19,7 @@ struct Statistics {
   transfers_lb:uint;
   total_calculation_time:uint;
   pareto_dijkstra:uint;
+  num_bytes_in_use:uint;
 }
 
 table RoutingResponse {

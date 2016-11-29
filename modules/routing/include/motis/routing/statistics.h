@@ -25,7 +25,8 @@ struct statistics {
         transfers_lb_(0),
         price_l_b_(0),
         total_calculation_time_(0),
-        pareto_dijkstra_(0) {}
+        pareto_dijkstra_(0),
+        num_bytes_in_use_(0) {}
 
   explicit statistics(int travel_time_lb) : statistics() {
     travel_time_lb_ = travel_time_lb;
@@ -45,6 +46,7 @@ struct statistics {
   int price_l_b_;
   int total_calculation_time_;
   int pareto_dijkstra_;
+  int num_bytes_in_use_;
 
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     return o << "stats:\n"
@@ -69,7 +71,7 @@ struct statistics {
              << "\tmax_label_quit:" << std::boolalpha << s.max_label_quit_
              << "\n"
              << "\ttotal_calculation_time:" << s.total_calculation_time_
-             << "\n";
+             << "\tnum_bytes_in_use:" << s.num_bytes_in_use_ << "\n";
   }
 
   friend Statistics to_fbs(statistics const& s) {
@@ -80,7 +82,7 @@ struct statistics {
         s.labels_dominated_by_later_labels_,
         s.labels_popped_until_first_result_, s.labels_popped_after_last_result_,
         s.priority_queue_max_size_, s.travel_time_lb_, s.transfers_lb_,
-        s.total_calculation_time_, s.pareto_dijkstra_);
+        s.total_calculation_time_, s.pareto_dijkstra_, s.num_bytes_in_use_);
   }
 };
 

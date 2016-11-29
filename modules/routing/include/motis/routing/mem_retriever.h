@@ -24,6 +24,7 @@ struct mem_retriever {
   ~mem_retriever() {
     std::lock_guard<std::mutex> lock(mutex_);
     memory_->in_use_ = false;
+    memory_->mem_.reset();
   }
 
   mem_manager& get() { return memory_->mem_; }

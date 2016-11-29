@@ -38,7 +38,9 @@ struct loaded_file {
   }
 
   char const* name() const { return name_.c_str(); }
-  parser::cstr content() const { return {buf_.data(), buf_.size()}; }
+  parser::cstr content() const {
+    return {reinterpret_cast<char const*>(buf_.data()), buf_.size()};
+  }
 
 private:
   std::string name_;

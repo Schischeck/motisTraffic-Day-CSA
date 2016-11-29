@@ -5,6 +5,7 @@
 #include "motis/module/message.h"
 #include "motis/eval/analyzer/quantile.h"
 #include "motis/protocol/RoutingResponse_generated.h"
+#include "motis/routing/allocator.h"
 
 using namespace motis;
 using namespace motis::module;
@@ -23,7 +24,8 @@ struct response {
         max_label_quit_(r->statistics()->max_label_quit()),
         total_time_(r->statistics()->total_calculation_time()),
         travel_time_lb_time_(r->statistics()->travel_time_lb()),
-        transfers_lb_time_(r->statistics()->transfers_lb()) {}
+        transfers_lb_time_(r->statistics()->transfers_lb()),
+        num_bytes_in_use_(r->statistics()->num_bytes_in_use()) {}
 
   unsigned labels_until_first_;
   unsigned labels_after_last_;
@@ -35,6 +37,7 @@ struct response {
   unsigned total_time_;
   unsigned travel_time_lb_time_;
   unsigned transfers_lb_time_;
+  size_t num_bytes_in_use_;
 };
 
 int main(int argc, char* argv[]) {
@@ -48,17 +51,18 @@ int main(int argc, char* argv[]) {
   std::ifstream in(argv[1]);
   std::string line;
 
-  unsigned max_label_quit = 0;
-  unsigned pd_time_sum = 0;
-  unsigned total_time_sum = 0;
-  unsigned travel_time_lb_time_sum = 0;
-  unsigned transfers_lb_time_sum = 0;
-  unsigned count = 0;
-  unsigned no_con_count = 0;
-  unsigned labels_popped_until_first_result = 0;
-  unsigned labels_popped_after_last_result = 0;
+  uint64_t max_label_quit = 0;
+  uint64_t pd_time_sum = 0;
+  uint64_t total_time_sum = 0;
+  uint64_t travel_time_lb_time_sum = 0;
+  uint64_t transfers_lb_time_sum = 0;
+  uint64_t count = 0;
+  uint64_t no_con_count = 0;
+  uint64_t labels_popped_until_first_result = 0;
+  uint64_t labels_popped_after_last_result = 0;
   uint64_t no_labels_created = 0;
-  unsigned start_labels = 0;
+  uint64_t start_labels = 0;
+  uint64_t num_bytes_in_use = 0;
 
   while (in.peek() != EOF && !in.eof()) {
     std::getline(in, line);
@@ -84,6 +88,7 @@ int main(int argc, char* argv[]) {
     travel_time_lb_time_sum += res.travel_time_lb_time_;
     transfers_lb_time_sum += res.transfers_lb_time_;
     start_labels += res.start_labels_;
+    num_bytes_in_use += res.num_bytes_in_use_;
     ++count;
   }
 
@@ -155,6 +160,16 @@ int main(int argc, char* argv[]) {
             << quantile(&response::labels_created_, responses, 0.8f) << "\n"
             << "50 quantile number of labels created: "
             << quantile(&response::labels_created_, responses, 0.5f) << "\n\n";
+
+  std::cout << "    average number of bytes: "
+            << num_bytes_in_use / static_cast<double>(count) << "\n"
+            << "90 quantile number of allocations: "
+            << quantile(&response::num_bytes_in_use_, responses, 0.9f) << "\n"
+            << "80 quantile number of allocations: "
+            << quantile(&response::num_bytes_in_use_, responses, 0.8f) << "\n"
+            << "50 quantile number of allocations: "
+            << quantile(&response::num_bytes_in_use_, responses, 0.5f)
+            << "\n\n";
 
   std::cout << "avg labels popped:\n";
   std::cout << "\tuntil first result: "

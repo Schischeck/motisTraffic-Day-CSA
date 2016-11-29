@@ -9,12 +9,15 @@
 #include "motis/core/common/timing.h"
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/edge_access.h"
+#include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/module/context/get_schedule.h"
 
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/build_query.h"
 #include "motis/routing/error.h"
+#include "motis/routing/label/configs.h"
 #include "motis/routing/label/configs.h"
 #include "motis/routing/mem_manager.h"
 #include "motis/routing/mem_retriever.h"
@@ -32,8 +35,7 @@ using namespace motis::module;
 namespace motis {
 namespace routing {
 
-routing::routing()
-    : label_bytes_(static_cast<std::size_t>(8) * 1024 * 1024 * 1024) {}
+routing::routing() : max_label_bytes_(32 * 1024 * 1024) {}
 
 routing::~routing() = default;
 
@@ -42,14 +44,14 @@ po::options_description routing::desc() {
   // clang-format off
   desc.add_options()
     (LABEL_MEMORY_NUM_BYTES,
-     po::value<std::size_t>(&label_bytes_)->default_value(label_bytes_),
-     "size of the label store in bytes");
+     po::value<std::size_t>(&max_label_bytes_)->default_value(max_label_bytes_),
+     "max size of the label store in bytes");
   // clang-format on
   return desc;
 }
 
 void routing::print(std::ostream& out) const {
-  out << "  " << LABEL_MEMORY_NUM_BYTES << ": " << label_bytes_;
+  out << "  " << LABEL_MEMORY_NUM_BYTES << ": " << max_label_bytes_;
 }
 
 void routing::init(motis::module::registry& reg) {
@@ -65,7 +67,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
   auto const& sched = get_schedule();
   auto query = build_query(sched, req);
 
-  mem_retriever mem(mem_pool_mutex_, mem_pool_, label_bytes_);
+  mem_retriever mem(mem_pool_mutex_, mem_pool_, max_label_bytes_);
   query.mem_ = &mem.get();
 
   auto res = search_dispatch(query, req->start_type(), req->search_type(),
@@ -73,9 +75,10 @@ msg_ptr routing::route(msg_ptr const& msg) {
 
   MOTIS_STOP_TIMING(routing_timing);
   res.stats_.total_calculation_time_ = MOTIS_TIMING_MS(routing_timing);
+  res.stats_.num_bytes_in_use_ = query.mem_->get_num_bytes_in_use();
 
+  auto stats = to_fbs(res.stats_);
   message_creator fbb;
-  auto const stats = to_fbs(res.stats_);
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
       CreateRoutingResponse(fbb, &stats, fbb.CreateVector(transform_to_vec(
@@ -88,10 +91,6 @@ msg_ptr routing::route(msg_ptr const& msg) {
           .Union());
   return make_msg(fbb);
 }
-
-#include "motis/core/conv/trip_conv.h"
-#include "motis/core/access/edge_access.h"
-#include "motis/routing/label/configs.h"
 
 msg_ptr routing::trip_to_connection(msg_ptr const& msg) {
   using label = default_label<search_dir::FWD>;

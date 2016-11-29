@@ -27,7 +27,7 @@ private:
   motis::module::msg_ptr route(motis::module::msg_ptr const&);
   motis::module::msg_ptr trip_to_connection(motis::module::msg_ptr const&);
 
-  std::size_t label_bytes_;
+  std::size_t max_label_bytes_;
   std::mutex mem_pool_mutex_;
   std::vector<std::unique_ptr<memory>> mem_pool_;
 };
