@@ -66,7 +66,7 @@ type alias Model =
 
 type alias LabeledJourney =
     { journey : Journey
-    , labels : List Int
+    , labels : List String
     }
 
 
@@ -121,7 +121,7 @@ type Msg
     | UpdateScheduleInfo (Maybe ScheduleInfo)
     | ResetNew
     | JTGUpdate Int JourneyTransportGraph.Msg
-    | SetRoutingResponse RoutingResponse
+    | SetRoutingResponses (List ( String, RoutingResponse ))
 
 
 type ExtendIntervalType
@@ -197,7 +197,13 @@ update msg model =
                     model_ =
                         { model | allowExtend = True }
                 in
-                    (updateModelWithNewResults model_ action request response) ! []
+                    (updateModelWithNewResults
+                        model_
+                        action
+                        request
+                        [ ( model.remoteAddress, response ) ]
+                    )
+                        ! []
             else
                 model ! []
 
@@ -207,7 +213,7 @@ update msg model =
             else
                 model ! []
 
-        SetRoutingResponse response ->
+        SetRoutingResponses responses ->
             let
                 placeholderStation =
                     { id = ""
@@ -226,7 +232,7 @@ update msg model =
                 model_ =
                     { model | allowExtend = False }
             in
-                (updateModelWithNewResults model_ ReplaceResults request response) ! []
+                (updateModelWithNewResults model_ ReplaceResults request responses) ! []
 
         UpdateScheduleInfo si ->
             { model | scheduleInfo = si } ! []
@@ -312,26 +318,32 @@ updateModelWithNewResults :
     Model
     -> SearchAction
     -> RoutingRequest
-    -> RoutingResponse
+    -> List ( String, RoutingResponse )
     -> Model
-updateModelWithNewResults model action request response =
+updateModelWithNewResults model action request responses =
     let
-        connections =
-            response.connections
+        firstResponse =
+            List.head responses
+                |> Maybe.map Tuple.second
 
         updateInterval updateStart updateEnd routingRequest =
-            { routingRequest
-                | intervalStart =
-                    if updateStart then
-                        unixTime response.intervalStart
-                    else
-                        routingRequest.intervalStart
-                , intervalEnd =
-                    if updateEnd then
-                        unixTime response.intervalEnd
-                    else
-                        routingRequest.intervalEnd
-            }
+            case firstResponse of
+                Just response ->
+                    { routingRequest
+                        | intervalStart =
+                            if updateStart then
+                                unixTime response.intervalStart
+                            else
+                                routingRequest.intervalStart
+                        , intervalEnd =
+                            if updateEnd then
+                                unixTime response.intervalEnd
+                            else
+                                routingRequest.intervalEnd
+                    }
+
+                Nothing ->
+                    routingRequest
 
         base =
             case action of
@@ -363,9 +375,7 @@ updateModelWithNewResults model action request response =
 
         journeysToAdd : List LabeledJourney
         journeysToAdd =
-            connections
-                |> List.map Journey.toJourney
-                |> List.map (\j -> { journey = j, labels = [] })
+            toLabeledJourneys responses
 
         newJourneys =
             case action of
@@ -414,6 +424,40 @@ updateModelWithNewResults model action request response =
             , indexOffset = newIndexOffset
             , newJourneys = newNewJourneys
         }
+
+
+toLabeledJourneys : List ( String, RoutingResponse ) -> List LabeledJourney
+toLabeledJourneys responses =
+    let
+        journeys : List ( String, Journey )
+        journeys =
+            List.concatMap
+                (\( label, r ) ->
+                    List.map
+                        (\c -> ( label, Journey.toJourney c ))
+                        r.connections
+                )
+                responses
+
+        labelJourneys : ( String, Journey ) -> List LabeledJourney -> List LabeledJourney
+        labelJourneys ( label, journey ) labeled =
+            labeled
+                |> List.Extra.findIndex (\lj -> lj.journey == journey)
+                |> Maybe.andThen
+                    (\idx ->
+                        List.Extra.updateAt
+                            idx
+                            (\lj ->
+                                { lj | labels = label :: lj.labels }
+                            )
+                            labeled
+                    )
+                |> Maybe.withDefault
+                    ({ journey = journey, labels = [ label ] }
+                        :: labeled
+                    )
+    in
+        List.foldr labelJourneys [] journeys
 
 
 sortJourneys : List LabeledJourney -> List LabeledJourney

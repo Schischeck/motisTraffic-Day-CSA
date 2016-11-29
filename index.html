@@ -39,13 +39,30 @@
 
   function handleDrop(element) {
     element.addEventListener('drop', function(e) {
-      var file = e.dataTransfer.files[0];
-      var reader = new FileReader();
-      reader.addEventListener('load', function(ev) {
-        app.ports.setRoutingResponse.send(ev.target.result);
-      });
-      reader.readAsText(file);
       e.preventDefault();
+      var files = e.dataTransfer.files;
+      if (files.length == 0) { return; }
+      var contents = [];
+      var remaining = files.length;
+
+      function onLoad(i) {
+        return function(ev) {
+          contents[i] = ev.target.result;
+          if (--remaining == 0) {
+            var data = [];
+            for (var j = 0; j < files.length; j++) {
+              data[j] = [files[j].name, contents[j]];
+            }
+            app.ports.setRoutingResponse.send(data);
+          }
+        }
+      }
+
+      for (var i = 0; i < files.length; i++) {
+        var reader = new FileReader();
+        reader.addEventListener('load', onLoad(i));
+        reader.readAsText(files[i]);
+      }
     });
     element.addEventListener('dragenter', function(e) {e.preventDefault();});
     element.addEventListener('dragover', function(e) {e.preventDefault();});

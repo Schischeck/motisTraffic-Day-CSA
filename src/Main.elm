@@ -167,7 +167,7 @@ type Msg
     | SetLocale Localization
     | NavigateTo Route
     | ReplaceLocation Route
-    | SetRoutingResponse String
+    | SetRoutingResponses (List ( String, String ))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -374,23 +374,40 @@ update msg model =
         ReplaceLocation route ->
             model ! [ Navigation.modifyUrl (toUrl route) ]
 
-        SetRoutingResponse json ->
+        SetRoutingResponses files ->
             let
-                result =
-                    Decode.decodeString decodeRoutingResponse json
-            in
-                case result of
-                    Ok routingResponse ->
-                        update
-                            (ConnectionsUpdate (Connections.SetRoutingResponse routingResponse))
-                            model
+                parsed =
+                    List.map
+                        (\( name, json ) -> ( name, Decode.decodeString decodeRoutingResponse json ))
+                        files
 
-                    Err msg_ ->
-                        let
-                            _ =
-                                Debug.log "Could not decode routing response:" msg_
-                        in
-                            model ! []
+                valid =
+                    List.filterMap
+                        (\( name, result ) ->
+                            case result of
+                                Ok routingResponse ->
+                                    Just ( name, routingResponse )
+
+                                Err _ ->
+                                    Nothing
+                        )
+                        parsed
+
+                errors =
+                    List.filterMap
+                        (\( name, result ) ->
+                            case result of
+                                Err msg_ ->
+                                    Just ( name, msg_ )
+
+                                Ok _ ->
+                                    Nothing
+                        )
+                        parsed
+            in
+                update
+                    (ConnectionsUpdate (Connections.SetRoutingResponses valid))
+                    model
 
 
 buildRoutingRequest : Model -> RoutingRequest
@@ -502,7 +519,7 @@ subscriptions model =
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
         , Sub.map MapUpdate (Map.subscriptions model.map)
-        , Port.setRoutingResponse SetRoutingResponse
+        , Port.setRoutingResponses SetRoutingResponses
         ]
 
 

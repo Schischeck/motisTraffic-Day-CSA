@@ -50,4 +50,4 @@ port mapSetOverlays : MapOverlays -> Cmd msg
 port mapClearOverlays : String -> Cmd msg
 
 
-port setRoutingResponse : (String -> msg) -> Sub msg
+port setRoutingResponses : (List ( String, String ) -> msg) -> Sub msg
