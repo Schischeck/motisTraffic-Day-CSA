@@ -56,7 +56,13 @@ struct osrm_routing::impl {
     std::vector<int> costs;
     for (auto const& cost : result.values["costs"].get<Array>().values) {
       auto const& cost_obj = cost.get<Object>();
-      costs.emplace_back(cost_obj.values.at("distance").get<Number>().value);
+      auto const& cost_value =
+          cost_obj.values.at("distance").get<Number>().value;
+      if (cost_value > 1) {
+        costs.emplace_back(cost_value);
+      } else {
+        costs.emplace_back(1);
+      }
     }
     return costs;
   }
@@ -85,7 +91,7 @@ struct osrm_routing::impl {
         get(route, "geometry").get<Array>().values,
         [](auto&& jc) { return jc.template get<Number>().value; });
     std::vector<geo::latlng> polyline;
-    for (auto i = 0u; i < points.size() - 2; i = i + 2) {
+    for (auto i = 0u; i < points.size() - 1; i = i + 2) {
       polyline.emplace_back(points[i], points[i + 1]);
     }
     return polyline;
@@ -101,7 +107,7 @@ struct osrm_routing::impl {
       auto costs = one_to_many(f.coords_, to_coords);
       for (auto i = 0u; i < to_coords.size(); ++i) {
         source_spec s(id_, source_spec::category::UNKNOWN,
-                      source_spec::type::ROUTE);
+                      source_spec::type::OSRM_ROUTE);
         s.router_id_ = router_id_;
         from_result.emplace_back(s, costs[i]);
         id_++;
@@ -113,7 +119,7 @@ struct osrm_routing::impl {
 
   std::vector<node_ref> close_nodes(node_ref const& station) {
     NearestParameters params;
-    params.number_of_results = 5;
+    params.number_of_results = 3;
     params.coordinates.push_back(make_coord(station.coords_));
 
     Object result;

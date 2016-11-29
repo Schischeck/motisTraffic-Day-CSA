@@ -57,7 +57,7 @@ struct stub_routing : routing_strategy {
 
       for (auto& t : to) {
         source_spec s(id_, source_spec::category::UNKNOWN,
-                      source_spec::type::ROUTE);
+                      source_spec::type::STUB_ROUTE);
         s.router_id_ = router_id_;
         from_result.emplace_back(s, distance(f.coords_, t.coords_));
         id_++;

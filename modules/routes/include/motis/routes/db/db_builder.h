@@ -18,12 +18,20 @@ using routing_lookup = typed_flatbuffer<motis::routes::RouteLookup>;
 using key_pair =
     std::tuple<std::vector<std::string>, std::vector<uint32_t>, int>;
 
+struct sequence_info {
+  int idx_;
+  int from_;
+  int to_;
+  std::string type_;
+};
+
 struct db_builder {
   db_builder(kv_database& db) : db_(db){};
 
   int append(std::vector<std::string> const& station_ids,
              std::vector<uint32_t> const& classes,
-             std::vector<std::vector<geo::latlng>> const& lines);
+             std::vector<std::vector<geo::latlng>> const& lines,
+             std::vector<sequence_info> const& sequence_infos);
 
   void finish();
 

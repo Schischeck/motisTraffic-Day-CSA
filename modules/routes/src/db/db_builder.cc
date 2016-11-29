@@ -7,7 +7,8 @@ namespace routes {
 
 int db_builder::append(std::vector<std::string> const& station_ids,
                        std::vector<uint32_t> const& classes,
-                       std::vector<std::vector<geo::latlng>> const& lines) {
+                       std::vector<std::vector<geo::latlng>> const& lines,
+                       std::vector<sequence_info> const& sequence_infos) {
   std::lock_guard<std::mutex> lock(m_);
   module::message_creator b;
   auto fbs_stations = transform_to_vec(
@@ -23,10 +24,15 @@ int db_builder::append(std::vector<std::string> const& station_ids,
     }
     fbs_lines.push_back(CreatePolyline(b, b.CreateVector(flat_polyline)));
   }
+  std::vector<flatbuffers::Offset<RoutesSourceInfo>> fbs_info;
+  for (auto const& info : sequence_infos) {
+    fbs_info.push_back(CreateRoutesSourceInfo(
+        b, info.idx_, info.from_, info.to_, b.CreateString(info.type_)));
+  }
 
-  auto res = CreateRoutesSeqResponse(b, b.CreateVector(fbs_stations),
-                                     b.CreateVector(classes),
-                                     b.CreateVector(fbs_lines));
+  auto res = CreateRoutesSeqResponse(
+      b, b.CreateVector(fbs_stations), b.CreateVector(classes),
+      b.CreateVector(fbs_lines), b.CreateVector(fbs_info));
   b.create_and_finish(MsgContent_RoutesSeqResponse, res.Union());
 
   db_.put(std::to_string(index_), routing_sequence(std::move(b)).to_string());

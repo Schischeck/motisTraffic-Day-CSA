@@ -2,8 +2,16 @@ include "base/Polyline.fbs";
 
 namespace motis.routes;
 
+table RoutesSourceInfo {
+	segment_idx: int;
+	from_idx: int;
+	to_idx: int;
+	type: string;
+}
+
 table RoutesSeqResponse {
   station_ids: [string];
   classes: [uint];
   segments: [Polyline];
+  sourceInfos:  [RoutesSourceInfo];
 }

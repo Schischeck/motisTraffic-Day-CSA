@@ -47,14 +47,29 @@ void prepare(prepare_data& data, strategies& routing_strategies,
         continue;
       }
       std::vector<std::vector<geo::latlng>> lines{seq.station_ids_.size() - 1};
+      std::vector<sequence_info> sequence_infos;
       for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
-        if (edge->source_.type_ == source_spec::type::ROUTE) {
-          routing_strategies.strategies_[edge->source_.router_id_]
-              ->get_polyline(edge->from_->ref_, edge->to_->ref_);
+        sequence_info info;
+        info.idx_ = edge->from_->station_idx_;
+        info.from_ = lines[edge->from_->station_idx_].size();
+        if (edge->p_.empty()) {
+          append(lines[edge->from_->station_idx_],
+                 routing_strategies.strategies_[edge->source_.router_id_]
+                     ->get_polyline(edge->from_->ref_, edge->to_->ref_));
+        } else {
+          append(lines[edge->from_->station_idx_], edge->p_);
         }
-        append(lines[edge->from_->station_idx_], edge->p_);
+
+        info.to_ = lines[edge->from_->station_idx_].size();
+        info.type_ = edge->source_.type_ == source_spec::type::OSRM_ROUTE
+                         ? "OSRM"
+                         : edge->source_.type_ == source_spec::type::STUB_ROUTE
+                               ? "STUB"
+                               : "RELATION";
+        sequence_infos.push_back(info);
       }
-      builder.append(seq.station_ids_, category_group.second, lines);
+      builder.append(seq.station_ids_, category_group.second, lines,
+                     sequence_infos);
     }
   });
 
