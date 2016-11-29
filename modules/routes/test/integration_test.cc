@@ -87,8 +87,12 @@ struct routes_integration_test : public motis_instance_test {
     seq.coordinates_.emplace_back(49.445616, 11.082989);
     seq.categories_.emplace(0);
 
-    sequences_.emplace_back(std::move(seq));
-    prepare(sequences_, stop_positions_, osm_, db_);
+    prepare_data data;
+    data.sequences_.emplace_back(std::move(seq));
+    strategies routing_strategies;
+    auto stub = std::make_unique<stub_routing>(0);
+    routing_strategies.strategies_.push_back(std::move(stub));
+    prepare(data, routing_strategies, db_, osm_);
     auto& routes_module = get_routes_module();
     routes_module.db_ = std::make_unique<map_database>(db_);
     routes_module.lookup_ =
@@ -97,9 +101,7 @@ struct routes_integration_test : public motis_instance_test {
 
   routes& get_routes_module() { return get_module<routes>("routes"); }
 
-  std::vector<station_seq> sequences_;
   map_database db_;
-  std::map<std::string, std::vector<geo::latlng>> stop_positions_;
   std::string osm_ = "./modules/routes/test_resources/test_osm.xml";
 };
 
