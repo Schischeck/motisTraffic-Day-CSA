@@ -466,24 +466,34 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                     |> Maybe.map (timestampClass currentTime)
                     |> Maybe.withDefault ""
 
-        trainProgress =
-            Maybe.map2
-                (timelineProgress currentTime)
-                (Maybe.map .departure departureStop)
-                (Maybe.map .arrival arrivalStop)
-                |> Maybe.withDefault 0
+        progressTimeline progress =
+            [ div [ class "timeline train-color-border bg" ] []
+            , div
+                [ class "timeline train-color-border progress"
+                , style [ "height" => ((toString progress) ++ "%") ]
+                ]
+                []
+            ]
+
+        intermediateProgress =
+            if expanded then
+                Maybe.map2
+                    (timelineProgress currentTime)
+                    (Maybe.map .departure departureStop)
+                    (Maybe.map .arrival (List.head intermediateStops))
+            else
+                Maybe.map2
+                    (timelineProgress currentTime)
+                    (Maybe.map .departure departureStop)
+                    (Maybe.map .arrival arrivalStop)
 
         timelines =
-            if expanded then
-                [ div [ class "timeline train-color-border" ] [] ]
-            else
-                [ div [ class "timeline train-color-border bg" ] []
-                , div
-                    [ class "timeline train-color-border progress"
-                    , style [ "height" => ((toString trainProgress) ++ "%") ]
-                    ]
-                    []
-                ]
+            case intermediateProgress of
+                Just progress ->
+                    progressTimeline progress
+
+                Nothing ->
+                    [ div [ class "timeline train-color-border" ] [] ]
     in
         case transport of
             Just t ->

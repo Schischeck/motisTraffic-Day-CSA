@@ -512,7 +512,7 @@
   left: -22px;
   height: 100%;
   border-left: 4px solid;
-  transition: height .5s ease, border-color .5s ease;
+  /*transition: height .5s ease, border-color .5s ease;*/
 }
 
 .train-detail .stop .timeline {
