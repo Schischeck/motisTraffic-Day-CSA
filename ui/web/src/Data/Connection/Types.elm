@@ -179,13 +179,18 @@ transportCategories connection =
         List.filterMap category connection.transports |> Set.fromList
 
 
+getEventTime : EventInfo -> Maybe Date
+getEventTime event =
+    Maybe.Extra.or
+        event.time
+        event.schedule_time
+
+
 eventIsInThePast : Date -> EventInfo -> Bool
 eventIsInThePast currentTime event =
     let
         eventTime =
-            Maybe.Extra.or
-                event.time
-                event.schedule_time
+            getEventTime event
     in
         case eventTime of
             Just t ->

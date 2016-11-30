@@ -549,7 +549,8 @@
   z-index: 10;
 }
 
-.train-detail .past .timeline,
+.train-detail .past .timeline:not(.bg),
+.train-detail .timeline.progress,
 .train-detail .intermediate-stops .stop.past::before,
 .train-detail:last-of-type .last-stop .stop.past::before {
   filter: brightness(1.2);

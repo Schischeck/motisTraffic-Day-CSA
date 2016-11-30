@@ -258,6 +258,40 @@ timestampClass currentTime event =
         "future"
 
 
+timelineProgress : Date -> EventInfo -> EventInfo -> Int
+timelineProgress currentTime firstEvent lastEvent =
+    let
+        departed =
+            eventIsInThePast currentTime firstEvent
+
+        arrived =
+            eventIsInThePast currentTime lastEvent
+
+        toMinutes deltaRecord =
+            toFloat (deltaRecord.minute + 60 * deltaRecord.hour + 1440 * deltaRecord.day)
+
+        calcProgress firstTime lastTime =
+            let
+                total =
+                    toMinutes (Duration.diff lastTime firstTime)
+
+                elapsed =
+                    toMinutes (Duration.diff currentTime firstTime)
+            in
+                round (elapsed / total * 100.0)
+    in
+        if arrived then
+            100
+        else if departed then
+            Maybe.map2
+                calcProgress
+                (getEventTime firstEvent)
+                (getEventTime lastEvent)
+                |> Maybe.withDefault 0
+        else
+            0
+
+
 trainTopLine : Localization -> ( Train, InterchangeInfo ) -> String
 trainTopLine locale ( train, ic ) =
     case ic.previousArrival of
@@ -415,6 +449,21 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                     |> Maybe.map .arrival
                     |> Maybe.map (timestampClass currentTime)
                     |> Maybe.withDefault ""
+
+        trainProgress =
+            Maybe.map2
+                (timelineProgress currentTime)
+                (Maybe.map .departure departureStop)
+                (Maybe.map .arrival arrivalStop)
+                |> Maybe.withDefault 0
+
+        intermediateTimelineAttr =
+            if expanded then
+                []
+            else
+                [ style
+                    [ "height" => ((toString trainProgress) ++ "%") ]
+                ]
     in
         case transport of
             Just t ->
@@ -452,7 +501,9 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                             ++ intermediateToggleOnClick
                         )
                         [ div [ class "timeline-container" ]
-                            [ div [ class "timeline train-color-border" ] [] ]
+                            [ div [ class "timeline train-color-border bg" ] []
+                            , div ([ class "timeline train-color-border progress" ] ++ intermediateTimelineAttr) []
+                            ]
                         , div [ class "expand-icon" ] expandIcon
                         , span [] [ text (intermediateText ++ " (" ++ durationStr ++ ")") ]
                         ]
