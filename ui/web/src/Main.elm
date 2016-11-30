@@ -101,7 +101,7 @@ init flags _ =
             Map.init
 
         ( fromLocationModel, fromLocationCmd ) =
-            Typeahead.init remoteAddress "Bahra An der Brücke, Bad Gottleuba-Berggießhübel"
+            Typeahead.init remoteAddress "Willy-Brandt-Platz, Darmstadt"
 
         ( toLocationModel, toLocationCmd ) =
             Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
@@ -529,7 +529,7 @@ subscriptions model =
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
         , Sub.map MapUpdate (Map.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
-        , Time.every (10 * Time.second) UpdateCurrentTime
+        , Time.every (2 * Time.second) UpdateCurrentTime
         ]
 
 

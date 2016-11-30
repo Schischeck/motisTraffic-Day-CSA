@@ -234,9 +234,16 @@ stopView stopViewType eventType locale currentTime stop =
                     [ span []
                         [ text (locale.t.connections.track ++ " " ++ event.track) ]
                     ]
+
+        stopTimestampClass =
+            timestampClass currentTime event
+
+        timeline =
+            div [ class "timeline train-color-border" ] []
     in
-        div [ class "stop" ]
-            [ div [ class "time" ] timeCell
+        div [ class ("stop " ++ stopTimestampClass) ]
+            [ timeline
+            , div [ class "time" ] timeCell
             , div [ class "delay" ] delayCell
             , div [ class "station" ] [ span [] [ text stop.station.name ] ]
             , trackCell
@@ -246,9 +253,9 @@ stopView stopViewType eventType locale currentTime stop =
 timestampClass : Date -> EventInfo -> String
 timestampClass currentTime event =
     if eventIsInThePast currentTime event then
-        "past-event"
+        "past"
     else
-        "future-event"
+        "future"
 
 
 trainTopLine : Localization -> ( Train, InterchangeInfo ) -> String
@@ -293,10 +300,11 @@ trainTopLine locale ( train, ic ) =
             ""
 
 
-directionView : String -> Html msg
-directionView direction =
-    div [ class "direction" ]
-        [ i [ class "icon" ] [ text "arrow_forward" ]
+directionView : String -> String -> Html msg
+directionView additionalClass direction =
+    div [ class ("direction " ++ additionalClass) ]
+        [ div [ class "timeline train-color-border" ] []
+        , i [ class "icon" ] [ text "arrow_forward" ]
         , text direction
         ]
 
@@ -389,12 +397,30 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                 DetailedStopView
             else
                 CompactStopView
+
+        directionClass =
+            departureStop
+                |> Maybe.map .departure
+                |> Maybe.map (timestampClass currentTime)
+                |> Maybe.withDefault ""
+
+        intermediateToggleClass =
+            if expanded then
+                departureStop
+                    |> Maybe.map .departure
+                    |> Maybe.map (timestampClass currentTime)
+                    |> Maybe.withDefault ""
+            else
+                arrivalStop
+                    |> Maybe.map .arrival
+                    |> Maybe.map (timestampClass currentTime)
+                    |> Maybe.withDefault ""
     in
         case transport of
             Just t ->
                 div
                     [ class <| "train-detail train-class-" ++ (toString t.class) ]
-                    [ div [ class "left-border" ] []
+                    [ div [ class "left-border train-color-border" ] []
                     , div [ class "top-border" ] []
                     , div trainBoxOnClick
                         [ trainBox LongName locale t ]
@@ -414,16 +440,19 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                             departureStop
                             |> Maybe.withDefault (text "")
                         ]
-                    , Maybe.map directionView direction |> Maybe.withDefault (text "")
+                    , Maybe.map (directionView directionClass) direction
+                        |> Maybe.withDefault (text "")
                     , div
                         ([ classList
                             [ "intermediate-stops-toggle" => True
                             , "clickable" => hasIntermediateStops
+                            , intermediateToggleClass => True
                             ]
                          ]
                             ++ intermediateToggleOnClick
                         )
-                        [ div [ class "expand-icon" ] expandIcon
+                        [ div [ class "timeline train-color-border" ] []
+                        , div [ class "expand-icon" ] expandIcon
                         , span [] [ text (intermediateText ++ " (" ++ durationStr ++ ")") ]
                         ]
                     , div

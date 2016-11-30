@@ -364,6 +364,7 @@
   border-radius: 12px;
   display: inline-block;
   cursor: default;
+  height: 29px;
 }
 
 .train-box .train-icon {
@@ -392,55 +393,6 @@
   cursor: pointer;
 }
 
-.train-box.train-class-0,
-.train-detail.train-class-0 .stop::before {
-  background-color: #9c27b0;
-}
-
-.train-box.train-class-1,
-.train-detail.train-class-1 .stop::before {
-  background-color: #e91e63;
-}
-
-.train-box.train-class-2,
-.train-detail.train-class-2 .stop::before  {
-  background-color: #1a237e;
-}
-
-.train-box.train-class-3,
-.train-box.train-class-4,
-.train-detail.train-class-3 .stop::before,
-.train-detail.train-class-4 .stop::before {
-  background-color: #f44336;
-}
-
-.train-box.train-class-5,
-.train-detail.train-class-5 .stop::before {
-  background-color: #4caf50;
-}
-
-.train-box.train-class-6,
-.train-detail.train-class-6 .stop::before {
-  background-color: #3f51b5;
-}
-
-.train-box.train-class-7,
-.train-box.train-class-8,
-.train-detail.train-class-7 .stop::before,
-.train-detail.train-class-8 .stop::before {
-  background-color: #ff9800;
-}
-
-.train-box.train-class-9,
-.train-detail.train-class-9 .stop::before {
-  background-color: #9e9e9e;
-}
-
-.train-box.train-class-walk,
-.train-detail.train-class-walk .stop::before {
-  background-color: #333;
-}
-
 .neg-delay {
   color: green;
 }
@@ -453,7 +405,7 @@
   position: relative;
   width: 100%;
   min-height: 5em;
-  padding: 3em 0 1.5em 2em;
+  padding: 29px 0 24px 32px;
 }
 
 .train-detail .left-border {
@@ -531,7 +483,7 @@
 }
 
 .train-detail .train-arr-track {
-  top: 7px;
+  top: 10px;
   right: 0px;
 }
 
@@ -539,50 +491,11 @@
   display: none;
 }
 
-.train-detail.train-class-0 .left-border {
-  border-color: #9c27b0;
-}
-
-.train-detail.train-class-1 .left-border {
-  border-color: #e91e63;
-}
-
-.train-detail.train-class-2 .left-border {
-  border-color: #1a237e;
-}
-
-.train-detail.train-class-3 .left-border,
-.train-detail.train-class-4 .left-border {
-  border-color: #f44336;
-}
-
-.train-detail.train-class-5 .left-border {
-  border-color: #4caf50;
-}
-
-.train-detail.train-class-6 .left-border {
-  border-color: #3f51b5;
-}
-
-.train-detail.train-class-7 .left-border,
-.train-detail.train-class-8 .left-border {
-  border-color: #ff9800;
-}
-
-.train-detail.train-class-9 .left-border {
-  border-color: #9e9e9e;
-}
-
-.train-detail.train-class-walk .left-border {
-  border-color: #333;
-}
-
 .train-detail .stop {
-  margin-bottom: 1em;
   display: flex;
   align-items: center;
   position: relative;
-  height: 42px;
+  height: 50px;
 }
 
 .train-detail .stop span {
@@ -601,6 +514,26 @@
   box-shadow: 6px 0 0 #fff, -6px 0 0 #fff;
 }
 
+.train-detail .timeline {
+  position: absolute;
+  top: 0px;
+  left: -22px;
+  height: 100%;
+  border-left: 4px solid;
+}
+
+.train-detail .stop .timeline {
+  top: 25px;
+}
+
+.train-detail .intermediate-stops-toggle .timeline {
+  height: 117px;
+}
+
+.train-detail .first-stop .stop .timeline {
+  top: 0px;
+}
+
 .train-detail .last-stop {
   position: relative;
 }
@@ -609,30 +542,36 @@
 .train-detail:last-of-type .last-stop .stop::before {
   content: "";
   position: absolute;
+  top: 20px;
   left: -25px;
   width: 10px;
   height: 10px;
   border-radius: 5px;
   z-index: 10;
-  box-shadow: -7px 0px 0px 0px #fff;
+}
+
+.train-detail .past .timeline,
+.train-detail .intermediate-stops .stop.past::before,
+.train-detail:last-of-type .last-stop .stop.past::before {
+  filter: brightness(1.2);
 }
 
 .train-detail:last-of-type .last-stop .stop::after {
   content: "";
   position: absolute;
+  top: 0;
   left: -22px;
   margin-top: 30px;
   width: 0px;
   height: 4em;
   border-left: 4px solid #fff;
   z-index: 5;
-  /*box-shadow: 7px 0px 0px 0px #fff;*/
 }
 
 .train-detail:last-of-type .last-stop::after {
   content: "";
   position: absolute;
-  top: 22px;
+  top: 25px;
   left: -11px;
   width: 100%;
   border-top: 1px solid #ccc;
@@ -646,7 +585,9 @@
 .train-detail .direction {
   font-weight: 300;
   color: #888;
-  margin: -10px 0 0 2px;
+  margin: -10px 0 0 0;
+  padding-left: 2px;
+  position: relative;
 }
 
 .train-detail .direction i {
@@ -658,9 +599,11 @@
 }
 
 .train-detail .intermediate-stops-toggle {
-  margin: 2em 0 2em 2em;
+  padding: 32px 0 32px 32px;
   font-weight: 300;
   color: #888;
+  position: relative;
+  height: 92px;
 }
 
 .train-detail .intermediate-stops-toggle.clickable {
@@ -708,7 +651,7 @@
   display: inline-block;
 }
 
-.time .past-event {
+.time .past {
   color: #777;
 }
 
@@ -724,6 +667,93 @@
   /*white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;*/
+}
+
+.train-detail.train-class-0 .train-color-border {
+  border-color: #9c27b0;
+}
+
+.train-detail.train-class-1 .train-color-border {
+  border-color: #e91e63;
+}
+
+.train-detail.train-class-2 .train-color-border {
+  border-color: #1a237e;
+}
+
+.train-detail.train-class-3 .train-color-border,
+.train-detail.train-class-4 .train-color-border {
+  border-color: #f44336;
+}
+
+.train-detail.train-class-5 .train-color-border {
+  border-color: #4caf50;
+}
+
+.train-detail.train-class-6 .train-color-border {
+  border-color: #3f51b5;
+}
+
+.train-detail.train-class-7 .train-color-border,
+.train-detail.train-class-8 .train-color-border {
+  border-color: #ff9800;
+}
+
+.train-detail.train-class-9 .train-color-border {
+  border-color: #9e9e9e;
+}
+
+.train-detail.train-class-walk .train-color-border {
+  border-color: #333;
+}
+
+.train-box.train-class-0,
+.train-detail.train-class-0 .stop::before {
+  background-color: #9c27b0;
+}
+
+.train-box.train-class-1,
+.train-detail.train-class-1 .stop::before {
+  background-color: #e91e63;
+}
+
+.train-box.train-class-2,
+.train-detail.train-class-2 .stop::before  {
+  background-color: #1a237e;
+}
+
+.train-box.train-class-3,
+.train-box.train-class-4,
+.train-detail.train-class-3 .stop::before,
+.train-detail.train-class-4 .stop::before {
+  background-color: #f44336;
+}
+
+.train-box.train-class-5,
+.train-detail.train-class-5 .stop::before {
+  background-color: #4caf50;
+}
+
+.train-box.train-class-6,
+.train-detail.train-class-6 .stop::before {
+  background-color: #3f51b5;
+}
+
+.train-box.train-class-7,
+.train-box.train-class-8,
+.train-detail.train-class-7 .stop::before,
+.train-detail.train-class-8 .stop::before {
+  background-color: #ff9800;
+}
+
+.train-box.train-class-9,
+.train-detail.train-class-9 .stop::before {
+  background-color: #9e9e9e;
+}
+
+.train-box.train-class-walk,
+.train-detail.train-class-walk .stop::before {
+  background-color: #333;
 }
 
 .connection-details {
