@@ -451,7 +451,8 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                          ]
                             ++ intermediateToggleOnClick
                         )
-                        [ div [ class "timeline train-color-border" ] []
+                        [ div [ class "timeline-container" ]
+                            [ div [ class "timeline train-color-border" ] [] ]
                         , div [ class "expand-icon" ] expandIcon
                         , span [] [ text (intermediateText ++ " (" ++ durationStr ++ ")") ]
                         ]
@@ -490,8 +491,7 @@ walkDetail locale currentTime walk =
             durationText walk.duration
     in
         div [ class <| "train-detail train-class-walk" ] <|
-            [ div [ class "left-border" ] []
-            , div [ class "top-border" ] []
+            [ div [ class "top-border" ] []
             , walkBox
             , div [ class "first-stop" ]
                 [ stopView CompactStopView Departure locale currentTime walk.from ]
