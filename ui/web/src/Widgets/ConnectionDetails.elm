@@ -473,20 +473,23 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                 (Maybe.map .arrival arrivalStop)
                 |> Maybe.withDefault 0
 
-        intermediateTimelineAttr =
+        timelines =
             if expanded then
-                []
+                [ div [ class "timeline train-color-border" ] [] ]
             else
-                [ style
-                    [ "height" => ((toString trainProgress) ++ "%") ]
+                [ div [ class "timeline train-color-border bg" ] []
+                , div
+                    [ class "timeline train-color-border progress"
+                    , style [ "height" => ((toString trainProgress) ++ "%") ]
+                    ]
+                    []
                 ]
     in
         case transport of
             Just t ->
                 div
                     [ class <| "train-detail train-class-" ++ (toString t.class) ]
-                    [ div [ class "left-border train-color-border" ] []
-                    , div [ class "top-border" ] []
+                    [ div [ class "top-border" ] []
                     , div trainBoxOnClick
                         [ trainBox LongName locale t ]
                     , if String.isEmpty topLine then
@@ -516,10 +519,7 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                          ]
                             ++ intermediateToggleOnClick
                         )
-                        [ div [ class "timeline-container" ]
-                            [ div [ class "timeline train-color-border bg" ] []
-                            , div ([ class "timeline train-color-border progress" ] ++ intermediateTimelineAttr) []
-                            ]
+                        [ div [ class "timeline-container" ] timelines
                         , div [ class "expand-icon" ] expandIcon
                         , span [] [ text (intermediateText ++ " (" ++ durationStr ++ ")") ]
                         ]
@@ -587,6 +587,9 @@ walkDetail locale currentTime walk =
     let
         durationStr =
             durationText walk.duration
+
+        progress =
+            timelineProgress currentTime walk.from.departure walk.to.arrival
     in
         div [ class <| "train-detail train-class-walk" ] <|
             [ div [ class "top-border" ] []
@@ -594,7 +597,15 @@ walkDetail locale currentTime walk =
             , div [ class "first-stop" ]
                 [ stopView CompactStopView Departure locale currentTime Nothing walk.from ]
             , div [ class "intermediate-stops-toggle" ]
-                [ div [ class "expand-icon" ] []
+                [ div [ class "timeline-container" ]
+                    [ div [ class "timeline train-color-border bg" ] []
+                    , div
+                        [ class "timeline train-color-border progress"
+                        , style [ "height" => ((toString progress) ++ "%") ]
+                        ]
+                        []
+                    ]
+                , div [ class "expand-icon" ] []
                 , span [] [ text <| locale.t.connections.tripWalk durationStr ]
                 ]
             , div [ class "last-stop" ]
