@@ -512,6 +512,7 @@
   left: -22px;
   height: 100%;
   border-left: 4px solid;
+  transition: .5s ease all;
 }
 
 .train-detail .stop .timeline {
@@ -547,6 +548,7 @@
   height: 10px;
   border-radius: 5px;
   z-index: 10;
+  transition: 1s ease all;
 }
 
 .train-detail .past .timeline:not(.bg),

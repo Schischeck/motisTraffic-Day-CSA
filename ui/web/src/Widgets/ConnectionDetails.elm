@@ -192,8 +192,15 @@ type StopViewType
     | DetailedStopView
 
 
-stopView : StopViewType -> EventType -> Localization -> Date -> Stop -> Html msg
-stopView stopViewType eventType locale currentTime stop =
+stopView :
+    StopViewType
+    -> EventType
+    -> Localization
+    -> Date
+    -> Maybe Int
+    -> Stop
+    -> Html msg
+stopView stopViewType eventType locale currentTime progress stop =
     let
         event : EventInfo
         event =
@@ -238,16 +245,28 @@ stopView stopViewType eventType locale currentTime stop =
         stopTimestampClass =
             timestampClass currentTime event
 
-        timeline =
-            div [ class "timeline train-color-border" ] []
+        timelines =
+            case progress of
+                Just percentage ->
+                    [ div [ class "timeline train-color-border bg" ] []
+                    , div
+                        [ class "timeline train-color-border progress"
+                        , style [ "height" => ((toString percentage) ++ "%") ]
+                        ]
+                        []
+                    ]
+
+                Nothing ->
+                    [ div [ class "timeline train-color-border" ] [] ]
     in
         div [ class ("stop " ++ stopTimestampClass) ]
-            [ timeline
-            , div [ class "time" ] timeCell
-            , div [ class "delay" ] delayCell
-            , div [ class "station" ] [ span [] [ text stop.station.name ] ]
-            , trackCell
-            ]
+            (timelines
+                ++ [ div [ class "time" ] timeCell
+                   , div [ class "delay" ] delayCell
+                   , div [ class "station" ] [ span [] [ text stop.station.name ] ]
+                   , trackCell
+                   ]
+            )
 
 
 timestampClass : Date -> EventInfo -> String
@@ -267,16 +286,13 @@ timelineProgress currentTime firstEvent lastEvent =
         arrived =
             eventIsInThePast currentTime lastEvent
 
-        toMinutes deltaRecord =
-            toFloat (deltaRecord.minute + 60 * deltaRecord.hour + 1440 * deltaRecord.day)
-
         calcProgress firstTime lastTime =
             let
                 total =
-                    toMinutes (Duration.diff lastTime firstTime)
+                    (Date.toTime lastTime) - (Date.toTime firstTime)
 
                 elapsed =
-                    toMinutes (Duration.diff currentTime firstTime)
+                    (Date.toTime currentTime) - (Date.toTime firstTime)
             in
                 round (elapsed / total * 100.0)
     in
@@ -485,7 +501,7 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                             [ text <| locale.t.connections.track ++ " " ++ departureTrack ]
                     , div [ class "first-stop" ]
                         [ Maybe.map
-                            (stopView CompactStopView Departure locale currentTime)
+                            (stopView CompactStopView Departure locale currentTime Nothing)
                             departureStop
                             |> Maybe.withDefault (text "")
                         ]
@@ -514,13 +530,10 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                             , "collapsed" => not expanded
                             ]
                         ]
-                        (List.map
-                            (stopView intermediateStopViewType Departure locale currentTime)
-                            intermediateStops
-                        )
+                        (intermediateStopsWithProgress intermediateStopViewType locale currentTime intermediateStops arrivalStop)
                     , div [ class "last-stop" ]
                         [ Maybe.map
-                            (stopView CompactStopView Arrival locale currentTime)
+                            (stopView CompactStopView Arrival locale currentTime Nothing)
                             arrivalStop
                             |> Maybe.withDefault (text "")
                         , if String.isEmpty arrivalTrack then
@@ -535,6 +548,40 @@ trainDetail isTripView internalMsg selectTripMsg locale currentTime ( train, ic 
                 text ""
 
 
+intermediateStopsWithProgress :
+    StopViewType
+    -> Localization
+    -> Date
+    -> List Stop
+    -> Maybe Stop
+    -> List (Html msg)
+intermediateStopsWithProgress intermediateStopViewType locale currentTime intermediateStops maybeLastStop =
+    case maybeLastStop of
+        Just lastStop ->
+            let
+                render stop nextStop =
+                    stopView
+                        intermediateStopViewType
+                        Departure
+                        locale
+                        currentTime
+                        (Just (timelineProgress currentTime stop.departure nextStop.arrival))
+                        stop
+
+                f stop ( views, nextStop ) =
+                    ( (render stop nextStop) :: views, stop )
+
+                ( result, _ ) =
+                    List.foldr f ( [], lastStop ) intermediateStops
+            in
+                result
+
+        Nothing ->
+            List.map
+                (stopView intermediateStopViewType Departure locale currentTime Nothing)
+                intermediateStops
+
+
 walkDetail : Localization -> Date -> JourneyWalk -> Html msg
 walkDetail locale currentTime walk =
     let
@@ -545,11 +592,11 @@ walkDetail locale currentTime walk =
             [ div [ class "top-border" ] []
             , walkBox
             , div [ class "first-stop" ]
-                [ stopView CompactStopView Departure locale currentTime walk.from ]
+                [ stopView CompactStopView Departure locale currentTime Nothing walk.from ]
             , div [ class "intermediate-stops-toggle" ]
                 [ div [ class "expand-icon" ] []
                 , span [] [ text <| locale.t.connections.tripWalk durationStr ]
                 ]
             , div [ class "last-stop" ]
-                [ stopView CompactStopView Arrival locale currentTime walk.to ]
+                [ stopView CompactStopView Arrival locale currentTime Nothing walk.to ]
             ]
