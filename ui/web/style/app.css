@@ -1,0 +1,836 @@
+.app {
+  position: fixed;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.overlay-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.overlay {
+  z-index: 10;
+  background-color: white;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  border-radius: 3px;
+  transition: .4s ease all;
+  width: 550px;
+  flex: 0 0 auto;
+  order: 1;
+  height: 100%;
+}
+
+#overlay-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  flex: 1 1 auto;
+  order: 2;
+}
+
+#search, #connections {
+  padding: 24px;
+}
+
+#search {
+  height: 210px;
+  flex: 0 0 auto;
+  padding-bottom: 0;
+  transition: filter 1s;
+}
+
+#search.disabled {
+  filter: grayscale(100%) opacity(10%);
+}
+
+.with-tooltip::after {
+  content: attr(data-tooltip);
+  display: inline;
+  position: absolute;
+  top: 22px; left: 0;
+  opacity: 0;
+  line-height: 1.5em;
+  padding: 0.5em 0.8em;
+  font-size: 12px;
+  background: #fff;
+  color: #777;
+  border: 1px solid #BBB;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  border-radius: 2px;
+  pointer-events: none; /* This prevents the box from apearing when hovered. */
+  transition: opacity 250ms, top 250ms;
+  white-space: nowrap;
+}
+
+.with-tooltip::before {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 12px; left: 20px;
+  opacity: 0;
+  width: 0; height: 0;
+  border: solid transparent 5px;
+  border-bottom-color: #fff;
+  transition: opacity 250ms, top 250ms;
+}
+
+.with-tooltip:hover {z-index: 2;} /* Keeps the info boxes on top of other elements */
+.with-tooltip:hover::after,
+.with-tooltip:hover::before {opacity: 1;}
+.with-tooltip:hover::after {top: 30px;}
+.with-tooltip:hover::before {top: 20px;}
+
+.from-location {
+  position: relative;
+}
+
+.swap-locations-btn {
+  position: absolute;
+  right: 20px;
+  top: 60px;
+}
+
+.swap-locations-btn input {
+  display: none;
+}
+
+.swap-locations-btn .icon {
+  font-size: 22px;
+  transition: all 0.2s ease;
+}
+
+.swap-locations-btn :checked + .icon {
+  transform: rotate(180deg);
+}
+
+.time-option {
+  height: 50px;
+  line-height: 15px;
+  margin-top: 15px;
+  padding: 0;
+}
+
+.time-option label {
+  float: right;
+  font-size: 70%;
+  border-width: 0;
+  border: 2px solid #6d8dec;
+  border-radius: .35em;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding: 2px 0 !important;
+  height: auto !important;
+  width: 100%;
+}
+
+.time-option input {
+  display: none;
+}
+
+.time-option input:checked+label {
+  background-color: #6d8dec;
+  color: white;
+}
+
+#connections {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+.connections {
+  padding-bottom: 20px;
+}
+
+#connections .no-results,
+#connections .main-error,
+#connections .loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  height: 100%;
+  min-height: 200px;
+}
+
+#connections .schedule-range {
+  margin-top: 1em;
+}
+
+#connections .extend-search-interval .error .schedule-range {
+  margin-top: auto;
+}
+
+.connection {
+  margin-top: 25px;
+  cursor: pointer;
+}
+
+.connection.new {
+  animation: fade-in-connection 1.5s;
+}
+
+@keyframes fade-in-connection {
+  from {
+    filter: grayscale(100%) opacity(0%);
+  }
+  to {
+    filter: grayscale(0%) opacity(100%);
+  }
+}
+
+.connection .delay {
+  display: inline-block;
+}
+
+.connections .divider {
+  position: relative;
+  z-index: -10;
+  text-align: center;
+  color: #4971E7;
+  margin: 30px 0 -10px 0;
+}
+
+.connections .divider:first-of-type {
+  margin-top: -25px;
+}
+
+.connections .divider.footer {
+  margin: 25px 0 20px 0;
+}
+
+.connections .divider::before {
+  border-top: 1px solid #4971E7;
+  content: "";
+  margin: 0 auto;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+.connections .divider span {
+  background: #fff;
+  padding: 0 15px;
+}
+
+.extend-search-interval {
+  margin: 0;
+  text-align: right;
+  min-height: 28px;
+  padding: 0 5px;
+  z-index: 15;
+}
+
+.extend-search-interval a {
+  cursor: pointer;
+  background: #4971E7;
+  display: inline;
+  padding: .2em .6em .3em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+  margin: 0 40px 0 0;
+  box-shadow: 4px 0px 0px 0px #fff, -4px 0px 0px 0px #fff;
+}
+
+.extend-search-interval .spinner {
+  display: inline-block;
+  margin: 0 30px 0 0;
+  background: #fff;
+  padding-top: 4px;
+}
+
+.extend-search-interval .error {
+  text-align: center;
+}
+
+.extend-search-interval.search-after {
+  margin-top: -13px;
+}
+
+.extend-search-interval.search-before .error {
+  margin: 10px 0 40px 0;
+}
+
+.extend-search-interval.search-after .error {
+  margin: 70px 0 15px 0;
+}
+
+.connection {
+  position: relative;
+}
+
+.connection .labels {
+  position: absolute;
+  top: 0px;
+  left: -14px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2px;
+}
+
+.connection .labels .connection-label {
+  width: 6px;
+  height: 6px;
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.connection-label.label-0 {
+  background: #1a237e;
+}
+
+.connection-label.label-1 {
+  background: #e91e63;
+}
+
+.connection-label.label-2 {
+  background: #4caf50;
+}
+
+.connection-label.label-3 {
+  background: #ff9800;
+}
+
+.connection-label.label-4 {
+  background: #9c27b0;
+}
+
+.connection-label.label-5 {
+  background: #9e9e9e;
+}
+
+.connection-label.label-6 {
+  background: #3f51b5;
+}
+
+.connections .connection-duration {
+  padding-top: 0.5em;
+}
+
+.all-stops {
+  margin-top: 10px;
+}
+
+.train-list {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.train-list .train-box:first-of-type {
+  margin-left: 0;
+}
+
+.train-list .train-box:last-of-type {
+  margin-right: 0;
+}
+
+.train-box {
+  color: white;
+  padding: 4px;
+  margin: 4px;
+  border-radius: 12px;
+  display: inline-block;
+  cursor: default;
+}
+
+.train-box .train-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+  overflow: hidden;
+}
+
+.train-box .train-name {
+  margin: 0 4px 0 4px;
+}
+
+.with-tooltip {
+  position: relative;
+}
+
+.train-sep {
+  height: 1em;
+  margin: 7px -4px 0 -4px;
+  color: #ccc;
+}
+
+.connection .train-sep {
+  cursor: pointer;
+}
+
+.train-box.train-class-0,
+.train-detail.train-class-0 .stop::before {
+  background-color: #9c27b0;
+}
+
+.train-box.train-class-1,
+.train-detail.train-class-1 .stop::before {
+  background-color: #e91e63;
+}
+
+.train-box.train-class-2,
+.train-detail.train-class-2 .stop::before  {
+  background-color: #1a237e;
+}
+
+.train-box.train-class-3,
+.train-box.train-class-4,
+.train-detail.train-class-3 .stop::before,
+.train-detail.train-class-4 .stop::before {
+  background-color: #f44336;
+}
+
+.train-box.train-class-5,
+.train-detail.train-class-5 .stop::before {
+  background-color: #4caf50;
+}
+
+.train-box.train-class-6,
+.train-detail.train-class-6 .stop::before {
+  background-color: #3f51b5;
+}
+
+.train-box.train-class-7,
+.train-box.train-class-8,
+.train-detail.train-class-7 .stop::before,
+.train-detail.train-class-8 .stop::before {
+  background-color: #ff9800;
+}
+
+.train-box.train-class-9,
+.train-detail.train-class-9 .stop::before {
+  background-color: #9e9e9e;
+}
+
+.train-box.train-class-walk,
+.train-detail.train-class-walk .stop::before {
+  background-color: #333;
+}
+
+.neg-delay {
+  color: green;
+}
+
+.pos-delay {
+  color: red;
+}
+
+.train-detail {
+  position: relative;
+  width: 100%;
+  min-height: 5em;
+  padding: 3em 0 1.5em 2em;
+}
+
+.train-detail .left-border {
+  position: absolute;
+  top: 0px;
+  left: 10px;
+  height: 100%;
+  border-left: 4px solid;
+}
+
+.train-detail .top-border {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  width: 100%;
+  border-top: 1px solid #ccc;
+  z-index: -10;
+}
+
+.train-detail .train-box {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  box-shadow: 4px 0px 0px 0px #fff;
+}
+
+.train-detail .train-top-line {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 300;
+  color: #777;
+  z-index: -10;
+}
+
+.train-detail .train-top-line span {
+  padding: 4px;
+  background: white;
+}
+
+.train-detail .track {
+  color: #777;
+  font-weight: 300;
+  flex: 0 0 auto;
+  display: none;
+}
+
+.trip-view .train-detail .first-stop .track,
+.trip-view .train-detail .intermediate-stops .track {
+  display: block;
+}
+
+.trip-view .train-dep-track {
+  display: none;
+}
+
+.train-detail .train-dep-track,
+.train-detail .train-arr-track {
+  position: absolute;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  background: white;
+  color: #777;
+  font-weight: 300;
+  box-shadow: -4px 0px 0px 0px #fff;
+}
+
+.train-detail .train-dep-track {
+  top: 0px;
+  right: 0px;
+}
+
+.train-detail .train-arr-track {
+  top: 7px;
+  right: 0px;
+}
+
+.train-detail:not(:last-of-type) .train-arr-track {
+  display: none;
+}
+
+.train-detail.train-class-0 .left-border {
+  border-color: #9c27b0;
+}
+
+.train-detail.train-class-1 .left-border {
+  border-color: #e91e63;
+}
+
+.train-detail.train-class-2 .left-border {
+  border-color: #1a237e;
+}
+
+.train-detail.train-class-3 .left-border,
+.train-detail.train-class-4 .left-border {
+  border-color: #f44336;
+}
+
+.train-detail.train-class-5 .left-border {
+  border-color: #4caf50;
+}
+
+.train-detail.train-class-6 .left-border {
+  border-color: #3f51b5;
+}
+
+.train-detail.train-class-7 .left-border,
+.train-detail.train-class-8 .left-border {
+  border-color: #ff9800;
+}
+
+.train-detail.train-class-9 .left-border {
+  border-color: #9e9e9e;
+}
+
+.train-detail.train-class-walk .left-border {
+  border-color: #333;
+}
+
+.train-detail .stop {
+  margin-bottom: 1em;
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 42px;
+}
+
+.train-detail .stop span {
+  padding: 0 6px;
+  background-color: white;
+  /*box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;*/
+}
+
+.train-detail .stop .station {
+  padding: 0 6px;
+}
+
+.train-detail .stop .station span {
+  padding: 0;
+  box-shadow: 6px 0 0 #fff, -6px 0 0 #fff;
+}
+
+.train-detail .last-stop {
+  position: relative;
+}
+
+.train-detail .intermediate-stops .stop::before,
+.train-detail:last-of-type .last-stop .stop::before {
+  content: "";
+  position: absolute;
+  left: -25px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  z-index: 10;
+  box-shadow: -7px 0px 0px 0px #fff;
+}
+
+.train-detail:last-of-type .last-stop .stop::after {
+  content: "";
+  position: absolute;
+  left: -22px;
+  margin-top: 30px;
+  width: 0px;
+  height: 4em;
+  border-left: 4px solid #fff;
+  z-index: 5;
+  /*box-shadow: 7px 0px 0px 0px #fff;*/
+}
+
+.train-detail:last-of-type .last-stop::after {
+  content: "";
+  position: absolute;
+  top: 22px;
+  left: -11px;
+  width: 100%;
+  border-top: 1px solid #ccc;
+  z-index: -10;
+}
+
+.train-detail .last-stop .stop {
+  margin-bottom: 0;
+}
+
+.train-detail .direction {
+  font-weight: 300;
+  color: #888;
+  margin: -10px 0 0 2px;
+}
+
+.train-detail .direction i {
+  color: #ccc;
+  vertical-align: middle;
+  font-size: 20px;
+  margin-right: 2px;
+  margin-top: -4px;
+}
+
+.train-detail .intermediate-stops-toggle {
+  margin: 2em 0 2em 2em;
+  font-weight: 300;
+  color: #888;
+}
+
+.train-detail .intermediate-stops-toggle.clickable {
+  cursor: pointer;
+}
+
+.train-detail .intermediate-stops.collapsed {
+  display: none;
+}
+
+.train-detail .intermediate-stops.expanded {
+  display: block;
+}
+
+.expand-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  position: relative;
+}
+
+.expand-icon i {
+  position: absolute;
+  vertical-align: middle;
+}
+
+.expand-icon i:first-of-type {
+  position: absolute;
+  top: 0px;
+}
+
+.expand-icon i:last-of-type {
+  position: absolute;
+  top: 12px;
+}
+
+.train-detail .intermediate-stops-toggle span {
+  margin-left: 10px;
+}
+
+.train-detail .stop .time {
+  font-weight: bold;
+  width: 4em;
+  flex: 0 0 4em;
+  display: inline-block;
+}
+
+.train-detail .stop div.delay {
+  font-weight: bold;
+  width: 4em;
+  flex: 0 0 4em;
+  display: inline-block;
+}
+
+.train-detail .stop .station {
+  flex: 1 1 auto;
+  /*white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;*/
+}
+
+.connection-details {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.connection-details .connection-info {
+  height: 150px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 16px 24px;
+  font-weight: 300;
+  border-bottom: 1px solid #4971E7;
+}
+
+.connection-info .header {
+  position: relative;
+}
+
+.connection-info .header .back {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.connection-info .header .details {
+  margin-left: 60px;
+}
+
+.connection-info .header .actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  width: 60px;
+  color: #4971E7;
+}
+
+.connection-info .header .date {
+  font-weight: bold;
+  font-size: 120%;
+  padding-top: 8px;
+  margin-bottom: 10px;
+}
+
+.connection-info .connection-times > div {
+  display: inline-block;
+}
+
+.connection-info .connection-times .times {
+  font-weight: 700;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.connection-info .connection-times .locations {
+  text-align: left;
+}
+
+.connection-info .summary {
+  margin-top: 10px;
+}
+
+.back {
+  cursor: pointer;
+  font-size: 24px;
+  padding: 2px 10px 10px 9px;
+  border: 1px solid #ccc;
+  border-radius: 23px;
+  width: 44px;
+  height: 44px;
+  display: inline-block;
+  margin-right: 16px;
+}
+
+.back i {
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.back:hover {
+  background: #eee;
+}
+
+.connection-info .duration i, .connection-info .interchanges i {
+  vertical-align: baseline;
+  font-size: 16px;
+  margin-right: 5px;
+}
+
+.connection-info .duration {
+  margin-right: 20px;
+}
+
+.connection-details .connection-journey {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    padding: 20px 20px 0 20px;
+}
+
+.connection-details .train-box {
+  cursor: pointer;
+}
+
+.connection-details.trip-view .train-box {
+  cursor: default;
+}
+
+.connection-details .train-box.train-class-walk {
+  cursor: default;
+}

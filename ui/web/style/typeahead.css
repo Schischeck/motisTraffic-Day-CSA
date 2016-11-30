@@ -1,0 +1,23 @@
+.proposals {
+  list-style: none;
+  padding: 0 !important;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.proposals li {
+  font-weight: 500;
+  margin: 10px;
+  padding: 16px;
+  border-radius: 2px;
+  display: block;
+  width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 110%;
+  cursor: pointer;
+}
+
+.proposals li.selected {
+  background-color: #e4eafb;
+}
