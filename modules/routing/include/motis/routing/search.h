@@ -119,7 +119,6 @@ struct search {
     add_start_labels(q.interval_begin_, q.interval_end_);
 
     MOTIS_START_TIMING(pareto_dijkstra_timing);
-    auto pareto_dijkstra_total = 0u;
     auto max_interval_reached = false;
     auto interval_begin = q.interval_begin_;
     auto interval_end = q.interval_end_;
