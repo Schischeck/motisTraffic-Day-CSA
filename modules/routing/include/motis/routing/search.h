@@ -125,7 +125,8 @@ struct search {
     auto interval_end = q.interval_end_;
     while (!max_interval_reached) {
       max_interval_reached =
-          (interval_begin == schedule_begin && interval_end == schedule_end);
+          (!q.extend_interval_earlier_ || interval_begin == schedule_begin) &&
+          (!q.extend_interval_later_ || interval_end == schedule_end);
 
       pd.search();
       pareto_dijkstra_total += MOTIS_TIMING_MS(pareto_dijkstra_timing);
