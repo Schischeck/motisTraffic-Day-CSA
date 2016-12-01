@@ -129,7 +129,6 @@ struct search {
           (!q.extend_interval_later_ || interval_end == schedule_end);
 
       pd.search();
-      pareto_dijkstra_total += MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
       if (pd.get_results().size() >= q.min_journey_count_) {
         break;
