@@ -1,8 +1,0 @@
-{
-  "name": "web",
-  "devDependencies": {
-    "clean-css": "^3.4.8",
-    "closure-compiler": "^0.2.12",
-    "riot-compiler": "^2.3.19"
-  }
-}
