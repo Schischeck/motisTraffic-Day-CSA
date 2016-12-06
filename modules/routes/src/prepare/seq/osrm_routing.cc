@@ -56,13 +56,7 @@ struct osrm_routing::impl {
     std::vector<int> costs;
     for (auto const& cost : result.values["costs"].get<Array>().values) {
       auto const& cost_obj = cost.get<Object>();
-      auto const& cost_value =
-          cost_obj.values.at("distance").get<Number>().value;
-      if (cost_value > 1) {
-        costs.emplace_back(cost_value);
-      } else {
-        costs.emplace_back(1);
-      }
+      costs.emplace_back(cost_obj.values.at("distance").get<Number>().value);
     }
     return costs;
   }
@@ -106,7 +100,7 @@ struct osrm_routing::impl {
       std::vector<routing_result> from_result;
       auto costs = one_to_many(f.coords_, to_coords);
       for (auto i = 0u; i < to_coords.size(); ++i) {
-        source_spec s(id_, source_spec::category::UNKNOWN,
+        source_spec s(id_, source_spec::category::BUS,
                       source_spec::type::OSRM_ROUTE);
         s.router_id_ = router_id_;
         from_result.emplace_back(s, costs[i]);

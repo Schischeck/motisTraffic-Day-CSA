@@ -21,11 +21,13 @@ struct node_ref {
   node_ref(geo::latlng coords, size_t id) : coords_(coords), id_(id) {}
 
   geo::latlng coords_;
+  size_t router_id_;
   size_t id_;
 };
 
 struct routing_result {
   routing_result(source_spec s, double weight) : source_(s), weight_(weight) {}
+
   source_spec source_;
   double weight_;
 };

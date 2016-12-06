@@ -34,7 +34,6 @@ struct rail_graph_dijkstra {
   }
 
   void run() {
-    motis::logging::scoped_timer timer("Rail Dijkstra");
     while (!pq_.empty()) {
       auto label = pq_.top();
       pq_.pop();

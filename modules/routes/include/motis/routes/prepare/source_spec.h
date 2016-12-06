@@ -8,7 +8,7 @@ namespace routes {
 
 struct source_spec {
   enum class category { UNKNOWN, RAILWAY, BUS };
-  enum class type { RELATION, OSRM_ROUTE, STUB_ROUTE };
+  enum class type { RELATION, OSRM_ROUTE, STUB_ROUTE, RAIL_ROUTE };
 
   source_spec() = default;
   source_spec(int64_t id, category c, type t)

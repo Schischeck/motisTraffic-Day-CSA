@@ -22,7 +22,8 @@ parsed_relations parse_relations(std::string const& osm_file_) {
 
   std::vector<std::string> types{"route", "public_transport"};
   std::vector<std::string> rail_routes{"railway", "train", "light_rail"};
-  std::vector<std::string> other_routes{"subway", "bus", "tram"};
+  std::vector<std::string> other_routes{"subway", "tram"};
+  std::vector<std::string> bus_routes{"bus"};
 
   foreach_osm_relation(osm_file_, [&](auto&& relation) {
     auto const type = relation.get_value_by_key("type", "");
@@ -32,12 +33,14 @@ parsed_relations parse_relations(std::string const& osm_file_) {
     }
 
     auto const route = relation.get_value_by_key("route", "");
+
     auto const is_rail = std::any_of(begin(rail_routes), end(rail_routes),
                                      [&](auto&& r) { return r == route; });
-    auto const is_bus = route == "bus";
-
-    if (!is_rail && std::none_of(begin(other_routes), end(other_routes),
-                                 [&](auto&& r) { return r == route; })) {
+    auto const is_bus = std::any_of(begin(bus_routes), end(bus_routes),
+                                    [&](auto&& r) { return r == route; });
+    if (!is_rail && !is_bus &&
+        std::none_of(begin(other_routes), end(other_routes),
+                     [&](auto&& r) { return r == route; })) {
       return;
     }
 
@@ -107,7 +110,6 @@ parsed_relations parse_relations(std::string const& osm_file_) {
       return !w->resolved_ || w->nodes_.size() < 2;
     });
   }
-
   return result;
 }
 
