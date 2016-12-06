@@ -122,4 +122,41 @@ function initPorts(app) {
   app.ports.mapClearOverlays.subscribe(function(id) {
     MapOverlays.clearOverlays();
   });
+
+  var ports = {
+    'mousedown': app.ports.mapMouseDown,
+    'mouseup': app.ports.mapMouseUp,
+    'mouseout': app.ports.mapMouseUp,
+    'mousemove': app.ports.mapMouseMove
+  };
+
+  var model = null;
+  document.addEventListener(
+      'elmgl-update', function(e) { model = e.detail.newModel; });
+
+  document.addEventListener('elmgl-init', function(e) {
+    var canvas = e.detail.canvas;
+    var gl = e.detail.gl;
+    var render = e.detail.render;
+
+    var sendTelemetry = function(eventType) {
+      return function(e) {
+        if (!model) {
+          console.log('missing model!');
+          return;
+        }
+        render(model, e.clientX, e.clientY, function(color) {
+          ports[eventType].send({x: e.clientX, y: e.clientY, color: color});
+        });
+      };
+    };
+
+    var register = function(eventType) {
+      canvas.addEventListener(eventType, sendTelemetry(eventType));
+    };
+
+    for (var port in ports) {
+      register(port);
+    }
+  });
 }

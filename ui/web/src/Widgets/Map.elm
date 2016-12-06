@@ -214,6 +214,9 @@ type Msg
     | TextureError WebGL.Error
     | TextureLoaded WebGL.Texture
     | GenerateDemoTrains Time
+    | MouseMove Port.MapMouseUpdate
+    | MouseDown Port.MapMouseUpdate
+    | MouseUp Port.MapMouseUpdate
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -257,6 +260,27 @@ update msg model =
             , Cmd.none
             )
 
+        MouseMove e ->
+            let
+                _ =
+                    Debug.log "MouseMove" e
+            in
+                model ! []
+
+        MouseDown e ->
+            let
+                _ =
+                    Debug.log "MouseDown" e
+            in
+                model ! []
+
+        MouseUp e ->
+            let
+                _ =
+                    Debug.log "MouseUp" e
+            in
+                model ! []
+
 
 
 -- SUBSCRIPTIONS
@@ -268,6 +292,9 @@ subscriptions model =
         [ mapLoaded MapLoaded
         , mapUpdate MapUpdate
         , AnimationFrame.times Animate
+        , mapMouseMove MouseMove
+        , mapMouseDown MouseDown
+        , mapMouseUp MouseUp
         ]
 
 

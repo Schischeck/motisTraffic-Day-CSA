@@ -51,3 +51,23 @@ port mapClearOverlays : String -> Cmd msg
 
 
 port setRoutingResponses : (List ( String, String ) -> msg) -> Sub msg
+
+
+
+-- Map: Picking
+
+
+type alias MapMouseUpdate =
+    { x : Float
+    , y : Float
+    , color : Float
+    }
+
+
+port mapMouseMove : (MapMouseUpdate -> msg) -> Sub msg
+
+
+port mapMouseDown : (MapMouseUpdate -> msg) -> Sub msg
+
+
+port mapMouseUp : (MapMouseUpdate -> msg) -> Sub msg
