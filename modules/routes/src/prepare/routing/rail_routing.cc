@@ -1,4 +1,4 @@
-#include "motis/routes/prepare/seq/rail_routing.h"
+#include "motis/routes/prepare/routing/rail_routing.h"
 
 #include "geo/latlng.h"
 
@@ -14,7 +14,7 @@ struct rail_routing::impl {
       : router_id_(router_id),
         rail_graph_(load_rail_graph(path)),
         rtree_(make_point_rtree(rail_graph_.nodes_, [&](auto&& c) {
-          return point_rtree::point{c.pos_.lng_, c.pos_.lat_};
+          return point_rtree::point{c->pos_.lng_, c->pos_.lat_};
         })) {}
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to) {
@@ -25,27 +25,6 @@ struct rail_routing::impl {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
     std::vector<std::vector<routing_result>> result;
-    std::vector<size_t> to_idx = transform_to_vec(from, [](auto const& ref) {
-      if (ref.id_ != -1) {
-        return ref.id_;
-      }
-    });
-    for (auto const& f : from) {
-      if (from.id_ == -1) {
-        continue;
-      }
-      std::vector<routing_result> from_result;
-      rail_graph_dijkstra dijkstra{rail_graph_, {from.id_}, to_idx};
-      dijkstra.run();
-      for (auto const& t : to_idx) {
-        source_spec s(id_, source_spec::category::RAILWAY,
-                      source_spec::type::RAIL_ROUTE);
-        s.router_id_ = router_id_;
-        from_result.emplace_back(s, dijkstra.get_distance(t));
-        id_++;
-      }
-      result.push_back(std::move(from_result));
-    }
     return result;
   }
 

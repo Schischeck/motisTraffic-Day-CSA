@@ -1,4 +1,4 @@
-#include "motis/routes/prepare/seq/osrm_routing.h"
+#include "motis/routes/prepare/routing/osrm_routing.h"
 
 #include "osrm/engine_config.hpp"
 #include "osrm/multi_target_parameters.hpp"

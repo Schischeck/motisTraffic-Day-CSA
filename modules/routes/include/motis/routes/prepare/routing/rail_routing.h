@@ -2,15 +2,15 @@
 
 #include <memory>
 
-#include "motis/routes/prepare/seq/routing_strategy.h"
+#include "motis/routes/prepare/routing/routing_strategy.h"
 
 namespace motis {
 namespace routes {
 
-struct osrm_routing : public routing_strategy {
+struct rail_routing : public routing_strategy {
 
-  explicit osrm_routing(std::size_t router_id, std::string path);
-  ~osrm_routing();
+  explicit rail_routing(std::size_t router_id, std::string path);
+  ~rail_routing();
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to);

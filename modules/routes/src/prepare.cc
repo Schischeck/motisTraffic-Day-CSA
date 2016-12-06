@@ -16,7 +16,11 @@
 #include "motis/routes/db/rocksdb.h"
 #include "motis/routes/prepare/bus_stop_positions.h"
 #include "motis/routes/prepare/prepare_data.h"
-#include "motis/routes/prepare/seq/osrm_routing.h"
+#include "motis/routes/prepare/rel/polyline_aggregator.h"
+#include "motis/routes/prepare/rel/relation_parser.h"
+#include "motis/routes/prepare/routing/osrm_routing.h"
+#include "motis/routes/prepare/routing/relation_routing.h"
+#include "motis/routes/prepare/routing/stub_routing.h"
 #include "motis/routes/prepare/station_sequences.h"
 #include "motis/routes/prepare/vector_utils.h"
 
@@ -112,15 +116,22 @@ int main(int argc, char** argv) {
                      }),
       end(data.sequences_));
 
+  auto const relations = parse_relations(opt.osm_);
+  LOG(motis::logging::info) << "found " << relations.relations_.size()
+                            << " relations";
+  auto const polylines = aggregate_polylines(relations.relations_);
+
   rocksdb_database db(opt.out_);
   strategies routing_strategies;
   auto osrm = std::make_unique<osrm_routing>(0, opt.osrm_);
   auto stub = std::make_unique<stub_routing>(1);
+  auto relation = std::make_unique<relation_routing>(0, polylines);
   routing_strategies.strategies_.push_back(std::move(stub));
   routing_strategies.strategies_.push_back(std::move(osrm));
   routing_strategies.class_to_strategy_.emplace(
       source_spec::category::UNKNOWN, routing_strategies.strategies_[0].get());
   routing_strategies.class_to_strategy_.emplace(
       source_spec::category::BUS, routing_strategies.strategies_[1].get());
-  prepare(data, routing_strategies, db, opt.osm_);
+
+  // prepare(data, routing_strategies, db, opt.osm_);
 }
