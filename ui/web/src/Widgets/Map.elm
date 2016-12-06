@@ -39,6 +39,7 @@ type alias RVTrain =
     , departureStation : RVStation
     , arrivalStation : RVStation
     , pathLength : Float
+    , currentSegment : Maybe CurrentSegment
     }
 
 
@@ -48,9 +49,18 @@ type alias RVStation =
     }
 
 
-mesh : Float -> Time -> List RVTrain -> Drawable Vertex
-mesh p currentTime trains =
-    Points (List.map (trainPosition currentTime) trains)
+type alias CurrentSegment =
+    { startDistance : Float
+    , startPoint : Vec3
+    , endPoint : Vec3
+    , length : Float
+    , nextSegmentIndex : Int
+    }
+
+
+mesh : Time -> List RVTrain -> Drawable Vertex
+mesh currentTime trains =
+    Points (List.map (getTrainPosition currentTime) trains)
 
 
 type alias Model =
@@ -135,6 +145,7 @@ generateDemoTrain currentTime seed0 =
             , departureStation = depStation
             , arrivalStation = arrStation
             , pathLength = totalLength
+            , currentSegment = Nothing
             }
 
         nextSeed =
@@ -239,35 +250,100 @@ randomPosition seed a b =
         ( { lat = lat, lng = lng }, seed2 )
 
 
-trainPosition : Time -> RVTrain -> Vertex
-trainPosition currentTime train =
+getTrainPosition : Time -> RVTrain -> Vertex
+getTrainPosition currentTime train =
     if currentTime <= train.departureTime then
         Vertex train.departureStation.pos train.arrivalStation.pos 0.0
     else if currentTime >= train.arrivalTime then
         Vertex train.departureStation.pos train.arrivalStation.pos 1.0
     else
-        currentSegment train
-            ((currentTime - train.departureTime) / (train.arrivalTime - train.departureTime))
+        case train.currentSegment of
+            Just currentSegment ->
+                let
+                    progress =
+                        trainProgress currentTime train
+
+                    dist =
+                        progress * train.pathLength
+
+                    segmentPos =
+                        dist - currentSegment.startDistance
+
+                    p =
+                        segmentPos / currentSegment.length
+                in
+                    Vertex currentSegment.startPoint currentSegment.endPoint p
+
+            Nothing ->
+                Vertex train.departureStation.pos train.arrivalStation.pos 1.0
 
 
-currentSegment : RVTrain -> Float -> Vertex
-currentSegment train progress =
+trainProgress : Time -> RVTrain -> Float
+trainProgress currentTime train =
+    ((currentTime - train.departureTime) / (train.arrivalTime - train.departureTime))
+
+
+updateCurrentSegment : Time -> RVTrain -> RVTrain
+updateCurrentSegment currentTime train =
     let
+        progress =
+            trainProgress currentTime train
+
         distance =
             progress * train.pathLength
 
-        getCurrentSegment start vectors dist =
+        findSegment start startDist vectors idx dist =
             case vectors of
                 ( vec, vecLen ) :: rest ->
-                    if vecLen < dist then
-                        getCurrentSegment (Vector3.add start vec) rest (dist - vecLen)
-                    else
-                        Vertex start (Vector3.add start vec) (dist / vecLen)
+                    let
+                        endPt =
+                            Vector3.add start vec
+                    in
+                        if vecLen < dist then
+                            findSegment
+                                endPt
+                                (startDist + vecLen)
+                                rest
+                                (idx + 1)
+                                (dist - vecLen)
+                        else
+                            { train
+                                | currentSegment =
+                                    Just
+                                        { startDistance = startDist
+                                        , startPoint = start
+                                        , endPoint = endPt
+                                        , length = vecLen
+                                        , nextSegmentIndex = idx + 1
+                                        }
+                            }
 
                 [] ->
-                    Vertex train.departureStation.pos train.arrivalStation.pos 1.0
+                    { train | currentSegment = Nothing }
     in
-        getCurrentSegment train.departureStation.pos train.currentEdge distance
+        case train.currentSegment of
+            Just currentSegment ->
+                let
+                    d =
+                        distance - currentSegment.startDistance
+                in
+                    if d >= 0 && d <= currentSegment.length then
+                        train
+                    else
+                        findSegment
+                            currentSegment.endPoint
+                            (currentSegment.startDistance + currentSegment.length)
+                            (List.drop currentSegment.nextSegmentIndex train.currentEdge)
+                            currentSegment.nextSegmentIndex
+                            (d - currentSegment.length)
+
+            Nothing ->
+                findSegment
+                    train.departureStation.pos
+                    0
+                    train.currentEdge
+                    0
+                    distance
 
 
 positionToVec3 : Position -> Vec3
@@ -303,7 +379,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Animate t ->
-            ( { model | time = t }, Cmd.none )
+            { model
+                | time = t
+                , rvTrains = List.map (updateCurrentSegment t) model.rvTrains
+            }
+                ! []
 
         MapLoaded _ ->
             ( model
@@ -363,7 +443,7 @@ overlay attributes model =
         Just tex ->
             [ render vertexShader
                 fragmentShader
-                (mesh (progress model) model.time model.rvTrains)
+                (mesh model.time model.rvTrains)
                 { texture = tex
                 , perspective = perspective model
                 , zoom = model.map.zoom
@@ -381,11 +461,6 @@ overlay attributes model =
 view : Model -> Html Msg
 view model =
     div [ id "map" ] [ overlay [ class "leaflet-overlay" ] model ]
-
-
-progress : Model -> Float
-progress model =
-    toFloat (round model.time % 60000) / 60000
 
 
 perspective : Model -> Mat4
