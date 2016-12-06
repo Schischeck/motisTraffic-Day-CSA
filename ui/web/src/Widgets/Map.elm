@@ -282,26 +282,43 @@ view model =
 
 overlay : List (Html.Attribute Msg) -> Model -> Html Msg
 overlay attributes model =
-    (case model.texture of
-        Nothing ->
-            []
+    let
+        toHtml =
+            WebGL.toHtmlWith
+                [ Enable Blend
+                , Disable DepthTest
+                , BlendFunc ( SrcAlpha, OneMinusSrcAlpha )
+                ]
+                attributes
+    in
+        case model.texture of
+            Nothing ->
+                toHtml [] []
 
-        Just tex ->
-            [ render vertexShader
-                fragmentShader
-                (mesh model.time model.rvTrains)
-                { texture = tex
-                , perspective = perspective model
-                , zoom = model.map.zoom
-                }
-            ]
-    )
-        |> WebGL.toHtmlWith
-            [ Enable Blend
-            , Disable DepthTest
-            , BlendFunc ( SrcAlpha, OneMinusSrcAlpha )
-            ]
-            attributes
+            Just tex ->
+                let
+                    buffer =
+                        (mesh model.time model.rvTrains)
+
+                    renderable =
+                        render vertexShader
+                            fragmentShader
+                            buffer
+                            { texture = tex
+                            , perspective = perspective model
+                            , zoom = model.map.zoom
+                            }
+
+                    offscreenRenderable =
+                        render vertexShader
+                            fragmentShader
+                            buffer
+                            { texture = tex
+                            , perspective = perspective model
+                            , zoom = model.map.zoom
+                            }
+                in
+                    toHtml [ renderable ] [ offscreenRenderable ]
 
 
 perspective : Model -> Mat4
