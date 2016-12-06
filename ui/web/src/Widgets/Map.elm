@@ -26,7 +26,10 @@ import Random
 
 
 type alias Vertex =
-    { coordinate : Vec3 }
+    { c1 : Vec3
+    , c2 : Vec3
+    , p : Float
+    }
 
 
 type alias RVTrain =
@@ -238,39 +241,33 @@ randomPosition seed a b =
 
 trainPosition : Time -> RVTrain -> Vertex
 trainPosition currentTime train =
-    let
-        pos =
-            if currentTime <= train.departureTime then
-                train.departureStation.pos
-            else if currentTime >= train.arrivalTime then
-                train.arrivalStation.pos
-            else
-                interpolatePosition
-                    train
-                    ((currentTime - train.departureTime) / (train.arrivalTime - train.departureTime))
-    in
-        Vertex pos
+    if currentTime <= train.departureTime then
+        Vertex train.departureStation.pos train.arrivalStation.pos 0.0
+    else if currentTime >= train.arrivalTime then
+        Vertex train.departureStation.pos train.arrivalStation.pos 1.0
+    else
+        currentSegment train
+            ((currentTime - train.departureTime) / (train.arrivalTime - train.departureTime))
 
 
-interpolatePosition : RVTrain -> Float -> Vec3
-interpolatePosition train progress =
+currentSegment : RVTrain -> Float -> Vertex
+currentSegment train progress =
     let
         distance =
             progress * train.pathLength
 
-        interpolate : Vec3 -> List ( Vec3, Float ) -> Float -> Vec3
-        interpolate base vectors dist =
+        getCurrentSegment start vectors dist =
             case vectors of
                 ( vec, vecLen ) :: rest ->
                     if vecLen < dist then
-                        interpolate (Vector3.add base vec) rest (dist - vecLen)
+                        getCurrentSegment (Vector3.add start vec) rest (dist - vecLen)
                     else
-                        Vector3.add base (Vector3.scale (dist / vecLen) vec)
+                        Vertex start (Vector3.add start vec) (dist / vecLen)
 
                 [] ->
-                    train.arrivalStation.pos
+                    Vertex train.departureStation.pos train.arrivalStation.pos 1.0
     in
-        interpolate train.departureStation.pos train.currentEdge distance
+        getCurrentSegment train.departureStation.pos train.currentEdge distance
 
 
 positionToVec3 : Position -> Vec3
@@ -402,15 +399,18 @@ perspective { map } =
 -- SHADERS
 
 
-vertexShader : Shader { attr | coordinate : Vec3 } { unif | perspective : Mat4, zoom : Float } {}
+vertexShader : Shader { attr | c1 : Vec3, c2 : Vec3, p : Float } { unif | perspective : Mat4, zoom : Float } {}
 vertexShader =
     [glsl|
-attribute vec3 coordinate;
+attribute vec3 c1, c2;
+attribute float p;
 uniform mat4 perspective;
 uniform float zoom;
 
 void main() {
-    gl_Position = perspective * vec4(coordinate, 1.0);
+    vec4 c1p = perspective * vec4(c1, 1.0);
+    vec4 c2p = perspective * vec4(c2, 1.0);
+    gl_Position = c1p + p * (c2p - c1p);
     gl_PointSize = zoom;
 }
 |]
