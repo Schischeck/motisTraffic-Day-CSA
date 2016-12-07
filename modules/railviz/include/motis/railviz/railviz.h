@@ -9,7 +9,7 @@ struct train_retriever;
 
 struct railviz : public motis::module::module {
   railviz();
-  ~railviz();
+  ~railviz() override;
 
   void init(motis::module::registry&) override;
 
