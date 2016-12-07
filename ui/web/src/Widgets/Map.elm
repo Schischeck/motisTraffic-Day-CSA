@@ -16,6 +16,7 @@ import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Math.Matrix4 exposing (Mat4, scale, translate, makeOrtho2D)
 import WebGL exposing (..)
 import Time exposing (Time)
+import Date exposing (Date)
 import AnimationFrame
 import Task exposing (..)
 import Html exposing (Html)
@@ -24,6 +25,17 @@ import Random
 import Bitwise
 import Maybe.Extra exposing (isJust, isNothing)
 import Util.Core exposing ((=>))
+import Data.RailViz.Types exposing (..)
+import Data.RailViz.Request
+import Data.RailViz.Decode exposing (decodeRailVizTrainsResponse)
+import Util.Api as Api
+    exposing
+        ( ApiError(..)
+        , MotisErrorInfo(..)
+        , ModuleErrorInfo(..)
+        , RoutingErrorInfo(..)
+        , MotisErrorDetail
+        )
 
 
 -- MODEL
@@ -69,13 +81,14 @@ type alias Model =
     { mapInfo : MapInfo
     , texture : Maybe WebGL.Texture
     , time : Time
+    , remoteAddress : String
     , rvTrains : List RVTrain
     , hoveredTrain : Maybe Int
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : String -> ( Model, Cmd Msg )
+init remoteAddress =
     { mapInfo =
         { scale = 0
         , zoom = 0
@@ -84,6 +97,7 @@ init =
         }
     , texture = Nothing
     , time = 0.0
+    , remoteAddress = remoteAddress
     , rvTrains = []
     , hoveredTrain = Nothing
     }
@@ -253,6 +267,8 @@ type Msg
     | MouseDown Port.MapMouseUpdate
     | MouseUp Port.MapMouseUpdate
     | MouseOut Port.MapMouseUpdate
+    | ReceiveResponse RailVizTrainsRequest RailVizTrainsResponse
+    | ReceiveError RailVizTrainsRequest ApiError
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -286,7 +302,20 @@ update msg model =
 
                 cmds =
                     if List.isEmpty model_.rvTrains then
-                        [ Task.perform GenerateDemoTrains Time.now ]
+                        [ Task.perform GenerateDemoTrains Time.now
+                        , sendRequest model_.remoteAddress
+                            { corner1 =
+                                { lat = model_.mapInfo.geoBounds.north
+                                , lng = model_.mapInfo.geoBounds.west
+                                }
+                            , corner2 =
+                                { lat = model_.mapInfo.geoBounds.south
+                                , lng = model_.mapInfo.geoBounds.east
+                                }
+                            , startTime = Date.fromTime model_.time
+                            , endTime = Date.fromTime (model_.time + (60 * 1000))
+                            }
+                        ]
                     else
                         []
             in
@@ -352,6 +381,27 @@ update msg model =
                     Debug.log "MouseOut" model_.hoveredTrain
             in
                 model_ ! []
+
+        ReceiveResponse request response ->
+            let
+                _ =
+                    Debug.log "RailViz response"
+                        ((toString (List.length response.trains))
+                            ++ " trains, "
+                            ++ (toString (List.length response.routes))
+                            ++ " routes, "
+                            ++ (toString (List.length response.stations))
+                            ++ " stations"
+                        )
+            in
+                model ! []
+
+        ReceiveError request msg_ ->
+            let
+                _ =
+                    Debug.log "RailViz error" msg_
+            in
+                model ! []
 
 
 handleMapMouseUpdate : MapMouseUpdate -> Model -> Model
@@ -683,6 +733,20 @@ randomPosition seed a b =
             Random.step (Random.float (min a.lng b.lng) (max a.lng b.lng)) seed1
     in
         ( { lat = lat, lng = lng }, seed2 )
+
+
+
+-- REQUESTS
+
+
+sendRequest : String -> RailVizTrainsRequest -> Cmd Msg
+sendRequest remoteAddress request =
+    Api.sendRequest
+        remoteAddress
+        decodeRailVizTrainsResponse
+        (ReceiveError request)
+        (ReceiveResponse request)
+        (Data.RailViz.Request.encodeRequest request)
 
 
 

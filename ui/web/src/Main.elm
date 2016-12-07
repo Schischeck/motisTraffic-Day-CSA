@@ -98,7 +98,7 @@ init flags _ =
             TimeInput.init
 
         ( mapModel, mapCmd ) =
-            Map.init
+            Map.init remoteAddress
 
         ( fromLocationModel, fromLocationCmd ) =
             Typeahead.init remoteAddress "Willy-Brandt-Platz, Darmstadt"

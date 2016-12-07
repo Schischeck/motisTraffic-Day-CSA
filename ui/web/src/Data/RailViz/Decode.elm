@@ -12,6 +12,7 @@ import Json.Decode as JD
         , nullable
         , succeed
         , fail
+        , at
         )
 import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
 import Util.Json exposing (decodeDate)
@@ -20,6 +21,11 @@ import Data.Connection.Decode exposing (decodePosition, decodeTripId)
 
 decodeRailVizTrainsResponse : JD.Decoder RailVizTrainsResponse
 decodeRailVizTrainsResponse =
+    at [ "content" ] decodeRailVizTrainsResponseContent
+
+
+decodeRailVizTrainsResponseContent : JD.Decoder RailVizTrainsResponse
+decodeRailVizTrainsResponseContent =
     decode RailVizTrainsResponse
         |> required "trains" (list decodeRailVizTrain)
         |> required "routes" (list decodeRailVizRoute)
@@ -33,8 +39,8 @@ decodeRailVizTrain =
         |> required "a_time" decodeDate
         |> required "sched_d_time" decodeDate
         |> required "sched_a_time" decodeDate
-        |> required "route_index" int
-        |> required "segment_index" int
+        |> optional "route_index" int 0
+        |> optional "segment_index" int 0
         |> required "trip" (list decodeTripId)
 
 
@@ -47,8 +53,8 @@ decodeRailVizRoute =
 decodeRailVizSegment : JD.Decoder RailVizSegment
 decodeRailVizSegment =
     decode RailVizSegment
-        |> required "from_station_idx" int
-        |> required "to_station_idx" int
+        |> optional "from_station_idx" int 0
+        |> optional "to_station_idx" int 0
         |> required "coordinates" decodePolyline
 
 
