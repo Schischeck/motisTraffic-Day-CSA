@@ -256,12 +256,9 @@ var _elm_community$webgl$Native_WebGL = function() {
     return mode + '#' + vertID + '#' + fragID;
   }
 
-  function drawGL(domNode, data, pickX, pickY, callback) {
+  function drawGL(domNode, data) {
     var model = data.model;
     var gl = model.cache.gl;
-
-    document.dispatchEvent(
-        new CustomEvent('elmgl-update', {detail: {newModel: model}}));
 
     if (!gl) {
       return domNode;
@@ -368,10 +365,13 @@ var _elm_community$webgl$Native_WebGL = function() {
 
     listMap(drawEntity, model.renderables);
 
-    if (pickX && pickY && callback) {
+    var pickX = model.cache.picking.x;
+    var pickY = model.cache.picking.y;
+    if (model.cache.picking.enabled && pickX && pickY) {
       mode = 'off-screen';
+      initOffscreenBuffer(domNode, model);
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, model.cache.framebuffer);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, model.cache.offscreen.framebuffer);
       listMap(drawEntity, model.offscreenRenderables);
 
       var pixels = new Uint8Array(1 * 1 * 4);
@@ -379,7 +379,10 @@ var _elm_community$webgl$Native_WebGL = function() {
           pickX, gl.drawingBufferHeight - pickY, 1, 1, gl.RGBA,
           gl.UNSIGNED_BYTE, pixels);
 
-      callback(pixels[0]);
+      model.cache.picking.pixel = [].slice.call(pixels);
+
+      document.dispatchEvent(new CustomEvent(
+          'elmgl-update', {detail: {picking: model.cache.picking}}));
     }
 
     return domNode;
@@ -553,46 +556,11 @@ var _elm_community$webgl$Native_WebGL = function() {
     model.cache.uniformSetters = {};
     model.cache.buffers = [];
     model.cache.textures = [];
+    model.cache.offscreen = {};
+    model.cache.picking = {x: null, y: null, enabled: false, pixel: null};
 
-    // TODO
-    var width = 500;
-    var height = 500;
-
-    model.cache.texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, model.cache.texture);
-    gl.texImage2D(
-        gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-        null);
-
-    model.cache.renderbuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, model.cache.renderbuffer);
-    gl.renderbufferStorage(
-        gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-
-    model.cache.framebuffer = gl.createFramebuffer();
-    gl.bindFramebuffer(gl.FRAMEBUFFER, model.cache.framebuffer);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D,
-        model.cache.texture, 0);
-    gl.framebufferRenderbuffer(
-        gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER,
-        model.cache.renderbuffer);
-
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    document.dispatchEvent(new CustomEvent('elmgl-init', {
-      detail: {
-        canvas: canvas,
-        gl: gl,
-        render: function(newModel, pickX, pickY, pickCallback) {
-          rAF(function() {
-            drawGL(canvas, {model: newModel}, pickX, pickY, pickCallback);
-          });
-        }
-      }
-    }));
+    document.dispatchEvent(new CustomEvent(
+        'elmgl-init', {detail: {canvas: canvas, gl: gl, cache: model.cache}}));
 
     // Render for the first time.
     // This has to be done in animation frame,
@@ -601,6 +569,65 @@ var _elm_community$webgl$Native_WebGL = function() {
     rAF(function() { drawGL(canvas, {model: model}); });
 
     return canvas;
+  }
+
+  function initOffscreenBuffer(canvas, model) {
+    var gl = model.cache.gl;
+
+    if (!gl) {
+      return;
+    }
+
+    var width = gl.drawingBufferWidth;
+    var height = gl.drawingBufferHeight;
+
+    if (model.cache.offscreen.width == width &&
+        model.cache.offscreen.height == height) {
+      return;
+    }
+
+    model.cache.offscreen.width = width;
+    model.cache.offscreen.height = height;
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    if (model.cache.offscreen.framebuffer) {
+      gl.deleteFramebuffer(model.cache.offscreen.framebuffer);
+      model.cache.offscreen.framebuffer = null;
+    }
+    if (model.cache.offscreen.renderbuffer) {
+      gl.deleteRenderbuffer(model.cache.offscreen.renderbuffer);
+      model.cache.offscreen.renderbuffer = null;
+    }
+    if (model.cache.offscreen.texture) {
+      gl.deleteTexture(model.cache.offscreen.texture);
+      model.cache.offscreen.texture = null;
+    }
+
+    model.cache.offscreen.texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, model.cache.offscreen.texture);
+    gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        null);
+
+    model.cache.offscreen.renderbuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, model.cache.offscreen.renderbuffer);
+    gl.renderbufferStorage(
+        gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+
+    model.cache.offscreen.framebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, model.cache.offscreen.framebuffer);
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D,
+        model.cache.offscreen.texture, 0);
+    gl.framebufferRenderbuffer(
+        gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER,
+        model.cache.offscreen.renderbuffer);
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
 

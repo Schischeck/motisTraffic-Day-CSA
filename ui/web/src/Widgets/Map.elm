@@ -217,6 +217,7 @@ type Msg
     | MouseMove Port.MapMouseUpdate
     | MouseDown Port.MapMouseUpdate
     | MouseUp Port.MapMouseUpdate
+    | MouseOut Port.MapMouseUpdate
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -281,6 +282,13 @@ update msg model =
             in
                 model ! []
 
+        MouseOut e ->
+            let
+                _ =
+                    Debug.log "MouseOut" e
+            in
+                model ! []
+
 
 
 -- SUBSCRIPTIONS
@@ -295,6 +303,7 @@ subscriptions model =
         , mapMouseMove MouseMove
         , mapMouseDown MouseDown
         , mapMouseUp MouseUp
+        , mapMouseOut MouseOut
         ]
 
 

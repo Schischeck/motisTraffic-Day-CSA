@@ -126,33 +126,75 @@ function initPorts(app) {
   var ports = {
     'mousedown': app.ports.mapMouseDown,
     'mouseup': app.ports.mapMouseUp,
-    'mouseout': app.ports.mapMouseUp,
+    'mouseout': app.ports.mapMouseOut,
     'mousemove': app.ports.mapMouseMove
   };
 
-  var model = null;
-  document.addEventListener(
-      'elmgl-update', function(e) { model = e.detail.newModel; });
+  var webglCache = null;
+  var lastPickingUpdate = {x: null, y: null, color: null};
+
+  var isSameUpdate = function(a, b) {
+    if (a.x != b.x || a.y != b.y) {
+      return false;
+    }
+    if (a.color === null && b.color !== null ||
+        a.color !== null && b.color === null) {
+      return false;
+    }
+    if (a.color.length != b.color.length) {
+      return false;
+    }
+    for (var i = 0; i < a.color.length; i++) {
+      if (a.color[i] != b.color[i]) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  document.addEventListener('elmgl-update', function(e) {
+    var picking = e.detail.picking;
+    var update = {x: picking.x, y: picking.y, color: picking.pixel};
+    if (!isSameUpdate(lastPickingUpdate, update)) {
+      ports['mousemove'].send(update);
+      lastPickingUpdate = update;
+    }
+  });
 
   document.addEventListener('elmgl-init', function(e) {
     var canvas = e.detail.canvas;
     var gl = e.detail.gl;
-    var render = e.detail.render;
+    webglCache = e.detail.cache;
 
-    var sendTelemetry = function(eventType) {
+    var eventHandler =
+        function(eventType) {
       return function(e) {
-        if (!model) {
-          console.log('missing model!');
+        if (!webglCache) {
+          console.log('missing webglCache!');
           return;
         }
-        render(model, e.clientX, e.clientY, function(color) {
-          ports[eventType].send({x: e.clientX, y: e.clientY, color: color});
-        });
-      };
-    };
+        var top = window.pageXOffset, left = -window.pageYOffset, obj = canvas;
+        while (obj && obj.tagName !== 'BODY') {
+          top += obj.offsetTop;
+          left += obj.offsetLeft;
+          obj = obj.offsetParent;
+        }
+        var x = e.clientX - left;
+        var y = e.clientY - top;
+        webglCache.picking.x = x;
+        webglCache.picking.y = y;
+        webglCache.picking.enabled = eventType != 'mouseout';
+
+        if (eventType == 'mouseout') {
+          ports[eventType].send({x: x, y: y, color: null});
+        } else if (eventType == 'mousedown' || eventType == 'mouseup') {
+          ports[eventType].send({x: x, y: y, color: webglCache.picking.pixel});
+        }
+      }
+    }
 
     var register = function(eventType) {
-      canvas.addEventListener(eventType, sendTelemetry(eventType));
+      canvas.addEventListener(eventType, eventHandler(eventType));
     };
 
     for (var port in ports) {

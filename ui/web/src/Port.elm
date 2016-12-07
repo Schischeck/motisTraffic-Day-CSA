@@ -60,7 +60,7 @@ port setRoutingResponses : (List ( String, String ) -> msg) -> Sub msg
 type alias MapMouseUpdate =
     { x : Float
     , y : Float
-    , color : Float
+    , color : Maybe ( Int, Int, Int, Int )
     }
 
 
@@ -71,3 +71,6 @@ port mapMouseDown : (MapMouseUpdate -> msg) -> Sub msg
 
 
 port mapMouseUp : (MapMouseUpdate -> msg) -> Sub msg
+
+
+port mapMouseOut : (MapMouseUpdate -> msg) -> Sub msg
