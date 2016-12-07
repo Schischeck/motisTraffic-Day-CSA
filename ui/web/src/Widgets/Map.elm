@@ -9,7 +9,7 @@ module Widgets.Map
         )
 
 import Html exposing (Html, Attribute, div, text)
-import Html.Attributes exposing (id, class)
+import Html.Attributes exposing (id, class, style)
 import Port exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
@@ -21,6 +21,7 @@ import Task exposing (..)
 import Html exposing (Html)
 import Data.Connection.Types exposing (Station, Position)
 import Random
+import Bitwise
 
 
 -- MODEL
@@ -30,6 +31,7 @@ type alias Vertex =
     { c1 : Vec2
     , c2 : Vec2
     , p : Float
+    , pickColor : Vec3
     }
 
 
@@ -41,6 +43,8 @@ type alias RVTrain =
     , arrivalStation : RVStation
     , pathLength : Float
     , currentSegment : Maybe CurrentSegment
+    , pickId : Int
+    , pickColor : Vec3
     }
 
 
@@ -94,9 +98,9 @@ mesh currentTime trains =
 getTrainPosition : Time -> RVTrain -> Vertex
 getTrainPosition currentTime train =
     if currentTime <= train.departureTime then
-        Vertex train.departureStation.pos train.arrivalStation.pos 0.0
+        Vertex train.departureStation.pos train.arrivalStation.pos 0.0 train.pickColor
     else if currentTime >= train.arrivalTime then
-        Vertex train.departureStation.pos train.arrivalStation.pos 1.0
+        Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
     else
         case train.currentSegment of
             Just currentSegment ->
@@ -113,10 +117,41 @@ getTrainPosition currentTime train =
                     p =
                         segmentPos / currentSegment.length
                 in
-                    Vertex currentSegment.startPoint currentSegment.endPoint p
+                    Vertex currentSegment.startPoint currentSegment.endPoint p train.pickColor
 
             Nothing ->
-                Vertex train.departureStation.pos train.arrivalStation.pos 1.0
+                Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
+
+
+toPickColor : Int -> Vec3
+toPickColor pickId =
+    let
+        tf x =
+            (toFloat x) / 255.0
+
+        r =
+            tf (Bitwise.and pickId 255)
+
+        g =
+            tf (Bitwise.and (Bitwise.shiftRightZfBy 8 pickId) 255)
+
+        b =
+            tf (Bitwise.and (Bitwise.shiftRightZfBy 16 pickId) 255)
+    in
+        vec3 r g b
+
+
+toPickId : Maybe ( Int, Int, Int, Int ) -> Maybe Int
+toPickId color =
+    case color of
+        Just ( r, g, b, a ) ->
+            if a == 0 then
+                Nothing
+            else
+                Just (r + (Bitwise.shiftLeftBy 8 g) + (Bitwise.shiftLeftBy 16 b))
+
+        Nothing ->
+            Nothing
 
 
 trainProgress : Time -> RVTrain -> Float
@@ -256,7 +291,7 @@ update msg model =
         GenerateDemoTrains t ->
             ( { model
                 | time = t
-                , rvTrains = generateDemoTrains t (Random.initialSeed (floor t)) 1000
+                , rvTrains = generateDemoTrains t (Random.initialSeed (floor t)) 1000 0
               }
             , Cmd.none
             )
@@ -264,28 +299,28 @@ update msg model =
         MouseMove e ->
             let
                 _ =
-                    Debug.log "MouseMove" e
+                    Debug.log "MouseMove" ( e, toPickId e.color )
             in
                 model ! []
 
         MouseDown e ->
             let
                 _ =
-                    Debug.log "MouseDown" e
+                    Debug.log "MouseDown" ( e, toPickId e.color )
             in
                 model ! []
 
         MouseUp e ->
             let
                 _ =
-                    Debug.log "MouseUp" e
+                    Debug.log "MouseUp" ( e, toPickId e.color )
             in
                 model ! []
 
         MouseOut e ->
             let
                 _ =
-                    Debug.log "MouseOut" e
+                    Debug.log "MouseOut" ( e, toPickId e.color )
             in
                 model ! []
 
@@ -313,7 +348,13 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ id "map" ] [ overlay [ class "leaflet-overlay" ] model ]
+    div [ id "map" ]
+        [ overlay
+            [ class "leaflet-overlay"
+            , style [ ( "cursor", "default" ) ]
+            ]
+            model
+        ]
 
 
 overlay : List (Html.Attribute Msg) -> Model -> Html Msg
@@ -346,8 +387,8 @@ overlay attributes model =
                             }
 
                     offscreenRenderable =
-                        render vertexShader
-                            fragmentShader
+                        render offscreenVertexShader
+                            offscreenFragmentShader
                             buffer
                             { texture = tex
                             , perspective = perspective model
@@ -397,24 +438,69 @@ void main () {
 |]
 
 
+offscreenVertexShader : Shader { attr | c1 : Vec2, c2 : Vec2, p : Float, pickColor : Vec3 } { unif | perspective : Mat4, zoom : Float } { vPickColor : Vec3 }
+offscreenVertexShader =
+    [glsl|
+attribute vec2 c1, c2;
+attribute float p;
+attribute vec3 pickColor;
+uniform mat4 perspective;
+uniform float zoom;
+varying vec3 vPickColor;
+
+void main() {
+    vec4 c1p = perspective * vec4(c1, 0.0, 1.0);
+    vec4 c2p = perspective * vec4(c2, 0.0, 1.0);
+    gl_Position = c1p + p * (c2p - c1p);
+    gl_PointSize = zoom;
+
+/*
+    float pick_r = pickId % 256.0;
+    float pick_g = (pickId / 256.0) % 256.0;
+    float pick_b = 0.0;
+    pickColor = vec3(pick_r/255.0, pick_g/255.0, pick_b/255.0);
+    */
+    vPickColor = pickColor;
+}
+|]
+
+
+offscreenFragmentShader : Shader {} { u | texture : Texture } { vPickColor : Vec3 }
+offscreenFragmentShader =
+    [glsl|
+precision mediump float;
+uniform sampler2D texture;
+varying vec3 vPickColor;
+
+void main () {
+    vec4 tex = texture2D(texture, gl_PointCoord);
+    if (tex.w == 0.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    } else {
+        gl_FragColor = vec4(vPickColor, 1.0);
+    }
+}
+|]
+
+
 
 -- DEMO TRAIN GENERATION
 
 
-generateDemoTrains : Time -> Random.Seed -> Int -> List RVTrain
-generateDemoTrains currentTime seed count =
+generateDemoTrains : Time -> Random.Seed -> Int -> Int -> List RVTrain
+generateDemoTrains currentTime seed count firstPickId =
     if count > 0 then
         let
             ( train, nextSeed ) =
-                generateDemoTrain currentTime seed
+                generateDemoTrain currentTime seed firstPickId
         in
-            train :: (generateDemoTrains currentTime nextSeed (count - 1))
+            train :: (generateDemoTrains currentTime nextSeed (count - 1) (firstPickId + 1))
     else
         []
 
 
-generateDemoTrain : Time -> Random.Seed -> ( RVTrain, Random.Seed )
-generateDemoTrain currentTime seed0 =
+generateDemoTrain : Time -> Random.Seed -> Int -> ( RVTrain, Random.Seed )
+generateDemoTrain currentTime seed0 pickId =
     let
         topLeft =
             { lat = 49.89921, lng = 8.61696 }
@@ -449,6 +535,9 @@ generateDemoTrain currentTime seed0 =
         totalLength =
             List.foldr (\( _, l ) s -> s + l) 0.0 edge
 
+        pickColor =
+            toPickColor pickId
+
         train =
             { currentEdge = edge
             , departureTime = depTime
@@ -457,6 +546,8 @@ generateDemoTrain currentTime seed0 =
             , arrivalStation = arrStation
             , pathLength = totalLength
             , currentSegment = Nothing
+            , pickId = pickId
+            , pickColor = pickColor
             }
 
         nextSeed =
