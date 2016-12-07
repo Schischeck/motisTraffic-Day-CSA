@@ -1,9 +1,8 @@
-#include "motis/rt/bfs.h"
+#include "motis/core/access/bfs.h"
 
 #include <queue>
 
 namespace motis {
-namespace rt {
 
 std::set<trip::route_edge> route_bfs(ev_key const& k, bfs_direction const dir,
                                      bool with_through_edges) {
@@ -78,5 +77,4 @@ std::set<ev_key> trip_bfs(ev_key const& k, bfs_direction const dir) {
   return ev_keys;
 }
 
-}  // namespace rt
 }  // namespace motis

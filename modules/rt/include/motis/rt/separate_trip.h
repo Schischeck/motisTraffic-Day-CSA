@@ -5,8 +5,8 @@
 #include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
+#include "motis/core/access/bfs.h"
 
-#include "motis/rt/bfs.h"
 #include "motis/rt/in_out_allowed.h"
 #include "motis/rt/incoming_edges.h"
 

@@ -23,4 +23,14 @@ inline auto transform_to_vec(Container const& c, UnaryOperation op)
   return vec;
 }
 
+template <typename Container, typename UnaryOperation>
+inline auto transform_to_vec_no_default_ctor(Container const& c,
+                                             UnaryOperation op)
+    -> std::vector<decltype(op(*std::begin(c)))> {
+  std::vector<decltype(op(*std::begin(c)))> vec;
+  vec.reserve(std::distance(std::begin(c), std::end(c)));
+  std::transform(std::begin(c), std::end(c), std::back_inserter(vec), op);
+  return vec;
+}
+
 }  // namespace motis

@@ -25,7 +25,8 @@ enum {
   MOTIS_U = 6,
   MOTIS_STR = 7,
   MOTIS_BUS = 8,
-  MOTIS_X = 9
+  MOTIS_X = 9,
+  NUM_CLASSES
 };
 
 struct connection_info {

@@ -1,0 +1,10 @@
+include "base/Position.fbs";
+
+namespace motis.railviz;
+
+table RailVizTrainsRequest {
+  corner1: motis.Position;
+  corner2: motis.Position;
+  start_time: ulong;
+  end_time: ulong;
+}

@@ -18,14 +18,8 @@ include "lookup/LookupIdTrainRequest.fbs";
 include "lookup/LookupIdTrainResponse.fbs";
 include "routes/RoutesIdTrainRequest.fbs";
 include "routes/RoutesIdTrainResponse.fbs";
-include "railviz/RailVizInit.fbs";
-include "railviz/RailVizAlltraReq.fbs";
-include "railviz/RailVizAlltraRes.fbs";
-include "railviz/RailVizStationDetailReq.fbs";
-include "railviz/RailVizStationDetailRes.fbs";
-include "railviz/RailVizRouteAtTimeReq.fbs";
-include "railviz/RailVizRouteAtTimeRes.fbs";
-include "railviz/RailVizFindTrain.fbs";
+include "railviz/RailVizTrainsRequest.fbs";
+include "railviz/RailVizTrainsResponse.fbs";
 include "osrm/OSRMOneToManyRequest.fbs";
 include "osrm/OSRMOneToManyResponse.fbs";
 include "osrm/OSRMViaRouteRequest.fbs";
@@ -125,14 +119,8 @@ union MsgContent {
   motis.lookup.LookupIdTrainResponse,
   motis.routes.RoutesIdTrainRequest,
   motis.routes.RoutesIdTrainResponse,
-  motis.railviz.RailVizInit,
-  motis.railviz.RailVizAlltraReq,
-  motis.railviz.RailVizAlltraRes,
-  motis.railviz.RailVizStationDetailReq,
-  motis.railviz.RailVizStationDetailRes,
-  motis.railviz.RailVizRouteAtTimeReq,
-  motis.railviz.RailVizRouteAtTimeRes,
-  motis.railviz.RailVizFindTrain,
+  motis.railviz.RailVizTrainsRequest,
+  motis.railviz.RailVizTrainsResponse,
   motis.osrm.OSRMOneToManyRequest,
   motis.osrm.OSRMOneToManyResponse,
   motis.osrm.OSRMViaRouteRequest,
