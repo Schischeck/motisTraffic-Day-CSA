@@ -8,7 +8,7 @@
 namespace motis {
 class edge;
 struct schedule;
-}
+}  // namespace motis
 
 namespace motis {
 namespace railviz {
