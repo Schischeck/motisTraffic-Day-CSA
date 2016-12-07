@@ -16,7 +16,7 @@ namespace railviz {
 struct edge_geo_index;
 
 struct train_retriever {
-  train_retriever(schedule const& s);
+  explicit train_retriever(schedule const& s);
   ~train_retriever();
 
   std::vector<ev_key> trains(time const from, time const to,
