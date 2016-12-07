@@ -1,13 +1,27 @@
 port module Port exposing (..)
 
 
-type alias Map =
-    { width : Float
-    , height : Float
-    , scale : Float
+type alias MapInfo =
+    { scale : Float
     , zoom : Float
-    , north : Float
+    , pixelBounds : MapPixelBounds
+    , geoBounds : MapGeoBounds
+    }
+
+
+type alias MapPixelBounds =
+    { north : Float
     , west : Float
+    , width : Float
+    , height : Float
+    }
+
+
+type alias MapGeoBounds =
+    { north : Float
+    , west : Float
+    , south : Float
+    , east : Float
     }
 
 
@@ -41,7 +55,7 @@ port mapInit : String -> Cmd msg
 port mapLoaded : (String -> msg) -> Sub msg
 
 
-port mapUpdate : (Map -> msg) -> Sub msg
+port mapUpdate : (MapInfo -> msg) -> Sub msg
 
 
 port mapSetOverlays : MapOverlays -> Cmd msg

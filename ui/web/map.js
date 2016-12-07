@@ -26,16 +26,25 @@ var CanvasOverlay = L.Layer.extend({
   },
 
   _update: function() {
-    var bounds = this._map.getPixelBounds().min;
+    var pixelBounds = this._map.getPixelBounds().min;
+    var geoBounds = this._map.getBounds();
     var size = this._map.getSize();
 
     app.ports.mapUpdate.send({
       scale: Math.pow(2, this._map.getZoom()),
       zoom: this._map.getZoom(),
-      north: bounds.y,
-      west: bounds.x,
-      width: size.x,
-      height: size.y
+      pixelBounds: {
+        north: pixelBounds.y,
+        west: pixelBounds.x,
+        width: size.x,
+        height: size.y
+      },
+      geoBounds: {
+        north: geoBounds.getNorth(),
+        west: geoBounds.getWest(),
+        south: geoBounds.getSouth(),
+        east: geoBounds.getEast()
+      }
     });
   },
 

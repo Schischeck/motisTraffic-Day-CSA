@@ -66,7 +66,7 @@ type alias CurrentSegment =
 
 
 type alias Model =
-    { map : Map
+    { mapInfo : MapInfo
     , texture : Maybe WebGL.Texture
     , time : Time
     , rvTrains : List RVTrain
@@ -76,22 +76,18 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    { map =
-        { width = 0
-        , height = 0
-        , scale = 0
+    { mapInfo =
+        { scale = 0
         , zoom = 0
-        , north = 0
-        , west = 0
+        , pixelBounds = { north = 0, west = 0, width = 0, height = 0 }
+        , geoBounds = { north = 0, west = 0, south = 0, east = 0 }
         }
     , texture = Nothing
     , time = 0.0
     , rvTrains = []
     , hoveredTrain = Nothing
     }
-        ! [ mapInit "map"
-          , Task.perform GenerateDemoTrains Time.now
-          ]
+        ! [ mapInit "map" ]
 
 
 mesh : Time -> List RVTrain -> Drawable Vertex
@@ -249,7 +245,7 @@ toRVStation station =
 type Msg
     = Animate Time
     | MapLoaded String
-    | MapUpdate Map
+    | MapUpdate MapInfo
     | TextureError WebGL.Error
     | TextureLoaded WebGL.Texture
     | GenerateDemoTrains Time
@@ -284,7 +280,17 @@ update msg model =
             )
 
         MapUpdate m_ ->
-            ( { model | map = m_ }, Cmd.none )
+            let
+                model_ =
+                    { model | mapInfo = m_ }
+
+                cmds =
+                    if List.isEmpty model_.rvTrains then
+                        [ Task.perform GenerateDemoTrains Time.now ]
+                    else
+                        []
+            in
+                model_ ! cmds
 
         TextureError err ->
             ( model, Cmd.none )
@@ -295,7 +301,14 @@ update msg model =
         GenerateDemoTrains t ->
             ( { model
                 | time = t
-                , rvTrains = generateDemoTrains t (Random.initialSeed (floor t)) 1000 0
+                , rvTrains =
+                    generateDemoTrains
+                        { lat = model.mapInfo.geoBounds.north, lng = model.mapInfo.geoBounds.west }
+                        { lat = model.mapInfo.geoBounds.south, lng = model.mapInfo.geoBounds.east }
+                        t
+                        (Random.initialSeed (floor t))
+                        1000
+                        0
               }
             , Cmd.none
             )
@@ -410,7 +423,7 @@ overlay attributes model =
                             buffer
                             { texture = tex
                             , perspective = perspective model
-                            , zoom = model.map.zoom
+                            , zoom = model.mapInfo.zoom
                             }
 
                     offscreenRenderable =
@@ -419,17 +432,22 @@ overlay attributes model =
                             buffer
                             { texture = tex
                             , perspective = perspective model
-                            , zoom = model.map.zoom
+                            , zoom = model.mapInfo.zoom
                             }
                 in
                     toHtml [ renderable ] [ offscreenRenderable ]
 
 
 perspective : Model -> Mat4
-perspective { map } =
-    makeOrtho2D 0.0 map.width map.height 0.0
-        |> scale (vec3 map.scale map.scale map.scale)
-        |> translate (vec3 -(map.west / map.scale) -(map.north / map.scale) 0)
+perspective { mapInfo } =
+    makeOrtho2D 0.0 mapInfo.pixelBounds.width mapInfo.pixelBounds.height 0.0
+        |> scale (vec3 mapInfo.scale mapInfo.scale mapInfo.scale)
+        |> translate
+            (vec3
+                -(mapInfo.pixelBounds.west / mapInfo.scale)
+                -(mapInfo.pixelBounds.north / mapInfo.scale)
+                0
+            )
 
 
 
@@ -508,27 +526,21 @@ void main () {
 -- DEMO TRAIN GENERATION
 
 
-generateDemoTrains : Time -> Random.Seed -> Int -> Int -> List RVTrain
-generateDemoTrains currentTime seed count firstPickId =
+generateDemoTrains : Position -> Position -> Time -> Random.Seed -> Int -> Int -> List RVTrain
+generateDemoTrains topLeft bottomRight currentTime seed count firstPickId =
     if count > 0 then
         let
             ( train, nextSeed ) =
-                generateDemoTrain currentTime seed firstPickId
+                generateDemoTrain topLeft bottomRight currentTime seed firstPickId
         in
-            train :: (generateDemoTrains currentTime nextSeed (count - 1) (firstPickId + 1))
+            train :: (generateDemoTrains topLeft bottomRight currentTime nextSeed (count - 1) (firstPickId + 1))
     else
         []
 
 
-generateDemoTrain : Time -> Random.Seed -> Int -> ( RVTrain, Random.Seed )
-generateDemoTrain currentTime seed0 pickId =
+generateDemoTrain : Position -> Position -> Time -> Random.Seed -> Int -> ( RVTrain, Random.Seed )
+generateDemoTrain topLeft bottomRight currentTime seed0 pickId =
     let
-        topLeft =
-            { lat = 49.89921, lng = 8.61696 }
-
-        bottomRight =
-            { lat = 49.85258, lng = 8.69334 }
-
         ( depPosition, seed1 ) =
             randomPosition seed0 topLeft bottomRight
 
