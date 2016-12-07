@@ -2,6 +2,8 @@ module Data.Connection.Decode
     exposing
         ( decodeConnection
         , decodeStation
+        , decodePosition
+        , decodeTripId
         )
 
 import Data.Connection.Types exposing (..)
