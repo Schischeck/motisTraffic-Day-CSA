@@ -9,7 +9,7 @@ module Widgets.Map
         )
 
 import Html exposing (Html, Attribute, div, text)
-import Html.Attributes exposing (id, class, style)
+import Html.Attributes exposing (id, class, classList)
 import Port exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
@@ -22,6 +22,8 @@ import Html exposing (Html)
 import Data.Connection.Types exposing (Station, Position)
 import Random
 import Bitwise
+import Maybe.Extra exposing (isJust, isNothing)
+import Util.Core exposing ((=>))
 
 
 -- MODEL
@@ -68,6 +70,7 @@ type alias Model =
     , texture : Maybe WebGL.Texture
     , time : Time
     , rvTrains : List RVTrain
+    , hoveredTrain : Maybe Int
     }
 
 
@@ -84,6 +87,7 @@ init =
     , texture = Nothing
     , time = 0.0
     , rvTrains = []
+    , hoveredTrain = Nothing
     }
         ! [ mapInit "map"
           , Task.perform GenerateDemoTrains Time.now
@@ -296,33 +300,54 @@ update msg model =
             , Cmd.none
             )
 
-        MouseMove e ->
+        MouseMove mapMouseUpdate ->
             let
-                _ =
-                    Debug.log "MouseMove" ( e, toPickId e.color )
-            in
-                model ! []
+                model_ =
+                    handleMapMouseUpdate mapMouseUpdate model
 
-        MouseDown e ->
-            let
                 _ =
-                    Debug.log "MouseDown" ( e, toPickId e.color )
+                    Debug.log "MouseMove" model_.hoveredTrain
             in
-                model ! []
+                model_ ! []
 
-        MouseUp e ->
+        MouseDown mapMouseUpdate ->
             let
-                _ =
-                    Debug.log "MouseUp" ( e, toPickId e.color )
-            in
-                model ! []
+                model_ =
+                    handleMapMouseUpdate mapMouseUpdate model
 
-        MouseOut e ->
-            let
                 _ =
-                    Debug.log "MouseOut" ( e, toPickId e.color )
+                    Debug.log "MouseDown" model_.hoveredTrain
             in
-                model ! []
+                model_ ! []
+
+        MouseUp mapMouseUpdate ->
+            let
+                model_ =
+                    handleMapMouseUpdate mapMouseUpdate model
+
+                _ =
+                    Debug.log "MouseUp" model_.hoveredTrain
+            in
+                model_ ! []
+
+        MouseOut mapMouseUpdate ->
+            let
+                model_ =
+                    handleMapMouseUpdate mapMouseUpdate model
+
+                _ =
+                    Debug.log "MouseOut" model_.hoveredTrain
+            in
+                model_ ! []
+
+
+handleMapMouseUpdate : MapMouseUpdate -> Model -> Model
+handleMapMouseUpdate mapMouseUpdate model =
+    let
+        pickId =
+            toPickId mapMouseUpdate.color
+    in
+        { model | hoveredTrain = pickId }
 
 
 
@@ -350,8 +375,10 @@ view : Model -> Html Msg
 view model =
     div [ id "map" ]
         [ overlay
-            [ class "leaflet-overlay"
-            , style [ ( "cursor", "default" ) ]
+            [ classList
+                [ "leaflet-overlay" => True
+                , "train-hover" => isJust model.hoveredTrain
+                ]
             ]
             model
         ]
@@ -454,12 +481,6 @@ void main() {
     gl_Position = c1p + p * (c2p - c1p);
     gl_PointSize = zoom;
 
-/*
-    float pick_r = pickId % 256.0;
-    float pick_g = (pickId / 256.0) % 256.0;
-    float pick_b = 0.0;
-    pickColor = vec3(pick_r/255.0, pick_g/255.0, pick_b/255.0);
-    */
     vPickColor = pickColor;
 }
 |]

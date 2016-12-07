@@ -45,6 +45,14 @@
   order: 2;
 }
 
+.leaflet-overlay {
+  /*cursor: default;*/
+}
+
+.leaflet-overlay.train-hover {
+  cursor: pointer;
+}
+
 #search, #connections {
   padding: 24px;
 }
