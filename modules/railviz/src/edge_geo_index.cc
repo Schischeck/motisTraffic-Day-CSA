@@ -130,7 +130,7 @@ private:
     auto station_id = station_node->id_;
     assert(station_id < sched_.stations_.size());
 
-    auto const& station = *sched_.stations_[station_id].get();
+    auto const& station = *sched_.stations_[station_id];
     return spherical_point(station.length_, station.width_);
   }
 
@@ -147,15 +147,13 @@ private:
 edge_geo_index::edge_geo_index(int clasz, schedule const& s)
     : impl_(new impl(clasz, s)) {}
 
-edge_geo_index::~edge_geo_index() {}
+edge_geo_index::~edge_geo_index() = default;
 
 std::vector<edge const*> edge_geo_index::edges(geo::box area) const {
   return impl_->edges(area);
 }
 
-geo::box edge_geo_index::get_bounds() const {
-  return impl_.get()->get_bounds();
-}
+geo::box edge_geo_index::get_bounds() const { return impl_->get_bounds(); }
 
 }  // namespace railviz
 }  // namespace motis
