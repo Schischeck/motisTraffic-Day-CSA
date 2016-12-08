@@ -3,6 +3,7 @@
 #include "motis/core/access/bfs.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
+#include "motis/core/access/service_access.h"
 #include "motis/core/access/time_access.h"
 
 #include "motis/core/conv/trip_conv.h"
@@ -87,6 +88,18 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
         });
   };
 
+  auto const service_names = [&fbb, &sched](ev_key const& k) {
+    std::vector<std::string> names;
+    auto c_info = k.lcon()->full_con_->con_info_;
+    while (c_info != nullptr) {
+      names.push_back(get_service_name(sched, c_info));
+      c_info = c_info->merged_with_;
+    }
+    return fbb.CreateVector(transform_to_vec(
+        names,
+        [&](std::string const& name) { return fbb.CreateString(name); }));
+  };
+
   auto const fbs_trains = fbb.CreateVector(transform_to_vec(
       train_retriever_->trains(
           unix_to_motistime(sched, req->start_time()),
@@ -100,7 +113,7 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
             std::distance(begin(edges), edges.find(dep.route_edge_));
         auto const arr = dep.get_opposite();
         return CreateTrain(
-            fbb, motis_to_unixtime(sched, dep.get_time()),
+            fbb, service_names(dep), motis_to_unixtime(sched, dep.get_time()),
             motis_to_unixtime(sched, arr.get_time()),
             motis_to_unixtime(sched, get_schedule_time(sched, dep)),
             motis_to_unixtime(sched, get_schedule_time(sched, arr)), route,

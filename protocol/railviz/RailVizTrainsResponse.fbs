@@ -6,6 +6,7 @@ include "base/Station.fbs";
 namespace motis.railviz;
 
 table Train {
+  names: [string];
   d_time: int;
   a_time: int;
   sched_d_time: int;
