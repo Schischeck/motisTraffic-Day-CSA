@@ -34,9 +34,9 @@ motis_instance_test::motis_instance_test(
   try {
     instance_->init_schedule(dataset_opt);
   } catch (loader::parser_error const& e) {
-    LOG(logging::error) << "unable to parser schedule: " << e.filename_copy_
-                        << ": " << e.line_number_;
-    throw e;
+    LOG(logging::error) << "unable to parse schedule, problem at "
+                        << e.filename_copy_ << ":" << e.line_number_;
+    throw;
   }
   instance_->init_modules(modules);
 }
