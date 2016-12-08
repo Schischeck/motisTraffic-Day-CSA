@@ -23,6 +23,7 @@ encodeRequest request =
                 , "corner2" => encodePosition request.corner2
                 , "start_time" => encodeDate request.startTime
                 , "end_time" => encodeDate request.endTime
+                , "max_trains" => Encode.int request.maxTrains
                 ]
         ]
 

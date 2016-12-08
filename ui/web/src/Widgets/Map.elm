@@ -314,6 +314,7 @@ update msg model =
                                 }
                             , startTime = Date.fromTime model_.time
                             , endTime = Date.fromTime (model_.time + (60 * 1000))
+                            , maxTrains = 1000
                             }
                         ]
                     else

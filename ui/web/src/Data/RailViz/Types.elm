@@ -1,7 +1,7 @@
 module Data.RailViz.Types exposing (..)
 
 import Date exposing (Date)
-import Data.Connection.Types exposing (Position, TripId)
+import Data.Connection.Types exposing (Position, TripId, Station)
 
 
 type alias RailVizTrainsRequest =
@@ -9,13 +9,18 @@ type alias RailVizTrainsRequest =
     , corner2 : Position
     , startTime : Date
     , endTime : Date
+    , maxTrains : Int
     }
+
+
+
+-- todo: maxTrains
 
 
 type alias RailVizTrainsResponse =
     { trains : List RailVizTrain
     , routes : List RailVizRoute
-    , stations : List Position
+    , stations : List Station
     }
 
 
@@ -31,8 +36,8 @@ type alias RailVizTrain =
 
 
 type alias RailVizSegment =
-    { fromStationIdx : Int
-    , toStationIdx : Int
+    { fromStationId : String
+    , toStationId : String
     , coordinates : Polyline
     }
 
