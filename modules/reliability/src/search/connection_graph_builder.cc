@@ -39,7 +39,7 @@ std::pair<journey, journey> split_journey(journey const& j,
                                           unsigned int const stop_idx) {
   assert(!j.transports_.empty());
   assert(j.stops_.size() > 2);
-  assert(j.stops_.at(stop_idx).interchange_);
+  assert(j.stops_.at(stop_idx).enter_ && j.stops_.at(stop_idx).exit_);
   assert(stop_idx > 0);
   assert(stop_idx + 1 < j.stops_.size());
 
@@ -54,9 +54,11 @@ std::pair<journey, journey> split_journey(journey const& j,
       j2.stops_.push_back(j.stops_[idx]);
     }
   }
-  j1.stops_.back().interchange_ = false;
+  j1.stops_.back().exit_ = true;
+  j1.stops_.back().enter_ = false;
   j1.stops_.back().departure_.valid_ = false;
-  j2.stops_.front().interchange_ = false;
+  j2.stops_.front().exit_ = false;
+  j2.stops_.front().enter_ = true;
   j2.stops_.front().arrival_.valid_ = false;
 
   correct_transports_and_attributes_indices(j.transports_, j1.transports_,
@@ -80,10 +82,14 @@ std::pair<journey, journey> split_journey(journey const& j,
   assert(!j2.transports_.empty());
   assert(j2.stops_.size() >= 2);
   assert(j1.stops_.size() + j2.stops_.size() == j.stops_.size() + 1);
-  assert(!j1.stops_.front().interchange_);
-  assert(!j1.stops_.back().interchange_);
-  assert(!j2.stops_.front().interchange_);
-  assert(!j2.stops_.back().interchange_);
+  assert(j1.stops_.front().enter_);
+  assert(!j1.stops_.front().exit_);
+  assert(!j1.stops_.back().enter_);
+  assert(j1.stops_.back().exit_);
+  assert(j2.stops_.front().enter_);
+  assert(!j2.stops_.front().exit_);
+  assert(!j2.stops_.back().enter_);
+  assert(j2.stops_.back().exit_);
 
   return std::make_pair(j1, j2);
 }
@@ -110,7 +116,7 @@ bool no_public_transport_after_this_stop(journey const& j,
 void split_journey(std::vector<journey>& journeys) {
   auto const& stop =
       std::find_if(journeys.back().stops_.begin(), journeys.back().stops_.end(),
-                   [](journey::stop const& s) { return s.interchange_; });
+                   [](journey::stop const& s) { return s.exit_; });
   auto const stop_idx = std::distance(journeys.back().stops_.begin(), stop);
   if (stop == journeys.back().stops_.end() ||
       no_public_transport_after_this_stop(journeys.back(), stop_idx)) {
