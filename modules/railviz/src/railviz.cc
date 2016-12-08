@@ -71,7 +71,7 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
     return insert.first->second;
   };
 
-  auto const get_stations = [&sched, &route_edges]() {
+  auto const get_stations = [&sched, &fbb, &route_edges]() {
     std::set<int> stations_indices;
     for (auto const& route : route_edges) {
       for (auto const& e : route) {
@@ -80,10 +80,12 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
       }
     }
 
-    return transform_to_vec_no_default_ctor(
-        stations_indices, [&sched](int const station_idx) {
+    return transform_to_vec(
+        stations_indices, [&sched, &fbb](int const station_idx) {
           auto const& station = *sched.stations_[station_idx];
-          return Position(station.width_, station.length_);
+          auto const pos = Position(station.width_, station.length_);
+          return CreateStation(fbb, fbb.CreateString(station.eva_nr_),
+                               fbb.CreateString(station.name_), &pos);
         });
   };
 
@@ -110,7 +112,7 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
   fbb.create_and_finish(
       MsgContent_RailVizTrainsResponse,
       CreateRailVizTrainsResponse(fbb, fbs_trains, fbb.CreateVector(fbs_routes),
-                                  fbb.CreateVectorOfStructs(get_stations()))
+                                  fbb.CreateVector(get_stations()))
           .Union());
 
   return make_msg(fbb);

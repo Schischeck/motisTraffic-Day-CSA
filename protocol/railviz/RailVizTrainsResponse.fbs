@@ -1,6 +1,7 @@
 include "base/Position.fbs";
 include "base/Polyline.fbs";
 include "base/TripId.fbs";
+include "base/Station.fbs";
 
 namespace motis.railviz;
 
@@ -27,5 +28,5 @@ table Route {
 table RailVizTrainsResponse {
   trains: [Train];
   routes: [Route];
-  stations: [Position];
+  stations: [Station];
 }
