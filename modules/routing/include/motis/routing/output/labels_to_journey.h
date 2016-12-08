@@ -2,7 +2,9 @@
 
 #include <numeric>
 
+#include "motis/core/access/time_access.h"
 #include "motis/core/journey/journey.h"
+
 #include "motis/routing/label/configs.h"
 #include "motis/routing/output/label_chain_parser.h"
 #include "motis/routing/output/stop.h"
