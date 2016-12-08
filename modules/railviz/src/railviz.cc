@@ -39,10 +39,8 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
       std::set<trip::route_edge> const& edges) {
     return fbb.CreateVector(
         transform_to_vec(edges, [&](trip::route_edge const& e) {
-          auto const from_id = e->from_->get_station()->id_;
-          auto const to_id = e->to_->get_station()->id_;
-          auto const& from = *sched.stations_[from_id];
-          auto const& to = *sched.stations_[to_id];
+          auto const& from = *sched.stations_[e->from_->get_station()->id_];
+          auto const& to = *sched.stations_[e->to_->get_station()->id_];
           return CreateSegment(
               fbb, fbb.CreateString(from.eva_nr_), fbb.CreateString(to.eva_nr_),
               CreatePolyline(fbb, fbb.CreateVector(std::vector<double>(
