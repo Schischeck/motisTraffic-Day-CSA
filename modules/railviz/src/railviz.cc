@@ -14,8 +14,6 @@
 using namespace motis::module;
 using namespace flatbuffers;
 
-constexpr auto MAX_TRAINS = 256;
-
 namespace motis {
 namespace railviz {
 
@@ -32,26 +30,26 @@ void railviz::init(motis::module::registry& reg) {
 }
 
 msg_ptr railviz::get_trains(msg_ptr const& msg) const {
-  auto const con = motis_content(RailVizTrainsRequest, msg);
+  auto const req = motis_content(RailVizTrainsRequest, msg);
   auto const& sched = get_schedule();
 
   message_creator fbb;
 
-  auto const get_route_segments =
-      [&fbb, &sched](std::set<trip::route_edge> const& edges) {
-        return fbb.CreateVector(
-            transform_to_vec(edges, [&](trip::route_edge const& e) {
-              auto const from_id = e->from_->get_station()->id_;
-              auto const to_id = e->to_->get_station()->id_;
-              return CreateSegment(
-                  fbb, from_id, to_id,
-                  CreatePolyline(fbb, fbb.CreateVector(std::vector<double>(
-                                          {sched.stations_[from_id]->width_,
-                                           sched.stations_[from_id]->length_,
-                                           sched.stations_[to_id]->width_,
-                                           sched.stations_[to_id]->length_}))));
-            }));
-      };
+  auto const get_route_segments = [&fbb, &sched](
+      std::set<trip::route_edge> const& edges) {
+    return fbb.CreateVector(
+        transform_to_vec(edges, [&](trip::route_edge const& e) {
+          auto const from_id = e->from_->get_station()->id_;
+          auto const to_id = e->to_->get_station()->id_;
+          auto const& from = *sched.stations_[from_id];
+          auto const& to = *sched.stations_[to_id];
+          return CreateSegment(
+              fbb, fbb.CreateString(from.eva_nr_), fbb.CreateString(to.eva_nr_),
+              CreatePolyline(fbb, fbb.CreateVector(std::vector<double>(
+                                      {from.width_, from.length_, to.width_,
+                                       to.length_}))));
+        }));
+  };
 
   auto const get_trips = [&sched, &fbb](ev_key const& k) {
     return fbb.CreateVector(transform_to_vec(
@@ -91,11 +89,10 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
 
   auto const fbs_trains = fbb.CreateVector(transform_to_vec(
       train_retriever_->trains(
-          unix_to_motistime(sched, con->start_time()),
-          unix_to_motistime(sched, con->end_time()), MAX_TRAINS,
-          std::make_pair(
-              geo::coord{con->corner1()->lat(), con->corner1()->lng()},
-              geo::coord{con->corner2()->lat(), con->corner2()->lng()})),
+          unix_to_motistime(sched, req->start_time()),
+          unix_to_motistime(sched, req->end_time()), req->max_trains(),
+          {{req->corner1()->lat(), req->corner1()->lng()},
+           {req->corner2()->lat(), req->corner2()->lng()}}),
       [&](ev_key const& dep) {
         auto const route = get_route(dep);
         auto const& edges = route_edges[route];

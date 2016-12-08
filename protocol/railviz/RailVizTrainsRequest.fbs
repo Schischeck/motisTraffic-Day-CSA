@@ -7,4 +7,5 @@ table RailVizTrainsRequest {
   corner2: motis.Position;
   start_time: ulong;
   end_time: ulong;
+  max_trains: uint;
 }

@@ -15,8 +15,8 @@ table Train {
 }
 
 table Segment {
-  from_station_idx: int;
-  to_station_idx: int;
+  from_station_id: string;
+  to_station_id: string;
   coordinates: Polyline;
 }
 
