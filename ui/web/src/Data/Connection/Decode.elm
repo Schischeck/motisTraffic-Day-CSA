@@ -29,7 +29,6 @@ decodeConnection =
         |> required "stops" (list decodeStop)
         |> required "transports" (list decodeMove)
         |> required "trips" (list decodeTrip)
-        |> required "attributes" (list decodeAttribute)
 
 
 decodeStop : Decode.Decoder Stop

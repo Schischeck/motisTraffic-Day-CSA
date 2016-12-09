@@ -12,7 +12,6 @@ type alias Connection =
     { stops : List Stop
     , transports : List Move
     , trips : List Trip
-    , attributes : List Attribute
     }
 
 
