@@ -35,6 +35,7 @@ decodeRailVizTrainsResponseContent =
 decodeRailVizTrain : JD.Decoder RailVizTrain
 decodeRailVizTrain =
     decode RailVizTrain
+        |> required "names" (list string)
         |> required "d_time" decodeDate
         |> required "a_time" decodeDate
         |> required "sched_d_time" decodeDate

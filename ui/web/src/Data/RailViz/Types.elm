@@ -25,7 +25,8 @@ type alias RailVizTrainsResponse =
 
 
 type alias RailVizTrain =
-    { depTime : Date
+    { names : List String
+    , depTime : Date
     , arrTime : Date
     , scheduledDepTime : Date
     , scheduledArrTime : Date
