@@ -111,15 +111,13 @@ init remoteAddress =
 
 mesh : Time -> List RVTrain -> Drawable Vertex
 mesh currentTime trains =
-    Points (List.map (getTrainPosition currentTime) trains)
+    Points (List.filterMap (getTrainPosition currentTime) trains)
 
 
-getTrainPosition : Time -> RVTrain -> Vertex
+getTrainPosition : Time -> RVTrain -> Maybe Vertex
 getTrainPosition currentTime train =
-    if currentTime <= train.departureTime then
-        Vertex train.departureStation.pos train.arrivalStation.pos 0.0 train.pickColor
-    else if currentTime >= train.arrivalTime then
-        Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
+    if currentTime < train.departureTime || currentTime > train.arrivalTime then
+        Nothing
     else
         case train.currentSubSegment of
             Just currentSubSegment ->
@@ -136,10 +134,10 @@ getTrainPosition currentTime train =
                     p =
                         subSegmentPos / currentSubSegment.length
                 in
-                    Vertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor
+                    Just <| Vertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor
 
             Nothing ->
-                Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
+                Just <| Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
 
 
 toPickColor : Int -> Vec3
