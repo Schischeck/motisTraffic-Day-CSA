@@ -50,13 +50,13 @@ type alias Vertex =
 
 
 type alias RVTrain =
-    { currentEdge : List ( Vec2, Float )
+    { currentSegment : List ( Vec2, Float )
     , departureTime : Time
     , arrivalTime : Time
     , departureStation : RVStation
     , arrivalStation : RVStation
     , pathLength : Float
-    , currentSegment : Maybe CurrentSegment
+    , currentSubSegment : Maybe CurrentSubSegment
     , pickId : Int
     , pickColor : Vec3
     }
@@ -68,12 +68,12 @@ type alias RVStation =
     }
 
 
-type alias CurrentSegment =
+type alias CurrentSubSegment =
     { startDistance : Float
     , startPoint : Vec2
     , endPoint : Vec2
     , length : Float
-    , nextSegmentIndex : Int
+    , nextSubSegmentIndex : Int
     }
 
 
@@ -116,8 +116,8 @@ getTrainPosition currentTime train =
     else if currentTime >= train.arrivalTime then
         Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
     else
-        case train.currentSegment of
-            Just currentSegment ->
+        case train.currentSubSegment of
+            Just currentSubSegment ->
                 let
                     progress =
                         trainProgress currentTime train
@@ -125,13 +125,13 @@ getTrainPosition currentTime train =
                     dist =
                         progress * train.pathLength
 
-                    segmentPos =
-                        dist - currentSegment.startDistance
+                    subSegmentPos =
+                        dist - currentSubSegment.startDistance
 
                     p =
-                        segmentPos / currentSegment.length
+                        subSegmentPos / currentSubSegment.length
                 in
-                    Vertex currentSegment.startPoint currentSegment.endPoint p train.pickColor
+                    Vertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor
 
             Nothing ->
                 Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
@@ -173,8 +173,8 @@ trainProgress currentTime train =
     ((currentTime - train.departureTime) / (train.arrivalTime - train.departureTime))
 
 
-updateCurrentSegment : Time -> RVTrain -> RVTrain
-updateCurrentSegment currentTime train =
+updateCurrentSubSegment : Time -> RVTrain -> RVTrain
+updateCurrentSubSegment currentTime train =
     let
         progress =
             trainProgress currentTime train
@@ -182,7 +182,7 @@ updateCurrentSegment currentTime train =
         distance =
             progress * train.pathLength
 
-        findSegment start startDist vectors idx dist =
+        findSubSegment start startDist vectors idx dist =
             case vectors of
                 ( vec, vecLen ) :: rest ->
                     let
@@ -190,7 +190,7 @@ updateCurrentSegment currentTime train =
                             Vector2.add start vec
                     in
                         if vecLen < dist then
-                            findSegment
+                            findSubSegment
                                 endPt
                                 (startDist + vecLen)
                                 rest
@@ -198,40 +198,40 @@ updateCurrentSegment currentTime train =
                                 (dist - vecLen)
                         else
                             { train
-                                | currentSegment =
+                                | currentSubSegment =
                                     Just
                                         { startDistance = startDist
                                         , startPoint = start
                                         , endPoint = endPt
                                         , length = vecLen
-                                        , nextSegmentIndex = idx + 1
+                                        , nextSubSegmentIndex = idx + 1
                                         }
                             }
 
                 [] ->
-                    { train | currentSegment = Nothing }
+                    { train | currentSubSegment = Nothing }
     in
-        case train.currentSegment of
-            Just currentSegment ->
+        case train.currentSubSegment of
+            Just currentSubSegment ->
                 let
                     d =
-                        distance - currentSegment.startDistance
+                        distance - currentSubSegment.startDistance
                 in
-                    if d >= 0 && d <= currentSegment.length then
+                    if d >= 0 && d <= currentSubSegment.length then
                         train
                     else
-                        findSegment
-                            currentSegment.endPoint
-                            (currentSegment.startDistance + currentSegment.length)
-                            (List.drop currentSegment.nextSegmentIndex train.currentEdge)
-                            currentSegment.nextSegmentIndex
-                            (d - currentSegment.length)
+                        findSubSegment
+                            currentSubSegment.endPoint
+                            (currentSubSegment.startDistance + currentSubSegment.length)
+                            (List.drop currentSubSegment.nextSubSegmentIndex train.currentSegment)
+                            currentSubSegment.nextSubSegmentIndex
+                            (d - currentSubSegment.length)
 
             Nothing ->
-                findSegment
+                findSubSegment
                     train.departureStation.pos
                     0
-                    train.currentEdge
+                    train.currentSegment
                     0
                     distance
 
@@ -277,7 +277,7 @@ update msg model =
         Animate t ->
             { model
                 | time = t
-                , rvTrains = List.map (updateCurrentSegment t) model.rvTrains
+                , rvTrains = List.map (updateCurrentSubSegment t) model.rvTrains
             }
                 ! []
 
@@ -313,7 +313,7 @@ update msg model =
                                 , lng = model_.mapInfo.geoBounds.east
                                 }
                             , startTime = Date.fromTime model_.time
-                            , endTime = Date.fromTime (model_.time + (60 * 1000))
+                            , endTime = Date.fromTime (model_.time + (120 * 1000))
                             , maxTrains = 1000
                             }
                         ]
@@ -623,13 +623,13 @@ generateDemoTrain topLeft bottomRight currentTime seed0 pickId =
             toPickColor pickId
 
         train =
-            { currentEdge = edge
+            { currentSegment = edge
             , departureTime = depTime
             , arrivalTime = arrTime
             , departureStation = depStation
             , arrivalStation = arrStation
             , pathLength = totalLength
-            , currentSegment = Nothing
+            , currentSubSegment = Nothing
             , pickId = pickId
             , pickColor = pickColor
             }

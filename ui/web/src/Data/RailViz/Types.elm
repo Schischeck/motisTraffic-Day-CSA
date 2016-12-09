@@ -13,10 +13,6 @@ type alias RailVizTrainsRequest =
     }
 
 
-
--- todo: maxTrains
-
-
 type alias RailVizTrainsResponse =
     { trains : List RailVizTrain
     , routes : List RailVizRoute
