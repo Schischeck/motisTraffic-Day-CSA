@@ -38,6 +38,7 @@ import Util.Api as Api
         , RoutingErrorInfo(..)
         , MotisErrorDetail
         )
+import Debounce
 
 
 -- MODEL
@@ -89,6 +90,8 @@ type alias Model =
     , remoteAddress : String
     , rvTrains : List RVTrain
     , hoveredTrain : Maybe Int
+    , nextUpdate : Maybe Time
+    , debounce : Debounce.State
     }
 
 
@@ -105,6 +108,8 @@ init remoteAddress =
     , remoteAddress = remoteAddress
     , rvTrains = []
     , hoveredTrain = Nothing
+    , nextUpdate = Nothing
+    , debounce = Debounce.init
     }
         ! [ mapInit "map" ]
 
@@ -272,6 +277,9 @@ type Msg
     | MouseOut Port.MapMouseUpdate
     | ReceiveResponse RailVizTrainsRequest RailVizTrainsResponse
     | ReceiveError RailVizTrainsRequest ApiError
+    | CheckUpdate Time
+    | RequestUpdate
+    | Deb (Debounce.Msg Msg)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -302,27 +310,8 @@ update msg model =
             let
                 model_ =
                     { model | mapInfo = m_ }
-
-                cmds =
-                    if List.isEmpty model_.rvTrains then
-                        [ sendRequest model_.remoteAddress
-                            { corner1 =
-                                { lat = model_.mapInfo.geoBounds.north
-                                , lng = model_.mapInfo.geoBounds.west
-                                }
-                            , corner2 =
-                                { lat = model_.mapInfo.geoBounds.south
-                                , lng = model_.mapInfo.geoBounds.east
-                                }
-                            , startTime = Date.fromTime model_.time
-                            , endTime = Date.fromTime (model_.time + (120 * 1000))
-                            , maxTrains = 1000
-                            }
-                        ]
-                    else
-                        []
             in
-                model_ ! cmds
+                model_ ! [ Debounce.debounceCmd debounceCfg <| RequestUpdate ]
 
         TextureError err ->
             ( model, Cmd.none )
@@ -400,6 +389,32 @@ update msg model =
                     Debug.log "RailViz error" msg_
             in
                 model ! []
+
+        CheckUpdate time ->
+            case model.nextUpdate of
+                Just nextUpdate ->
+                    if nextUpdate <= time then
+                        model ! [ Debounce.debounceCmd debounceCfg <| RequestUpdate ]
+                    else
+                        model ! []
+
+                Nothing ->
+                    model ! []
+
+        RequestUpdate ->
+            sendTrainRequest model
+
+        Deb a ->
+            Debounce.update debounceCfg a model
+
+
+debounceCfg : Debounce.Config Model Msg
+debounceCfg =
+    Debounce.config
+        .debounce
+        (\model s -> { model | debounce = s })
+        Deb
+        500
 
 
 handleMapMouseUpdate : MapMouseUpdate -> Model -> Model
@@ -539,6 +554,7 @@ subscriptions model =
         , mapMouseDown MouseDown
         , mapMouseUp MouseUp
         , mapMouseOut MouseOut
+        , Time.every (5 * Time.second) CheckUpdate
         ]
 
 
@@ -852,6 +868,53 @@ randomPosition seed a b =
 
 
 -- REQUESTS
+
+
+sendTrainRequest : Model -> ( Model, Cmd Msg )
+sendTrainRequest model =
+    let
+        startTime =
+            model.time
+
+        endTime =
+            startTime + (120 * 1000)
+
+        nextUpdate =
+            Just (endTime - 10)
+
+        mapNorth =
+            model.mapInfo.geoBounds.north
+
+        mapWest =
+            model.mapInfo.geoBounds.west
+
+        mapSouth =
+            model.mapInfo.geoBounds.south
+
+        mapEast =
+            model.mapInfo.geoBounds.east
+
+        mapWidth =
+            (mapEast - mapWest)
+
+        mapHeight =
+            (mapSouth - mapNorth)
+    in
+        { model | nextUpdate = nextUpdate }
+            ! [ sendRequest model.remoteAddress
+                    { corner1 =
+                        { lat = mapNorth - mapHeight
+                        , lng = mapWest - mapWidth
+                        }
+                    , corner2 =
+                        { lat = mapSouth + mapHeight
+                        , lng = mapEast + mapWidth
+                        }
+                    , startTime = Date.fromTime startTime
+                    , endTime = Date.fromTime endTime
+                    , maxTrains = 1000
+                    }
+              ]
 
 
 sendRequest : String -> RailVizTrainsRequest -> Cmd Msg
