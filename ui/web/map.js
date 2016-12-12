@@ -7,7 +7,8 @@ var CanvasOverlay = L.Layer.extend({
     map._panes.overlayPane.appendChild(this._el);
 
     map.on('dragend', this._updatePosition, this);
-    // map.on('move', this._updatePosition, this);
+    map.on('move', this._updatePosition, this);
+    map.on('moveend', this._updatePosition, this);
     map.on('resize', this._updateSize, this);
     map.on('zoomend', this._update, this);
 
@@ -21,6 +22,7 @@ var CanvasOverlay = L.Layer.extend({
     map.getPanes().overlayPane.removeChild(this._el);
     map.off('dragend', this._updatePosition, this);
     map.off('move', this._updatePosition, this);
+    map.off('moveend', this._updatePosition, this);
     map.off('resize', this._updateSize, this);
     map.off('zoomend', this._update, this);
   },
