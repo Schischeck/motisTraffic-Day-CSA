@@ -46,7 +46,7 @@
 }
 
 .leaflet-overlay {
-  /*cursor: default;*/
+  z-index: 1;
 }
 
 .leaflet-overlay.train-hover {

@@ -15,7 +15,7 @@ import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
 import Data.Routing.Request as RoutingRequest
 import Data.Routing.Decode exposing (decodeRoutingResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
-import Data.Journey.Types exposing (toJourney)
+import Data.Journey.Types exposing (Journey, toJourney)
 import Data.Lookup.Request exposing (encodeTripToConnection)
 import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
 import Util.List exposing ((!!))
@@ -343,10 +343,10 @@ update msg model =
                 _ =
                     Debug.log "TripToConnectionError" err
             in
-                model ! []
+                setRailVizFilter model Nothing
 
         TripToConnectionResponse tripId connection ->
-            showFullTripConnection model connection
+            showFullTripConnection model tripId connection
 
         ScheduleInfoError _ ->
             let
@@ -772,14 +772,21 @@ selectConnection model idx =
     in
         case journey of
             Just j ->
-                { model
-                    | connectionDetails =
-                        Maybe.map (ConnectionDetails.init False) journey
-                    , connections = newConnections
-                    , selectedConnectionIdx = Just idx
-                    , selectedTripIdx = Nothing
-                }
-                    ! [ MapConnectionOverlay.showOverlay model.locale j ]
+                let
+                    trips =
+                        journeyTrips j
+
+                    ( model_, cmds ) =
+                        setRailVizFilter model (Just trips)
+                in
+                    { model_
+                        | connectionDetails =
+                            Maybe.map (ConnectionDetails.init False) journey
+                        , connections = newConnections
+                        , selectedConnectionIdx = Just idx
+                        , selectedTripIdx = Nothing
+                    }
+                        ! [ MapConnectionOverlay.showOverlay model.locale j ]
 
             Nothing ->
                 update (ReplaceLocation Connections) model
@@ -787,29 +794,56 @@ selectConnection model idx =
 
 closeSelectedConnection : Model -> ( Model, Cmd Msg )
 closeSelectedConnection model =
-    { model
-        | connectionDetails = Nothing
-        , selectedConnectionIdx = Nothing
-        , selectedTripIdx = Nothing
-    }
-        ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
-          , MapConnectionOverlay.hideOverlay
-          ]
+    let
+        ( model_, cmds ) =
+            setRailVizFilter model Nothing
+    in
+        { model_
+            | connectionDetails = Nothing
+            , selectedConnectionIdx = Nothing
+            , selectedTripIdx = Nothing
+        }
+            ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
+              , MapConnectionOverlay.hideOverlay
+              , cmds
+              ]
 
 
-showFullTripConnection : Model -> Connection -> ( Model, Cmd Msg )
-showFullTripConnection model connection =
+showFullTripConnection : Model -> TripId -> Connection -> ( Model, Cmd Msg )
+showFullTripConnection model tripId connection =
     let
         journey =
             toJourney connection
 
         tripJourney =
             { journey | isSingleCompleteTrip = True }
+
+        ( model_, cmds ) =
+            setRailVizFilter model (Just [ tripId ])
     in
-        { model
+        { model_
             | connectionDetails = Just (ConnectionDetails.init True tripJourney)
         }
             ! [ MapConnectionOverlay.showOverlay model.locale journey
               , Task.attempt noop <| Scroll.toTop "overlay-content"
               , Task.attempt noop <| Scroll.toTop "connection-journey"
+              , cmds
               ]
+
+
+setRailVizFilter : Model -> Maybe (List TripId) -> ( Model, Cmd Msg )
+setRailVizFilter model filterTrips =
+    let
+        ( map_, cmds ) =
+            Map.update (Map.SetFilter filterTrips) model.map
+
+        model_ =
+            { model | map = map_ }
+    in
+        model_ ! [ Cmd.map MapUpdate cmds ]
+
+
+journeyTrips : Journey -> List TripId
+journeyTrips journey =
+    journey.connection.trips
+        |> List.map .id

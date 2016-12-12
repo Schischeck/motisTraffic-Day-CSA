@@ -1,7 +1,7 @@
 module Widgets.Map
     exposing
         ( Model
-        , Msg
+        , Msg(SetFilter)
         , init
         , view
         , update
@@ -91,7 +91,9 @@ type alias Model =
     , texture : Maybe WebGL.Texture
     , time : Time
     , remoteAddress : String
-    , rvTrains : List RVTrain
+    , allTrains : List RVTrain
+    , filteredTrains : List RVTrain
+    , filterTrips : Maybe (List TripId)
     , hoveredTrain : Maybe Int
     , nextUpdate : Maybe Time
     , debounce : Debounce.State
@@ -110,7 +112,9 @@ init remoteAddress =
     , texture = Nothing
     , time = 0.0
     , remoteAddress = remoteAddress
-    , rvTrains = []
+    , allTrains = []
+    , filteredTrains = []
+    , filterTrips = Nothing
     , hoveredTrain = Nothing
     , nextUpdate = Nothing
     , debounce = Debounce.init
@@ -274,7 +278,6 @@ type Msg
     | MapUpdate MapInfo
     | TextureError WebGL.Error
     | TextureLoaded WebGL.Texture
-    | GenerateDemoTrains Time
     | MouseMove Port.MapMouseUpdate
     | MouseDown Port.MapMouseUpdate
     | MouseUp Port.MapMouseUpdate
@@ -284,6 +287,7 @@ type Msg
     | CheckUpdate Time
     | RequestUpdate
     | Deb (Debounce.Msg Msg)
+    | SetFilter (Maybe (List TripId))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -292,7 +296,7 @@ update msg model =
         Animate t ->
             { model
                 | time = t
-                , rvTrains = List.map (updateCurrentSubSegment t) model.rvTrains
+                , filteredTrains = List.map (updateCurrentSubSegment t) model.filteredTrains
             }
                 ! []
 
@@ -337,7 +341,7 @@ update msg model =
 
                 selectedTrain =
                     model_.hoveredTrain
-                        |> Maybe.andThen (\pickId -> model_.rvTrains !! pickId)
+                        |> Maybe.andThen (\pickId -> model_.filteredTrains !! pickId)
 
                 tripId =
                     selectedTrain
@@ -405,6 +409,19 @@ update msg model =
 
         Deb a ->
             Debounce.update debounceCfg a model
+
+        SetFilter filterTrips ->
+            let
+                _ =
+                    Debug.log "RailViz Filter" filterTrips
+
+                model_ =
+                    { model
+                        | filterTrips = filterTrips
+                        , filteredTrains = applyFilter filterTrips model.allTrains
+                    }
+            in
+                update (Animate model.time) model_
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -481,14 +498,32 @@ handleRailVizTrainsResponse response model =
                     arrStation
                     seg
 
-        rvTrains =
+        allTrains =
             response.trains
                 |> List.indexedMap tryBuildTrain
                 |> List.filterMap identity
+
+        filteredTrains =
+            applyFilter model.filterTrips allTrains
     in
         { model
-            | rvTrains = rvTrains
+            | allTrains = allTrains
+            , filteredTrains = filteredTrains
         }
+
+
+applyFilter : Maybe (List TripId) -> List RVTrain -> List RVTrain
+applyFilter filterTrips allTrains =
+    case filterTrips of
+        Just trips ->
+            let
+                isFiltered train =
+                    List.any (\trip -> List.member trip trips) train.trips
+            in
+                List.filter isFiltered allTrains
+
+        Nothing ->
+            allTrains
 
 
 convertSegment : RailVizSegment -> List ( Vec2, Float )
@@ -593,7 +628,7 @@ overlay attributes model =
             Just tex ->
                 let
                     buffer =
-                        (mesh model.time model.rvTrains)
+                        (mesh model.time model.filteredTrains)
 
                     renderable =
                         render vertexShader
