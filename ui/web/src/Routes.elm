@@ -16,7 +16,6 @@ import Http
 type Route
     = Connections
     | ConnectionDetails Int
-    | ConnectionFullTripDetails Int Int
     | TripDetails String Int Date String Date String
 
 
@@ -25,7 +24,6 @@ urlParser =
     oneOf
         [ map Connections top
         , map ConnectionDetails (s "connection" </> int)
-        , map ConnectionFullTripDetails (s "connection" </> int </> s "trip" </> int)
         , map TripDetails (s "trip" </> string </> int </> date </> string </> date </> encodedString)
         ]
 
@@ -53,9 +51,6 @@ toUrl route =
 
         ConnectionDetails idx ->
             "#/connection/" ++ toString idx
-
-        ConnectionFullTripDetails connIdx tripIdx ->
-            "#/connection/" ++ toString connIdx ++ "/trip/" ++ toString tripIdx
 
         TripDetails station trainNr time targetStation targetTime lineId ->
             "#/trip/"

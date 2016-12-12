@@ -167,7 +167,6 @@ type Msg
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | CloseConnectionDetails
     | PrepareSelectTrip Int
-    | SelectTrip Int Int
     | LoadTrip TripId
     | TripToConnectionError TripId ApiError
     | TripToConnectionResponse TripId Connection
@@ -317,15 +316,7 @@ update msg model =
             closeSelectedConnection model
 
         PrepareSelectTrip tripIdx ->
-            case model.selectedConnectionIdx of
-                Just connIdx ->
-                    update (NavigateTo (ConnectionFullTripDetails connIdx tripIdx)) model
-
-                Nothing ->
-                    model ! []
-
-        SelectTrip connIdx tripIdx ->
-            loadConnectionTrip model connIdx tripIdx
+            selectConnectionTrip model tripIdx
 
         LoadTrip tripId ->
             loadTripById model tripId
@@ -503,11 +494,12 @@ noop =
     \_ -> NoOp
 
 
-loadConnectionTrip : Model -> Int -> Int -> ( Model, Cmd Msg )
-loadConnectionTrip model connIdx tripIdx =
+selectConnectionTrip : Model -> Int -> ( Model, Cmd Msg )
+selectConnectionTrip model tripIdx =
     let
         journey =
-            Connections.getJourney model.connections connIdx
+            model.selectedConnectionIdx
+                |> Maybe.andThen (Connections.getJourney model.connections)
 
         trip =
             journey
@@ -516,14 +508,13 @@ loadConnectionTrip model connIdx tripIdx =
     in
         case trip of
             Just tripId ->
-                { model
-                    | selectedConnectionIdx = Just connIdx
-                    , selectedTripIdx = Just tripIdx
-                }
-                    ! [ sendTripRequest model.apiEndpoint tripId ]
+                update (NavigateTo (tripDetailsRoute tripId))
+                    { model
+                        | selectedTripIdx = Just tripIdx
+                    }
 
             Nothing ->
-                update (ReplaceLocation Connections) model
+                model ! []
 
 
 loadTripById : Model -> TripId -> ( Model, Cmd Msg )
@@ -723,9 +714,6 @@ routeToMsg route =
 
         ConnectionDetails idx ->
             SelectConnection idx
-
-        ConnectionFullTripDetails connIdx tripIdx ->
-            SelectTrip connIdx tripIdx
 
         TripDetails station trainNr time targetStation targetTime lineId ->
             LoadTrip
