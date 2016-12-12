@@ -165,6 +165,7 @@ type Msg
     | SelectConnection Int
     | StoreConnectionListScrollPos Msg Float
     | ConnectionDetailsUpdate ConnectionDetails.Msg
+    | ConnectionDetailsGoBack
     | CloseConnectionDetails
     | PrepareSelectTrip Int
     | LoadTrip TripId
@@ -314,6 +315,21 @@ update msg model =
 
         CloseConnectionDetails ->
             closeSelectedConnection model
+
+        ConnectionDetailsGoBack ->
+            case model.selectedTripIdx of
+                Just _ ->
+                    case model.selectedConnectionIdx of
+                        Just connIdx ->
+                            update (NavigateTo (ConnectionDetails connIdx))
+                                { model | selectedTripIdx = Nothing }
+
+                        Nothing ->
+                            update (NavigateTo Connections)
+                                { model | selectedTripIdx = Nothing }
+
+                Nothing ->
+                    update (NavigateTo Connections) model
 
         PrepareSelectTrip tripIdx ->
             selectConnectionTrip model tripIdx
@@ -519,11 +535,29 @@ selectConnectionTrip model tripIdx =
 
 loadTripById : Model -> TripId -> ( Model, Cmd Msg )
 loadTripById model tripId =
-    { model
-        | selectedConnectionIdx = Nothing
-        , selectedTripIdx = Nothing
-    }
-        ! [ sendTripRequest model.apiEndpoint tripId ]
+    let
+        selectedJourney =
+            model.selectedConnectionIdx
+                |> Maybe.andThen (Connections.getJourney model.connections)
+
+        selectedTrip =
+            Maybe.map2 (\j i -> j.trains !! i) selectedJourney model.selectedTripIdx
+                |> Maybe.Extra.join
+                |> Maybe.andThen .trip
+
+        isConnectionTrip =
+            Maybe.Extra.unwrap False (\t -> t == tripId) selectedTrip
+
+        model_ =
+            if isConnectionTrip then
+                model
+            else
+                { model
+                    | selectedConnectionIdx = Nothing
+                    , selectedTripIdx = Nothing
+                }
+    in
+        model_ ! [ sendTripRequest model.apiEndpoint tripId ]
 
 
 
@@ -665,6 +699,7 @@ detailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
+        , goBackMsg = ConnectionDetailsGoBack
         }
 
 

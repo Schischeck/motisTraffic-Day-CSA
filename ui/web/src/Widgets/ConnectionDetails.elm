@@ -38,6 +38,7 @@ type Config msg
     = Config
         { internalMsg : Msg -> msg
         , selectTripMsg : Int -> msg
+        , goBackMsg : msg
         }
 
 
@@ -50,7 +51,6 @@ init expanded journey =
 
 type Msg
     = ToggleExpand Int
-    | GoBack
 
 
 update : Msg -> State -> ( State, Cmd Msg )
@@ -58,9 +58,6 @@ update msg model =
     case msg of
         ToggleExpand idx ->
             { model | expanded = (toggle model.expanded idx) } ! []
-
-        GoBack ->
-            model ! [ Navigation.back 1 ]
 
 
 toggle : List Bool -> Int -> List Bool
@@ -86,7 +83,7 @@ getJourney state =
 
 
 view : Config msg -> Localization -> Date -> State -> Html msg
-view (Config { internalMsg, selectTripMsg }) locale currentTime { journey, expanded } =
+view (Config { internalMsg, selectTripMsg, goBackMsg }) locale currentTime { journey, expanded } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -124,14 +121,14 @@ view (Config { internalMsg, selectTripMsg }) locale currentTime { journey, expan
                 , "trip-view" => journey.isSingleCompleteTrip
                 ]
             ]
-            [ connectionInfoView internalMsg locale journey.connection
+            [ connectionInfoView goBackMsg locale journey.connection
             , div [ class "connection-journey", id "connection-journey" ]
                 transportsView
             ]
 
 
-connectionInfoView : (Msg -> msg) -> Localization -> Connection -> Html msg
-connectionInfoView internalMsg { t, dateConfig } connection =
+connectionInfoView : msg -> Localization -> Connection -> Html msg
+connectionInfoView goBackMsg { t, dateConfig } connection =
     let
         depTime =
             departureTime connection |> Maybe.withDefault (Date.fromTime 0)
@@ -150,7 +147,7 @@ connectionInfoView internalMsg { t, dateConfig } connection =
     in
         div [ class "connection-info" ]
             [ div [ class "header" ]
-                [ div [ onClick (internalMsg GoBack), class "back" ]
+                [ div [ onClick goBackMsg, class "back" ]
                     [ i [ class "icon" ] [ text "arrow_back" ] ]
                 , div [ class "details" ]
                     [ div [ class "date" ] [ text dateText ]
