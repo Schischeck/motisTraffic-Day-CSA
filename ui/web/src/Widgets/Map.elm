@@ -20,7 +20,7 @@ import Date exposing (Date)
 import AnimationFrame
 import Task exposing (..)
 import Html exposing (Html)
-import Data.Connection.Types exposing (Station, Position)
+import Data.Connection.Types exposing (Station, Position, TripId)
 import Random
 import Bitwise
 import Maybe.Extra exposing (isJust, isNothing)
@@ -39,6 +39,8 @@ import Util.Api as Api
         , MotisErrorDetail
         )
 import Debounce
+import Navigation
+import Routes exposing (..)
 
 
 -- MODEL
@@ -65,6 +67,7 @@ type alias RVTrain =
     , currentSubSegment : Maybe CurrentSubSegment
     , pickId : Int
     , pickColor : Vec3
+    , trips : List TripId
     }
 
 
@@ -351,10 +354,20 @@ update msg model =
                     model_.hoveredTrain
                         |> Maybe.andThen (\pickId -> model_.rvTrains !! pickId)
 
+                tripId =
+                    selectedTrain
+                        |> Maybe.map .trips
+                        |> Maybe.andThen List.head
+
+                cmds =
+                    tripId
+                        |> Maybe.map (\tripId -> Navigation.newUrl (toUrl (tripDetailsRoute tripId)))
+                        |> Maybe.Extra.maybeToList
+
                 _ =
                     Debug.log "MouseDown" selectedTrain
             in
-                model_ ! []
+                model_ ! cmds
 
         MouseUp mapMouseUpdate ->
             let
@@ -462,6 +475,7 @@ handleRailVizTrainsResponse response model =
                 , currentSubSegment = Nothing
                 , pickId = pickId
                 , pickColor = toPickColor pickId
+                , trips = train.trip
                 }
 
         tryBuildTrain : Int -> RailVizTrain -> Maybe RVTrain
@@ -763,6 +777,7 @@ generateDemoTrain topLeft bottomRight currentTime seed0 pickId =
             , currentSubSegment = Nothing
             , pickId = pickId
             , pickColor = pickColor
+            , trips = []
             }
 
         nextSeed =

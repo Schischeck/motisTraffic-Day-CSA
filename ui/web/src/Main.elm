@@ -83,7 +83,7 @@ type alias Model =
 
 
 init : ProgramFlags -> Location -> ( Model, Cmd Msg )
-init flags _ =
+init flags initialLocation =
     let
         locale =
             deLocalization
@@ -105,38 +105,42 @@ init flags _ =
 
         ( toLocationModel, toLocationCmd ) =
             Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
+
+        initialModel =
+            { fromLocation = fromLocationModel
+            , toLocation = toLocationModel
+            , fromTransports = TagList.init
+            , toTransports = TagList.init
+            , date = dateModel
+            , time = timeModel
+            , searchDirection = Forward
+            , map = mapModel
+            , connections = Connections.init remoteAddress
+            , connectionDetails = Nothing
+            , selectedConnectionIdx = Nothing
+            , selectedTripIdx = Nothing
+            , scheduleInfo = Nothing
+            , locale = locale
+            , apiEndpoint = remoteAddress
+            , currentRoutingRequest = Nothing
+            , debounce = Debounce.init
+            , connectionListScrollPos = 0
+            , currentTime = Date.fromTime 0
+            }
+
+        ( model, cmds ) =
+            update (locationToMsg initialLocation) initialModel
     in
-        ( { fromLocation = fromLocationModel
-          , toLocation = toLocationModel
-          , fromTransports = TagList.init
-          , toTransports = TagList.init
-          , date = dateModel
-          , time = timeModel
-          , searchDirection = Forward
-          , map = mapModel
-          , connections = Connections.init remoteAddress
-          , connectionDetails = Nothing
-          , selectedConnectionIdx = Nothing
-          , selectedTripIdx = Nothing
-          , scheduleInfo = Nothing
-          , locale = locale
-          , apiEndpoint = remoteAddress
-          , currentRoutingRequest = Nothing
-          , debounce = Debounce.init
-          , connectionListScrollPos = 0
-          , currentTime = Date.fromTime 0
-          }
-        , Cmd.batch
-            [ Cmd.map DateUpdate dateCmd
-            , Cmd.map TimeUpdate timeCmd
-            , Cmd.map MapUpdate mapCmd
-            , Cmd.map FromLocationUpdate fromLocationCmd
-            , Cmd.map ToLocationUpdate toLocationCmd
-            , requestScheduleInfo remoteAddress
-            , Navigation.modifyUrl (toUrl Connections)
-            , Task.perform UpdateCurrentTime Time.now
-            ]
-        )
+        model
+            ! [ Cmd.map DateUpdate dateCmd
+              , Cmd.map TimeUpdate timeCmd
+              , Cmd.map MapUpdate mapCmd
+              , Cmd.map FromLocationUpdate fromLocationCmd
+              , Cmd.map ToLocationUpdate toLocationCmd
+              , requestScheduleInfo remoteAddress
+              , Task.perform UpdateCurrentTime Time.now
+              , cmds
+              ]
 
 
 
@@ -164,8 +168,9 @@ type Msg
     | CloseConnectionDetails
     | PrepareSelectTrip Int
     | SelectTrip Int Int
-    | TripToConnectionError Int Int ApiError
-    | TripToConnectionResponse Int Int Connection
+    | LoadTrip TripId
+    | TripToConnectionError TripId ApiError
+    | TripToConnectionResponse TripId Connection
     | ScheduleInfoError ApiError
     | ScheduleInfoResponse ScheduleInfo
     | Deb (Debounce.Msg Msg)
@@ -320,9 +325,12 @@ update msg model =
                     model ! []
 
         SelectTrip connIdx tripIdx ->
-            loadTrip model connIdx tripIdx
+            loadConnectionTrip model connIdx tripIdx
 
-        TripToConnectionError connIdx tripIdx err ->
+        LoadTrip tripId ->
+            loadTripById model tripId
+
+        TripToConnectionError tripId err ->
             -- TODO
             let
                 _ =
@@ -330,7 +338,7 @@ update msg model =
             in
                 model ! []
 
-        TripToConnectionResponse connIdx tripIdx connection ->
+        TripToConnectionResponse tripId connection ->
             showFullTripConnection model connection
 
         ScheduleInfoError _ ->
@@ -495,8 +503,8 @@ noop =
     \_ -> NoOp
 
 
-loadTrip : Model -> Int -> Int -> ( Model, Cmd Msg )
-loadTrip model connIdx tripIdx =
+loadConnectionTrip : Model -> Int -> Int -> ( Model, Cmd Msg )
+loadConnectionTrip model connIdx tripIdx =
     let
         journey =
             Connections.getJourney model.connections connIdx
@@ -512,10 +520,19 @@ loadTrip model connIdx tripIdx =
                     | selectedConnectionIdx = Just connIdx
                     , selectedTripIdx = Just tripIdx
                 }
-                    ! [ sendTripRequest model.apiEndpoint connIdx tripIdx tripId ]
+                    ! [ sendTripRequest model.apiEndpoint tripId ]
 
             Nothing ->
                 update (ReplaceLocation Connections) model
+
+
+loadTripById : Model -> TripId -> ( Model, Cmd Msg )
+loadTripById model tripId =
+    { model
+        | selectedConnectionIdx = Nothing
+        , selectedTripIdx = Nothing
+    }
+        ! [ sendTripRequest model.apiEndpoint tripId ]
 
 
 
@@ -674,13 +691,13 @@ requestScheduleInfo remoteAddress =
         ScheduleInfo.request
 
 
-sendTripRequest : String -> Int -> Int -> TripId -> Cmd Msg
-sendTripRequest remoteAddress connIdx tripIdx tripId =
+sendTripRequest : String -> TripId -> Cmd Msg
+sendTripRequest remoteAddress tripId =
     Api.sendRequest
         remoteAddress
         decodeTripToConnectionResponse
-        (TripToConnectionError connIdx tripIdx)
-        (TripToConnectionResponse connIdx tripIdx)
+        (TripToConnectionError tripId)
+        (TripToConnectionResponse tripId)
         (encodeTripToConnection tripId)
 
 
@@ -709,6 +726,16 @@ routeToMsg route =
 
         ConnectionFullTripDetails connIdx tripIdx ->
             SelectTrip connIdx tripIdx
+
+        TripDetails station trainNr time targetStation targetTime lineId ->
+            LoadTrip
+                { station_id = station
+                , train_nr = trainNr
+                , time = time
+                , target_station_id = targetStation
+                , target_time = targetTime
+                , line_id = lineId
+                }
 
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )
