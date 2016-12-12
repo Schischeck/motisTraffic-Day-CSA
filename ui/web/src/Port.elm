@@ -6,6 +6,7 @@ type alias MapInfo =
     , zoom : Float
     , pixelBounds : MapPixelBounds
     , geoBounds : MapGeoBounds
+    , railVizBounds : MapGeoBounds
     }
 
 

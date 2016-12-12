@@ -102,6 +102,7 @@ init remoteAddress =
         , zoom = 0
         , pixelBounds = { north = 0, west = 0, width = 0, height = 0 }
         , geoBounds = { north = 0, west = 0, south = 0, east = 0 }
+        , railVizBounds = { north = 0, west = 0, south = 0, east = 0 }
         }
     , texture = Nothing
     , time = 0.0
@@ -882,33 +883,18 @@ sendTrainRequest model =
         nextUpdate =
             Just (endTime - 10)
 
-        mapNorth =
-            model.mapInfo.geoBounds.north
-
-        mapWest =
-            model.mapInfo.geoBounds.west
-
-        mapSouth =
-            model.mapInfo.geoBounds.south
-
-        mapEast =
-            model.mapInfo.geoBounds.east
-
-        mapWidth =
-            (mapEast - mapWest)
-
-        mapHeight =
-            (mapSouth - mapNorth)
+        bounds =
+            model.mapInfo.railVizBounds
     in
         { model | nextUpdate = nextUpdate }
             ! [ sendRequest model.remoteAddress
                     { corner1 =
-                        { lat = mapNorth - mapHeight
-                        , lng = mapWest - mapWidth
+                        { lat = bounds.north
+                        , lng = bounds.west
                         }
                     , corner2 =
-                        { lat = mapSouth + mapHeight
-                        , lng = mapEast + mapWidth
+                        { lat = bounds.south
+                        , lng = bounds.east
                         }
                     , startTime = Date.fromTime startTime
                     , endTime = Date.fromTime endTime
