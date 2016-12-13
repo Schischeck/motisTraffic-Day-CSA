@@ -96,6 +96,8 @@ type alias Model =
     , hoveredTrain : Maybe Int
     , nextUpdate : Maybe Time
     , debounce : Debounce.State
+    , mouseX : Int
+    , mouseY : Int
     }
 
 
@@ -117,8 +119,12 @@ init remoteAddress =
     , hoveredTrain = Nothing
     , nextUpdate = Nothing
     , debounce = Debounce.init
+    , mouseX = 0
+    , mouseY = 0
     }
-        ! [ mapInit "map" ]
+        ! [ Task.perform SetTime Time.now
+          , mapInit "map"
+          ]
 
 
 mesh : Time -> List RVTrain -> Drawable Vertex
@@ -287,6 +293,7 @@ type Msg
     | RequestUpdate
     | Deb (Debounce.Msg Msg)
     | SetFilter (Maybe (List TripId))
+    | SetTime Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -327,46 +334,33 @@ update msg model =
             ( { model | texture = Just texture }, Cmd.none )
 
         MouseMove mapMouseUpdate ->
-            let
-                model_ =
-                    handleMapMouseUpdate mapMouseUpdate model
-            in
-                model_ ! []
+            handleMapMouseUpdate mapMouseUpdate model
 
         MouseDown mapMouseUpdate ->
             let
-                model_ =
+                ( model_, cmds1 ) =
                     handleMapMouseUpdate mapMouseUpdate model
 
                 selectedTrain =
-                    model_.hoveredTrain
-                        |> Maybe.andThen (\pickId -> model_.filteredTrains !! pickId)
+                    getHoveredTrain model_
 
                 tripId =
                     selectedTrain
                         |> Maybe.map .trips
                         |> Maybe.andThen List.head
 
-                cmds =
+                cmds2 =
                     tripId
                         |> Maybe.map (\tripId -> Navigation.newUrl (toUrl (tripDetailsRoute tripId)))
                         |> Maybe.Extra.maybeToList
             in
-                model_ ! cmds
+                model_ ! (cmds1 :: cmds2)
 
         MouseUp mapMouseUpdate ->
-            let
-                model_ =
-                    handleMapMouseUpdate mapMouseUpdate model
-            in
-                model_ ! []
+            handleMapMouseUpdate mapMouseUpdate model
 
         MouseOut mapMouseUpdate ->
-            let
-                model_ =
-                    handleMapMouseUpdate mapMouseUpdate model
-            in
-                model_ ! []
+            handleMapMouseUpdate mapMouseUpdate model
 
         ReceiveResponse request response ->
             let
@@ -416,6 +410,9 @@ update msg model =
             in
                 update (Animate model.time) model_
 
+        SetTime time ->
+            { model | time = time } ! []
+
 
 debounceCfg : Debounce.Config Model Msg
 debounceCfg =
@@ -426,13 +423,67 @@ debounceCfg =
         500
 
 
-handleMapMouseUpdate : MapMouseUpdate -> Model -> Model
+getHoveredTrain : Model -> Maybe RVTrain
+getHoveredTrain model =
+    model.hoveredTrain
+        |> Maybe.andThen (\pickId -> model.filteredTrains !! pickId)
+
+
+handleMapMouseUpdate : MapMouseUpdate -> Model -> ( Model, Cmd Msg )
 handleMapMouseUpdate mapMouseUpdate model =
     let
         pickId =
             toPickId mapMouseUpdate.color
+
+        mouseX =
+            floor mapMouseUpdate.x
+
+        mouseY =
+            floor mapMouseUpdate.y
+
+        changed =
+            ( model.hoveredTrain, model.mouseX, model.mouseY ) /= ( pickId, mouseX, mouseY )
+
+        tooltipChange =
+            (model.hoveredTrain /= pickId) || (isJust pickId && ( model.mouseX, model.mouseY ) /= ( mouseX, mouseY ))
     in
-        { model | hoveredTrain = pickId }
+        if changed then
+            let
+                model_ =
+                    { model
+                        | hoveredTrain = pickId
+                        , mouseX = floor mapMouseUpdate.x
+                        , mouseY = floor mapMouseUpdate.y
+                    }
+
+                cmds =
+                    if tooltipChange then
+                        [ railVizTooltipCmd model_ ]
+                    else
+                        []
+            in
+                model_ ! cmds
+        else
+            model ! []
+
+
+railVizTooltipCmd : Model -> Cmd Msg
+railVizTooltipCmd model =
+    let
+        selectedTrain =
+            getHoveredTrain model
+    in
+        case selectedTrain of
+            Just train ->
+                mapShowRailVizTooltip
+                    { mapId = "map"
+                    , text = String.join " / " train.names
+                    , x = model.mouseX
+                    , y = model.mouseY
+                    }
+
+            Nothing ->
+                mapHideRailVizTooltip "map"
 
 
 handleRailVizTrainsResponse : RailVizTrainsResponse -> Model -> Model
@@ -593,18 +644,11 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ id "map" ]
-        [ railVizOverlay
-            [ classList
-                [ "railviz-overlay" => True
-                , "train-hover" => isJust model.hoveredTrain
-                ]
-            ]
-            model
-        ]
+        [ railVizOverlay model ]
 
 
-railVizOverlay : List (Html.Attribute Msg) -> Model -> Html Msg
-railVizOverlay attributes model =
+railVizOverlay : Model -> Html Msg
+railVizOverlay model =
     let
         toHtml =
             WebGL.toHtmlWith
@@ -612,7 +656,11 @@ railVizOverlay attributes model =
                 , Disable DepthTest
                 , BlendFunc ( SrcAlpha, OneMinusSrcAlpha )
                 ]
-                attributes
+                [ classList
+                    [ "railviz-overlay" => True
+                    , "train-hover" => isJust model.hoveredTrain
+                    ]
+                ]
     in
         case model.texture of
             Nothing ->

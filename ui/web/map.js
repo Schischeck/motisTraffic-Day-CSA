@@ -111,6 +111,25 @@ var MapOverlays = {
 
 };
 
+var RailVizTooltip = {
+  _tooltip: null,
+
+  show: function(map, spec) {
+    if (!this._tooltip) {
+      this._tooltip = L.tooltip({permanent: true});
+    }
+    var pos = map.containerPointToLatLng(L.point(spec.x, spec.y));
+    this._tooltip.setContent(spec.text);
+    map.openTooltip(this._tooltip, pos);
+  },
+
+  hide: function(map) {
+    if (this._tooltip) {
+      map.closeTooltip(this._tooltip);
+    }
+  }
+};
+
 function initPorts(app) {
   app.ports.mapInit.subscribe(function(id) {
     var map = L.map('map', {zoomControl: false}).setView([49.8728, 8.6512], 14);
@@ -141,6 +160,16 @@ function initPorts(app) {
 
   app.ports.mapClearOverlays.subscribe(function(id) {
     MapOverlays.clearOverlays();
+  });
+
+  app.ports.mapShowRailVizTooltip.subscribe(function(m) {
+    var map = window.elmMaps[m.mapId];
+    RailVizTooltip.show(map, m);
+  });
+
+  app.ports.mapHideRailVizTooltip.subscribe(function(mapId) {
+    var map = window.elmMaps[mapId];
+    RailVizTooltip.hide(map);
   });
 
   var ports = {
