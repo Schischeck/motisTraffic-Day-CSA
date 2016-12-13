@@ -20,6 +20,32 @@ struct relation_routing::impl {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
     std::vector<std::vector<routing_result>> result;
+    for(auto const& f : from){
+      if(f.router_id_ != router_id_){
+        result.push_back({});
+        continue;
+      }
+      auto from_relation_id = (from.id_ >> 32) & 0xFFFF;
+      std::vector<std::vector<routing_result>> from_result;
+      for(auto const& t : to){
+        auto to_relation_id = (to.id_ >> 32) & 0xFFFF;
+        if(t.router_id_ != router_id_ || from_relation_id != to_relation_id){
+          continue;
+        }
+        auto p = std::find_if(begin(polylines_), end(polylines_), [](auto&& p){
+          return p.source_.id_ == from_relation_id;
+        });
+        if(p == end(polylines_)){
+          continue;
+        }
+        auto from_id = (from.id_) & 0xFFFF;
+        auto to_id = (to.id_) & 0xFFFF;
+        polyline polyline;
+        polyline.insert(begin(polyline), begin(p->second.polyline_) + from_id, begin(p->second.polyline_) + to_id + 1);
+        from_result.emplace_back(p->second.source_, length(polyline));
+       } 
+       result.push_back(std::move(from_result));
+    }
     return result;
   }
 
@@ -33,14 +59,27 @@ struct relation_routing::impl {
   }
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to) {
-    return {};
+    auto from_relation_id = (from.id_ >> 32) & 0xFFFF;
+    auto to_relation_id = (to.id_ >> 32) & 0xFFFF;
+    if(from.router_id_ != router_id_ || to.router_id_ != router_id_ || from_relation_id != to_relation_id){
+      return {};
+    }
+    auto p = std::find_if(begin(polylines_), end(polylines_), [](auto&& p){
+      return p.source_.id_ == from_relation_id;
+    });
+    if(p == end(polylines_)){
+      return {};
+    }
+    polyline polyline;
+    polyline.insert(begin(polyline), begin(p->second.polyline_) + ((from.id_) & 0xFFFF), begin(p->second.polyline_) + ((to.id_) & 0xFFFF) + 1);
+    return poly;
   }
 
   std::vector<node_ref> init_refs() {
     std::vector<node_ref> refs;
     for (auto const& p : polylines_) {
-      for (auto const& latlng : p.polyline_) {
-        refs.emplace_back(latlng);
+      for (auto i = 0u; i < p.polyline_.size(); ++i) {
+        refs.emplace_back(((p.source_.id_ << 32) | i), p.polyline_[i]);
       }
     }
     return refs;
