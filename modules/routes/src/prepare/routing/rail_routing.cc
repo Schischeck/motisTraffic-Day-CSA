@@ -28,7 +28,7 @@ struct rail_routing::impl {
     return result;
   }
 
-  std::vector<node_ref> close_nodes(node_ref const& station) {
+  std::vector<node_ref> close_nodes(geo::latlng const& latlng) {
     std::vector<node_ref> refs;
     return refs;
   }
@@ -40,8 +40,7 @@ struct rail_routing::impl {
 };
 
 rail_routing::rail_routing(std::size_t router_id, std::string path)
-    : routing_strategy(router_id),
-      impl_(std::make_unique<rail_routing::impl>(router_id, path)) {}
+    : impl_(std::make_unique<rail_routing::impl>(router_id, path)) {}
 rail_routing::~rail_routing() = default;
 
 std::vector<std::vector<routing_result>> rail_routing::find_routes(
@@ -49,8 +48,8 @@ std::vector<std::vector<routing_result>> rail_routing::find_routes(
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> rail_routing::close_nodes(node_ref const& station) {
-  return impl_->close_nodes(station);
+std::vector<node_ref> rail_routing::close_nodes(geo::latlng const& latlng) {
+  return impl_->close_nodes(latlng);
 }
 
 geo::polyline rail_routing::get_polyline(node_ref const& from,

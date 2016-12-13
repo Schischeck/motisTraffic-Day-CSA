@@ -19,67 +19,63 @@ struct relation_routing::impl {
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
-    std::vector<std::vector<routing_result>> result;
-    for(auto const& f : from){
-      if(f.router_id_ != router_id_){
+    std::vector<std::vector<routing_result>> result{from.size()};
+    for (auto const& f : from) {
+      if (f.router_id_ != router_id_) {
         result.push_back({});
         continue;
       }
-      auto from_relation_id = (from.id_ >> 32) & 0xFFFF;
-      std::vector<std::vector<routing_result>> from_result;
-      for(auto const& t : to){
-        auto to_relation_id = (to.id_ >> 32) & 0xFFFF;
-        if(t.router_id_ != router_id_ || from_relation_id != to_relation_id){
+      std::vector<routing_result> from_result;
+      for (auto const& t : to) {
+        if (t.router_id_ != router_id_ ||
+            f.id_.relation_id_ != t.id_.relation_id_) {
           continue;
         }
-        auto p = std::find_if(begin(polylines_), end(polylines_), [](auto&& p){
-          return p.source_.id_ == from_relation_id;
-        });
-        if(p == end(polylines_)){
-          continue;
-        }
-        auto from_id = (from.id_) & 0xFFFF;
-        auto to_id = (to.id_) & 0xFFFF;
-        polyline polyline;
-        polyline.insert(begin(polyline), begin(p->second.polyline_) + from_id, begin(p->second.polyline_) + to_id + 1);
-        from_result.emplace_back(p->second.source_, length(polyline));
-       } 
-       result.push_back(std::move(from_result));
+        auto p = polylines_[f.id_.relation_id_];
+        from_result.emplace_back(p.source_, router_id_, 0);
+      }
+      result.push_back(std::move(from_result));
     }
     return result;
   }
 
-  std::vector<node_ref> close_nodes(node_ref const& station) {
+  std::vector<node_ref> close_nodes(geo::latlng const& latlng) {
     std::vector<node_ref> result;
-    for (auto const& idx : rtree_.in_radius_with_distance(
-             station.coords_.lat_, station.coords_.lng_, kMatchRadius)) {
-      result.push_back(refs_[idx.second]);
+    auto nodes =
+        rtree_.in_radius_with_distance(latlng.lat_, latlng.lng_, kMatchRadius);
+    std::vector<std::size_t> visited;
+    for (auto i = 0u; i < (nodes.size() < 5 ? nodes.size() : 5); ++i) {
+      auto& ref = refs_[nodes[i].second];
+      if (std::find(begin(visited), end(visited), ref.id_.relation_id_) !=
+          end(visited)) {
+        continue;
+      }
+      visited.push_back(ref.id_.relation_id_);
+      result.push_back(refs_[nodes[i].second]);
     }
     return result;
   }
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to) {
-    auto from_relation_id = (from.id_ >> 32) & 0xFFFF;
-    auto to_relation_id = (to.id_ >> 32) & 0xFFFF;
-    if(from.router_id_ != router_id_ || to.router_id_ != router_id_ || from_relation_id != to_relation_id){
+    if (from.router_id_ != router_id_ || to.router_id_ != router_id_ ||
+        from.id_.relation_id_ != to.id_.relation_id_) {
       return {};
     }
-    auto p = std::find_if(begin(polylines_), end(polylines_), [](auto&& p){
-      return p.source_.id_ == from_relation_id;
-    });
-    if(p == end(polylines_)){
-      return {};
-    }
-    polyline polyline;
-    polyline.insert(begin(polyline), begin(p->second.polyline_) + ((from.id_) & 0xFFFF), begin(p->second.polyline_) + ((to.id_) & 0xFFFF) + 1);
-    return poly;
+    auto p = polylines_[from.id_.relation_id_];
+    geo::polyline polyline;
+    polyline.insert(
+        begin(polyline),
+        begin(p.polyline_) + std::min(from.id_.id_, to.id_.id_),
+        begin(p.polyline_) + std::max(from.id_.id_, to.id_.id_) + 1);
+    return polyline;
   }
 
   std::vector<node_ref> init_refs() {
     std::vector<node_ref> refs;
-    for (auto const& p : polylines_) {
-      for (auto i = 0u; i < p.polyline_.size(); ++i) {
-        refs.emplace_back(((p.source_.id_ << 32) | i), p.polyline_[i]);
+    for (auto i = 0u; i < polylines_.size(); ++i) {
+      for (auto j = 0u; j < polylines_[i].polyline_.size(); ++j) {
+        refs.emplace_back(polylines_[i].polyline_[j], node_ref_id(i, j),
+                          router_id_);
       }
     }
     return refs;
@@ -91,7 +87,6 @@ struct relation_routing::impl {
     });
   }
 
-  size_t id_ = 0;
   size_t router_id_;
   std::vector<aggregated_polyline> polylines_;
   std::vector<node_ref> refs_;
@@ -100,8 +95,7 @@ struct relation_routing::impl {
 
 relation_routing::relation_routing(
     std::size_t router_id, std::vector<aggregated_polyline> const& polylines)
-    : routing_strategy(router_id),
-      impl_(std::make_unique<relation_routing::impl>(router_id, polylines)) {}
+    : impl_(std::make_unique<relation_routing::impl>(router_id, polylines)) {}
 relation_routing::~relation_routing() = default;
 
 std::vector<std::vector<routing_result>> relation_routing::find_routes(
@@ -109,8 +103,8 @@ std::vector<std::vector<routing_result>> relation_routing::find_routes(
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> relation_routing::close_nodes(node_ref const& station) {
-  return impl_->close_nodes(station);
+std::vector<node_ref> relation_routing::close_nodes(geo::latlng const& latlng) {
+  return impl_->close_nodes(latlng);
 }
 
 geo::polyline relation_routing::get_polyline(node_ref const& from,

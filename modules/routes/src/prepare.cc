@@ -92,29 +92,28 @@ int main(int argc, char** argv) {
 
   auto const& profile = directory.filename().string();
   motis::logging::scoped_timer timer("loading OSRM dataset: " + profile);
-  prepare_data data;
   auto const schedule_buf = file(schedule_file.string().c_str(), "r").content();
   auto const schedule = GetSchedule(schedule_buf.buf_);
-  data.stop_positions_ = find_bus_stop_positions(schedule, opt.osm_);
+  auto stop_positions = find_bus_stop_positions(schedule, opt.osm_);
 
-  data.sequences_ = load_station_sequences(schedule);
-
+  auto sequences = load_station_sequences(schedule);
+  motis::logging::manual_timer poly_timer("loading poly");
   auto const extent_polygon = geo::read_poly_file(opt.extent_);
+  poly_timer.stop_and_print();
+  sequences.erase(std::remove_if(begin(sequences), end(sequences),
+                                 [&](auto const& seq) {
+                                   if (std::any_of(begin(seq.coordinates_),
+                                                   end(seq.coordinates_),
+                                                   [&](auto const& coord) {
+                                                     return !geo::within(
+                                                         coord, extent_polygon);
+                                                   })) {
+                                     return true;
+                                   }
 
-  data.sequences_.erase(
-      std::remove_if(begin(data.sequences_), end(data.sequences_),
-                     [&](auto const& seq) {
-                       if (std::any_of(
-                               begin(seq.coordinates_), end(seq.coordinates_),
-                               [&](auto const& coord) {
-                                 return !geo::within(coord, extent_polygon);
-                               })) {
-                         return true;
-                       }
-
-                       return false;
-                     }),
-      end(data.sequences_));
+                                   return false;
+                                 }),
+                  end(sequences));
 
   auto const relations = parse_relations(opt.osm_);
   LOG(motis::logging::info) << "found " << relations.relations_.size()
@@ -122,16 +121,8 @@ int main(int argc, char** argv) {
   auto const polylines = aggregate_polylines(relations.relations_);
 
   rocksdb_database db(opt.out_);
-  strategies routing_strategies;
-  auto osrm = std::make_unique<osrm_routing>(0, opt.osrm_);
-  auto stub = std::make_unique<stub_routing>(1);
-  auto relation = std::make_unique<relation_routing>(0, polylines);
-  routing_strategies.strategies_.push_back(std::move(stub));
-  routing_strategies.strategies_.push_back(std::move(osrm));
-  routing_strategies.class_to_strategy_.emplace(
-      source_spec::category::UNKNOWN, routing_strategies.strategies_[0].get());
-  routing_strategies.class_to_strategy_.emplace(
-      source_spec::category::BUS, routing_strategies.strategies_[1].get());
-
-  // prepare(data, routing_strategies, db, opt.osm_);
+  strategies routing_strategies(
+      std::make_unique<stub_routing>(0),
+      std::make_unique<relation_routing>(1, polylines));
+  strategy_prepare(sequences, routing_strategies, db);
 }

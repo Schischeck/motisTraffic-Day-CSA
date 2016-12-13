@@ -11,15 +11,13 @@ struct stub_routing::impl {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
     std::vector<std::vector<routing_result>> result;
-    for (auto& f : from) {
+    for (auto const& f : from) {
       std::vector<routing_result> from_result;
-
-      for (auto& t : to) {
-        source_spec s(id_, source_spec::category::UNKNOWN,
-                      source_spec::type::STUB_ROUTE);
-        s.router_id_ = router_id_;
-        from_result.emplace_back(s, distance(f.coords_, t.coords_));
-        id_++;
+      for (auto const& t : to) {
+        source_spec s{0, source_spec::category::UNKNOWN,
+                      source_spec::type::STUB_ROUTE};
+        from_result.emplace_back(s, router_id_,
+                                 distance(f.coords_, t.coords_) + 42);
       }
 
       result.emplace_back(std::move(from_result));
@@ -27,9 +25,9 @@ struct stub_routing::impl {
     return result;
   }
 
-  std::vector<node_ref> close_nodes(node_ref const& station) {
+  std::vector<node_ref> close_nodes(geo::latlng const& latlng) {
     std::vector<node_ref> result;
-    result.push_back(station);
+    result.emplace_back(latlng, node_ref_id{}, router_id_);
     return result;
   }
 
@@ -37,13 +35,11 @@ struct stub_routing::impl {
     return {from.coords_, to.coords_};
   }
 
-  size_t id_ = 0;
   size_t router_id_;
 };
 
 stub_routing::stub_routing(std::size_t router_id)
-    : routing_strategy(router_id),
-      impl_(std::make_unique<stub_routing::impl>(router_id)) {}
+    : impl_(std::make_unique<stub_routing::impl>(router_id)) {}
 stub_routing::~stub_routing() = default;
 
 std::vector<std::vector<routing_result>> stub_routing::find_routes(
@@ -51,8 +47,8 @@ std::vector<std::vector<routing_result>> stub_routing::find_routes(
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> stub_routing::close_nodes(node_ref const& station) {
-  return impl_->close_nodes(station);
+std::vector<node_ref> stub_routing::close_nodes(geo::latlng const& latlng) {
+  return impl_->close_nodes(latlng);
 }
 
 geo::polyline stub_routing::get_polyline(node_ref const& from,

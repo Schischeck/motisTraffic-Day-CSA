@@ -15,7 +15,7 @@ struct rail_routing : public routing_strategy {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to);
 
-  std::vector<node_ref> close_nodes(node_ref const& station);
+  std::vector<node_ref> close_nodes(geo::latlng const& latlng);
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to);
 

@@ -1,10 +1,13 @@
 #include "motis/routes/prepare/prepare_data.h"
 
+#include "parser/util.h"
+
 #include "motis/core/common/logging.h"
 
 #include "motis/routes/db/db_builder.h"
 #include "motis/routes/db/kv_database.h"
 #include "motis/routes/prepare/parallel_for.h"
+#include "motis/routes/prepare/rail/geojson.h"
 #include "motis/routes/prepare/rel/relation_matcher.h"
 #include "motis/routes/prepare/seq/seq_graph_builder.h"
 #include "motis/routes/prepare/seq/seq_graph_dijkstra.h"
@@ -17,23 +20,41 @@ using namespace motis::routes;
 namespace motis {
 namespace routes {
 
-void prepare(prepare_data& data, strategies& routing_strategies,
-             kv_database& db, std::string const& osm) {
+void strategy_prepare(std::vector<station_seq> const& sequences,
+                      strategies& routing_strategies, kv_database& db) {
   motis::logging::manual_timer timer("preparing data");
-  auto const rel_matches =
-      match_osm_relations(osm, data.sequences_, data.stop_positions_);
+
   db_builder builder(db);
-  std::vector<std::pair<station_seq, std::vector<match_seq>>> results;
-  for (auto i = 0u; i < data.sequences_.size(); ++i) {
-    results.emplace_back(data.sequences_[i], rel_matches[i]);
+  std::vector<station_seq> s;
+  for (auto const seq : sequences) {
+    if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "0104736") !=
+        end(seq.station_ids_)) {
+      s.push_back(seq);
+      break;
+    }
   }
-  parallel_for("searching routes", results, 250, [&](auto const& r) {
-    auto const& seq = r.first;
-    auto const& relations = r.second;
+  parallel_for("searching routes", sequences, 250, [&](auto const& seq) {
 
     for (auto const& category_group : category_groups(seq.categories_)) {
-      auto const g = build_seq_graph(category_group.first, seq, relations,
-                                     routing_strategies);
+      auto strategies =
+          get_strategies(routing_strategies, category_group.first);
+      auto const g = build_seq_graph(seq, strategies);
+
+      // for (auto const& nodes : g.station_to_nodes_) {
+      //   std::cout << "\nStation "
+      //             << (nodes.size() > 0 ? nodes[0]->station_idx_ : -1) << ":
+      //             ";
+      //   for (auto const& n : nodes) {
+      //     std::cout << "\n\t Node " << n->idx_ << ":\n";
+      //     for (auto const& e : n->edges_) {
+      //       std::cout << "\n(" << n->idx_ << "|" << e.to_->idx_
+      //                 << "| w: " << e.weight_ << ") ("
+      //                 << e.from_->ref_.router_id_ << "|"
+      //                 << e.to_->ref_.router_id_ << ")";
+      //     }
+      //   }
+      // }
+
       seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
       dijkstra.run();
 
@@ -52,20 +73,28 @@ void prepare(prepare_data& data, strategies& routing_strategies,
         sequence_info info;
         info.idx_ = edge->from_->station_idx_;
         info.from_ = lines[edge->from_->station_idx_].size();
-        if (edge->p_.empty()) {
-          append(lines[edge->from_->station_idx_],
-                 routing_strategies.strategies_[edge->source_.router_id_]
-                     ->get_polyline(edge->from_->ref_, edge->to_->ref_));
-        } else {
-          append(lines[edge->from_->station_idx_], edge->p_);
-        }
+        // std::cout << "\n(" << edge->from_->idx_ << "|" << edge->to_->idx_
+        //           << "| w: " << edge->weight_ << ") "
+        //           << "(" << edge->from_->ref_.router_id_ << "|"
+        //           << edge->to_->ref_.router_id_ << ")";
+        verify(edge->from_->ref_.id_.relation_id_ ==
+                       edge->to_->ref_.id_.relation_id_ &&
+                   edge->router_id() != 0 &&
+                   edge->from_->ref_.router_id_ == edge->to_->ref_.router_id_ &&
+                   edge->router_id() == edge->from_->ref_.router_id_ &&
+                   edge->router_id() == edge->to_->ref_.router_id_,
+               "error prepare");
+        append(lines[edge->from_->station_idx_],
+               routing_strategies.strategies_[edge->router_id()]->get_polyline(
+                   edge->from_->ref_, edge->to_->ref_));
 
         info.to_ = lines[edge->from_->station_idx_].size();
-        info.type_ = edge->source_.type_ == source_spec::type::OSRM_ROUTE
-                         ? "OSRM"
-                         : edge->source_.type_ == source_spec::type::STUB_ROUTE
-                               ? "STUB"
-                               : "RELATION";
+        info.type_ =
+            edge->source_spec().type_ == source_spec::type::OSRM_ROUTE
+                ? "OSRM"
+                : edge->source_spec().type_ == source_spec::type::STUB_ROUTE
+                      ? "STUB"
+                      : "RELATION";
         sequence_infos.push_back(info);
       }
       builder.append(seq.station_ids_, category_group.second, lines,
@@ -77,13 +106,13 @@ void prepare(prepare_data& data, strategies& routing_strategies,
   timer.stop_and_print();
 }
 
-routing_strategy* get_strategy(strategies const& routing_strategies,
-                               source_spec::category const& category) {
-  auto it = routing_strategies.class_to_strategy_.find(category);
-  if (it == end(routing_strategies.class_to_strategy_)) {
-    return routing_strategies.strategies_[0].get();
-  }
-  return it->second;
+std::vector<routing_strategy*> get_strategies(
+    strategies const& routing_strategies,
+    source_spec::category const& category) {
+  std::vector<routing_strategy*> strategies;
+  strategies.push_back(routing_strategies.relation_strategy_.get());
+  strategies.push_back(routing_strategies.stub_strategy_.get());
+  return strategies;
 }
 
 }  // namespace routes

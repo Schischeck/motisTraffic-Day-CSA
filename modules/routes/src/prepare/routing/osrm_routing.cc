@@ -62,6 +62,9 @@ struct osrm_routing::impl {
   }
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to) {
+    if (from.router_id_ != router_id_ || to.router_id_ != router_id_) {
+      return {};
+    }
     RouteParameters params;
     params.geometries = RouteParameters::GeometriesType::CoordVec1D;
     params.overview = RouteParameters::OverviewType::Full;
@@ -97,13 +100,19 @@ struct osrm_routing::impl {
     auto to_coords = transform_to_vec(begin(to), end(to),
                                       [&](auto const& t) { return t.coords_; });
     for (auto f : from) {
+      if (f.router_id_ != router_id_) {
+        result.push_back({});
+        continue;
+      }
       std::vector<routing_result> from_result;
       auto costs = one_to_many(f.coords_, to_coords);
       for (auto i = 0u; i < to_coords.size(); ++i) {
+        if (to[i].router_id_ != router_id_) {
+          continue;
+        }
         source_spec s(id_, source_spec::category::BUS,
                       source_spec::type::OSRM_ROUTE);
-        s.router_id_ = router_id_;
-        from_result.emplace_back(s, costs[i]);
+        from_result.emplace_back(s, router_id_, costs[i]);
         id_++;
       }
       result.push_back(std::move(from_result));
@@ -111,10 +120,10 @@ struct osrm_routing::impl {
     return result;
   }
 
-  std::vector<node_ref> close_nodes(node_ref const& station) {
+  std::vector<node_ref> close_nodes(geo::latlng const& latlng) {
     NearestParameters params;
     params.number_of_results = 3;
-    params.coordinates.push_back(make_coord(station.coords_));
+    params.coordinates.push_back(make_coord(latlng));
 
     Object result;
     auto const status = osrm_->Nearest(params, result);
@@ -127,7 +136,8 @@ struct osrm_routing::impl {
       auto const waypoint_location =
           waypoint_object.values.at("location").get<json::Array>().values;
       node_ref ref({waypoint_location[1].get<json::Number>().value,
-                    waypoint_location[0].get<json::Number>().value});
+                    waypoint_location[0].get<json::Number>().value},
+                   node_ref_id(id_), router_id_);
       refs.emplace_back(ref);
     }
     return refs;
@@ -139,8 +149,7 @@ struct osrm_routing::impl {
 };
 
 osrm_routing::osrm_routing(std::size_t router_id, std::string path)
-    : routing_strategy(router_id),
-      impl_(std::make_unique<osrm_routing::impl>(router_id, path)) {}
+    : impl_(std::make_unique<osrm_routing::impl>(router_id, path)) {}
 osrm_routing::~osrm_routing() = default;
 
 std::vector<std::vector<routing_result>> osrm_routing::find_routes(
@@ -148,8 +157,8 @@ std::vector<std::vector<routing_result>> osrm_routing::find_routes(
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> osrm_routing::close_nodes(node_ref const& station) {
-  return impl_->close_nodes(station);
+std::vector<node_ref> osrm_routing::close_nodes(geo::latlng const& latlng) {
+  return impl_->close_nodes(latlng);
 }
 
 geo::polyline osrm_routing::get_polyline(node_ref const& from,

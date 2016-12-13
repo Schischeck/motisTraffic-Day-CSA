@@ -25,15 +25,16 @@ struct seq_node {
 };
 
 struct seq_edge {
-  seq_edge(seq_node* from, seq_node* to, geo::polyline p, source_spec s,
-           double weight)
-      : from_(from), to_(to), p_(std::move(p)), source_(s), weight_(weight) {}
+  seq_edge(seq_node* from, seq_node* to, routing_result routing)
+      : from_(from), to_(to), routing_(std::move(routing)) {}
+
+  double weight() const { return routing_.weight_; }
+  size_t router_id() const { return routing_.router_id_; }
+  source_spec source_spec() const { return routing_.source_; }
 
   seq_node* from_;
   seq_node* to_;
-  geo::polyline p_;
-  source_spec source_;
-  double weight_;
+  routing_result routing_;
 };
 
 struct seq_graph {

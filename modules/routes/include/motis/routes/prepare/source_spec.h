@@ -15,7 +15,6 @@ struct source_spec {
       : id_(id), category_(c), type_(t) {}
 
   int64_t id_;
-  size_t router_id_;
   category category_;
   type type_;
 };
