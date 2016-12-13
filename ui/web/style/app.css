@@ -45,11 +45,11 @@
   order: 2;
 }
 
-.leaflet-overlay {
+.railviz-overlay {
   z-index: 1;
 }
 
-.leaflet-overlay.train-hover {
+.railviz-overlay.train-hover {
   cursor: pointer;
 }
 

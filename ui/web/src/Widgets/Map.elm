@@ -21,7 +21,6 @@ import AnimationFrame
 import Task exposing (..)
 import Html exposing (Html)
 import Data.Connection.Types exposing (Station, Position, TripId)
-import Random
 import Bitwise
 import Maybe.Extra exposing (isJust, isNothing)
 import Util.Core exposing ((=>))
@@ -352,9 +351,6 @@ update msg model =
                     tripId
                         |> Maybe.map (\tripId -> Navigation.newUrl (toUrl (tripDetailsRoute tripId)))
                         |> Maybe.Extra.maybeToList
-
-                _ =
-                    Debug.log "MouseDown" selectedTrain
             in
                 model_ ! cmds
 
@@ -412,9 +408,6 @@ update msg model =
 
         SetFilter filterTrips ->
             let
-                _ =
-                    Debug.log "RailViz Filter" filterTrips
-
                 model_ =
                     { model
                         | filterTrips = filterTrips
@@ -600,9 +593,9 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ id "map" ]
-        [ overlay
+        [ railVizOverlay
             [ classList
-                [ "leaflet-overlay" => True
+                [ "railviz-overlay" => True
                 , "train-hover" => isJust model.hoveredTrain
                 ]
             ]
@@ -610,8 +603,8 @@ view model =
         ]
 
 
-overlay : List (Html.Attribute Msg) -> Model -> Html Msg
-overlay attributes model =
+railVizOverlay : List (Html.Attribute Msg) -> Model -> Html Msg
+railVizOverlay attributes model =
     let
         toHtml =
             WebGL.toHtmlWith

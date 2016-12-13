@@ -130,7 +130,7 @@ function initPorts(app) {
     window.elmMaps[id] = map;
 
     var c = new CanvasOverlay();
-    c._el = map.getContainer().querySelector('.leaflet-overlay');
+    c._el = map.getContainer().querySelector('.railviz-overlay');
     map.addLayer(c);
   });
 
