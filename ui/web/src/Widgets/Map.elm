@@ -8,8 +8,8 @@ module Widgets.Map
         , subscriptions
         )
 
-import Html exposing (Html, Attribute, div, text)
-import Html.Attributes exposing (id, class, classList)
+import Html exposing (Html, Attribute, div, text, span)
+import Html.Attributes exposing (id, class, classList, style)
 import Port exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
@@ -40,6 +40,7 @@ import Util.Api as Api
 import Debounce
 import Navigation
 import Routes exposing (..)
+import Util.DateFormat exposing (formatTime)
 
 
 -- MODEL
@@ -426,7 +427,7 @@ debounceCfg =
 getHoveredTrain : Model -> Maybe RVTrain
 getHoveredTrain model =
     model.hoveredTrain
-        |> Maybe.andThen (\pickId -> model.filteredTrains !! pickId)
+        |> Maybe.andThen (\pickId -> model.allTrains !! pickId)
 
 
 handleMapMouseUpdate : MapMouseUpdate -> Model -> ( Model, Cmd Msg )
@@ -443,9 +444,6 @@ handleMapMouseUpdate mapMouseUpdate model =
 
         changed =
             ( model.hoveredTrain, model.mouseX, model.mouseY ) /= ( pickId, mouseX, mouseY )
-
-        tooltipChange =
-            (model.hoveredTrain /= pickId) || (isJust pickId && ( model.mouseX, model.mouseY ) /= ( mouseX, mouseY ))
     in
         if changed then
             let
@@ -455,35 +453,10 @@ handleMapMouseUpdate mapMouseUpdate model =
                         , mouseX = floor mapMouseUpdate.x
                         , mouseY = floor mapMouseUpdate.y
                     }
-
-                cmds =
-                    if tooltipChange then
-                        [ railVizTooltipCmd model_ ]
-                    else
-                        []
             in
-                model_ ! cmds
+                model_ ! []
         else
             model ! []
-
-
-railVizTooltipCmd : Model -> Cmd Msg
-railVizTooltipCmd model =
-    let
-        selectedTrain =
-            getHoveredTrain model
-    in
-        case selectedTrain of
-            Just train ->
-                mapShowRailVizTooltip
-                    { mapId = "map"
-                    , text = String.join " / " train.names
-                    , x = model.mouseX
-                    , y = model.mouseY
-                    }
-
-            Nothing ->
-                mapHideRailVizTooltip "map"
 
 
 handleRailVizTrainsResponse : RailVizTrainsResponse -> Model -> Model
@@ -643,8 +616,13 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ id "map" ]
-        [ railVizOverlay model ]
+    div [ class "map-container" ]
+        [ div [ class "inner-map-container" ]
+            [ div [ id "map" ]
+                [ railVizOverlay model ]
+            , railVizTooltip model
+            ]
+        ]
 
 
 railVizOverlay : Model -> Html Msg
@@ -690,6 +668,110 @@ railVizOverlay model =
                             }
                 in
                     toHtml [ renderable ] [ offscreenRenderable ]
+
+
+railVizTooltip : Model -> Html Msg
+railVizTooltip model =
+    let
+        maybeTrain =
+            getHoveredTrain model
+    in
+        case maybeTrain of
+            Just train ->
+                railVizTrainTooltip model train
+
+            Nothing ->
+                div [ class "railviz-tooltip hidden" ] []
+
+
+railVizTrainTooltip : Model -> RVTrain -> Html Msg
+railVizTrainTooltip model train =
+    let
+        ttWidth =
+            240
+
+        ttHeight =
+            55
+
+        margin =
+            20
+
+        x =
+            (model.mouseX - (ttWidth // 2))
+                |> max margin
+                |> min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
+
+        below =
+            model.mouseY + margin + ttHeight < floor model.mapInfo.pixelBounds.height
+
+        y =
+            if below then
+                model.mouseY + margin
+            else
+                (floor model.mapInfo.pixelBounds.height) - (model.mouseY - margin)
+
+        yAnchor =
+            if below then
+                "top"
+            else
+                "bottom"
+
+        trainName =
+            String.join " / " train.names
+
+        schedDep =
+            Date.fromTime train.scheduledDepartureTime
+
+        schedArr =
+            Date.fromTime train.scheduledArrivalTime
+
+        depDelay =
+            ceiling ((train.departureTime - train.scheduledDepartureTime) / 60000)
+
+        arrDelay =
+            ceiling ((train.arrivalTime - train.scheduledArrivalTime) / 60000)
+    in
+        div
+            [ class "railviz-tooltip visible"
+            , style
+                [ yAnchor => (toString y ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
+            ]
+            [ div [ class "transport-name" ] [ text trainName ]
+            , div [ class "departure" ]
+                [ span [ class "station" ] [ text train.departureStation.station.name ]
+                , div [ class "time" ]
+                    [ span [ class "schedule" ] [ text (formatTime schedDep) ]
+                    , delayView depDelay
+                    ]
+                ]
+            , div [ class "arrival" ]
+                [ span [ class "station" ] [ text train.arrivalStation.station.name ]
+                , div [ class "time" ]
+                    [ span [ class "schedule" ] [ text (formatTime schedArr) ]
+                    , delayView arrDelay
+                    ]
+                ]
+            ]
+
+
+delayView : Int -> Html Msg
+delayView minutes =
+    let
+        delayType =
+            if minutes > 0 then
+                "delay pos-delay"
+            else
+                "delay neg-delay"
+
+        delayText =
+            if minutes >= 0 then
+                "+" ++ (toString minutes)
+            else
+                toString minutes
+    in
+        span [ class delayType ] [ text delayText ]
 
 
 perspective : Model -> Mat4

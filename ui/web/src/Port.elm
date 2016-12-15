@@ -50,14 +50,6 @@ type alias MapOverlayOptions =
     }
 
 
-type alias RailVizTooltip =
-    { mapId : String
-    , text : String
-    , x : Int
-    , y : Int
-    }
-
-
 port mapInit : String -> Cmd msg
 
 
@@ -74,12 +66,6 @@ port mapClearOverlays : String -> Cmd msg
 
 
 port setRoutingResponses : (List ( String, String ) -> msg) -> Sub msg
-
-
-port mapShowRailVizTooltip : RailVizTooltip -> Cmd msg
-
-
-port mapHideRailVizTooltip : String -> Cmd msg
 
 
 
