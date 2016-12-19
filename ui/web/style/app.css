@@ -113,12 +113,18 @@
   min-width: 50px;
 }
 
+.railviz-tooltip .time .delay {
+  padding-left: 4px;
+}
+
 .sim-time-overlay {
   position: absolute;
   bottom: 15px;
-  right: 5px;
+  right: 0px;
+  padding: 0 5px;
   pointer-events: none;
   font-size: 14px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 #search, #connections {
