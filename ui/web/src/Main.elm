@@ -460,10 +460,16 @@ update msg model =
                 newDate =
                     getCurrentDate model1
 
-                ( model2, cmds ) =
+                ( model2, cmds1 ) =
                     update (MapUpdate (Map.SetTimeOffset offset)) model1
+
+                ( model3, cmds2 ) =
+                    update (DateUpdate (Calendar.InitDate newDate)) model2
+
+                ( model4, cmds3 ) =
+                    update (TimeUpdate (TimeInput.InitDate newDate)) model3
             in
-                model2 ! [ cmds ]
+                model4 ! [ cmds1, cmds2, cmds3 ]
 
 
 buildRoutingRequest : Model -> RoutingRequest
