@@ -103,6 +103,7 @@ type alias Model =
     , debounce : Debounce.State
     , mouseX : Int
     , mouseY : Int
+    , zoomOverride : Maybe Float
     }
 
 
@@ -128,6 +129,7 @@ init remoteAddress =
     , debounce = Debounce.init
     , mouseX = 0
     , mouseY = 0
+    , zoomOverride = Nothing
     }
         ! [ Task.perform SetTime Time.now
           , mapInit "map"
@@ -298,6 +300,11 @@ toRVStation station =
     }
 
 
+filteredZoomOverride : number
+filteredZoomOverride =
+    13
+
+
 
 -- UPDATE
 
@@ -437,6 +444,7 @@ update msg model =
                     { model
                         | filterTrips = filterTrips
                         , filteredTrains = applyFilter filterTrips model.allTrains
+                        , zoomOverride = Maybe.map (always filteredZoomOverride) filterTrips
                     }
             in
                 update (Animate model.time) model_
@@ -692,13 +700,17 @@ railVizOverlay model =
                     buffer =
                         (mesh model.time model.filteredTrains)
 
+                    zoom =
+                        model.zoomOverride
+                            |> Maybe.withDefault model.mapInfo.zoom
+
                     renderable =
                         render vertexShader
                             fragmentShader
                             buffer
                             { texture = tex
                             , perspective = perspective model
-                            , zoom = model.mapInfo.zoom
+                            , zoom = zoom
                             }
 
                     offscreenRenderable =
@@ -707,7 +719,7 @@ railVizOverlay model =
                             buffer
                             { texture = tex
                             , perspective = perspective model
-                            , zoom = model.mapInfo.zoom
+                            , zoom = zoom
                             }
                 in
                     toHtml [ renderable ] [ offscreenRenderable ]
