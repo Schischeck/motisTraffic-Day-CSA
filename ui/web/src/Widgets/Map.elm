@@ -208,15 +208,15 @@ trainColor train =
             ceiling ((train.departureTime - train.scheduledDepartureTime) / 60000)
     in
         if delay <= 3 then
-            vec3 0.0 1.0 0.0
+            vec3 0.27 0.82 0.29
         else if delay <= 5 then
-            vec3 1.0 0.98 0.0
+            vec3 0.99 0.93 0.0
         else if delay <= 10 then
             vec3 1.0 0.4 0.0
         else if delay <= 15 then
             vec3 1.0 0.19 0.28
         else
-            vec3 1.0 0.0 0.0
+            vec3 0.64 0.0 0.04
 
 
 updateCurrentSubSegment : Time -> RVTrain -> RVTrain
