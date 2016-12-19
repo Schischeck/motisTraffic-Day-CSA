@@ -158,25 +158,26 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
         walk_arrival = INVALID_TIME;
 
         auto s1 = std::next(it, 1);
-        auto s2 = std::next(it, 2);
-        if (s1 != end(labels) && s2 != end(labels) &&
-            s2->connection_ != nullptr) {
-          auto const& succ = *s2;
-          d_track = succ.connection_->full_con_->d_track_;
-          d_time = succ.connection_->d_time_;
+        if (s1 != end(labels)) {
+          auto s2 = std::next(it, 2);
+          if (s2 != end(labels) && s2->connection_ != nullptr) {
+            auto const& succ = *s2;
+            d_track = succ.connection_->full_con_->d_track_;
+            d_time = succ.connection_->d_time_;
 
-          auto d_di = get_delay_info(sched, get_node(*s1), succ.connection_,
-                                     event_type::DEP);
-          d_sched_time = d_di.get_schedule_time();
-          d_reason = d_di.get_reason();
+            auto d_di = get_delay_info(sched, get_node(*s1), succ.connection_,
+                                       event_type::DEP);
+            d_sched_time = d_di.get_schedule_time();
+            d_reason = d_di.get_reason();
+          }
         }
 
         stops.emplace_back(static_cast<unsigned int>(++stop_index),
                            get_node(current)->get_station()->id_, a_track,
                            d_track, a_time, d_time, a_sched_time, d_sched_time,
                            a_reason, d_reason,
-                           a_time != INVALID_TIME && d_time != INVALID_TIME &&
-                               last_con != nullptr);
+                           last_con != nullptr && a_time != INVALID_TIME,
+                           d_time != INVALID_TIME);
         break;
       }
 
@@ -210,12 +211,17 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
             // Departure schedule time:
             current.now_,
 
-            walk_arrival_di.get_reason(), walk_arrival_di.get_reason(),
+            // Arrival reason timestamp
+            walk_arrival_di.get_reason(),
 
-            last_con != nullptr &&
-                std::any_of(it, end(labels), [](Label const& l) {
-                  return l.edge_->type() == edge::ROUTE_EDGE;
-                }));
+            // Departure reason timestamp
+            walk_arrival_di.get_reason(),
+
+            // Leaving
+            last_con != nullptr,
+
+            // Entering
+            false);
 
         transports.emplace_back(stop_index,
                                 static_cast<unsigned int>(stop_index) + 1,
@@ -261,7 +267,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
                 succ.connection_->full_con_->d_track_,
                 current.connection_->a_time_, succ.connection_->d_time_,
                 a_di.get_schedule_time(), d_di.get_schedule_time(),
-                a_di.get_reason(), d_di.get_reason(), false);
+                a_di.get_reason(), d_di.get_reason(), false, false);
           }
         }
 

@@ -20,14 +20,8 @@ include "routes/RoutesStationSeqRequest.fbs";
 include "routes/RoutesIndexRequest.fbs";
 include "routes/RoutesIdTrainRequest.fbs";
 include "routes/RoutesSeqResponse.fbs";
-include "railviz/RailVizInit.fbs";
-include "railviz/RailVizAlltraReq.fbs";
-include "railviz/RailVizAlltraRes.fbs";
-include "railviz/RailVizStationDetailReq.fbs";
-include "railviz/RailVizStationDetailRes.fbs";
-include "railviz/RailVizRouteAtTimeReq.fbs";
-include "railviz/RailVizRouteAtTimeRes.fbs";
-include "railviz/RailVizFindTrain.fbs";
+include "railviz/RailVizTrainsRequest.fbs";
+include "railviz/RailVizTrainsResponse.fbs";
 include "osrm/OSRMOneToManyRequest.fbs";
 include "osrm/OSRMOneToManyResponse.fbs";
 include "osrm/OSRMViaRouteRequest.fbs";
@@ -83,12 +77,26 @@ table MotisSuccess {
 table MotisNoMessage {
 }
 
+table Method {
+  path:string;
+  in:string;
+  out:string;
+}
+
+table ApiDescription {
+  fbs:[string];
+  methods:[Method]; 
+}
+
 union MsgContent {
+  motis.ApiDescription,
+  motis.Connection,
   motis.MotisNoMessage,
   motis.MotisError,
   motis.MotisSuccess,
   motis.HTTPRequest,
   motis.HTTPResponse,
+  motis.TripId,
   motis.bikesharing.BikesharingRequest,
   motis.bikesharing.BikesharingResponse,
   motis.bikesharing.BikesharingGeoTerminalsRequest,
@@ -115,14 +123,8 @@ union MsgContent {
   motis.routes.RoutesStationSeqRequest,
   motis.routes.RoutesIdTrainRequest,
   motis.routes.RoutesSeqResponse,
-  motis.railviz.RailVizInit,
-  motis.railviz.RailVizAlltraReq,
-  motis.railviz.RailVizAlltraRes,
-  motis.railviz.RailVizStationDetailReq,
-  motis.railviz.RailVizStationDetailRes,
-  motis.railviz.RailVizRouteAtTimeReq,
-  motis.railviz.RailVizRouteAtTimeRes,
-  motis.railviz.RailVizFindTrain,
+  motis.railviz.RailVizTrainsRequest,
+  motis.railviz.RailVizTrainsResponse,
   motis.osrm.OSRMOneToManyRequest,
   motis.osrm.OSRMOneToManyResponse,
   motis.osrm.OSRMViaRouteRequest,

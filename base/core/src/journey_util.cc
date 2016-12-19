@@ -16,9 +16,11 @@ uint16_t get_duration(journey const& journey) {
   }
   return 0;
 }
+
 uint16_t get_transfers(journey const& journey) {
   return std::count_if(begin(journey.stops_), end(journey.stops_),
-                       [](journey::stop const& s) { return s.interchange_; });
+                       [](journey::stop const& s) { return s.exit_; }) -
+         1;
 }
 
 }  // namespace motis

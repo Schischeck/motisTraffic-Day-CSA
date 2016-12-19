@@ -2,7 +2,9 @@
 
 #include <numeric>
 
+#include "motis/core/access/time_access.h"
 #include "motis/core/journey/journey.h"
+
 #include "motis/routing/label/configs.h"
 #include "motis/routing/output/label_chain_parser.h"
 #include "motis/routing/output/stop.h"
@@ -60,11 +62,11 @@ journey labels_to_journey(schedule const& sched, Label* label,
   j.attributes_ = generate_journey_attributes(t);
 
   j.duration_ = label->now_ - label->start_;
-  j.transfers_ = std::accumulate(
-      begin(j.stops_), end(j.stops_), 0,
-      [](int transfers_count, journey::stop const& s) {
-        return s.interchange_ ? transfers_count + 1 : transfers_count;
-      });
+  j.transfers_ =
+      std::accumulate(begin(j.stops_), end(j.stops_), 0,
+                      [](int transfers_count, journey::stop const& s) {
+                        return s.exit_ ? transfers_count + 1 : transfers_count;
+                      });
 
   j.db_costs_ = db_costs(*label);
   j.night_penalty_ = night_penalty(*label);

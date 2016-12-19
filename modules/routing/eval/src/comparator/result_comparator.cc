@@ -24,25 +24,37 @@ char get_relation_symbol(T const& u1, T const& u2) {
   }
 }
 
-void print(connection const& con) {
-  unsigned duration, transfers, price;
-  std::tie(duration, transfers, price) = con;
+void print(journey_meta_data const& con) {
+  auto const format_time = [](time_t t) {
+    tm ts = *localtime(&t);
 
-  std::cout << std::setw(5) << duration << "\t"  //
-            << std::setw(5) << transfers << "\t"  //
-            << std::setw(5) << price;
+    char buf[6];
+    strftime(buf, sizeof(buf), "%H:%M", &ts);
+
+    return std::string(buf);
+  };
+
+  std::cout << std::setw(5) << con.duration_  //
+            << " [" << format_time(con.get_departure_time()) << " - "
+            << format_time(con.get_arrival_time()) << "]\t"  //
+            << std::setw(5) << con.transfers_;
 }
 
 void print_empty() {
-  std::cout << std::setw(5) << "-"
-            << "\t" << std::setw(5) << "-"
+  std::cout << std::setw(20) << std::left << "-"
             << "\t" << std::setw(5) << "-";
 }
 
 bool print_differences(response const& r1, response const& r2,
-                       RoutingRequest const*, int id) {
+                       RoutingRequest const*, int id,
+                       bool print_only_second_empty) {
   if (r1.connections_ == r2.connections_) {
     return true;
+  }
+
+  if (print_only_second_empty &&
+      (r1.connections_.empty() || !r2.connections_.empty())) {
+    return false;
   }
 
   std::cout << "ERROR [id = " << id << "] ";
@@ -100,54 +112,23 @@ bool print_differences(response const& r1, response const& r2,
     unsigned con_count2 = 0;
     for (auto it2 = begin(r2.connections_); it2 != end2; ++it2, ++con_count2) {
       if (*it1 == *it2) {
-        matches1[con_count1] = true;
-        matches2[con_count2] = true;
+        matches2[con_count2] = matches1[con_count1] = true;
         continue;
       }
 
       std::string domination_info;
-      if (dominates(*it1, *it2)) {
+      if (it1->dominates(*it2)) {
         domination_info = "\tFIRST DOMINATES \t";
         con1_dominates = true;
-      } else if (dominates(*it2, *it1)) {
+      } else if (it2->dominates(*it1)) {
         domination_info = "\tSECOND DOMINATES\t";
         con2_dominates = true;
       } else {
-        domination_info = "\tNO DOMINATION   \t";
         continue;
       }
 
       std::cout << "  " << std::setw(2) << con_count1 << " vs " << std::setw(2)
-                << con_count2 << domination_info;
-
-      int duration1, transfers1, price1, duration2, transfers2, price2;
-
-      std::tie(duration1, transfers1, price1) = *it1;
-      std::tie(duration2, transfers2, price2) = *it2;
-
-      std::cout << "  ";
-      if (duration1 != duration2) {
-        std::cout << "{ DURATIONS[" << con_count1 << ", " << con_count2
-                  << "]: " << duration1 << " "
-                  << get_relation_symbol(duration1, duration2) << " "
-                  << duration2 << " } ";
-      }
-
-      if (transfers1 != transfers2) {
-        std::cout << "{ TRANSFERS[" << con_count1 << ", " << con_count2
-                  << "]: " << transfers1 << " "
-                  << get_relation_symbol(transfers1, transfers2) << " "
-                  << transfers2 << " } ";
-      }
-
-      if (price1 != price2) {
-        std::cout << "{ PRICES[" << con_count1 << ", " << con_count2
-                  << "]: " << price1 << " "
-                  << get_relation_symbol(price1, price2) << " " << price2
-                  << " }";
-      }
-
-      std::cout << "\n";
+                << con_count2 << domination_info << "\n";
     }
   }
 
@@ -198,7 +179,8 @@ struct statistics {
 };
 
 bool analyze_result(int i, std::tuple<msg_ptr, msg_ptr, msg_ptr> const& res,
-                    std::ofstream& failed_queries, statistics& stats) {
+                    std::ofstream& failed_queries, statistics& stats,
+                    bool print_only_second_empty) {
   if (!std::get<0>(res) || !std::get<1>(res) || !std::get<2>(res)) {
     return false;
   }
@@ -209,7 +191,8 @@ bool analyze_result(int i, std::tuple<msg_ptr, msg_ptr, msg_ptr> const& res,
 
   if (print_differences(response(motis_content(RoutingResponse, r1)),
                         response(motis_content(RoutingResponse, r2)),
-                        motis_content(RoutingRequest, q), i)) {
+                        motis_content(RoutingRequest, q), i,
+                        print_only_second_empty)) {
     ++stats.matches_;
   } else {
     ++stats.mismatches_;
@@ -230,6 +213,8 @@ int main(int argc, char* argv[]) {
               << " {results.txt I} {results.txt II} {queries.txt}\n";
     return 0;
   }
+
+  bool print_only_second_empty = false;
 
   statistics stats;
   std::ifstream in1(argv[1]), in2(argv[2]), inq(argv[3]);
@@ -256,7 +241,8 @@ int main(int argc, char* argv[]) {
         continue;
       }
 
-      if (analyze_result(i, pending_msgs.at(i), failed_queries, stats)) {
+      if (analyze_result(i, it->second, failed_queries, stats,
+                         print_only_second_empty)) {
         pending_msgs.erase(i);
       }
     }
@@ -284,4 +270,3 @@ int main(int argc, char* argv[]) {
             << "  #errors  = " << stats.mismatches_ << "/" << stats.total()
             << "\n";
 }
-

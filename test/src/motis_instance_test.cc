@@ -4,6 +4,10 @@
 
 #include "conf/options_parser.h"
 
+#include "motis/core/common/logging.h"
+
+#include "motis/loader/parser_error.h"
+
 #include "motis/module/context/motis_call.h"
 #include "motis/module/context/motis_publish.h"
 #include "motis/module/message.h"
@@ -25,12 +29,15 @@ motis_instance_test::motis_instance_test(
   }
 
   conf::options_parser parser(confs);
-  std::vector<std::string> opt(begin(modules_cmdline_opt),
-                               end(modules_cmdline_opt));
-  opt.push_back("--routing.label_store_size=32000");
-  parser.read_command_line_args(opt);
+  parser.read_command_line_args(modules_cmdline_opt);
 
-  instance_->init_schedule(dataset_opt);
+  try {
+    instance_->init_schedule(dataset_opt);
+  } catch (loader::parser_error const& e) {
+    LOG(logging::error) << "unable to parse schedule, problem at "
+                        << e.filename_copy_ << ":" << e.line_number_;
+    throw;
+  }
   instance_->init_modules(modules);
 }
 

@@ -1,5 +1,0 @@
-namespace motis.railviz;
-
-table RailVizStationDetailReq {
-  station_index:uint;
-}

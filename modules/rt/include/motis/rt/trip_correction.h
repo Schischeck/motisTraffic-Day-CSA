@@ -6,7 +6,6 @@
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/schedule/schedule.h"
-#include "motis/rt/bfs.h"
 
 namespace motis {
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <list>
-#include <ostream>
 #include <queue>
 
 #include "motis/core/common/dial.h"
@@ -28,15 +26,16 @@ struct pareto_dijkstra {
   };
 
   pareto_dijkstra(int node_count, station_node const* goal,
-                  std::vector<Label*> const& start_labels,
                   hash_map<node const*, std::vector<edge>> additional_edges,
                   LowerBounds& lower_bounds, mem_manager& label_store)
       : goal_(goal),
-        node_labels_(node_count),
+        node_labels_(*label_store.get_node_labels<Label>(node_count)),
         additional_edges_(std::move(additional_edges)),
         lower_bounds_(lower_bounds),
         label_store_(label_store),
-        max_labels_(label_store.size() / sizeof(Label) - 1000) {
+        max_labels_(1024 * 1024 * 128) {}
+
+  void add_start_labels(std::vector<Label*> const& start_labels) {
     for (auto const& l : start_labels) {
       if (!l->is_filtered()) {
         node_labels_[l->get_node()->id_].emplace_back(l);
@@ -47,7 +46,7 @@ struct pareto_dijkstra {
 
   void search() {
     stats_.start_label_count_ = queue_.size();
-    stats_.labels_created_ = label_store_.used_size() / sizeof(Label);
+    stats_.labels_created_ = label_store_.allocations();
 
     while (!queue_.empty() || !equals_.empty()) {
       if ((stats_.labels_created_ > (max_labels_ / 2) && results_.empty()) ||
@@ -73,6 +72,7 @@ struct pareto_dijkstra {
 
       // is label already made obsolete
       if (label->dominated_) {
+        label_store_.release(label);
         stats_.labels_dominated_by_later_labels_++;
         continue;
       }
@@ -145,9 +145,11 @@ private:
           equals_.push_back(new_label);
         }
       } else {
+        label_store_.release(new_label);
         stats_.labels_dominated_by_former_labels_++;
       }
     } else {
+      label_store_.release(new_label);
       stats_.labels_dominated_by_results_++;
     }
   }
@@ -156,6 +158,7 @@ private:
     for (auto it = results_.begin(); it != results_.end();) {
       Label* o = *it;
       if (terminal_label->dominates(*o)) {
+        label_store_.release(o);
         it = results_.erase(it);
       } else if (o->dominates(*terminal_label)) {
         return false;
@@ -219,7 +222,7 @@ private:
   }
 
   station_node const* goal_;
-  std::vector<std::vector<Label*>> node_labels_;
+  std::vector<std::vector<Label*>>& node_labels_;
   dial<Label*, Label::MAX_BUCKET, get_bucket> queue_;
   std::vector<Label*> equals_;
   hash_map<node const*, std::vector<edge>> additional_edges_;

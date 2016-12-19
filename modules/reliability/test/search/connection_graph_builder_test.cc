@@ -20,7 +20,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "0000000";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station0";
@@ -32,7 +33,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = true;
+    stop.enter_ = true;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station1";
@@ -46,7 +48,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[2];
     stop.eva_no_ = "2222222";
-    stop.interchange_ = true;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station2";
@@ -60,7 +63,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[3];
     stop.eva_no_ = "3333333";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station3";
@@ -74,7 +78,8 @@ journey create_journey1() {
   {
     auto& stop = j.stops_[4];
     stop.eva_no_ = "4444444";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station4";
@@ -190,7 +195,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[0];
       ASSERT_EQ(stop.eva_no_, "0000000");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_TRUE(stop.enter_);
+      ASSERT_FALSE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station0");
@@ -202,7 +208,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[1];
       ASSERT_EQ(stop.eva_no_, "1111111");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_FALSE(stop.enter_);
+      ASSERT_TRUE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station1");
@@ -252,7 +259,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[0];
       ASSERT_EQ(stop.eva_no_, "1111111");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_TRUE(stop.enter_);
+      ASSERT_FALSE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station1");
@@ -264,7 +272,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[1];
       ASSERT_EQ(stop.eva_no_, "2222222");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_FALSE(stop.enter_);
+      ASSERT_TRUE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station2");
@@ -314,7 +323,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[0];
       ASSERT_EQ(stop.eva_no_, "2222222");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_TRUE(stop.enter_);
+      ASSERT_FALSE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station2");
@@ -326,7 +336,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[1];
       ASSERT_EQ(stop.eva_no_, "3333333");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_TRUE(stop.enter_);
+      ASSERT_FALSE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station3");
@@ -340,7 +351,8 @@ TEST(reliability_connection_graph_builder, split_journey) {
     {
       auto& stop = journey.stops_[2];
       ASSERT_EQ(stop.eva_no_, "4444444");
-      ASSERT_FALSE(stop.interchange_);
+      ASSERT_FALSE(stop.enter_);
+      ASSERT_TRUE(stop.exit_);
       ASSERT_EQ(stop.lat_, 0.0);
       ASSERT_EQ(stop.lng_, 0.0);
       ASSERT_EQ(stop.name_, "Station4");
@@ -402,7 +414,8 @@ journey create_journey2() {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "0000000";
     stop.name_ = "Station0";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.arrival_.valid_ = false;
     stop.departure_.valid_ = true;
     stop.departure_.timestamp_ = 1445261400;
@@ -411,7 +424,8 @@ journey create_journey2() {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "1111111";
     stop.name_ = "Station1";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.arrival_.valid_ = true;
     stop.arrival_.timestamp_ = 1445262600;
     stop.departure_.valid_ = false;
@@ -529,7 +543,8 @@ journey create_journey3() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station1";
@@ -540,7 +555,8 @@ journey create_journey3() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "4444444";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station4";
@@ -638,7 +654,8 @@ journey create_journey4() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station1";
@@ -649,7 +666,8 @@ journey create_journey4() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "5555555";
-    stop.interchange_ = true;
+    stop.enter_ = true;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station5";
@@ -661,7 +679,8 @@ journey create_journey4() {
   {
     auto& stop = j.stops_[2];
     stop.eva_no_ = "4444444";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station4";
@@ -790,7 +809,8 @@ journey create_journey_train_id_change() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station1";
@@ -802,7 +822,8 @@ journey create_journey_train_id_change() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "2222222";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station2";
@@ -814,7 +835,8 @@ journey create_journey_train_id_change() {
   {
     auto& stop = j.stops_[2];
     stop.eva_no_ = "3333333";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station3";
@@ -883,7 +905,8 @@ journey create_journey_no_new_transport_at_interchange() {
   {
     auto& stop = j.stops_[0];
     stop.eva_no_ = "1111111";
-    stop.interchange_ = false;
+    stop.enter_ = true;
+    stop.exit_ = false;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station1";
@@ -895,7 +918,8 @@ journey create_journey_no_new_transport_at_interchange() {
   {
     auto& stop = j.stops_[1];
     stop.eva_no_ = "2222222";
-    stop.interchange_ = true;
+    stop.enter_ = true;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station2";
@@ -907,7 +931,8 @@ journey create_journey_no_new_transport_at_interchange() {
   {
     auto& stop = j.stops_[2];
     stop.eva_no_ = "3333333";
-    stop.interchange_ = false;
+    stop.enter_ = false;
+    stop.exit_ = true;
     stop.lat_ = 0.0;
     stop.lng_ = 0.0;
     stop.name_ = "Station3";

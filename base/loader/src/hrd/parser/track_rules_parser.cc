@@ -18,7 +18,7 @@ namespace loader {
 namespace hrd {
 
 track_rules parse_track_rules(loaded_file const& file,
-                                    flatbuffers64::FlatBufferBuilder& b) {
+                              flatbuffers64::FlatBufferBuilder& b) {
   scoped_timer timer("parsing track rules");
   track_rules prs;
   std::map<uint64_t, Offset<String>> track_names;
@@ -42,9 +42,8 @@ track_rules parse_track_rules(loaded_file const& file,
     // Resolve track name (create it if not found)
     auto track_name_it = track_names.find(track_name);
     if (track_name_it == end(track_names)) {
-      std::tie(track_name_it, std::ignore) = track_names.insert(
-          std::make_pair(track_name,
-                         to_fbs_string(b, track_name_str, "ISO-8859-1")));
+      std::tie(track_name_it, std::ignore) = track_names.insert(std::make_pair(
+          track_name, to_fbs_string(b, track_name_str, "ISO-8859-1")));
     }
 
     prs[std::make_tuple(eva_num, train_num, train_admin)].push_back(

@@ -204,7 +204,9 @@ Offset<routing::RoutingResponse> to_routing_response(
   for (auto& j : journeys) {
     connections.push_back(to_connection(b, j));
   }
-  routing::Statistics stats(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+  routing::Statistics stats(false, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            0);
   return routing::CreateRoutingResponse(b, &stats, b.CreateVector(connections));
 }
 

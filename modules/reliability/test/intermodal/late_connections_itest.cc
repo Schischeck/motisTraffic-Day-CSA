@@ -49,7 +49,8 @@ journey get_journey(schedule_station const from, schedule_station const to) {
     journey::stop s;
     s.eva_no_ = from.eva_;
     s.name_ = from.name_;
-    s.interchange_ = false;
+    s.enter_ = true;
+    s.exit_ = false;
     s.lat_ = 0.0;
     s.lng_ = 0.0;
     s.arrival_.valid_ = false;
@@ -63,7 +64,8 @@ journey get_journey(schedule_station const from, schedule_station const to) {
     journey::stop s;
     s.eva_no_ = to.eva_;
     s.name_ = to.name_;
-    s.interchange_ = false;
+    s.enter_ = false;
+    s.exit_ = true;
     s.lat_ = 0.0;
     s.lng_ = 0.0;
     s.departure_.valid_ = false;

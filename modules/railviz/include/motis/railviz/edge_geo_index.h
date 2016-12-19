@@ -8,12 +8,12 @@
 namespace motis {
 class edge;
 struct schedule;
-}
+}  // namespace motis
 
 namespace motis {
 namespace railviz {
 
-class edge_geo_index {
+struct edge_geo_index {
 public:
   explicit edge_geo_index(int clasz, schedule const&);
   virtual ~edge_geo_index();

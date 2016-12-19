@@ -5,7 +5,6 @@
 
 #include "boost/algorithm/string/predicate.hpp"
 
-#include "net/http/server/enable_cors.hpp"
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
 
@@ -37,7 +36,9 @@ HTTPMethod translate_method_string(std::string const& s) {
 
 struct http_server::impl {
   impl(boost::asio::io_service& ios, receiver& recvr)
-      : ios_(ios), receiver_(recvr), server_(ios) {}
+      : ios_(ios), receiver_(recvr), server_(ios) {
+    server_.set_cors_enabled(true);
+  }
 
   void listen(std::string const& host, std::string const& port) {
     router_.route("*", ".*", std::ref(*this));
@@ -106,7 +107,6 @@ struct http_server::impl {
   void handle_options(srv::route_request const&, srv::callback& cb) {
     reply rep;
     rep.status = reply::status_type::ok;
-    add_cors_headers(rep);
     cb(rep);
   }
 
@@ -146,9 +146,8 @@ struct http_server::impl {
       } else if (!ec) {
         rep = reply::stock_reply(reply::ok);
       } else {
-        rep.content = ec.message();
+        rep.content = make_error_msg(ec)->to_json();
       }
-      add_cors_headers(rep);
     } catch (...) {
       // reply is already set to internal_server_error
     }

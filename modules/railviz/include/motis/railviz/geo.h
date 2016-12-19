@@ -1,27 +1,15 @@
 #pragma once
 
-#include <algorithm>
-
 namespace motis {
 namespace railviz {
 namespace geo {
 
 struct coord {
-  double lat, lng;
+  double lat_, lng_;
 };
 
-struct box {
-  coord first, second;
-  coord max() const {
-    return coord{std::max(first.lat, second.lat),
-                 std::max(first.lng, second.lng)};
-  }
-  coord min() const {
-    return coord{std::min(first.lat, second.lat),
-                 std::min(first.lng, second.lng)};
-  }
-};
+using box = std::pair<coord, coord>;
 
-}  // geo
-}  // namespace motis
+}  // namespace geo
 }  // namespace railviz
+}  // namespace motis
