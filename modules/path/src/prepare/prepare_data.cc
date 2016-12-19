@@ -2,7 +2,7 @@
 
 #include "parser/util.h"
 
-#include "common/append.h"
+#include "common/concat.h"
 #include "common/parallel_for.h"
 
 #include "motis/core/common/logging.h"
@@ -86,7 +86,7 @@ void strategy_prepare(std::vector<station_seq> const& sequences,
                    edge->router_id() == edge->from_->ref_.router_id_ &&
                    edge->router_id() == edge->to_->ref_.router_id_,
                "error prepare");
-        append(lines[edge->from_->station_idx_],
+        concat(lines[edge->from_->station_idx_],
                routing_strategies.strategies_[edge->router_id()]->get_polyline(
                    edge->from_->ref_, edge->to_->ref_));
 

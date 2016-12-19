@@ -2,7 +2,7 @@
 
 #include <mutex>
 
-#include "common/append.h"
+#include "common/concat.h"
 #include "common/erase_if.h"
 #include "common/parallel_for.h"
 
@@ -41,7 +41,7 @@ struct matcher {
       auto const& extra_nodes = stop_positions_.find(seq_.station_ids_[i]);
       if (extra_nodes != end(stop_positions_)) {
         for (auto const& stop_pos : extra_nodes->second) {
-          append(close_nodes,
+          concat(close_nodes,
                  rtree_.in_radius_with_distance(stop_pos, kMatchRadius));
         }
       }
@@ -122,7 +122,7 @@ std::vector<std::vector<match_seq>> match_sequences(
 
     std::lock_guard<std::mutex> lock(m);
     for (auto i = 0u; i < matches.size(); ++i) {
-      append(result[i], matches[i]);
+      concat(result[i], matches[i]);
     }
   });
 
