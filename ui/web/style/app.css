@@ -83,11 +83,11 @@
 }
 
 .railviz-tooltip.hidden {
-  opacity: 0;
+  display: none;
 }
 
 .railviz-tooltip.visible {
-  opacity: 1;
+  display: block;
 }
 
 .railviz-tooltip .transport-name {
