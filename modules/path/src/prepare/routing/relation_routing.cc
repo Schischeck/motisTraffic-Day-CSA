@@ -1,8 +1,9 @@
 #include "motis/path/prepare/routing/relation_routing.h"
 
 #include "geo/latlng.h"
+#include "geo/point_rtree.h"
 
-#include "motis/path/prepare/point_rtree.h"
+using namespace geo;
 
 namespace motis {
 namespace path {
@@ -41,8 +42,7 @@ struct relation_routing::impl {
 
   std::vector<node_ref> close_nodes(geo::latlng const& latlng) {
     std::vector<node_ref> result;
-    auto nodes =
-        rtree_.in_radius_with_distance(latlng.lat_, latlng.lng_, kMatchRadius);
+    auto nodes = rtree_.in_radius_with_distance(latlng, kMatchRadius);
     std::vector<std::size_t> visited;
     for (auto i = 0u; i < (nodes.size() < 5 ? nodes.size() : 5); ++i) {
       auto& ref = refs_[nodes[i].second];
@@ -82,9 +82,7 @@ struct relation_routing::impl {
   }
 
   point_rtree init_rtree() {
-    return make_point_rtree(refs_, [&](auto&& c) {
-      return point_rtree::point{c.coords_.lng_, c.coords_.lat_};
-    });
+    return make_point_rtree(refs_, [&](auto&& r) { return r.coords_; });
   }
 
   size_t router_id_;

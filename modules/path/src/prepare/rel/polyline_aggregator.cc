@@ -12,10 +12,10 @@
 
 #include "geo/latlng.h"
 
+
 #include "motis/core/common/logging.h"
 
 #include "motis/path/prepare/geojson.h"
-#include "motis/path/prepare/vector_utils.h"
 
 using namespace common;
 using namespace geo;

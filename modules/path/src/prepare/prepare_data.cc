@@ -2,6 +2,7 @@
 
 #include "parser/util.h"
 
+#include "common/append.h"
 #include "common/parallel_for.h"
 
 #include "motis/core/common/logging.h"
@@ -13,7 +14,6 @@
 #include "motis/path/prepare/seq/seq_graph_builder.h"
 #include "motis/path/prepare/seq/seq_graph_dijkstra.h"
 #include "motis/path/prepare/station_sequences.h"
-#include "motis/path/prepare/vector_utils.h"
 
 using namespace common;
 using namespace motis;

@@ -6,6 +6,8 @@
 
 #include "boost/filesystem.hpp"
 
+#include "common/erase_if.h"
+
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
 
@@ -22,13 +24,13 @@
 #include "motis/path/prepare/routing/relation_routing.h"
 #include "motis/path/prepare/routing/stub_routing.h"
 #include "motis/path/prepare/station_sequences.h"
-#include "motis/path/prepare/vector_utils.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
 #include "version.h"
 
 namespace fs = boost::filesystem;
+using namespace common;
 using namespace parser;
 using namespace motis;
 using namespace motis::loader;
@@ -100,20 +102,12 @@ int main(int argc, char** argv) {
   motis::logging::manual_timer poly_timer("loading poly");
   auto const extent_polygon = geo::read_poly_file(opt.extent_);
   poly_timer.stop_and_print();
-  sequences.erase(std::remove_if(begin(sequences), end(sequences),
-                                 [&](auto const& seq) {
-                                   if (std::any_of(begin(seq.coordinates_),
-                                                   end(seq.coordinates_),
-                                                   [&](auto const& coord) {
-                                                     return !geo::within(
-                                                         coord, extent_polygon);
-                                                   })) {
-                                     return true;
-                                   }
 
-                                   return false;
-                                 }),
-                  end(sequences));
+  erase_if(sequences, [&](auto const& seq) {
+    return std::any_of(
+        begin(seq.coordinates_), end(seq.coordinates_),
+        [&](auto const& coord) { return !geo::within(coord, extent_polygon); });
+  });
 
   auto const relations = parse_relations(opt.osm_);
   LOG(motis::logging::info) << "found " << relations.relations_.size()

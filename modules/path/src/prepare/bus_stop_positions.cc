@@ -1,11 +1,11 @@
 #include "motis/path/prepare/bus_stop_positions.h"
 
-#include <iostream>
+#include "boost/algorithm/string/predicate.hpp"
+
+#include "geo/point_rtree.h"
 
 #include "motis/path/prepare/fbs/use_64bit_flatbuffers.h"
-
 #include "motis/path/prepare/osm_util.h"
-#include "motis/path/prepare/point_rtree.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -19,8 +19,8 @@ std::map<std::string, std::vector<latlng>> find_bus_stop_positions(
   std::string const stop_position = "stop_position";
   std::string const yes = "yes";
 
-  auto rtree = make_point_rtree(*sched->stations(), [](auto&& s) {
-    return point_rtree::point{s->lng(), s->lat()};
+  auto const rtree = make_point_rtree(*sched->stations(), [](auto&& s) {
+    return latlng{s->lng(), s->lat()};
   });
 
   std::map<std::string, std::vector<latlng>> result;
@@ -33,7 +33,7 @@ std::map<std::string, std::vector<latlng>> find_bus_stop_positions(
     auto const lat = node.location().lat();
     auto const lng = node.location().lon();
 
-    for (auto const& station_index : rtree.in_radius(lat, lng, 100)) {
+    for (auto const& station_index : rtree.in_radius({lat, lng}, 100)) {
       auto const station = sched->stations()->Get(station_index);
       auto const station_id = station->id()->str();
       if (boost::algorithm::starts_with(station_id, "80")) {

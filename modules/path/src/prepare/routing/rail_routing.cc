@@ -1,10 +1,12 @@
 #include "motis/path/prepare/routing/rail_routing.h"
 
 #include "geo/latlng.h"
+#include "geo/point_rtree.h"
 
-#include "motis/path/prepare/point_rtree.h"
 #include "motis/path/prepare/rail/load_rail_graph.h"
 #include "motis/path/prepare/rail/rail_router.h"
+
+using namespace geo;
 
 namespace motis {
 namespace path {
@@ -13,13 +15,12 @@ struct rail_routing::impl {
   explicit impl(std::size_t router_id, std::string const& path)
       : router_id_(router_id),
         rail_graph_(load_rail_graph(path)),
-        rtree_(make_point_rtree(rail_graph_.nodes_, [&](auto&& c) {
-          return point_rtree::point{c->pos_.lng_, c->pos_.lat_};
-        })) {}
+        rtree_(make_point_rtree(rail_graph_.nodes_,
+                                [&](auto const& c) { return c->pos_; })) {}
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to) {
     std::vector<geo::latlng> polyline;
-    return polyline;
+    return {polyline};
   }
 
   std::vector<std::vector<routing_result>> find_routes(

@@ -1,12 +1,14 @@
 #include "motis/path/prepare/rel/relation_parser.h"
 
+#include "common/erase_if.h"
+
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
 #include "motis/core/common/transform_to_vec.h"
 
 #include "motis/path/prepare/osm_util.h"
-#include "motis/path/prepare/vector_utils.h"
 
+using namespace common;
 using namespace motis::logging;
 
 namespace motis {
