@@ -1,0 +1,17 @@
+include "base/Polyline.fbs";
+
+namespace motis.path;
+
+table PathSourceInfo {
+	segment_idx: int;
+	from_idx: int;
+	to_idx: int;
+	type: string;
+}
+
+table PathSeqResponse {
+  station_ids: [string];
+  classes: [uint];
+  segments: [Polyline];
+  sourceInfos:  [PathSourceInfo];
+}

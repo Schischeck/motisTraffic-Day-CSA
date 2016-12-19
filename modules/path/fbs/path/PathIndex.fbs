@@ -1,0 +1,11 @@
+namespace motis.path;
+
+table PathLookup {
+	indices: [PathIndex];
+}
+
+table PathIndex {
+  station_ids: [string];
+  classes: [uint];
+  index: uint;
+}

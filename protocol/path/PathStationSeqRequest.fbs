@@ -1,0 +1,6 @@
+namespace motis.path;
+
+table PathStationSeqRequest {
+  station_ids: [string];
+  clasz: uint;
+}

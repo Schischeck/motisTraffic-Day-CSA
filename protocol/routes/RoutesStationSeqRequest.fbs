@@ -1,6 +1,0 @@
-namespace motis.routes;
-
-table RoutesStationSeqRequest {
-  station_ids: [string];
-  clasz: uint;
-}

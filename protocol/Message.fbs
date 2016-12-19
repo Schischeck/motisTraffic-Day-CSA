@@ -16,10 +16,10 @@ include "lookup/LookupMetaStationRequest.fbs";
 include "lookup/LookupMetaStationResponse.fbs";
 include "lookup/LookupIdTrainRequest.fbs";
 include "lookup/LookupIdTrainResponse.fbs";
-include "routes/RoutesStationSeqRequest.fbs";
-include "routes/RoutesIndexRequest.fbs";
-include "routes/RoutesIdTrainRequest.fbs";
-include "routes/RoutesSeqResponse.fbs";
+include "path/PathStationSeqRequest.fbs";
+include "path/PathIndexRequest.fbs";
+include "path/PathIdTrainRequest.fbs";
+include "path/PathSeqResponse.fbs";
 include "railviz/RailVizTrainsRequest.fbs";
 include "railviz/RailVizTrainsResponse.fbs";
 include "osrm/OSRMOneToManyRequest.fbs";
@@ -85,7 +85,7 @@ table Method {
 
 table ApiDescription {
   fbs:[string];
-  methods:[Method]; 
+  methods:[Method];
 }
 
 union MsgContent {
@@ -119,10 +119,10 @@ union MsgContent {
   motis.lookup.LookupBatchMetaStationResponse,
   motis.lookup.LookupIdTrainRequest,
   motis.lookup.LookupIdTrainResponse,
-  motis.routes.RoutesIndexRequest,
-  motis.routes.RoutesStationSeqRequest,
-  motis.routes.RoutesIdTrainRequest,
-  motis.routes.RoutesSeqResponse,
+  motis.path.PathIndexRequest,
+  motis.path.PathStationSeqRequest,
+  motis.path.PathIdTrainRequest,
+  motis.path.PathSeqResponse,
   motis.railviz.RailVizTrainsRequest,
   motis.railviz.RailVizTrainsResponse,
   motis.osrm.OSRMOneToManyRequest,
