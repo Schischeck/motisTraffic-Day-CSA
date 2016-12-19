@@ -17,6 +17,7 @@ type Route
     = Connections
     | ConnectionDetails Int
     | TripDetails String Int Date String Date String
+    | SimulationTime Date
 
 
 urlParser : Parser (Route -> a) a
@@ -25,12 +26,26 @@ urlParser =
         [ map Connections top
         , map ConnectionDetails (s "connection" </> int)
         , map TripDetails (s "trip" </> string </> int </> date </> string </> date </> encodedString)
+        , map SimulationTime (s "time" </> date)
         ]
 
 
 date : Parser (Date -> a) a
 date =
-    custom "DATE" (String.toFloat >> Result.map (\u -> Date.fromTime (u * 1000.0)))
+    oneOf
+        [ unixTimestamp
+        , nativeDate
+        ]
+
+
+unixTimestamp : Parser (Date -> a) a
+unixTimestamp =
+    custom "UNIX_TIMESTAMP" (String.toFloat >> Result.map (\u -> Date.fromTime (u * 1000.0)))
+
+
+nativeDate : Parser (Date -> a) a
+nativeDate =
+    custom "DATE_STR" Date.fromString
 
 
 encodedString : Parser (String -> a) a
@@ -65,6 +80,9 @@ toUrl route =
                 ++ dateToUrl targetTime
                 ++ "/"
                 ++ Http.encodeUri lineId
+
+        SimulationTime time ->
+            "#/time/" ++ dateToUrl time
 
 
 tripDetailsRoute : TripId -> Route

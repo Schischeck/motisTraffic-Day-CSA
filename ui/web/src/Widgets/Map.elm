@@ -1,7 +1,7 @@
 module Widgets.Map
     exposing
         ( Model
-        , Msg(SetFilter)
+        , Msg(SetFilter, SetTimeOffset)
         , init
         , view
         , update
@@ -90,6 +90,8 @@ type alias Model =
     { mapInfo : MapInfo
     , texture : Maybe WebGL.Texture
     , time : Time
+    , systemTime : Time
+    , timeOffset : Float
     , remoteAddress : String
     , allTrains : List RVTrain
     , filteredTrains : List RVTrain
@@ -112,7 +114,9 @@ init remoteAddress =
         , railVizBounds = { north = 0, west = 0, south = 0, east = 0 }
         }
     , texture = Nothing
-    , time = 0.0
+    , time = 0
+    , systemTime = 0
+    , timeOffset = 0
     , remoteAddress = remoteAddress
     , allTrains = []
     , filteredTrains = []
@@ -295,17 +299,23 @@ type Msg
     | Deb (Debounce.Msg Msg)
     | SetFilter (Maybe (List TripId))
     | SetTime Time
+    | SetTimeOffset Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Animate t ->
-            { model
-                | time = t
-                , filteredTrains = List.map (updateCurrentSubSegment t) model.filteredTrains
-            }
-                ! []
+            let
+                simTime =
+                    t + model.timeOffset
+            in
+                { model
+                    | systemTime = t
+                    , time = simTime
+                    , filteredTrains = List.map (updateCurrentSubSegment simTime) model.filteredTrains
+                }
+                    ! []
 
         MapLoaded _ ->
             ( model
@@ -412,7 +422,18 @@ update msg model =
                 update (Animate model.time) model_
 
         SetTime time ->
-            { model | time = time } ! []
+            { model
+                | systemTime = time
+                , time = time + model.timeOffset
+            }
+                ! []
+
+        SetTimeOffset offset ->
+            { model
+                | timeOffset = offset
+                , time = model.systemTime + offset
+            }
+                ! [ Debounce.debounceCmd debounceCfg <| RequestUpdate ]
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -636,6 +657,7 @@ railVizOverlay model =
                 ]
                 [ classList
                     [ "railviz-overlay" => True
+                    , "leaflet-zoom-hide" => True
                     , "train-hover" => isJust model.hoveredTrain
                     ]
                 ]
@@ -868,11 +890,14 @@ sendTrainRequest model =
         startTime =
             model.time
 
+        intervalLength =
+            120 * 1000
+
         endTime =
-            startTime + (120 * 1000)
+            startTime + intervalLength
 
         nextUpdate =
-            Just (endTime - 10)
+            Just (model.systemTime + intervalLength - 10)
 
         bounds =
             model.mapInfo.railVizBounds
