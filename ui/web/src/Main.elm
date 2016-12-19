@@ -630,7 +630,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ Html.map MapUpdate (Map.view model.map)
+        [ Html.map MapUpdate (Map.view model.locale model.map)
         , lazy overlayView model
         ]
 

@@ -40,7 +40,8 @@ import Util.Api as Api
 import Debounce
 import Navigation
 import Routes exposing (..)
-import Util.DateFormat exposing (formatTime)
+import Util.DateFormat exposing (formatTime, formatDateTimeWithSeconds)
+import Localization.Base exposing (..)
 
 
 -- MODEL
@@ -635,13 +636,14 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
+view : Localization -> Model -> Html Msg
+view locale model =
     div [ class "map-container" ]
         [ div [ class "inner-map-container" ]
             [ div [ id "map" ]
                 [ railVizOverlay model ]
             , railVizTooltip model
+            , simulationTimeOverlay locale model
             ]
         ]
 
@@ -776,6 +778,17 @@ railVizTrainTooltip model train =
                     ]
                 ]
             ]
+
+
+simulationTimeOverlay : Localization -> Model -> Html Msg
+simulationTimeOverlay locale model =
+    let
+        simDate =
+            Date.fromTime model.time
+    in
+        div
+            [ class "sim-time-overlay" ]
+            [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
 
 
 delayView : Int -> Html Msg

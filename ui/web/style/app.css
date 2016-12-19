@@ -113,6 +113,14 @@
   min-width: 50px;
 }
 
+.sim-time-overlay {
+  position: absolute;
+  bottom: 15px;
+  right: 5px;
+  pointer-events: none;
+  font-size: 14px;
+}
+
 #search, #connections {
   padding: 24px;
 }
