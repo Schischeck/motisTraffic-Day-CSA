@@ -64,3 +64,6 @@
 [submodule "external_lib/rapidjson"]
 	path = external_lib/rapidjson
 	url = git@git.motis-project.de:lib/rapidjson.git
+[submodule "external_lib/common"]
+	path = external_lib/common
+	url = git@git.motis-project.de:lib/common.git
