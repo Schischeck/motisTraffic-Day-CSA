@@ -2,11 +2,12 @@
 
 #include "parser/util.h"
 
+#include "common/parallel_for.h"
+
 #include "motis/core/common/logging.h"
 
 #include "motis/path/db/db_builder.h"
 #include "motis/path/db/kv_database.h"
-#include "motis/path/prepare/parallel_for.h"
 #include "motis/path/prepare/rail/geojson.h"
 #include "motis/path/prepare/rel/relation_matcher.h"
 #include "motis/path/prepare/seq/seq_graph_builder.h"
@@ -14,6 +15,7 @@
 #include "motis/path/prepare/station_sequences.h"
 #include "motis/path/prepare/vector_utils.h"
 
+using namespace common;
 using namespace motis;
 using namespace motis::path;
 

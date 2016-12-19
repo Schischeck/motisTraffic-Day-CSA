@@ -2,14 +2,16 @@
 
 #include <mutex>
 
+#include "common/parallel_for.h"
+
 #include "motis/core/common/logging.h"
 
-#include "motis/path/prepare/parallel_for.h"
 #include "motis/path/prepare/point_rtree.h"
 #include "motis/path/prepare/rel/polyline_aggregator.h"
 #include "motis/path/prepare/rel/relation_parser.h"
 #include "motis/path/prepare/vector_utils.h"
 
+using namespace common;
 using namespace geo;
 using namespace motis::logging;
 
