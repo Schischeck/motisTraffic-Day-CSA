@@ -1,6 +1,7 @@
 #include "motis/loader/hrd/builder/line_builder.h"
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+
 #include "motis/loader/util.h"
 
 namespace motis {
@@ -15,8 +16,8 @@ Offset<String> line_builder::get_or_create_line(
   if (lines.empty()) {
     return 0;
   } else {
-    return get_or_create(fbs_lines_, raw_to_int<uint64_t>(lines[0]),
-                         [&]() { return to_fbs_string(fbb, lines[0]); });
+    return utl::get_or_create(fbs_lines_, raw_to_int<uint64_t>(lines[0]),
+                              [&]() { return to_fbs_string(fbb, lines[0]); });
   }
 }
 

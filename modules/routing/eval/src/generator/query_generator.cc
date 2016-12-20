@@ -8,6 +8,7 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 #include "utl/erase.h"
+#include "utl/to_vec.h"
 
 #include "conf/options_parser.h"
 
@@ -272,8 +273,8 @@ int main(int argc, char** argv) {
   if (generator_opt.large_stations_) {
     auto const num_stations = 1000;
 
-    auto stations = transform_to_vec(
-        sched.stations_, [](station_ptr const& s) { return s.get(); });
+    auto stations = utl::to_vec(sched.stations_,
+                                [](station_ptr const& s) { return s.get(); });
 
     std::vector<double> sizes(stations.size());
     for (auto i = 0u; i < stations.size(); ++i) {
@@ -296,7 +297,7 @@ int main(int argc, char** argv) {
     }
   } else {
     station_nodes =
-        transform_to_vec(sched.station_nodes_, [](station_node_ptr const& s) {
+        utl::to_vec(sched.station_nodes_, [](station_node_ptr const& s) {
           return static_cast<station_node const*>(s.get());
         });
   }

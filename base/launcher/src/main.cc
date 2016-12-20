@@ -8,12 +8,13 @@
 #include "boost/filesystem.hpp"
 #include "boost/thread.hpp"
 
+#include "utl/to_vec.h"
+
 #include "net/http/server/shutdown_handler.hpp"
 
 #include "conf/options_parser.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/module_settings.h"
 #include "motis/bootstrap/motis_instance.h"

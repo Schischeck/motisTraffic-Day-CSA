@@ -1,9 +1,10 @@
 #include "motis/loader/hrd/builder/attribute_builder.h"
 
+#include "utl/get_or_create.h"
+#include "utl/to_vec.h"
+
 #include "parser/util.h"
 
-#include "motis/core/common/get_or_create.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/loader/hrd/files.h"
 
 namespace motis {
@@ -20,11 +21,11 @@ attribute_builder::attribute_builder(
 Offset<Vector<Offset<Attribute>>> attribute_builder::create_attributes(
     std::vector<hrd_service::attribute> const& attributes, bitfield_builder& bb,
     flatbuffers64::FlatBufferBuilder& fbb) {
-  return fbb.CreateVector(
-      transform_to_vec(begin(attributes), end(attributes),
-                       [&](hrd_service::attribute const& attr) {
-                         return get_or_create_attribute(attr, bb, fbb);
-                       }));
+  return fbb.CreateVector(utl::to_vec(begin(attributes), end(attributes),
+                                      [&](hrd_service::attribute const& attr) {
+                                        return get_or_create_attribute(attr, bb,
+                                                                       fbb);
+                                      }));
 }
 
 Offset<Attribute> attribute_builder::get_or_create_attribute(
@@ -33,9 +34,9 @@ Offset<Attribute> attribute_builder::get_or_create_attribute(
   auto const attr_info_key = raw_to_int<uint16_t>(attr.code_);
   auto const attr_key = std::make_pair(attr_info_key, attr.bitfield_num_);
 
-  return get_or_create(fbs_attributes_, attr_key, [&]() {
+  return utl::get_or_create(fbs_attributes_, attr_key, [&]() {
     auto const attr_info =
-        get_or_create(fbs_attribute_infos_, attr_info_key, [&]() {
+        utl::get_or_create(fbs_attribute_infos_, attr_info_key, [&]() {
           auto const stamm_attributes_it = hrd_attributes_.find(attr_info_key);
           verify(stamm_attributes_it != end(hrd_attributes_),
                  "attribute with code %.*s not found\n",

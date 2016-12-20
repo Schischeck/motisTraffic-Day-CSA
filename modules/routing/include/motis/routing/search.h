@@ -1,8 +1,9 @@
 #pragma once
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/timing.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/routing/lower_bounds.h"
 #include "motis/routing/output/labels_to_journey.h"
@@ -159,12 +160,11 @@ struct search {
     stats.transfers_lb_ = MOTIS_TIMING_MS(transfers_lb_timing);
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
-    return search_result(stats,
-                         transform_to_vec(pd.get_results(),
-                                          [&q](Label* label) {
-                                            return output::labels_to_journey(
-                                                *q.sched_, label, Dir);
-                                          }),
+    return search_result(stats, utl::to_vec(pd.get_results(),
+                                            [&q](Label* label) {
+                                              return output::labels_to_journey(
+                                                  *q.sched_, label, Dir);
+                                            }),
                          interval_begin, interval_end);
   }
 };

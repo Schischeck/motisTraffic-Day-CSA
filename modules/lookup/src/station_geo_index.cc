@@ -2,8 +2,9 @@
 
 #include "boost/function_output_iterator.hpp"
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/geo.h"
-#include "motis/core/common/transform_to_vec.h"
 
 using namespace motis::geo_detail;
 using namespace flatbuffers;
@@ -40,7 +41,7 @@ public:
 
     std::sort(begin(results), end(results));
 
-    return transform_to_vec(results, [this](auto&& r) -> station const* {
+    return utl::to_vec(results, [this](auto&& r) -> station const* {
       return stations_[r.second].get();
     });
   }

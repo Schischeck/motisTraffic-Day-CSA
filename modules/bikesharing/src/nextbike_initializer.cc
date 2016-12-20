@@ -8,13 +8,14 @@
 
 #include "pugixml.hpp"
 
+#include "utl/to_vec.h"
+
 #include "parser/arg_parser.h"
 #include "parser/file.h"
 
 #include "motis/core/common/constants.h"
 #include "motis/core/common/geo.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/common/util.h"
 #include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
@@ -142,8 +143,8 @@ close_locations find_close_stations(std::vector<terminal> const& terminals) {
   for (size_t i = 0; i < terminals.size(); ++i) {
     auto const& t = terminals[i];
     auto const& found_stations = resp->responses()->Get(i)->stations();
-    attached_stations.push_back(transform_to_vec(
-        *found_stations, [&t](auto&& stations) -> close_location {
+    attached_stations.push_back(
+        utl::to_vec(*found_stations, [&t](auto&& stations) -> close_location {
           int const dist = distance_in_m(t.lat_, t.lng_, stations->pos()->lat(),
                                          stations->pos()->lng());
           int const dur = dist * LINEAR_DIST_APPROX / WALK_SPEED;
