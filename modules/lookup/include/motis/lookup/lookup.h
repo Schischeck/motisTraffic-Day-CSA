@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include "geo/point_rtree.h"
+
 #include "motis/module/module.h"
 
 namespace motis {
@@ -32,7 +34,7 @@ private:
 
   motis::module::msg_ptr lookup_schedule_info() const;
 
-  std::unique_ptr<station_geo_index> geo_index_;
+  geo::point_rtree station_geo_index_;
 };
 
 }  // namespace lookup

@@ -2,46 +2,36 @@
 
 #include "boost/function_output_iterator.hpp"
 
-#include "motis/core/common/geo.h"
+#include "utl/to_vec.h"
 
-using namespace motis::geo_detail;
+#include "geo/point_rtree.h"
 
 namespace motis {
 namespace bikesharing {
 
 struct geo_index::impl {
   explicit impl(database const& db) {
-    auto summary = db.get_summary();
-    auto const& locations = summary.get()->terminals();
+    auto const summary = db.get_summary();
 
-    std::vector<value> rtree_values;
-    for (size_t i = 0; i < locations->size(); ++i) {
-      auto location = locations->Get(i);
-      rtree_values.push_back(
-          std::make_pair(spherical_point(location->lng(), location->lat()), i));
-      terminal_ids_.push_back(location->id()->str());
-    }
-    rtree_ = quadratic_rtree{rtree_values};
+    auto const& locations = summary.get()->terminals();
+    rtree_ = geo::make_point_rtree(*locations, [](auto const& loc) {
+      return geo::latlng{loc->lat(), loc->lng()};
+    });
+    terminal_ids_ = utl::to_vec(
+        *locations, [](auto const& loc) { return loc->id()->str(); });
   }
 
   std::vector<close_terminal> get_terminals(double const lat, double const lng,
                                             double const radius) const {
-    spherical_point loc(lng, lat);
-    std::vector<close_terminal> vec;
-    rtree_.query(
-        bgi::intersects(generate_box(loc, radius)) &&
-            bgi::satisfies([&loc, &radius](const value& v) {
-              return distance_in_m(v.first, loc) < radius;
-            }),
-        boost::make_function_output_iterator([this, &loc, &vec](auto&& result) {
-          vec.emplace_back(terminal_ids_[result.second],
-                           distance_in_m(result.first, loc));
-        }));
-    return vec;
+    return utl::to_vec(
+        rtree_.in_radius_with_distance({lat, lng}, radius),
+        [this](auto const& result) {
+          return close_terminal{terminal_ids_[result.second], result.first};
+        });
   };
 
+  geo::point_rtree rtree_;
   std::vector<std::string> terminal_ids_;
-  quadratic_rtree rtree_;
 };
 
 geo_index::geo_index(database const& db) : impl_(new impl(db)) {}

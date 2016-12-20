@@ -5,7 +5,6 @@
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/idl.h"
 
-#include "motis/core/common/util.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/message_to_journeys.h"
 #include "motis/module/message.h"

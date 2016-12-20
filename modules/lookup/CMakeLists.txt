@@ -8,7 +8,8 @@ add_library(motis-lookup STATIC ${motis-lookup-files})
 set_target_properties(motis-lookup PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-lookup 
   ${Boost_PROGRAM_OPTIONS_LIBRARY} 
-  ${Boost_SYSTEM_LIBRARY} 
+  ${Boost_SYSTEM_LIBRARY}
+  geo
   motis-module
   motis-core
 )

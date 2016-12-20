@@ -9,26 +9,28 @@ namespace motis {
 namespace lookup {
 
 Offset<LookupGeoStationResponse> lookup_geo_stations_id(
-    FlatBufferBuilder& b, station_geo_index const& idx, schedule const& sched,
-    LookupGeoStationIdRequest const* req) {
+    FlatBufferBuilder& b, geo::point_rtree const& station_geo_index,
+    schedule const& sched, LookupGeoStationIdRequest const* req) {
   auto const& station = get_station(sched, req->station_id()->str());
-  std::vector<Offset<Station>> list;
-  for (auto const& s : idx.stations(station->lat(), station->lng(),
-                                    req->min_radius(), req->max_radius())) {
-    list.push_back(create_station(b, *s));
-  }
-  return CreateLookupGeoStationResponse(b, b.CreateVector(list));
+  return CreateLookupGeoStationResponse(
+      b, b.CreateVector(utl::to_vec(
+             station_geo_index.in_radius({station->lat(), station->lng()},
+                                         req->min_radius(), req->max_radius()),
+             [&b, &sched](auto const& idx) {
+               return create_station(b, *sched.stations_[idx]);
+             })));
 }
 
 Offset<LookupGeoStationResponse> lookup_geo_stations(
-    FlatBufferBuilder& b, station_geo_index const& idx,
-    LookupGeoStationRequest const* req) {
-  std::vector<Offset<Station>> list;
-  for (auto const& s : idx.stations(req->pos()->lat(), req->pos()->lng(),
-                                    req->min_radius(), req->max_radius())) {
-    list.push_back(create_station(b, *s));
-  }
-  return CreateLookupGeoStationResponse(b, b.CreateVector(list));
+    FlatBufferBuilder& b, geo::point_rtree const& station_geo_index,
+    schedule const& sched, LookupGeoStationRequest const* req) {
+  return CreateLookupGeoStationResponse(
+      b, b.CreateVector(utl::to_vec(
+             station_geo_index.in_radius({req->pos()->lat(), req->pos()->lng()},
+                                         req->min_radius(), req->max_radius()),
+             [&b, &sched](auto const& idx) {
+               return create_station(b, *sched.stations_[idx]);
+             })));
 }
 
 }  // namespace lookup
