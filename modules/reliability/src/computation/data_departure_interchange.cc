@@ -1,11 +1,15 @@
 #include "motis/reliability/computation/data_departure_interchange.h"
 
+#include <cassert>
+
+#include "common/erase_if.h"
+
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/realtime/time_util.h"
 
-#include <cassert>
+using namespace common;
 
 namespace motis {
 namespace reliability {
@@ -18,13 +22,11 @@ get_all_potential_feeders_except_ic(
     distributions_container::container::key const& ic_feeder) {
   std::vector<distributions_container::container::node*> filtered_feeders(
       feeders);
-  filtered_feeders.erase(
-      std::remove_if(
-          filtered_feeders.begin(), filtered_feeders.end(),
-          [&](distributions_container::container::node const* feeder) {
-            return feeder->key_ == ic_feeder;
-          }),
-      filtered_feeders.end());
+
+  erase_if(filtered_feeders,
+           [&](distributions_container::container::node const* feeder) {
+             return feeder->key_ == ic_feeder;
+           });
   return filtered_feeders;
 }
 
