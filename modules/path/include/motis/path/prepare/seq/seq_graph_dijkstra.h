@@ -2,6 +2,8 @@
 
 #include <queue>
 
+#include "common/erase.h"
+
 namespace motis {
 namespace path {
 
@@ -37,9 +39,7 @@ struct seq_graph_dijkstra {
 
       auto const this_idx = label.idx_;
 
-      open_goals_.erase(
-          std::remove(begin(open_goals_), end(open_goals_), this_idx),
-          end(open_goals_));
+      common::erase(open_goals_, this_idx);
       if (open_goals_.empty()) {
         break;
       }

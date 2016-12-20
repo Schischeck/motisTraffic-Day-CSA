@@ -7,6 +7,8 @@
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+#include "common/erase.h"
+
 #include "conf/options_parser.h"
 
 #include "motis/core/schedule/time.h"
@@ -16,6 +18,7 @@
 #include "motis/bootstrap/motis_instance.h"
 
 namespace po = boost::program_options;
+using namespace common;
 using namespace flatbuffers;
 using namespace motis;
 using namespace motis::bootstrap;
@@ -167,9 +170,9 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
   auto msg = make_msg(fbb);
   msg->get()->mutate_id(id);
 
-  std::string s = msg->to_json();
-  s.erase(std::remove(begin(s), end(s), '\n'), end(s));
-  return s;
+  auto json = msg->to_json();
+  erase(json, '\n');
+  return json;
 }
 
 bool has_events(edge const& e, motis::time from, motis::time to) {
