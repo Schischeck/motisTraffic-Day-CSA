@@ -14,11 +14,11 @@ import Util.List exposing ((!!))
 
 
 type alias Vertex =
-    { c1 : Vec2
-    , c2 : Vec2
-    , p : Float
-    , pickColor : Vec3
-    , col : Vec3
+    { aStartCoords : Vec2
+    , aEndCoords : Vec2
+    , aProgress : Float
+    , aPickColor : Vec3
+    , aCol : Vec3
     }
 
 
@@ -180,70 +180,69 @@ getHoveredTrain model =
 -- SHADERS
 
 
-vertexShader : Shader { attr | c1 : Vec2, c2 : Vec2, p : Float, col : Vec3 } { unif | perspective : Mat4, zoom : Float } { vCol : Vec3 }
+vertexShader : Shader { attr | aStartCoords : Vec2, aEndCoords : Vec2, aProgress : Float, aCol : Vec3 } { unif | uPerspective : Mat4, uZoom : Float } { vCol : Vec3 }
 vertexShader =
     [glsl|
-attribute vec2 c1, c2;
-attribute float p;
-attribute vec3 col;
-uniform mat4 perspective;
-uniform float zoom;
+attribute vec2 aStartCoords, aEndCoords;
+attribute float aProgress;
+attribute vec3 aCol;
+uniform mat4 uPerspective;
+uniform float uZoom;
 varying vec3 vCol;
 
 void main() {
-    vec4 c1p = perspective * vec4(c1, 0.0, 1.0);
-    vec4 c2p = perspective * vec4(c2, 0.0, 1.0);
-    gl_Position = c1p + p * (c2p - c1p);
-    gl_PointSize = zoom;
-    vCol = col;
+    vec4 startPrj = uPerspective * vec4(aStartCoords, 0.0, 1.0);
+    vec4 endPrj = uPerspective * vec4(aEndCoords, 0.0, 1.0);
+    gl_Position = startPrj + aProgress * (endPrj - startPrj);
+    gl_PointSize = uZoom;
+    vCol = aCol;
 }
 |]
 
 
-fragmentShader : Shader {} { u | texture : Texture } { vCol : Vec3 }
+fragmentShader : Shader {} { u | uTexture : Texture } { vCol : Vec3 }
 fragmentShader =
     [glsl|
 precision mediump float;
-uniform sampler2D texture;
+uniform sampler2D uTexture;
 varying vec3 vCol;
 
 void main () {
-    gl_FragColor = vec4(vCol, 1.0) * texture2D(texture, gl_PointCoord);
+    gl_FragColor = vec4(vCol, 1.0) * texture2D(uTexture, gl_PointCoord);
 }
 |]
 
 
-offscreenVertexShader : Shader { attr | c1 : Vec2, c2 : Vec2, p : Float, pickColor : Vec3 } { unif | perspective : Mat4, zoom : Float } { vPickColor : Vec3 }
+offscreenVertexShader : Shader { attr | aStartCoords : Vec2, aEndCoords : Vec2, aProgress : Float, aPickColor : Vec3 } { unif | uPerspective : Mat4, uZoom : Float } { vPickColor : Vec3 }
 offscreenVertexShader =
     [glsl|
 precision highp float;
-attribute vec2 c1, c2;
-attribute float p;
-attribute vec3 pickColor;
-uniform mat4 perspective;
-uniform float zoom;
+attribute vec2 aStartCoords, aEndCoords;
+attribute float aProgress;
+attribute vec3 aPickColor;
+uniform mat4 uPerspective;
+uniform float uZoom;
 varying vec3 vPickColor;
 
 void main() {
-    vec4 c1p = perspective * vec4(c1, 0.0, 1.0);
-    vec4 c2p = perspective * vec4(c2, 0.0, 1.0);
-    gl_Position = c1p + p * (c2p - c1p);
-    gl_PointSize = zoom;
-
-    vPickColor = pickColor;
+    vec4 startPrj = uPerspective * vec4(aStartCoords, 0.0, 1.0);
+    vec4 endPrj = uPerspective * vec4(aEndCoords, 0.0, 1.0);
+    gl_Position = startPrj + aProgress * (endPrj - startPrj);
+    gl_PointSize = uZoom;
+    vPickColor = aPickColor;
 }
 |]
 
 
-offscreenFragmentShader : Shader {} { u | texture : Texture } { vPickColor : Vec3 }
+offscreenFragmentShader : Shader {} { u | uTexture : Texture } { vPickColor : Vec3 }
 offscreenFragmentShader =
     [glsl|
 precision highp float;
-uniform sampler2D texture;
+uniform sampler2D uTexture;
 varying vec3 vPickColor;
 
 void main () {
-    vec4 tex = texture2D(texture, gl_PointCoord);
+    vec4 tex = texture2D(uTexture, gl_PointCoord);
     if (tex.w == 0.0) {
         gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
     } else {

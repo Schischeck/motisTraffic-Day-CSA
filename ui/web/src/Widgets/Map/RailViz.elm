@@ -381,9 +381,9 @@ railVizOverlay model =
                             Trains.vertexShader
                             Trains.fragmentShader
                             trainsBuffer
-                            { texture = trainTexture
-                            , perspective = persp
-                            , zoom = zoom
+                            { uTexture = trainTexture
+                            , uPerspective = persp
+                            , uZoom = zoom
                             }
                         , render
                             Stations.vertexShader
@@ -400,9 +400,9 @@ railVizOverlay model =
                             Trains.offscreenVertexShader
                             Trains.offscreenFragmentShader
                             trainsBuffer
-                            { texture = trainTexture
-                            , perspective = persp
-                            , zoom = zoom
+                            { uTexture = trainTexture
+                            , uPerspective = persp
+                            , uZoom = zoom
                             }
                         ]
                 in
