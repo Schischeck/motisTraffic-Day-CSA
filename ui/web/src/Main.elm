@@ -4,8 +4,9 @@ import Widgets.TimeInput as TimeInput
 import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
-import Widgets.Map as Map
-import Widgets.MapConnectionOverlay as MapConnectionOverlay
+import Widgets.Map.RailViz as RailViz
+import Widgets.Map.RailVizModel as RailVizModel
+import Widgets.Map.ConnectionOverlay as MapConnectionOverlay
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
@@ -67,7 +68,7 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
-    , map : Map.Model
+    , map : RailVizModel.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
     , selectedConnectionIdx : Maybe Int
@@ -99,7 +100,7 @@ init flags initialLocation =
             TimeInput.init
 
         ( mapModel, mapCmd ) =
-            Map.init remoteAddress
+            RailViz.init remoteAddress
 
         ( fromLocationModel, fromLocationCmd ) =
             Typeahead.init remoteAddress "Willy-Brandt-Platz, Darmstadt"
@@ -160,7 +161,7 @@ type Msg
     | TimeUpdate TimeInput.Msg
     | SearchDirectionUpdate SearchDirection
     | SwitchInputs
-    | MapUpdate Map.Msg
+    | MapUpdate RailViz.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
     | PrepareSelectConnection Int
@@ -197,7 +198,7 @@ update msg model =
         MapUpdate msg_ ->
             let
                 ( m, c ) =
-                    Map.update msg_ model.map
+                    RailViz.update msg_ model.map
             in
                 ( { model | map = m }, Cmd.map MapUpdate c )
 
@@ -461,7 +462,7 @@ update msg model =
                     getCurrentDate model1
 
                 ( model2, cmds1 ) =
-                    update (MapUpdate (Map.SetTimeOffset offset)) model1
+                    update (MapUpdate (RailViz.SetTimeOffset offset)) model1
 
                 ( model3, cmds2 ) =
                     update (DateUpdate (Calendar.InitDate newDate)) model2
@@ -617,7 +618,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
-        , Sub.map MapUpdate (Map.subscriptions model.map)
+        , Sub.map MapUpdate (RailViz.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
@@ -630,7 +631,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ Html.map MapUpdate (Map.view model.locale model.map)
+        [ Html.map MapUpdate (RailViz.view model.locale model.map)
         , lazy overlayView model
         ]
 
@@ -886,7 +887,7 @@ setRailVizFilter : Model -> Maybe (List TripId) -> ( Model, Cmd Msg )
 setRailVizFilter model filterTrips =
     let
         ( map_, cmds ) =
-            Map.update (Map.SetFilter filterTrips) model.map
+            RailViz.update (RailViz.SetFilter filterTrips) model.map
 
         model_ =
             { model | map = map_ }
