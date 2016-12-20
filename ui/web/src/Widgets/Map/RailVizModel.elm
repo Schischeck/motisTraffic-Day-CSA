@@ -20,7 +20,7 @@ type alias Model =
     , filteredTrains : List RVTrain
     , filterTrips : Maybe (List TripId)
     , stations : List RVStation
-    , hoveredTrain : Maybe Int
+    , hoveredPickId : Maybe Int
     , nextUpdate : Maybe Time
     , debounce : Debounce.State
     , mouseX : Int
@@ -49,6 +49,8 @@ type alias RVTrain =
 type alias RVStation =
     { station : Station
     , pos : Vec2
+    , pickId : Int
+    , pickColor : Vec3
     }
 
 

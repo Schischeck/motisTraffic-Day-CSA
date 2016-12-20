@@ -24,7 +24,7 @@ mesh stations =
 stationVertex : RVStation -> Vertex
 stationVertex station =
     { aCoords = station.pos
-    , aPickColor = (vec3 0 0 0)
+    , aPickColor = station.pickColor
     }
 
 
@@ -70,7 +70,7 @@ varying vec3 vPickColor;
 
 void main() {
     gl_Position = uPerspective * vec4(aCoords, 0.0, 1.0);
-    gl_PointSize = aZoom;
+    gl_PointSize = uZoom;
 
     vPickColor = aPickColor;
 }

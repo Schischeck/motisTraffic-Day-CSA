@@ -10,6 +10,7 @@ module Widgets.Map.RailViz
 
 import Widgets.Map.RailVizModel exposing (..)
 import Widgets.Map.RailVizHandler exposing (..)
+import Widgets.Map.Picking exposing (..)
 import Widgets.Map.Trains as Trains
 import Widgets.Map.Stations as Stations
 import Widgets.Map.Port as Port exposing (..)
@@ -65,7 +66,7 @@ init remoteAddress =
     , filteredTrains = []
     , filterTrips = Nothing
     , stations = []
-    , hoveredTrain = Nothing
+    , hoveredPickId = Nothing
     , nextUpdate = Nothing
     , debounce = Debounce.init
     , mouseX = 0
@@ -167,7 +168,7 @@ update msg model =
                     handleMapMouseUpdate mapMouseUpdate model
 
                 selectedTrain =
-                    Trains.getHoveredTrain model_
+                    getHoveredTrain model_
 
                 tripId =
                     selectedTrain
@@ -264,7 +265,7 @@ handleMapMouseUpdate : MapMouseUpdate -> Model -> ( Model, Cmd Msg )
 handleMapMouseUpdate mapMouseUpdate model =
     let
         pickId =
-            Trains.toPickId mapMouseUpdate.color
+            toPickId mapMouseUpdate.color
 
         mouseX =
             floor mapMouseUpdate.x
@@ -273,13 +274,13 @@ handleMapMouseUpdate mapMouseUpdate model =
             floor mapMouseUpdate.y
 
         changed =
-            ( model.hoveredTrain, model.mouseX, model.mouseY ) /= ( pickId, mouseX, mouseY )
+            ( model.hoveredPickId, model.mouseX, model.mouseY ) /= ( pickId, mouseX, mouseY )
     in
         if changed then
             let
                 model_ =
                     { model
-                        | hoveredTrain = pickId
+                        | hoveredPickId = pickId
                         , mouseX = floor mapMouseUpdate.x
                         , mouseY = floor mapMouseUpdate.y
                     }
@@ -353,7 +354,7 @@ railVizOverlay model =
                 [ classList
                     [ "railviz-overlay" => True
                     , "leaflet-zoom-hide" => True
-                    , "train-hover" => isJust model.hoveredTrain
+                    , "train-hover" => isJust model.hoveredPickId
                     ]
                 ]
     in
@@ -404,6 +405,14 @@ railVizOverlay model =
                             , uPerspective = persp
                             , uZoom = zoom
                             }
+                        , render
+                            Stations.offscreenVertexShader
+                            Stations.offscreenFragmentShader
+                            stationsBuffer
+                            { uTexture = stationTexture
+                            , uPerspective = persp
+                            , uZoom = zoom
+                            }
                         ]
                 in
                     toHtml renderables offscreenRenderables
@@ -413,7 +422,7 @@ railVizTooltip : Model -> Html Msg
 railVizTooltip model =
     let
         maybeTrain =
-            Trains.getHoveredTrain model
+            getHoveredTrain model
     in
         case maybeTrain of
             Just train ->

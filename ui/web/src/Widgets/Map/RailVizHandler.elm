@@ -2,7 +2,7 @@ module Widgets.Map.RailVizHandler exposing (..)
 
 import Widgets.Map.RailVizModel exposing (..)
 import Widgets.Map.GeoUtil exposing (..)
-import Widgets.Map.Trains as Trains
+import Widgets.Map.Picking exposing (..)
 import Data.RailViz.Types exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Data.Connection.Types exposing (Station, Position, TripId)
@@ -15,7 +15,7 @@ handleRailVizTrainsResponse : RailVizTrainsResponse -> Model -> Model
 handleRailVizTrainsResponse response model =
     let
         rvStations =
-            List.map toRVStation response.stations
+            List.indexedMap toRVStation response.stations
 
         getSegment routeIdx segmentIdx =
             response.routes
@@ -45,7 +45,7 @@ handleRailVizTrainsResponse response model =
                 , pathLength = totalLength
                 , currentSubSegment = Nothing
                 , pickId = pickId
-                , pickColor = Trains.toPickColor pickId
+                , pickColor = toPickColor pickId
                 , trips = train.trip
                 }
 
@@ -131,8 +131,17 @@ convertSegment seg =
                     []
 
 
-toRVStation : Station -> RVStation
-toRVStation station =
-    { station = station
-    , pos = positionToVec2 station.pos
-    }
+toRVStation : Int -> Station -> RVStation
+toRVStation index station =
+    let
+        pickId =
+            stationPickIdBase + index
+
+        pickColor =
+            toPickColor pickId
+    in
+        { station = station
+        , pos = positionToVec2 station.pos
+        , pickId = pickId
+        , pickColor = pickColor
+        }
