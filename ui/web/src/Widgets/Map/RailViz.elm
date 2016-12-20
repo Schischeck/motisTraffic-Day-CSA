@@ -55,7 +55,7 @@ init remoteAddress =
         , geoBounds = { north = 0, west = 0, south = 0, east = 0 }
         , railVizBounds = { north = 0, west = 0, south = 0, east = 0 }
         }
-    , texture = Nothing
+    , textures = Nothing
     , time = 0
     , systemTime = 0
     , timeOffset = 0
@@ -89,7 +89,7 @@ type Msg
     | MapLoaded String
     | MapUpdate MapInfo
     | TextureError WebGL.Error
-    | TextureLoaded WebGL.Texture
+    | TextureLoaded ( WebGL.Texture, WebGL.Texture )
     | MouseMove Port.MapMouseUpdate
     | MouseDown Port.MapMouseUpdate
     | MouseUp Port.MapMouseUpdate
@@ -123,18 +123,18 @@ update msg model =
                     ! []
 
         MapLoaded _ ->
-            ( model
-            , Task.attempt
-                (\r ->
-                    case r of
-                        Ok v ->
-                            TextureLoaded v
+            model
+                ! [ Task.attempt
+                        (\r ->
+                            case r of
+                                Ok v ->
+                                    TextureLoaded v
 
-                        Err v ->
-                            TextureError v
-                )
-                (WebGL.loadTexture "circle.png")
-            )
+                                Err v ->
+                                    TextureError v
+                        )
+                        fetchTextures
+                  ]
 
         MapUpdate m_ ->
             let
@@ -144,10 +144,17 @@ update msg model =
                 model_ ! [ Debounce.debounceCmd debounceCfg <| RequestUpdate ]
 
         TextureError err ->
-            ( model, Cmd.none )
+            let
+                _ =
+                    Debug.log "Error loading texture" err
+            in
+                model ! []
 
-        TextureLoaded texture ->
-            ( { model | texture = Just texture }, Cmd.none )
+        TextureLoaded textures ->
+            { model
+                | textures = Just textures
+            }
+                ! []
 
         MouseMove mapMouseUpdate ->
             handleMapMouseUpdate mapMouseUpdate model
@@ -280,6 +287,19 @@ handleMapMouseUpdate mapMouseUpdate model =
             model ! []
 
 
+fetchTextures : Task Error ( Texture, Texture )
+fetchTextures =
+    loadTextureWithFilter Nearest "img/railviz/train.png"
+        |> Task.andThen
+            (\trainTexture ->
+                loadTextureWithFilter Nearest "img/railviz/station.png"
+                    |> Task.andThen
+                        (\stationTexture ->
+                            Task.succeed ( trainTexture, stationTexture )
+                        )
+            )
+
+
 
 -- SUBSCRIPTIONS
 
@@ -335,11 +355,11 @@ railVizOverlay model =
                     ]
                 ]
     in
-        case model.texture of
+        case model.textures of
             Nothing ->
                 toHtml [] []
 
-            Just tex ->
+            Just ( trainTexture, stationTexture ) ->
                 let
                     buffer =
                         (Trains.mesh model.time model.filteredTrains)
@@ -352,7 +372,7 @@ railVizOverlay model =
                         render Trains.vertexShader
                             Trains.fragmentShader
                             buffer
-                            { texture = tex
+                            { texture = trainTexture
                             , perspective = perspective model
                             , zoom = zoom
                             }
@@ -361,7 +381,7 @@ railVizOverlay model =
                         render Trains.offscreenVertexShader
                             Trains.offscreenFragmentShader
                             buffer
-                            { texture = tex
+                            { texture = trainTexture
                             , perspective = perspective model
                             , zoom = zoom
                             }

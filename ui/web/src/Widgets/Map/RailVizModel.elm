@@ -9,6 +9,25 @@ import WebGL exposing (..)
 import Debounce
 
 
+type alias Model =
+    { mapInfo : MapInfo
+    , textures : Maybe ( WebGL.Texture, WebGL.Texture )
+    , time : Time
+    , systemTime : Time
+    , timeOffset : Float
+    , remoteAddress : String
+    , allTrains : List RVTrain
+    , filteredTrains : List RVTrain
+    , filterTrips : Maybe (List TripId)
+    , hoveredTrain : Maybe Int
+    , nextUpdate : Maybe Time
+    , debounce : Debounce.State
+    , mouseX : Int
+    , mouseY : Int
+    , zoomOverride : Maybe Float
+    }
+
+
 type alias RVTrain =
     { names : List String
     , currentSegment : List ( Vec2, Float )
@@ -38,25 +57,6 @@ type alias CurrentSubSegment =
     , endPoint : Vec2
     , length : Float
     , nextSubSegmentIndex : Int
-    }
-
-
-type alias Model =
-    { mapInfo : MapInfo
-    , texture : Maybe WebGL.Texture
-    , time : Time
-    , systemTime : Time
-    , timeOffset : Float
-    , remoteAddress : String
-    , allTrains : List RVTrain
-    , filteredTrains : List RVTrain
-    , filterTrips : Maybe (List TripId)
-    , hoveredTrain : Maybe Int
-    , nextUpdate : Maybe Time
-    , debounce : Debounce.State
-    , mouseX : Int
-    , mouseY : Int
-    , zoomOverride : Maybe Float
     }
 
 
