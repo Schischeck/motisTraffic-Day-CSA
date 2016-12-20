@@ -2,8 +2,9 @@
 
 #include <algorithm>
 
+#include "utl/erase_if.h"
+
 #include "motis/core/common/constants.h"
-#include "motis/core/common/erase_if.h"
 #include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
 
@@ -112,13 +113,15 @@ void remove_intersection(std::vector<mumo_edge>& starts,
                          SearchDir const dir) {
   if (dir == SearchDir_Forward) {
     for (auto const& dest : destinations) {
-      erase_if(starts,
-               [&dest](auto const& start) { return start.to_ == dest.from_; });
+      utl::erase_if(starts, [&dest](auto const& start) {
+        return start.to_ == dest.from_;
+      });
     }
   } else {
     for (auto const& dest : destinations) {
-      erase_if(starts,
-               [&dest](auto const& start) { return start.from_ == dest.to_; });
+      utl::erase_if(starts, [&dest](auto const& start) {
+        return start.from_ == dest.to_;
+      });
     }
   }
 }
