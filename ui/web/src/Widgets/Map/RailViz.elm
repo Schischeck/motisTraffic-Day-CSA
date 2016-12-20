@@ -11,6 +11,7 @@ module Widgets.Map.RailViz
 import Widgets.Map.RailVizModel exposing (..)
 import Widgets.Map.RailVizHandler exposing (..)
 import Widgets.Map.Trains as Trains
+import Widgets.Map.Stations as Stations
 import Widgets.Map.Port as Port exposing (..)
 import Html exposing (Html, Attribute, div, text, span)
 import Html.Attributes exposing (id, class, classList, style)
@@ -63,6 +64,7 @@ init remoteAddress =
     , allTrains = []
     , filteredTrains = []
     , filterTrips = Nothing
+    , stations = []
     , hoveredTrain = Nothing
     , nextUpdate = Nothing
     , debounce = Debounce.init
@@ -361,32 +363,50 @@ railVizOverlay model =
 
             Just ( trainTexture, stationTexture ) ->
                 let
-                    buffer =
-                        (Trains.mesh model.time model.filteredTrains)
+                    trainsBuffer =
+                        Trains.mesh model.time model.filteredTrains
+
+                    stationsBuffer =
+                        Stations.mesh model.stations
 
                     zoom =
                         model.zoomOverride
                             |> Maybe.withDefault model.mapInfo.zoom
 
-                    renderable =
-                        render Trains.vertexShader
-                            Trains.fragmentShader
-                            buffer
-                            { texture = trainTexture
-                            , perspective = perspective model
-                            , zoom = zoom
-                            }
+                    persp =
+                        perspective model
 
-                    offscreenRenderable =
-                        render Trains.offscreenVertexShader
-                            Trains.offscreenFragmentShader
-                            buffer
+                    renderables =
+                        [ render
+                            Trains.vertexShader
+                            Trains.fragmentShader
+                            trainsBuffer
                             { texture = trainTexture
-                            , perspective = perspective model
+                            , perspective = persp
                             , zoom = zoom
                             }
+                        , render
+                            Stations.vertexShader
+                            Stations.fragmentShader
+                            stationsBuffer
+                            { uTexture = stationTexture
+                            , uPerspective = persp
+                            , uZoom = zoom
+                            }
+                        ]
+
+                    offscreenRenderables =
+                        [ render
+                            Trains.offscreenVertexShader
+                            Trains.offscreenFragmentShader
+                            trainsBuffer
+                            { texture = trainTexture
+                            , perspective = persp
+                            , zoom = zoom
+                            }
+                        ]
                 in
-                    toHtml [ renderable ] [ offscreenRenderable ]
+                    toHtml renderables offscreenRenderables
 
 
 railVizTooltip : Model -> Html Msg

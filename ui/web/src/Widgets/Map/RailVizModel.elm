@@ -19,6 +19,7 @@ type alias Model =
     , allTrains : List RVTrain
     , filteredTrains : List RVTrain
     , filterTrips : Maybe (List TripId)
+    , stations : List RVStation
     , hoveredTrain : Maybe Int
     , nextUpdate : Maybe Time
     , debounce : Debounce.State

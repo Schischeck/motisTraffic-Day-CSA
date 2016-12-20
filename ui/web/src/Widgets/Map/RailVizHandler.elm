@@ -78,6 +78,7 @@ handleRailVizTrainsResponse response model =
         { model
             | allTrains = allTrains
             , filteredTrains = filteredTrains
+            , stations = rvStations
         }
 
 
