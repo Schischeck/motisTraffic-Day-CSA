@@ -4,6 +4,7 @@ import Widgets.Map.RailVizModel exposing (..)
 import Widgets.Map.GeoUtil exposing (..)
 import Widgets.Map.Picking exposing (..)
 import Widgets.Map.Stations as Stations
+import Widgets.Map.Routes as Routes
 import Data.RailViz.Types exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Data.Connection.Types exposing (Station, Position, TripId)
@@ -83,7 +84,7 @@ handleRailVizTrainsResponse response model =
                 , stations = rvStations
             }
     in
-        initStaticDrawables model_
+        initStaticDrawables model_ response.routes
 
 
 convertSegment : RailVizSegment -> List ( Vec2, Float )
@@ -151,8 +152,9 @@ toRVStation index station =
         }
 
 
-initStaticDrawables : Model -> Model
-initStaticDrawables model =
+initStaticDrawables : Model -> List RailVizRoute -> Model
+initStaticDrawables model routes =
     { model
-        | stationsDrawable = Just (Stations.mesh model.stations)
+        | stationsDrawable = Stations.mesh model.stations
+        , routesDrawable = Routes.mesh routes
     }

@@ -26,7 +26,8 @@ type alias Model =
     , mouseX : Int
     , mouseY : Int
     , zoomOverride : Maybe Float
-    , stationsDrawable : Maybe (WebGL.Drawable StationVertex)
+    , stationsDrawable : WebGL.Drawable StationVertex
+    , routesDrawable : WebGL.Drawable RouteVertex
     }
 
 
@@ -77,6 +78,10 @@ type alias StationVertex =
     { aCoords : Vec2
     , aPickColor : Vec3
     }
+
+
+type alias RouteVertex =
+    { aCoords : Vec2 }
 
 
 applyFilter : Maybe (List TripId) -> List RVTrain -> List RVTrain

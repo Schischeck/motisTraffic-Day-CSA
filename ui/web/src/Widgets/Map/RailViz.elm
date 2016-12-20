@@ -13,6 +13,7 @@ import Widgets.Map.RailVizHandler exposing (..)
 import Widgets.Map.Picking exposing (..)
 import Widgets.Map.Trains as Trains
 import Widgets.Map.Stations as Stations
+import Widgets.Map.Routes as Routes
 import Widgets.Map.Port as Port exposing (..)
 import Html exposing (Html, Attribute, div, text, span)
 import Html.Attributes exposing (id, class, classList, style)
@@ -72,7 +73,8 @@ init remoteAddress =
     , mouseX = 0
     , mouseY = 0
     , zoomOverride = Nothing
-    , stationsDrawable = Nothing
+    , stationsDrawable = Points []
+    , routesDrawable = Lines []
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
@@ -368,10 +370,6 @@ railVizOverlay model =
                     trainsBuffer =
                         Trains.mesh model.time model.filteredTrains
 
-                    stationsBuffer =
-                        model.stationsDrawable
-                            |> Maybe.withDefault (Points [])
-
                     zoom =
                         model.zoomOverride
                             |> Maybe.withDefault model.mapInfo.zoom
@@ -391,10 +389,18 @@ railVizOverlay model =
                         , render
                             Stations.vertexShader
                             Stations.fragmentShader
-                            stationsBuffer
+                            model.stationsDrawable
                             { uTexture = stationTexture
                             , uPerspective = persp
                             , uZoom = zoom
+                            }
+                        , render
+                            Routes.vertexShader
+                            Routes.fragmentShader
+                            model.routesDrawable
+                            { uPerspective = persp
+                            , uZoom = zoom
+                            , uColor = Routes.lineColor
                             }
                         ]
 
@@ -410,7 +416,7 @@ railVizOverlay model =
                         , render
                             Stations.offscreenVertexShader
                             Stations.offscreenFragmentShader
-                            stationsBuffer
+                            model.stationsDrawable
                             { uTexture = stationTexture
                             , uPerspective = persp
                             , uZoom = zoom
