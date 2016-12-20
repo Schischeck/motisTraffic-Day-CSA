@@ -3,6 +3,7 @@ module Widgets.Map.RailVizHandler exposing (..)
 import Widgets.Map.RailVizModel exposing (..)
 import Widgets.Map.GeoUtil exposing (..)
 import Widgets.Map.Picking exposing (..)
+import Widgets.Map.Stations as Stations
 import Data.RailViz.Types exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Data.Connection.Types exposing (Station, Position, TripId)
@@ -74,12 +75,15 @@ handleRailVizTrainsResponse response model =
 
         filteredTrains =
             applyFilter model.filterTrips allTrains
+
+        model_ =
+            { model
+                | allTrains = allTrains
+                , filteredTrains = filteredTrains
+                , stations = rvStations
+            }
     in
-        { model
-            | allTrains = allTrains
-            , filteredTrains = filteredTrains
-            , stations = rvStations
-        }
+        initStaticDrawables model_
 
 
 convertSegment : RailVizSegment -> List ( Vec2, Float )
@@ -145,3 +149,10 @@ toRVStation index station =
         , pickId = pickId
         , pickColor = pickColor
         }
+
+
+initStaticDrawables : Model -> Model
+initStaticDrawables model =
+    { model
+        | stationsDrawable = Just (Stations.mesh model.stations)
+    }

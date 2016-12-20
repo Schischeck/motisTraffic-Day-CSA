@@ -12,21 +12,12 @@ import Util.List exposing ((!!))
 -- MODEL
 
 
-type alias Vertex =
-    { aStartCoords : Vec2
-    , aEndCoords : Vec2
-    , aProgress : Float
-    , aPickColor : Vec3
-    , aCol : Vec3
-    }
-
-
-mesh : Time -> List RVTrain -> Drawable Vertex
+mesh : Time -> List RVTrain -> Drawable TrainVertex
 mesh currentTime trains =
     Points (List.filterMap (getTrainPosition currentTime) trains)
 
 
-getTrainPosition : Time -> RVTrain -> Maybe Vertex
+getTrainPosition : Time -> RVTrain -> Maybe TrainVertex
 getTrainPosition currentTime train =
     if currentTime < train.departureTime || currentTime > train.arrivalTime then
         Nothing
@@ -46,10 +37,10 @@ getTrainPosition currentTime train =
                     p =
                         subSegmentPos / currentSubSegment.length
                 in
-                    Just <| Vertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor (trainColor train)
+                    Just <| TrainVertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor (trainColor train)
 
             Nothing ->
-                Just <| Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor (trainColor train)
+                Just <| TrainVertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor (trainColor train)
 
 
 trainProgress : Time -> RVTrain -> Float

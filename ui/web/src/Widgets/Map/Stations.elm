@@ -10,18 +10,12 @@ import WebGL exposing (..)
 -- MODEL
 
 
-type alias Vertex =
-    { aCoords : Vec2
-    , aPickColor : Vec3
-    }
-
-
-mesh : List RVStation -> Drawable Vertex
+mesh : List RVStation -> Drawable StationVertex
 mesh stations =
     Points (List.map stationVertex stations)
 
 
-stationVertex : RVStation -> Vertex
+stationVertex : RVStation -> StationVertex
 stationVertex station =
     { aCoords = station.pos
     , aPickColor = station.pickColor

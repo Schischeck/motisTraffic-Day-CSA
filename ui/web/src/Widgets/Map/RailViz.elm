@@ -72,6 +72,7 @@ init remoteAddress =
     , mouseX = 0
     , mouseY = 0
     , zoomOverride = Nothing
+    , stationsDrawable = Nothing
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
@@ -368,7 +369,8 @@ railVizOverlay model =
                         Trains.mesh model.time model.filteredTrains
 
                     stationsBuffer =
-                        Stations.mesh model.stations
+                        model.stationsDrawable
+                            |> Maybe.withDefault (Points [])
 
                     zoom =
                         model.zoomOverride

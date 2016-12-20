@@ -5,7 +5,7 @@ import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
 import Data.Connection.Types exposing (Station, Position, TripId)
 import Time exposing (Time)
-import WebGL exposing (..)
+import WebGL
 import Debounce
 
 
@@ -26,6 +26,7 @@ type alias Model =
     , mouseX : Int
     , mouseY : Int
     , zoomOverride : Maybe Float
+    , stationsDrawable : Maybe (WebGL.Drawable StationVertex)
     }
 
 
@@ -60,6 +61,21 @@ type alias CurrentSubSegment =
     , endPoint : Vec2
     , length : Float
     , nextSubSegmentIndex : Int
+    }
+
+
+type alias TrainVertex =
+    { aStartCoords : Vec2
+    , aEndCoords : Vec2
+    , aProgress : Float
+    , aPickColor : Vec3
+    , aCol : Vec3
+    }
+
+
+type alias StationVertex =
+    { aCoords : Vec2
+    , aPickColor : Vec3
     }
 
 
