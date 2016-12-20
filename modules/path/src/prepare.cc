@@ -6,7 +6,7 @@
 
 #include "boost/filesystem.hpp"
 
-#include "common/erase_if.h"
+#include "utl/erase_if.h"
 
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
@@ -30,7 +30,6 @@
 #include "version.h"
 
 namespace fs = boost::filesystem;
-using namespace common;
 using namespace parser;
 using namespace motis;
 using namespace motis::loader;
@@ -103,7 +102,7 @@ int main(int argc, char** argv) {
   auto const extent_polygon = geo::read_poly_file(opt.extent_);
   poly_timer.stop_and_print();
 
-  erase_if(sequences, [&](auto const& seq) {
+  utl::erase_if(sequences, [&](auto const& seq) {
     return std::any_of(
         begin(seq.coordinates_), end(seq.coordinates_),
         [&](auto const& coord) { return !geo::within(coord, extent_polygon); });

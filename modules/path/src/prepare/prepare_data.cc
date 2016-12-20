@@ -2,8 +2,8 @@
 
 #include "parser/util.h"
 
-#include "common/concat.h"
-#include "common/parallel_for.h"
+#include "utl/concat.h"
+#include "utl/parallel_for.h"
 
 #include "motis/core/common/logging.h"
 
@@ -15,7 +15,6 @@
 #include "motis/path/prepare/seq/seq_graph_dijkstra.h"
 #include "motis/path/prepare/station_sequences.h"
 
-using namespace common;
 using namespace motis;
 using namespace motis::path;
 
@@ -86,9 +85,10 @@ void strategy_prepare(std::vector<station_seq> const& sequences,
                    edge->router_id() == edge->from_->ref_.router_id_ &&
                    edge->router_id() == edge->to_->ref_.router_id_,
                "error prepare");
-        concat(lines[edge->from_->station_idx_],
-               routing_strategies.strategies_[edge->router_id()]->get_polyline(
-                   edge->from_->ref_, edge->to_->ref_));
+        utl::concat(
+            lines[edge->from_->station_idx_],
+            routing_strategies.strategies_[edge->router_id()]->get_polyline(
+                edge->from_->ref_, edge->to_->ref_));
 
         info.to_ = lines[edge->from_->station_idx_].size();
         info.type_ =

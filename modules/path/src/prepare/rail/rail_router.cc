@@ -2,12 +2,10 @@
 
 #include <queue>
 
-#include "common/erase.h"
+#include "utl/erase.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/transform_to_vec.h"
-
-using namespace common;
 
 namespace motis {
 namespace path {
@@ -44,7 +42,7 @@ struct rail_graph_dijkstra {
 
       auto const this_idx = label.idx_;
 
-      erase(open_goals_, this_idx);
+      utl::erase(open_goals_, this_idx);
       if (open_goals_.empty()) {
         break;
       }

@@ -8,16 +8,14 @@
 
 #include "boost/optional.hpp"
 
-#include "common/parallel_for.h"
+#include "utl/parallel_for.h"
 
 #include "geo/latlng.h"
-
 
 #include "motis/core/common/logging.h"
 
 #include "motis/path/prepare/geojson.h"
 
-using namespace common;
 using namespace geo;
 using namespace motis::logging;
 
@@ -204,18 +202,19 @@ std::vector<aggregated_polyline> aggregate_polylines(
   std::mutex m;
   std::vector<aggregated_polyline> polylines;
 
-  parallel_for("aggregate polylines", relations, 250, [&](relation const& rel) {
-    auto dists = distance_matrix(rel.ways_);
-    auto visited = std::set<size_t>{};
+  utl::parallel_for(
+      "aggregate polylines", relations, 250, [&](relation const& rel) {
+        auto dists = distance_matrix(rel.ways_);
+        auto visited = std::set<size_t>{};
 
-    auto appender = [&](polyline&& p) {
-      std::lock_guard<std::mutex> lock(m);
-      polylines.emplace_back(rel.source_, std::move(p));
-    };
+        auto appender = [&](polyline&& p) {
+          std::lock_guard<std::mutex> lock(m);
+          polylines.emplace_back(rel.source_, std::move(p));
+        };
 
-    aggregate_ways(appender, visited, rel.ways_, dists, true);
-    aggregate_ways(appender, visited, rel.ways_, dists, false);
-  });
+        aggregate_ways(appender, visited, rel.ways_, dists, true);
+        aggregate_ways(appender, visited, rel.ways_, dists, false);
+      });
 
   return polylines;
 }

@@ -2,7 +2,7 @@
 
 #include <queue>
 
-#include "common/erase.h"
+#include "utl/erase.h"
 
 namespace motis {
 namespace path {
@@ -39,7 +39,7 @@ struct seq_graph_dijkstra {
 
       auto const this_idx = label.idx_;
 
-      common::erase(open_goals_, this_idx);
+      utl::erase(open_goals_, this_idx);
       if (open_goals_.empty()) {
         break;
       }

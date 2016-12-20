@@ -1,6 +1,6 @@
 #include "motis/path/prepare/rel/relation_parser.h"
 
-#include "common/erase_if.h"
+#include "utl/erase_if.h"
 
 #include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
@@ -8,7 +8,6 @@
 
 #include "motis/path/prepare/osm_util.h"
 
-using namespace common;
 using namespace motis::logging;
 
 namespace motis {
@@ -108,7 +107,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
       }
     }
 
-    erase_if(ways, [](auto const& w) {
+    utl::erase_if(ways, [](auto const& w) {
       return !w->resolved_ || w->nodes_.size() < 2;
     });
   }

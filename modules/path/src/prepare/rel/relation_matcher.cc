@@ -2,9 +2,9 @@
 
 #include <mutex>
 
-#include "common/concat.h"
-#include "common/erase_if.h"
-#include "common/parallel_for.h"
+#include "utl/concat.h"
+#include "utl/erase_if.h"
+#include "utl/parallel_for.h"
 
 #include "geo/point_rtree.h"
 
@@ -14,7 +14,6 @@
 #include "motis/path/prepare/rel/polyline_aggregator.h"
 #include "motis/path/prepare/rel/relation_parser.h"
 
-using namespace common;
 using namespace geo;
 using namespace motis::logging;
 
@@ -41,12 +40,12 @@ struct matcher {
       auto const& extra_nodes = stop_positions_.find(seq_.station_ids_[i]);
       if (extra_nodes != end(stop_positions_)) {
         for (auto const& stop_pos : extra_nodes->second) {
-          concat(close_nodes,
+          utl::concat(close_nodes,
                  rtree_.in_radius_with_distance(stop_pos, kMatchRadius));
         }
       }
 
-      erase_if(close_nodes, [&](auto const& pair) {
+      utl::erase_if(close_nodes, [&](auto const& pair) {
         return static_cast<long>(pair.second) <= last;
       });
 
@@ -104,7 +103,7 @@ std::vector<std::vector<match_seq>> match_sequences(
   std::vector<std::vector<match_seq>> result(sequences.size());
 
   std::mutex m;
-  parallel_for("match_polyline", aps, 250, [&](auto const& ap) {
+  utl::parallel_for("match sequences", aps, 250, [&](auto const& ap) {
     auto const rtree = make_point_rtree(ap.polyline_);
 
     auto const matches = transform_to_vec(
@@ -122,7 +121,7 @@ std::vector<std::vector<match_seq>> match_sequences(
 
     std::lock_guard<std::mutex> lock(m);
     for (auto i = 0u; i < matches.size(); ++i) {
-      concat(result[i], matches[i]);
+      utl::concat(result[i], matches[i]);
     }
   });
 
