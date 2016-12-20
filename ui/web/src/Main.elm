@@ -79,6 +79,7 @@ type alias Model =
     , debounce : Debounce.State
     , connectionListScrollPos : Float
     , currentTime : Date
+    , timeOffset : Float
     }
 
 
@@ -126,6 +127,7 @@ init flags initialLocation =
             , debounce = Debounce.init
             , connectionListScrollPos = 0
             , currentTime = Date.fromTime 0
+            , timeOffset = 0
             }
 
         ( model, cmds ) =
@@ -179,6 +181,8 @@ type Msg
     | ReplaceLocation Route
     | SetRoutingResponses (List ( String, String ))
     | UpdateCurrentTime Time
+    | SetSimulationTime Time
+    | SetTimeOffset Time Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -433,6 +437,40 @@ update msg model =
         UpdateCurrentTime time ->
             { model | currentTime = Date.fromTime time } ! []
 
+        SetSimulationTime simulationTime ->
+            model
+                ! [ Task.perform (SetTimeOffset simulationTime) Time.now
+                  , Navigation.newUrl (toUrl Connections)
+                  ]
+
+        SetTimeOffset simulationTime currentTime ->
+            let
+                offset =
+                    simulationTime - currentTime
+
+                model1 =
+                    { model
+                        | currentTime = Date.fromTime currentTime
+                        , timeOffset = offset
+                    }
+
+                _ =
+                    Debug.log "SetSimulationTime" ( offset, model1.currentTime, getCurrentDate model1 )
+
+                newDate =
+                    getCurrentDate model1
+
+                ( model2, cmds1 ) =
+                    update (MapUpdate (Map.SetTimeOffset offset)) model1
+
+                ( model3, cmds2 ) =
+                    update (DateUpdate (Calendar.InitDate newDate)) model2
+
+                ( model4, cmds3 ) =
+                    update (TimeUpdate (TimeInput.InitDate newDate)) model3
+            in
+                model4 ! [ cmds1, cmds2, cmds3 ]
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -560,6 +598,16 @@ loadTripById model tripId =
         model_ ! [ sendTripRequest model.apiEndpoint tripId ]
 
 
+getCurrentTime : Model -> Time
+getCurrentTime model =
+    (Date.toTime model.currentTime) + model.timeOffset
+
+
+getCurrentDate : Model -> Date
+getCurrentDate model =
+    Date.fromTime (getCurrentTime model)
+
+
 
 -- SUBSCRIPTIONS
 
@@ -582,7 +630,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ Html.map MapUpdate (Map.view model.map)
+        [ Html.map MapUpdate (Map.view model.locale model.map)
         , lazy overlayView model
         ]
 
@@ -596,7 +644,7 @@ overlayView model =
                     searchView model
 
                 Just c ->
-                    detailsView model.locale model.currentTime c
+                    detailsView model.locale (getCurrentDate model) c
     in
         div [ class "overlay-container" ]
             [ div [ class "overlay" ] <|
@@ -759,6 +807,9 @@ routeToMsg route =
                 , target_time = targetTime
                 , line_id = lineId
                 }
+
+        SimulationTime time ->
+            SetSimulationTime (Date.toTime time)
 
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )

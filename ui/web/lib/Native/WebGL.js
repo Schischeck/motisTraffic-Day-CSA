@@ -250,6 +250,27 @@ var _elm_community$webgl$Native_WebGL = function() {
     return bufferObject;
   }
 
+  function deleteBuffer(cache, guid) {
+    var gl = cache.gl;
+    var buffer = cache.buffers[guid];
+    if (!buffer) {
+      return;
+    }
+    Object.keys(buffer.buffers).forEach(function(key) {
+      gl.deleteBuffer(buffer.buffers[key]);
+    });
+    buffer.buffers = {};
+    gl.deleteBuffer(buffer.indexBuffer);
+    delete cache.buffers[guid];
+  }
+
+  function deleteAllBuffers(cache) {
+    Object.keys(cache.buffers).forEach(function(guid) {
+      deleteBuffer(cache, guid);
+    });
+    cache.buffers = {};
+  }
+
   var mode = '';
 
   function getProgID(vertID, fragID) {
@@ -325,6 +346,7 @@ var _elm_community$webgl$Native_WebGL = function() {
       var buffer = model.cache.buffers[render.buffer.guid];
 
       if (!buffer) {
+        deleteAllBuffers(model.cache);
         buffer = doBindSetup(gl, render.buffer._0, renderType.elemSize);
         model.cache.buffers[render.buffer.guid] = buffer;
       }
@@ -358,6 +380,14 @@ var _elm_community$webgl$Native_WebGL = function() {
             0, 0);
       }
       gl.drawElements(renderType.mode, numIndices, gl.UNSIGNED_SHORT, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, null);
+      for (var i = 0; i < numAttributes; i += 1) {
+        var attribute = gl.getActiveAttrib(program, i);
+
+        var attribLocation = gl.getAttribLocation(program, attribute.name);
+        gl.disableVertexAttribArray(attribLocation);
+      }
     }
 
     mode = 'on-screen';
@@ -554,7 +584,7 @@ var _elm_community$webgl$Native_WebGL = function() {
     model.cache.shaders = [];
     model.cache.programs = {};
     model.cache.uniformSetters = {};
-    model.cache.buffers = [];
+    model.cache.buffers = {};
     model.cache.textures = [];
     model.cache.offscreen = {};
     model.cache.picking = {x: null, y: null, enabled: false, pixel: null};

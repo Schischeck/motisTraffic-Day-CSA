@@ -1,15 +1,15 @@
 module Widgets.Map
     exposing
         ( Model
-        , Msg(SetFilter)
+        , Msg(SetFilter, SetTimeOffset)
         , init
         , view
         , update
         , subscriptions
         )
 
-import Html exposing (Html, Attribute, div, text)
-import Html.Attributes exposing (id, class, classList)
+import Html exposing (Html, Attribute, div, text, span)
+import Html.Attributes exposing (id, class, classList, style)
 import Port exposing (..)
 import Math.Vector2 as Vector2 exposing (Vec2, vec2)
 import Math.Vector3 as Vector3 exposing (Vec3, vec3)
@@ -21,7 +21,6 @@ import AnimationFrame
 import Task exposing (..)
 import Html exposing (Html)
 import Data.Connection.Types exposing (Station, Position, TripId)
-import Random
 import Bitwise
 import Maybe.Extra exposing (isJust, isNothing)
 import Util.Core exposing ((=>))
@@ -41,6 +40,8 @@ import Util.Api as Api
 import Debounce
 import Navigation
 import Routes exposing (..)
+import Util.DateFormat exposing (formatTime, formatDateTimeWithSeconds)
+import Localization.Base exposing (..)
 
 
 -- MODEL
@@ -51,6 +52,7 @@ type alias Vertex =
     , c2 : Vec2
     , p : Float
     , pickColor : Vec3
+    , col : Vec3
     }
 
 
@@ -90,6 +92,8 @@ type alias Model =
     { mapInfo : MapInfo
     , texture : Maybe WebGL.Texture
     , time : Time
+    , systemTime : Time
+    , timeOffset : Float
     , remoteAddress : String
     , allTrains : List RVTrain
     , filteredTrains : List RVTrain
@@ -97,6 +101,8 @@ type alias Model =
     , hoveredTrain : Maybe Int
     , nextUpdate : Maybe Time
     , debounce : Debounce.State
+    , mouseX : Int
+    , mouseY : Int
     }
 
 
@@ -110,7 +116,9 @@ init remoteAddress =
         , railVizBounds = { north = 0, west = 0, south = 0, east = 0 }
         }
     , texture = Nothing
-    , time = 0.0
+    , time = 0
+    , systemTime = 0
+    , timeOffset = 0
     , remoteAddress = remoteAddress
     , allTrains = []
     , filteredTrains = []
@@ -118,8 +126,12 @@ init remoteAddress =
     , hoveredTrain = Nothing
     , nextUpdate = Nothing
     , debounce = Debounce.init
+    , mouseX = 0
+    , mouseY = 0
     }
-        ! [ mapInit "map" ]
+        ! [ Task.perform SetTime Time.now
+          , mapInit "map"
+          ]
 
 
 mesh : Time -> List RVTrain -> Drawable Vertex
@@ -147,10 +159,10 @@ getTrainPosition currentTime train =
                     p =
                         subSegmentPos / currentSubSegment.length
                 in
-                    Just <| Vertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor
+                    Just <| Vertex currentSubSegment.startPoint currentSubSegment.endPoint p train.pickColor (trainColor train)
 
             Nothing ->
-                Just <| Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor
+                Just <| Vertex train.departureStation.pos train.arrivalStation.pos 1.0 train.pickColor (trainColor train)
 
 
 toPickColor : Int -> Vec3
@@ -187,6 +199,24 @@ toPickId color =
 trainProgress : Time -> RVTrain -> Float
 trainProgress currentTime train =
     ((currentTime - train.departureTime) / (train.arrivalTime - train.departureTime))
+
+
+trainColor : RVTrain -> Vec3
+trainColor train =
+    let
+        delay =
+            ceiling ((train.departureTime - train.scheduledDepartureTime) / 60000)
+    in
+        if delay <= 3 then
+            vec3 0.27 0.82 0.29
+        else if delay <= 5 then
+            vec3 0.99 0.93 0.0
+        else if delay <= 10 then
+            vec3 1.0 0.4 0.0
+        else if delay <= 15 then
+            vec3 1.0 0.19 0.28
+        else
+            vec3 0.64 0.0 0.04
 
 
 updateCurrentSubSegment : Time -> RVTrain -> RVTrain
@@ -288,17 +318,24 @@ type Msg
     | RequestUpdate
     | Deb (Debounce.Msg Msg)
     | SetFilter (Maybe (List TripId))
+    | SetTime Time
+    | SetTimeOffset Float
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Animate t ->
-            { model
-                | time = t
-                , filteredTrains = List.map (updateCurrentSubSegment t) model.filteredTrains
-            }
-                ! []
+            let
+                simTime =
+                    t + model.timeOffset
+            in
+                { model
+                    | systemTime = t
+                    , time = simTime
+                    , filteredTrains = List.map (updateCurrentSubSegment simTime) model.filteredTrains
+                }
+                    ! []
 
         MapLoaded _ ->
             ( model
@@ -328,49 +365,33 @@ update msg model =
             ( { model | texture = Just texture }, Cmd.none )
 
         MouseMove mapMouseUpdate ->
-            let
-                model_ =
-                    handleMapMouseUpdate mapMouseUpdate model
-            in
-                model_ ! []
+            handleMapMouseUpdate mapMouseUpdate model
 
         MouseDown mapMouseUpdate ->
             let
-                model_ =
+                ( model_, cmds1 ) =
                     handleMapMouseUpdate mapMouseUpdate model
 
                 selectedTrain =
-                    model_.hoveredTrain
-                        |> Maybe.andThen (\pickId -> model_.filteredTrains !! pickId)
+                    getHoveredTrain model_
 
                 tripId =
                     selectedTrain
                         |> Maybe.map .trips
                         |> Maybe.andThen List.head
 
-                cmds =
+                cmds2 =
                     tripId
                         |> Maybe.map (\tripId -> Navigation.newUrl (toUrl (tripDetailsRoute tripId)))
                         |> Maybe.Extra.maybeToList
-
-                _ =
-                    Debug.log "MouseDown" selectedTrain
             in
-                model_ ! cmds
+                model_ ! (cmds1 :: cmds2)
 
         MouseUp mapMouseUpdate ->
-            let
-                model_ =
-                    handleMapMouseUpdate mapMouseUpdate model
-            in
-                model_ ! []
+            handleMapMouseUpdate mapMouseUpdate model
 
         MouseOut mapMouseUpdate ->
-            let
-                model_ =
-                    handleMapMouseUpdate mapMouseUpdate model
-            in
-                model_ ! []
+            handleMapMouseUpdate mapMouseUpdate model
 
         ReceiveResponse request response ->
             let
@@ -412,9 +433,6 @@ update msg model =
 
         SetFilter filterTrips ->
             let
-                _ =
-                    Debug.log "RailViz Filter" filterTrips
-
                 model_ =
                     { model
                         | filterTrips = filterTrips
@@ -422,6 +440,20 @@ update msg model =
                     }
             in
                 update (Animate model.time) model_
+
+        SetTime time ->
+            { model
+                | systemTime = time
+                , time = time + model.timeOffset
+            }
+                ! []
+
+        SetTimeOffset offset ->
+            { model
+                | timeOffset = offset
+                , time = model.systemTime + offset
+            }
+                ! [ Debounce.debounceCmd debounceCfg <| RequestUpdate ]
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -433,13 +465,39 @@ debounceCfg =
         500
 
 
-handleMapMouseUpdate : MapMouseUpdate -> Model -> Model
+getHoveredTrain : Model -> Maybe RVTrain
+getHoveredTrain model =
+    model.hoveredTrain
+        |> Maybe.andThen (\pickId -> model.allTrains !! pickId)
+
+
+handleMapMouseUpdate : MapMouseUpdate -> Model -> ( Model, Cmd Msg )
 handleMapMouseUpdate mapMouseUpdate model =
     let
         pickId =
             toPickId mapMouseUpdate.color
+
+        mouseX =
+            floor mapMouseUpdate.x
+
+        mouseY =
+            floor mapMouseUpdate.y
+
+        changed =
+            ( model.hoveredTrain, model.mouseX, model.mouseY ) /= ( pickId, mouseX, mouseY )
     in
-        { model | hoveredTrain = pickId }
+        if changed then
+            let
+                model_ =
+                    { model
+                        | hoveredTrain = pickId
+                        , mouseX = floor mapMouseUpdate.x
+                        , mouseY = floor mapMouseUpdate.y
+                    }
+            in
+                model_ ! []
+        else
+            model ! []
 
 
 handleRailVizTrainsResponse : RailVizTrainsResponse -> Model -> Model
@@ -597,21 +655,20 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
-    div [ id "map" ]
-        [ overlay
-            [ classList
-                [ "leaflet-overlay" => True
-                , "train-hover" => isJust model.hoveredTrain
-                ]
+view : Localization -> Model -> Html Msg
+view locale model =
+    div [ class "map-container" ]
+        [ div [ class "inner-map-container" ]
+            [ div [ id "map" ]
+                [ railVizOverlay model ]
+            , railVizTooltip model
+            , simulationTimeOverlay locale model
             ]
-            model
         ]
 
 
-overlay : List (Html.Attribute Msg) -> Model -> Html Msg
-overlay attributes model =
+railVizOverlay : Model -> Html Msg
+railVizOverlay model =
     let
         toHtml =
             WebGL.toHtmlWith
@@ -619,7 +676,12 @@ overlay attributes model =
                 , Disable DepthTest
                 , BlendFunc ( SrcAlpha, OneMinusSrcAlpha )
                 ]
-                attributes
+                [ classList
+                    [ "railviz-overlay" => True
+                    , "leaflet-zoom-hide" => True
+                    , "train-hover" => isJust model.hoveredTrain
+                    ]
+                ]
     in
         case model.texture of
             Nothing ->
@@ -651,6 +713,121 @@ overlay attributes model =
                     toHtml [ renderable ] [ offscreenRenderable ]
 
 
+railVizTooltip : Model -> Html Msg
+railVizTooltip model =
+    let
+        maybeTrain =
+            getHoveredTrain model
+    in
+        case maybeTrain of
+            Just train ->
+                railVizTrainTooltip model train
+
+            Nothing ->
+                div [ class "railviz-tooltip hidden" ] []
+
+
+railVizTrainTooltip : Model -> RVTrain -> Html Msg
+railVizTrainTooltip model train =
+    let
+        ttWidth =
+            240
+
+        ttHeight =
+            55
+
+        margin =
+            20
+
+        x =
+            (model.mouseX - (ttWidth // 2))
+                |> max margin
+                |> min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
+
+        below =
+            model.mouseY + margin + ttHeight < floor model.mapInfo.pixelBounds.height
+
+        y =
+            if below then
+                model.mouseY + margin
+            else
+                (floor model.mapInfo.pixelBounds.height) - (model.mouseY - margin)
+
+        yAnchor =
+            if below then
+                "top"
+            else
+                "bottom"
+
+        trainName =
+            String.join " / " train.names
+
+        schedDep =
+            Date.fromTime train.scheduledDepartureTime
+
+        schedArr =
+            Date.fromTime train.scheduledArrivalTime
+
+        depDelay =
+            ceiling ((train.departureTime - train.scheduledDepartureTime) / 60000)
+
+        arrDelay =
+            ceiling ((train.arrivalTime - train.scheduledArrivalTime) / 60000)
+    in
+        div
+            [ class "railviz-tooltip visible"
+            , style
+                [ yAnchor => (toString y ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
+            ]
+            [ div [ class "transport-name" ] [ text trainName ]
+            , div [ class "departure" ]
+                [ span [ class "station" ] [ text train.departureStation.station.name ]
+                , div [ class "time" ]
+                    [ span [ class "schedule" ] [ text (formatTime schedDep) ]
+                    , delayView depDelay
+                    ]
+                ]
+            , div [ class "arrival" ]
+                [ span [ class "station" ] [ text train.arrivalStation.station.name ]
+                , div [ class "time" ]
+                    [ span [ class "schedule" ] [ text (formatTime schedArr) ]
+                    , delayView arrDelay
+                    ]
+                ]
+            ]
+
+
+simulationTimeOverlay : Localization -> Model -> Html Msg
+simulationTimeOverlay locale model =
+    let
+        simDate =
+            Date.fromTime model.time
+    in
+        div
+            [ class "sim-time-overlay" ]
+            [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
+
+
+delayView : Int -> Html Msg
+delayView minutes =
+    let
+        delayType =
+            if minutes > 0 then
+                "delay pos-delay"
+            else
+                "delay neg-delay"
+
+        delayText =
+            if minutes >= 0 then
+                "+" ++ (toString minutes)
+            else
+                toString minutes
+    in
+        span [ class delayType ] [ text delayText ]
+
+
 perspective : Model -> Mat4
 perspective { mapInfo } =
     makeOrtho2D 0.0 mapInfo.pixelBounds.width mapInfo.pixelBounds.height 0.0
@@ -667,31 +844,35 @@ perspective { mapInfo } =
 -- SHADERS
 
 
-vertexShader : Shader { attr | c1 : Vec2, c2 : Vec2, p : Float } { unif | perspective : Mat4, zoom : Float } {}
+vertexShader : Shader { attr | c1 : Vec2, c2 : Vec2, p : Float, col : Vec3 } { unif | perspective : Mat4, zoom : Float } { vCol : Vec3 }
 vertexShader =
     [glsl|
 attribute vec2 c1, c2;
 attribute float p;
+attribute vec3 col;
 uniform mat4 perspective;
 uniform float zoom;
+varying vec3 vCol;
 
 void main() {
     vec4 c1p = perspective * vec4(c1, 0.0, 1.0);
     vec4 c2p = perspective * vec4(c2, 0.0, 1.0);
     gl_Position = c1p + p * (c2p - c1p);
     gl_PointSize = zoom;
+    vCol = col;
 }
 |]
 
 
-fragmentShader : Shader {} { u | texture : Texture } {}
+fragmentShader : Shader {} { u | texture : Texture } { vCol : Vec3 }
 fragmentShader =
     [glsl|
 precision mediump float;
 uniform sampler2D texture;
+varying vec3 vCol;
 
 void main () {
-    gl_FragColor = texture2D(texture, gl_PointCoord);
+    gl_FragColor = vec4(vCol, 1.0) * texture2D(texture, gl_PointCoord);
 }
 |]
 
@@ -699,6 +880,7 @@ void main () {
 offscreenVertexShader : Shader { attr | c1 : Vec2, c2 : Vec2, p : Float, pickColor : Vec3 } { unif | perspective : Mat4, zoom : Float } { vPickColor : Vec3 }
 offscreenVertexShader =
     [glsl|
+precision highp float;
 attribute vec2 c1, c2;
 attribute float p;
 attribute vec3 pickColor;
@@ -720,7 +902,7 @@ void main() {
 offscreenFragmentShader : Shader {} { u | texture : Texture } { vPickColor : Vec3 }
 offscreenFragmentShader =
     [glsl|
-precision mediump float;
+precision highp float;
 uniform sampler2D texture;
 varying vec3 vPickColor;
 
@@ -745,11 +927,14 @@ sendTrainRequest model =
         startTime =
             model.time
 
+        intervalLength =
+            120 * 1000
+
         endTime =
-            startTime + (120 * 1000)
+            startTime + intervalLength
 
         nextUpdate =
-            Just (endTime - 10)
+            Just (model.systemTime + intervalLength - 10)
 
         bounds =
             model.mapInfo.railVizBounds

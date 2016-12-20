@@ -19,6 +19,11 @@ formatTime d =
     (Date.hour d |> twoDigits) ++ ":" ++ (Date.minute d |> twoDigits)
 
 
+formatTimeWithSeconds : Date -> String
+formatTimeWithSeconds d =
+    (formatTime d) ++ ":" ++ (Date.second d |> twoDigits)
+
+
 durationText : DeltaRecord -> String
 durationText dr =
     if dr.hour > 0 then
@@ -162,3 +167,8 @@ formatShortDateTime conf date =
 formatDateTime : DateConfig -> Date -> String
 formatDateTime conf date =
     (formatDate conf date) ++ " " ++ (formatTime date)
+
+
+formatDateTimeWithSeconds : DateConfig -> Date -> String
+formatDateTimeWithSeconds conf date =
+    (formatDate conf date) ++ " " ++ (formatTimeWithSeconds date)
