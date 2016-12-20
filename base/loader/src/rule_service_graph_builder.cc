@@ -6,11 +6,11 @@
 #include <set>
 #include <vector>
 
-#include "utl/get_or_create.h"
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/trip.h"
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/util.h"
+#include "utl/get_or_create.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -278,12 +278,12 @@ struct rule_service_route_builder {
     return utl::get_or_create(trips_, k, [&]() {
       return push_mem(
           gb_.sched_.merged_trips_,
-          utl::to_vec(
-              begin(k.services_), end(k.services_), [&](Service const* s) {
-                return utl::get_or_create(
-                    single_trips_, std::make_pair(s, day_idx),
-                    [&]() { return gb_.register_service(s, day_idx); });
-              }));
+          utl::to_vec(begin(k.services_), end(k.services_),
+                      [&](Service const* s) {
+                        return utl::get_or_create(
+                            single_trips_, std::make_pair(s, day_idx),
+                            [&]() { return gb_.register_service(s, day_idx); });
+                      }));
     });
   }
 
