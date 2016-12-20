@@ -14,9 +14,10 @@ struct geo_index::impl {
     auto const summary = db.get_summary();
 
     auto const& locations = summary.get()->terminals();
-    rtree_ = geo::make_point_rtree(*locations, [](auto const& loc) {
-      return geo::latlng{loc->lat(), loc->lng()};
-    });
+    rtree_ = std::make_unique<geo::point_rtree>(
+        geo::make_point_rtree(*locations, [](auto const& loc) {
+          return geo::latlng{loc->lat(), loc->lng()};
+        }));
     terminal_ids_ = utl::to_vec(
         *locations, [](auto const& loc) { return loc->id()->str(); });
   }
@@ -24,13 +25,13 @@ struct geo_index::impl {
   std::vector<close_terminal> get_terminals(double const lat, double const lng,
                                             double const radius) const {
     return utl::to_vec(
-        rtree_.in_radius_with_distance({lat, lng}, radius),
+        rtree_->in_radius_with_distance({lat, lng}, radius),
         [this](auto const& result) {
           return close_terminal{terminal_ids_[result.second], result.first};
         });
   };
 
-  geo::point_rtree rtree_;
+  std::unique_ptr<geo::point_rtree> rtree_;
   std::vector<std::string> terminal_ids_;
 };
 

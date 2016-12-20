@@ -8,13 +8,11 @@
 
 namespace motis {
 namespace lookup {
-class station_geo_index;
 
 struct lookup final : public motis::module::module {
   lookup();
   ~lookup() override;
 
-  std::string name() const override { return "lookup"; }
   void init(motis::module::registry&) override;
 
 private:
@@ -34,7 +32,7 @@ private:
 
   motis::module::msg_ptr lookup_schedule_info() const;
 
-  geo::point_rtree station_geo_index_;
+  std::unique_ptr<geo::point_rtree> station_geo_index_;
 };
 
 }  // namespace lookup
