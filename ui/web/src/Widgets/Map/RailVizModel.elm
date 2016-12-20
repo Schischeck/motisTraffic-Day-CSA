@@ -58,3 +58,17 @@ type alias Model =
     , mouseY : Int
     , zoomOverride : Maybe Float
     }
+
+
+applyFilter : Maybe (List TripId) -> List RVTrain -> List RVTrain
+applyFilter filterTrips allTrains =
+    case filterTrips of
+        Just trips ->
+            let
+                isFiltered train =
+                    List.any (\trip -> List.member trip trips) train.trips
+            in
+                List.filter isFiltered allTrains
+
+        Nothing ->
+            allTrains
