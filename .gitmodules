@@ -67,3 +67,9 @@
 [submodule "external_lib/common"]
 	path = external_lib/common
 	url = git@git.motis-project.de:lib/common.git
+[submodule "utl"]
+	path = utl
+	url = git@git.motis-project.de:lib/utl.git
+[submodule "external_lib/utl"]
+	path = external_lib/utl
+	url = git@git.motis-project.de:lib/utl.git
