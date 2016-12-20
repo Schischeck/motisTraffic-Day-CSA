@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "common/erase_if.h"
+#include "utl/erase_if.h"
 
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/schedule.h"
@@ -12,8 +12,6 @@
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
-
-using namespace common;
 
 namespace motis {
 namespace reliability {
@@ -115,10 +113,10 @@ void erase_preceding_arrival(
       arriving_light_conn, route_node.get_station()->id_, event_type::ARR,
       preceding_arrival_time_scheduled, schedule);
 
-  erase_if(predecessors,
-           [&](distributions_container::container::node const* feeder) {
-             return feeder->key_ == preceding_arrival_key;
-           });
+  utl::erase_if(predecessors,
+                [&](distributions_container::container::node const* feeder) {
+                  return feeder->key_ == preceding_arrival_key;
+                });
 }
 
 void data_departure::init_feeder_info(

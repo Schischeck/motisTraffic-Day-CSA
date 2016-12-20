@@ -2,14 +2,12 @@
 
 #include <cassert>
 
-#include "common/erase_if.h"
+#include "utl/erase_if.h"
 
 #include "motis/reliability/distributions/probability_distribution.h"
 #include "motis/reliability/distributions/start_and_travel_distributions.h"
 #include "motis/reliability/graph_accessor.h"
 #include "motis/reliability/realtime/time_util.h"
-
-using namespace common;
 
 namespace motis {
 namespace reliability {
@@ -23,10 +21,10 @@ get_all_potential_feeders_except_ic(
   std::vector<distributions_container::container::node*> filtered_feeders(
       feeders);
 
-  erase_if(filtered_feeders,
-           [&](distributions_container::container::node const* feeder) {
-             return feeder->key_ == ic_feeder;
-           });
+  utl::erase_if(filtered_feeders,
+                [&](distributions_container::container::node const* feeder) {
+                  return feeder->key_ == ic_feeder;
+                });
   return filtered_feeders;
 }
 

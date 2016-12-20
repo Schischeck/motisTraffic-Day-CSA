@@ -7,11 +7,10 @@
 #include <memory>
 #include <ostream>
 
-#include "common/erase.h"
+#include "utl/erase.h"
 
 #include "motis/module/message.h"
 
-using namespace common;
 using namespace motis::module;
 namespace p = std::placeholders;
 
@@ -88,7 +87,7 @@ private:
     response->get()->mutate_id(id);
 
     auto json = response->to_json();
-    erase(json, '\n');
+    utl::erase(json, '\n');
 
     out_ << json << "\n";
   }

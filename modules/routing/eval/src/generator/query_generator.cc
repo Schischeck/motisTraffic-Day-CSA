@@ -7,7 +7,7 @@
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include "common/erase.h"
+#include "utl/erase.h"
 
 #include "conf/options_parser.h"
 
@@ -18,7 +18,6 @@
 #include "motis/bootstrap/motis_instance.h"
 
 namespace po = boost::program_options;
-using namespace common;
 using namespace flatbuffers;
 using namespace motis;
 using namespace motis::bootstrap;
@@ -171,7 +170,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
   msg->get()->mutate_id(id);
 
   auto json = msg->to_json();
-  erase(json, '\n');
+  utl::erase(json, '\n');
   return json;
 }
 
