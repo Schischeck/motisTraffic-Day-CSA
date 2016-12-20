@@ -90,7 +90,8 @@
   display: block;
 }
 
-.railviz-tooltip .transport-name {
+.railviz-tooltip .transport-name,
+.railviz-tooltip .station-name {
   font-weight: 700;
   text-align: center;
 }

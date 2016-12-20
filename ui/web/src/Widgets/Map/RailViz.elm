@@ -420,23 +420,29 @@ railVizOverlay model =
 
 railVizTooltip : Model -> Html Msg
 railVizTooltip model =
-    let
-        maybeTrain =
-            getHoveredTrain model
-    in
-        case maybeTrain of
-            Just train ->
-                railVizTrainTooltip model train
+    case getHoveredTrain model of
+        Just train ->
+            railVizTrainTooltip model train
 
-            Nothing ->
-                div [ class "railviz-tooltip hidden" ] []
+        Nothing ->
+            case getHoveredStation model of
+                Just station ->
+                    railVizStationTooltip model station
+
+                Nothing ->
+                    div [ class "railviz-tooltip hidden" ] []
+
+
+railVizTooltipWidth : number
+railVizTooltipWidth =
+    240
 
 
 railVizTrainTooltip : Model -> RVTrain -> Html Msg
 railVizTrainTooltip model train =
     let
         ttWidth =
-            240
+            railVizTooltipWidth
 
         ttHeight =
             55
@@ -480,7 +486,7 @@ railVizTrainTooltip model train =
             ceiling ((train.arrivalTime - train.scheduledArrivalTime) / 60000)
     in
         div
-            [ class "railviz-tooltip visible"
+            [ class "railviz-tooltip train visible"
             , style
                 [ yAnchor => (toString y ++ "px")
                 , "left" => (toString x ++ "px")
@@ -502,6 +508,51 @@ railVizTrainTooltip model train =
                     ]
                 ]
             ]
+
+
+railVizStationTooltip : Model -> RVStation -> Html Msg
+railVizStationTooltip model station =
+    let
+        ttWidth =
+            railVizTooltipWidth
+
+        ttHeight =
+            22
+
+        margin =
+            20
+
+        x =
+            (model.mouseX - (ttWidth // 2))
+                |> max margin
+                |> min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
+
+        below =
+            model.mouseY + margin + ttHeight < floor model.mapInfo.pixelBounds.height
+
+        y =
+            if below then
+                model.mouseY + margin
+            else
+                (floor model.mapInfo.pixelBounds.height) - (model.mouseY - margin)
+
+        yAnchor =
+            if below then
+                "top"
+            else
+                "bottom"
+
+        stationName =
+            station.station.name
+    in
+        div
+            [ class "railviz-tooltip station visible"
+            , style
+                [ yAnchor => (toString y ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
+            ]
+            [ div [ class "station-name" ] [ text stationName ] ]
 
 
 simulationTimeOverlay : Localization -> Model -> Html Msg
