@@ -35,7 +35,7 @@ uniform float uZoom;
 
 void main() {
     gl_Position = uPerspective * vec4(aCoords, 0.0, 1.0);
-    gl_PointSize = uZoom;
+    gl_PointSize = uZoom - 4.0;
 }
 |]
 
@@ -64,7 +64,7 @@ varying vec3 vPickColor;
 
 void main() {
     gl_Position = uPerspective * vec4(aCoords, 0.0, 1.0);
-    gl_PointSize = uZoom;
+    gl_PointSize = uZoom - 4.0;
 
     vPickColor = aPickColor;
 }

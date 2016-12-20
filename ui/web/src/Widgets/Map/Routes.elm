@@ -71,7 +71,7 @@ segmentLines seg =
 
 lineColor : Vec4
 lineColor =
-    vec4 0.0 0.0 0.0 0.8
+    vec4 0.4 0.4 0.4 1.0
 
 
 vertexShader : Shader { attr | aCoords : Vec2 } { unif | uPerspective : Mat4, uZoom : Float } {}
