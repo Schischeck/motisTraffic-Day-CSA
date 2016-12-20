@@ -5,7 +5,6 @@
 #include "utl/get_or_create.h"
 
 #include "motis/core/common/constants.h"
-#include "motis/core/common/util.h"
 
 using namespace flatbuffers;
 using namespace motis::module;

@@ -16,7 +16,6 @@
 #include "motis/core/common/constants.h"
 #include "motis/core/common/geo.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/common/util.h"
 #include "motis/module/context/motis_call.h"
 #include "motis/module/message.h"
 #include "motis/bikesharing/error.h"
