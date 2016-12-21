@@ -6,8 +6,9 @@
 #include <utility>
 #include <vector>
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/hash_helper.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/nodes.h"
 

@@ -10,7 +10,7 @@ gcc-5-release:
     - git submodule update --init --recursive
     - mkdir -p build-gcc-5
     - cd build-gcc-5
-    - cmake -DCMAKE_BUILD_TYPE=Release -DNO_SSL=true ..
+    - cmake -DCMAKE_BUILD_TYPE=Release ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -32,7 +32,7 @@ clang-3.8-debug-asan:
     - git submodule update --init --recursive
     - mkdir -p build-asan
     - cd build-asan
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -55,7 +55,7 @@ clang-3.8-debug-tsan:
     - git submodule update --init --recursive
     - mkdir -p build-tsan
     - cd build-tsan
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -74,7 +74,7 @@ gcc-5-debug-valgrind:
     - git submodule update --init --recursive
     - mkdir -p build-gcc-5-valgrind
     - cd build-gcc-5-valgrind
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DNO_SSL=true -DCTX_VALGRIND=true ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
@@ -120,7 +120,7 @@ clang-tidy:
     - git submodule update --init --recursive
     - mkdir build-clang-tidy
     - cd build-clang-tidy
-    - cmake -DNO_SSL=true -DMOTIS_LINT=true ..
+    - cmake -DMOTIS_LINT=true ..
     - make -j8 lint
 
 # Clang-Format
@@ -132,5 +132,5 @@ clang-format:
     - git submodule update --init --recursive
     - mkdir build-clang-format
     - cd build-clang-format
-    - cmake -DNO_SSL=true ..
+    - cmake ..
     - make format-check

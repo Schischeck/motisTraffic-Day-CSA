@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "motis/core/common/transform_to_vec.h"
+#include "utl/to_vec.h"
+
 #include "motis/core/schedule/category.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journeys_to_message.h"
@@ -17,7 +18,7 @@ msg_ptr journeys_to_message(std::vector<journey> const& journeys) {
       MsgContent_RoutingResponse,
       routing::CreateRoutingResponse(
           fbb, &s,
-          fbb.CreateVector(transform_to_vec(
+          fbb.CreateVector(utl::to_vec(
               journeys, [&](auto&& j) { return to_connection(fbb, j); })))
           .Union());
   return make_msg(fbb);

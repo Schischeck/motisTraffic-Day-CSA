@@ -1,5 +1,7 @@
 #include "motis/railviz/railviz.h"
 
+#include "utl/to_vec.h"
+
 #include "motis/core/access/bfs.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
@@ -38,22 +40,21 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
 
   auto const get_route_segments = [&fbb, &sched](
       std::set<trip::route_edge> const& edges) {
-    return fbb.CreateVector(
-        transform_to_vec(edges, [&](trip::route_edge const& e) {
-          auto const& from = *sched.stations_[e->from_->get_station()->id_];
-          auto const& to = *sched.stations_[e->to_->get_station()->id_];
-          return CreateSegment(
-              fbb, fbb.CreateString(from.eva_nr_), fbb.CreateString(to.eva_nr_),
-              CreatePolyline(fbb, fbb.CreateVector(std::vector<double>(
-                                      {from.width_, from.length_, to.width_,
-                                       to.length_}))));
-        }));
+    return fbb.CreateVector(utl::to_vec(edges, [&](trip::route_edge const& e) {
+      auto const& from = *sched.stations_[e->from_->get_station()->id_];
+      auto const& to = *sched.stations_[e->to_->get_station()->id_];
+      return CreateSegment(
+          fbb, fbb.CreateString(from.eva_nr_), fbb.CreateString(to.eva_nr_),
+          CreatePolyline(
+              fbb, fbb.CreateVector(std::vector<double>(
+                       {from.width_, from.length_, to.width_, to.length_}))));
+    }));
   };
 
   auto const get_trips = [&sched, &fbb](ev_key const& k) {
-    return fbb.CreateVector(transform_to_vec(
-        *sched.merged_trips_[k.lcon()->trips_],
-        [&](trip const* trp) { return to_fbs(sched, fbb, trp); }));
+    return fbb.CreateVector(
+        utl::to_vec(*sched.merged_trips_[k.lcon()->trips_],
+                    [&](trip const* trp) { return to_fbs(sched, fbb, trp); }));
   };
 
   std::map<int, int> routes;
@@ -79,13 +80,12 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
       }
     }
 
-    return transform_to_vec(
-        stations_indices, [&sched, &fbb](int const station_idx) {
-          auto const& station = *sched.stations_[station_idx];
-          auto const pos = Position(station.width_, station.length_);
-          return CreateStation(fbb, fbb.CreateString(station.eva_nr_),
-                               fbb.CreateString(station.name_), &pos);
-        });
+    return utl::to_vec(stations_indices, [&sched, &fbb](int const station_idx) {
+      auto const& station = *sched.stations_[station_idx];
+      auto const pos = Position(station.width_, station.length_);
+      return CreateStation(fbb, fbb.CreateString(station.eva_nr_),
+                           fbb.CreateString(station.name_), &pos);
+    });
   };
 
   auto const service_names = [&fbb, &sched](ev_key const& k) {
@@ -95,12 +95,12 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
       names.push_back(get_service_name(sched, c_info));
       c_info = c_info->merged_with_;
     }
-    return fbb.CreateVector(transform_to_vec(
-        names,
-        [&](std::string const& name) { return fbb.CreateString(name); }));
+    return fbb.CreateVector(utl::to_vec(names, [&](std::string const& name) {
+      return fbb.CreateString(name);
+    }));
   };
 
-  auto const fbs_trains = fbb.CreateVector(transform_to_vec(
+  auto const fbs_trains = fbb.CreateVector(utl::to_vec(
       train_retriever_->trains(
           unix_to_motistime(sched, req->start_time()),
           unix_to_motistime(sched, req->end_time()), req->max_trains(),

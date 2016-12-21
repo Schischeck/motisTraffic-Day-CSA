@@ -7,7 +7,8 @@
 #include "boost/date_time/gregorian/gregorian_types.hpp"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-#include "common/erase.h"
+#include "utl/erase.h"
+#include "utl/to_vec.h"
 
 #include "conf/options_parser.h"
 
@@ -18,7 +19,6 @@
 #include "motis/bootstrap/motis_instance.h"
 
 namespace po = boost::program_options;
-using namespace common;
 using namespace flatbuffers;
 using namespace motis;
 using namespace motis::bootstrap;
@@ -171,7 +171,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
   msg->get()->mutate_id(id);
 
   auto json = msg->to_json();
-  erase(json, '\n');
+  utl::erase(json, '\n');
   return json;
 }
 
@@ -273,8 +273,8 @@ int main(int argc, char** argv) {
   if (generator_opt.large_stations_) {
     auto const num_stations = 1000;
 
-    auto stations = transform_to_vec(
-        sched.stations_, [](station_ptr const& s) { return s.get(); });
+    auto stations = utl::to_vec(sched.stations_,
+                                [](station_ptr const& s) { return s.get(); });
 
     std::vector<double> sizes(stations.size());
     for (auto i = 0u; i < stations.size(); ++i) {
@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
     }
   } else {
     station_nodes =
-        transform_to_vec(sched.station_nodes_, [](station_node_ptr const& s) {
+        utl::to_vec(sched.station_nodes_, [](station_node_ptr const& s) {
           return static_cast<station_node const*>(s.get());
         });
   }

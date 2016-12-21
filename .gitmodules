@@ -61,15 +61,9 @@
 [submodule "external_lib/geo"]
 	path = external_lib/geo
 	url = git@git.motis-project.de:lib/geo.git
-[submodule "external_lib/rapidjson"]
-	path = external_lib/rapidjson
-	url = git@git.motis-project.de:lib/rapidjson.git
-[submodule "external_lib/common"]
-	path = external_lib/common
-	url = git@git.motis-project.de:lib/common.git
-[submodule "utl"]
-	path = utl
-	url = git@git.motis-project.de:lib/utl.git
 [submodule "external_lib/utl"]
 	path = external_lib/utl
 	url = git@git.motis-project.de:lib/utl.git
+[submodule "external_lib/rapidjson"]
+	path = external_lib/rapidjson
+	url = git@git.motis-project.de:lib/rapidjson.git

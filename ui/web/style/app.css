@@ -34,6 +34,23 @@
   height: 100%;
 }
 
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  flex: 1 1 auto;
+  order: 2;
+}
+
+.inner-map-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
 #map {
   position: absolute;
   top: 0;
@@ -41,16 +58,73 @@
   width: 100%;
   height: 100%;
   z-index: 0;
-  flex: 1 1 auto;
-  order: 2;
 }
 
-.leaflet-overlay {
+.railviz-overlay {
   z-index: 1;
 }
 
-.leaflet-overlay.train-hover {
+.railviz-overlay.train-hover {
   cursor: pointer;
+}
+
+.railviz-tooltip {
+  position: absolute;
+  pointer-events: none;
+  transition: opacity 100ms;
+  font-size: 12px;
+  background: #fff;
+  color: #777;
+  border: 1px solid #BBB;
+  box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  border-radius: 2px;
+  padding: 2px 5px;
+  width: 240px;
+}
+
+.railviz-tooltip.hidden {
+  display: none;
+}
+
+.railviz-tooltip.visible {
+  display: block;
+}
+
+.railviz-tooltip .transport-name {
+  font-weight: 700;
+  text-align: center;
+}
+
+.railviz-tooltip .departure,
+.railviz-tooltip .arrival {
+  display: flex;
+  justify-content: space-between;
+}
+
+.railviz-tooltip .station {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.railviz-tooltip .time {
+  display: flex;
+  justify-content: space-between;
+  min-width: 50px;
+}
+
+.railviz-tooltip .time .delay {
+  padding-left: 4px;
+}
+
+.sim-time-overlay {
+  position: absolute;
+  bottom: 15px;
+  right: 0px;
+  padding: 0 5px;
+  pointer-events: none;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 #search, #connections {

@@ -8,7 +8,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#include "common/erase_if.h"
+#include "utl/erase_if.h"
 
 #include "motis/core/common/logging.h"
 
@@ -23,8 +23,6 @@
 #include "motis/schedule-format/RuleService_generated.h"
 
 #include "./paths.h"
-
-using namespace common;
 
 namespace motis {
 namespace loader {
@@ -67,10 +65,10 @@ protected:
     rsb_.resolve_rule_services();
 
     // remove all remaining services that does not have any traffic day left
-    erase_if(rsb_.origin_services_,
-             [](std::unique_ptr<hrd_service> const& service_ptr) {
-               return service_ptr->traffic_days_.none();
-             });
+    utl::erase_if(rsb_.origin_services_,
+                  [](std::unique_ptr<hrd_service> const& service_ptr) {
+                    return service_ptr->traffic_days_.none();
+                  });
   }
 
   std::string schedule_name_;

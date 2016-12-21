@@ -2,8 +2,9 @@
 
 #include <sstream>
 
-#include "motis/core/common/get_or_create.h"
-#include "motis/core/common/transform_to_vec.h"
+#include "utl/get_or_create.h"
+#include "utl/to_vec.h"
+
 #include "motis/loader/hrd/files.h"
 
 #if defined(_WIN32) && defined(CreateService)
@@ -25,7 +26,7 @@ Offset<Vector<Offset<Section>>> create_sections(
     provider_builder& pb, line_builder& lb, attribute_builder& ab,
     bitfield_builder& bb, direction_builder& db, station_builder& sb,
     FlatBufferBuilder& fbb) {
-  return fbb.CreateVector(transform_to_vec(
+  return fbb.CreateVector(utl::to_vec(
       begin(sections), end(sections), [&](hrd_service::section const& s) {
         return CreateSection(
             fbb, cb.get_or_create_category(s.category_[0], fbb),
@@ -83,7 +84,7 @@ Offset<Vector<Offset<TrackRules>>> create_tracks(
                   stops_tracks[to_stop_index].arr_tracks_, fbb);
   }
 
-  return fbb.CreateVector(transform_to_vec(
+  return fbb.CreateVector(utl::to_vec(
       begin(stops_tracks), end(stops_tracks), [&](stop_tracks const& sp) {
         return CreateTrackRules(fbb, fbb.CreateVector(sp.arr_tracks_),
                                 fbb.CreateVector(sp.dep_tracks_));
@@ -111,7 +112,8 @@ Offset<Service> service_builder::create_service(
       create_sections(s.sections_, cb, pb, lb, ab, bb, db, sb, fbb),
       create_tracks(s.sections_, s.stops_, track_rules_, bb, fbb),
       create_times(s.stops_, fbb), rb.get_or_create_route(s.stops_, sb, fbb).o,
-      CreateServiceDebugInfo(fbb, get_or_create(filenames_, s.origin_.filename_,
+      CreateServiceDebugInfo(fbb,
+                             utl::get_or_create(filenames_, s.origin_.filename_,
                                                 [&fbb, &s]() {
                                                   return fbb.CreateString(
                                                       s.origin_.filename_);

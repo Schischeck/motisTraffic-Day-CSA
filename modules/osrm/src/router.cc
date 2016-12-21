@@ -5,12 +5,12 @@
 #include "osrm/osrm.hpp"
 #include "osrm/route_parameters.hpp"
 #include "osrm/smooth_via_parameters.hpp"
-
 #include "util/coordinate.hpp"
 #include "util/json_container.hpp"
 #include "util/json_util.hpp"
 
-#include "motis/core/common/transform_to_vec.h"
+#include "utl/to_vec.h"
+
 #include "motis/osrm/error.h"
 
 using namespace flatbuffers;
@@ -94,9 +94,9 @@ public:
 
     message_creator mc;
     auto& route = get(all_routes, 0u);
-    auto const& polyline = transform_to_vec(
-        get(route, "geometry").get<Array>().values,
-        [](auto&& jc) { return jc.template get<Number>().value; });
+    auto const& polyline =
+        utl::to_vec(get(route, "geometry").get<Array>().values,
+                    [](auto&& jc) { return jc.template get<Number>().value; });
 
     mc.create_and_finish(MsgContent_OSRMViaRouteResponse,
                          CreateOSRMViaRouteResponse(
@@ -129,7 +129,7 @@ public:
     std::vector<Offset<Polyline>> segments;
     for (auto const& json_polyline :
          result.values["geometry"].get<Array>().values) {
-      auto const& polyline = transform_to_vec(
+      auto const& polyline = utl::to_vec(
           json_polyline.get<Array>().values,
           [](auto&& jc) { return jc.template get<Number>().value; });
       segments.push_back(CreatePolyline(mc, mc.CreateVector(polyline)));
