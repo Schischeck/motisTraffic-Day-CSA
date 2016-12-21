@@ -1,4 +1,4 @@
-#include "motis/path/prepare/routing/relation_routing.h"
+#include "motis/path/prepare/routing/relation_strategy.h"
 
 #include "geo/latlng.h"
 #include "geo/point_rtree.h"
@@ -10,7 +10,7 @@ namespace path {
 
 constexpr auto kMatchRadius = 200;
 
-struct relation_routing::impl {
+struct relation_strategy::impl {
   explicit impl(std::size_t router_id,
                 std::vector<aggregated_polyline> const& polylines)
       : router_id_(router_id),
@@ -91,21 +91,21 @@ struct relation_routing::impl {
   point_rtree rtree_;
 };
 
-relation_routing::relation_routing(
+relation_strategy::relation_strategy(
     std::size_t router_id, std::vector<aggregated_polyline> const& polylines)
-    : impl_(std::make_unique<relation_routing::impl>(router_id, polylines)) {}
-relation_routing::~relation_routing() = default;
+    : impl_(std::make_unique<relation_strategy::impl>(router_id, polylines)) {}
+relation_strategy::~relation_strategy() = default;
 
-std::vector<std::vector<routing_result>> relation_routing::find_routes(
+std::vector<std::vector<routing_result>> relation_strategy::find_routes(
     std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> relation_routing::close_nodes(geo::latlng const& latlng) {
+std::vector<node_ref> relation_strategy::close_nodes(geo::latlng const& latlng) {
   return impl_->close_nodes(latlng);
 }
 
-geo::polyline relation_routing::get_polyline(node_ref const& from,
+geo::polyline relation_strategy::get_polyline(node_ref const& from,
                                              node_ref const& to) {
   return impl_->get_polyline(from, to);
 }

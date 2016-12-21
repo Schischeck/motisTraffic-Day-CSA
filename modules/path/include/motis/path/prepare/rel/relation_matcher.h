@@ -7,7 +7,7 @@
 #include "geo/polyline.h"
 
 #include "motis/path/prepare/source_spec.h"
-#include "motis/path/prepare/station_sequences.h"
+#include "motis/path/prepare/schedule/station_sequences.h"
 
 namespace motis {
 namespace path {

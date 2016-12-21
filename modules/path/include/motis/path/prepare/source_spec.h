@@ -8,11 +8,22 @@ namespace path {
 
 struct source_spec {
   enum class category { UNKNOWN, RAILWAY, BUS };
+
   enum class type { RELATION, OSRM_ROUTE, STUB_ROUTE, RAIL_ROUTE };
 
   source_spec() = default;
   source_spec(int64_t id, category c, type t)
       : id_(id), category_(c), type_(t) {}
+
+  std::string type_str() {
+    switch(type_) {
+      case type::RELATION: return "RELATION";
+      case type::OSRM_ROUTE: return "OSRM_ROUTE";
+      case type::STUB_ROUTE: return "STUB_ROUTE";
+      case type::RAIL_ROUTE: return "RAIL_ROUTE";
+      default: return "INVALID";
+    }
+  }
 
   int64_t id_;
   category category_;

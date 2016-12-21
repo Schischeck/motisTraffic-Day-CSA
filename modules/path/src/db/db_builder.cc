@@ -41,7 +41,7 @@ int db_builder::append(std::vector<std::string> const& station_ids,
       b.CreateVector(fbs_lines), b.CreateVector(fbs_info));
   b.create_and_finish(MsgContent_PathSeqResponse, res.Union());
 
-  db_.put(std::to_string(index_), routing_sequence(std::move(b)).to_string());
+  db_->put(std::to_string(index_), routing_sequence(std::move(b)).to_string());
   indices_.emplace_back(station_ids, classes, index_);
   index_++;
   return index_;
@@ -65,7 +65,7 @@ void db_builder::finish() {
   }
 
   b.Finish(CreatePathLookup(b, b.CreateVector(r)));
-  db_.put(kIndexKey, routing_lookup(std::move(b)).to_string());
+  db_->put(kIndexKey, routing_lookup(std::move(b)).to_string());
 }
 
 }  // namespace path

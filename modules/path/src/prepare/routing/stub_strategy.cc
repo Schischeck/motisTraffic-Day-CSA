@@ -1,11 +1,11 @@
-#include "motis/path/prepare/routing/stub_routing.h"
+#include "motis/path/prepare/routing/stub_strategy.h"
 
 #include "geo/latlng.h"
 
 namespace motis {
 namespace path {
 
-struct stub_routing::impl {
+struct stub_strategy::impl {
   explicit impl(std::size_t router_id) : router_id_(router_id) {}
 
   std::vector<std::vector<routing_result>> find_routes(
@@ -38,20 +38,20 @@ struct stub_routing::impl {
   size_t router_id_;
 };
 
-stub_routing::stub_routing(std::size_t router_id)
-    : impl_(std::make_unique<stub_routing::impl>(router_id)) {}
-stub_routing::~stub_routing() = default;
+stub_strategy::stub_strategy(std::size_t router_id)
+    : impl_(std::make_unique<stub_strategy::impl>(router_id)) {}
+stub_strategy::~stub_strategy() = default;
 
-std::vector<std::vector<routing_result>> stub_routing::find_routes(
+std::vector<std::vector<routing_result>> stub_strategy::find_routes(
     std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> stub_routing::close_nodes(geo::latlng const& latlng) {
+std::vector<node_ref> stub_strategy::close_nodes(geo::latlng const& latlng) {
   return impl_->close_nodes(latlng);
 }
 
-geo::polyline stub_routing::get_polyline(node_ref const& from,
+geo::polyline stub_strategy::get_polyline(node_ref const& from,
                                          node_ref const& to) {
   return impl_->get_polyline(from, to);
 }

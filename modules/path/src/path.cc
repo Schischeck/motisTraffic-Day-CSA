@@ -10,7 +10,6 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
 
-#include "motis/path/db/db_builder.h"
 #include "motis/path/db/kv_database.h"
 #include "motis/path/lookup_index.h"
 
@@ -35,9 +34,11 @@ void path::init(registry& r) {
   if (auto buf = db_->try_get("__index")) {
     lookup_ = std::make_unique<lookup_index>(*buf);
   } else {
-    db_builder b(*db_);
-    b.finish();
-    lookup_ = std::make_unique<lookup_index>(db_->get("__index"));
+    message_creator mc;
+    mc.Finish(
+        CreatePathLookup(mc, mc.CreateVector<Offset<PathIndex>>({})));  // XXX ?
+    lookup_ = std::make_unique<lookup_index>(
+        lookup_index::lookup_table{std::move(mc)});
   }
 
   r.register_op("/path/index",

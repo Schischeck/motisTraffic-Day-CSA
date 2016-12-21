@@ -7,8 +7,8 @@
 #include "geo/latlng.h"
 #include "geo/polyline.h"
 
+#include "motis/path/prepare/schedule/station_sequences.h"
 #include "motis/path/prepare/source_spec.h"
-#include "motis/path/prepare/station_sequences.h"
 
 namespace motis {
 namespace path {
@@ -49,7 +49,9 @@ struct routing_strategy {
   virtual std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) = 0;
   virtual geo::polyline get_polyline(node_ref const& from,
-                                     node_ref const& to) = 0;
+                                     node_ref const& to) const = 0;
+
+  virtual size_t id() const;
 };
 
 }  // namespace path

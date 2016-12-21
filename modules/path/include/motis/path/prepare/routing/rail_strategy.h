@@ -7,10 +7,10 @@
 namespace motis {
 namespace path {
 
-struct rail_routing : public routing_strategy {
+struct rail_strategy : public routing_strategy {
 
-  explicit rail_routing(std::size_t router_id, std::string path);
-  ~rail_routing();
+  explicit rail_strategy(std::size_t router_id, std::string path);
+  ~rail_strategy();
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to);

@@ -1,4 +1,4 @@
-#include "motis/path/prepare/routing/osrm_routing.h"
+#include "motis/path/prepare/routing/osrm_strategy.h"
 
 #include "osrm/engine_config.hpp"
 #include "osrm/multi_target_parameters.hpp"
@@ -22,7 +22,7 @@ using namespace osrm::util::json;
 namespace motis {
 namespace path {
 
-struct osrm_routing::impl {
+struct osrm_strategy::impl {
   explicit impl(std::size_t router_id, std::string const& path)
       : router_id_(router_id) {
     EngineConfig config;
@@ -148,20 +148,20 @@ struct osrm_routing::impl {
   size_t router_id_;
 };
 
-osrm_routing::osrm_routing(std::size_t router_id, std::string path)
-    : impl_(std::make_unique<osrm_routing::impl>(router_id, path)) {}
-osrm_routing::~osrm_routing() = default;
+osrm_strategy::osrm_strategy(std::size_t router_id, std::string path)
+    : impl_(std::make_unique<osrm_strategy::impl>(router_id, path)) {}
+osrm_strategy::~osrm_strategy() = default;
 
-std::vector<std::vector<routing_result>> osrm_routing::find_routes(
+std::vector<std::vector<routing_result>> osrm_strategy::find_routes(
     std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
   return impl_->find_routes(from, to);
 }
 
-std::vector<node_ref> osrm_routing::close_nodes(geo::latlng const& latlng) {
+std::vector<node_ref> osrm_strategy::close_nodes(geo::latlng const& latlng) {
   return impl_->close_nodes(latlng);
 }
 
-geo::polyline osrm_routing::get_polyline(node_ref const& from,
+geo::polyline osrm_strategy::get_polyline(node_ref const& from,
                                          node_ref const& to) {
   return impl_->get_polyline(from, to);
 }

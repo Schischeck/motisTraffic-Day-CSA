@@ -7,10 +7,10 @@
 namespace motis {
 namespace path {
 
-struct stub_routing : public routing_strategy {
+struct osrm_osrm : public routing_strategy {
 
-  explicit stub_routing(std::size_t router_id);
-  ~stub_routing();
+  explicit osrm_osrm(std::size_t router_id, std::string path);
+  ~osrm_osrm();
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to);
