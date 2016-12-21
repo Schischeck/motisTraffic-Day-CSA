@@ -15,6 +15,7 @@ struct railviz : public motis::module::module {
 
 private:
   motis::module::msg_ptr get_trains(motis::module::msg_ptr const&) const;
+  motis::module::msg_ptr get_trips(motis::module::msg_ptr const&) const;
 
   std::unique_ptr<train_retriever> train_retriever_;
 };
