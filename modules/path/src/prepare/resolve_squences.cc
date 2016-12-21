@@ -9,9 +9,9 @@
 
 #include "motis/path/db/kv_database.h"
 
-#include "motis/path/prepare/seq/seq_graph_printer.h"
 #include "motis/path/prepare/seq/seq_graph_builder.h"
 #include "motis/path/prepare/seq/seq_graph_dijkstra.h"
+#include "motis/path/prepare/seq/seq_graph_printer.h"
 
 namespace motis {
 namespace path {
@@ -20,39 +20,25 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
                        path_routing& routing, db_builder& builder) {
   motis::logging::scoped_timer timer("resolve_sequences");
 
-  utl::parallel_for("searching routes", sequences, 250, [&](auto const& seq) {
-    for (auto const& category_group : category_groups(seq.categories_)) {
-      auto strategies = routing.strategies_for();  // (category_group.first);
+  utl::parallel_for("resolve sequences", sequences, 100, [&](auto const& seq) {
+    foreach_path_category(seq.categories_, [&](auto const& path_category,
+                                               auto const& motis_categories) {
+      auto strategies = routing.strategies_for(path_category);
 
       auto const get_polyline = [&strategies](seq_edge const* edge) {
         auto const it = std::find_if(
             begin(strategies), end(strategies), [&edge](auto const& s) {
-              return s->strategy_id() == edge->router_id();
+              return s->strategy_id() == edge->strategy_id();
             });
         verify(it != end(strategies), "bad router id");
         return (*it)->get_polyline(edge->from_->ref_, edge->to_->ref_);
       };
 
-      auto const g = build_seq_graph(seq, strategies);
-      seq_graph_dijkstra dijkstra(g, g.initials_, g.goals_);
-      dijkstra.run();
-
-      auto best_goal_it =
-          std::min_element(begin(g.goals_), end(g.goals_),
-                           [&](auto const& lhs_idx_, auto const& rhs_idx_) {
-                             return dijkstra.get_distance(lhs_idx_) <
-                                    dijkstra.get_distance(rhs_idx_);
-                           });
-      if (best_goal_it == end(g.goals_)) {
-        continue;
-      }
-
       std::vector<geo::polyline> lines{seq.station_ids_.size() - 1};
       std::vector<sequence_info> sequence_infos;
 
-      // print_seq_path(dijkstra.get_links(*best_goal_it));
-
-      for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
+      auto const graph = build_seq_graph(seq, strategies);
+      for (auto const& edge : find_shortest_path(graph)) {
         auto& line = lines[edge->from_->station_idx_];
 
         auto const size_before = line.size();
@@ -62,9 +48,9 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
                                     size_before, line.size(),
                                     edge->source_spec().type_str());
       }
-      builder.append(seq.station_ids_, category_group.second, lines,
-                     sequence_infos);
-    }
+
+      builder.append(seq.station_ids_, motis_categories, lines, sequence_infos);
+    });
   });
 }
 

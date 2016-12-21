@@ -26,6 +26,7 @@ struct station_seq {
 
   std::vector<std::string> station_ids_;
   std::vector<geo::latlng> coordinates_;
+  
   std::set<int> categories_;
   std::set<int> train_nrs_;
 };

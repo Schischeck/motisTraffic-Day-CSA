@@ -16,7 +16,7 @@ struct source_spec {
       : id_(id), category_(c), type_(t) {}
 
   std::string type_str() {
-    switch(type_) {
+    switch (type_) {
       case type::RELATION: return "RELATION";
       case type::OSRM_ROUTE: return "OSRM_ROUTE";
       case type::STUB_ROUTE: return "STUB_ROUTE";
@@ -37,35 +37,31 @@ inline bool operator==(source_spec::category const t, int const category) {
   };
 }
 
-inline std::vector<std::pair<source_spec::category, std::vector<uint32_t>>>
-category_groups(std::set<int> const& motis_categories) {
-  // xx this is a bit stubish
-  using group = std::pair<source_spec::category, std::vector<uint32_t>>;
-  auto railway = group{source_spec::category::RAILWAY, {}};
-  auto unknown = group{source_spec::category::UNKNOWN, {}};
-  auto bus = group{source_spec::category::BUS, {}};
+template <typename Fun>
+void foreach_path_category(std::set<int> const& motis_categories, Fun&& fun) {
+  std::vector<uint32_t> railway_cat;
+  std::vector<uint32_t> bus_cat;
+  std::vector<uint32_t> unknown_cat;
 
   for (auto const& category : motis_categories) {
     if (category < 6) {
-      railway.second.push_back(category);
+      railway_cat.push_back(category);
     } else if (category == 8) {
-      bus.second.push_back(category);
+      bus_cat.push_back(category);
     } else {
-      unknown.second.push_back(category);
+      unknown_cat.push_back(category);
     }
   }
 
-  std::vector<group> result;
-  if (!railway.second.empty()) {
-    result.emplace_back(std::move(railway));
+  if (!railway_cat.empty()) {
+    fun(source_spec::category::RAILWAY, railway_cat);
   }
-  if (!unknown.second.empty()) {
-    result.emplace_back(std::move(unknown));
+  if (!bus_cat.empty()) {
+    fun(source_spec::category::BUS, bus_cat);
   }
-  if (!bus.second.empty()) {
-    result.emplace_back(std::move(bus));
+  if (!unknown_cat.empty()) {
+    fun(source_spec::category::UNKNOWN, unknown_cat);
   }
-  return result;
 }
 
 }  // namespace path

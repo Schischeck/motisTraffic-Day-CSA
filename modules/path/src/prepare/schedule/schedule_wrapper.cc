@@ -19,7 +19,7 @@ namespace path {
 schedule_wrapper::schedule_wrapper(std::string const& schedule_path) {
   auto sched_file = fs::path(schedule_path) / "schedule.raw";
   if (!fs::is_regular_file(sched_file)) {
-    std::cerr << "cannot open schedule.raw\n";  // XXX exception
+    throw std::runtime_error("cannot open schedule.raw");
   }
 
   schedule_buffer_ = parser::file(sched_file.string().c_str(), "r").content();

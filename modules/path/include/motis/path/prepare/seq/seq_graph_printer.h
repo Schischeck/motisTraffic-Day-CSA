@@ -12,9 +12,9 @@ inline void print_seq_path(std::vector<seq_edge const*> const& edges) {
     auto const& from = *edge->from_;
     auto const& to = *edge->to_;
     std::cout << from.idx_ << " (" << from.station_idx_ << " @ "
-              << from.ref_.router_id_ << ") -> " << to.idx_ << " ("
-              << to.station_idx_ << " @ " << to.ref_.router_id_
-              << ") = " << edge->weight() << " " << edge->router_id()
+              << from.ref_.strategy_id_ << ") -> " << to.idx_ << " ("
+              << to.station_idx_ << " @ " << to.ref_.strategy_id_
+              << ") = " << edge->weight() << " " << edge->strategy_id()
               << std::endl;
   }
 }
@@ -24,11 +24,12 @@ inline void print_seq_graph(seq_graph const& g) {
   for (auto i = 0u; i < g.station_to_nodes_.size(); ++i) {
     std::cout << "station: " << i << "\n";
     for (auto const& node : g.station_to_nodes_[i]) {
-      std::cout << "  " << node->idx_ << " @ " << node->ref_.router_id_
+      std::cout << "  " << node->idx_ << " @ " << node->ref_.strategy_id_
                 << " -> ";
       for (auto const& edge : node->edges_) {
-        std::cout << "(" << edge.to_->idx_ << ": " << edge.weight() << " @ "
-                  << edge.router_id() << ") ";
+        std::cout << "(" << edge.to_->idx_ << " @ "
+                  << edge.to_->ref_.strategy_id_ << " | " << edge.weight()
+                  << " @@ " << edge.strategy_id() << ") ";
       }
       std::cout << "\n";
     }

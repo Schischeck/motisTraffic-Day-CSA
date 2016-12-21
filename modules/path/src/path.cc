@@ -43,20 +43,21 @@ void path::init(registry& r) {
         lookup_index::lookup_table{std::move(mc)});
   }
 
-  std::cout << "sequences: " << std::endl;
+  // XXX
+  // std::cout << "sequences: " << std::endl;
 
-  for (auto const& entry : *lookup_->lookup_table_.get()->indices()) {
-    std::cout << entry->index() << ":\n";
-    std::cout << " ";
-    for (auto const& station_id : *entry->station_ids()) {
-      std::cout << station_id->str() << ", ";
-    }
-    std::cout << "\n ";
-    for (auto const& cls : *entry->classes()) {
-      std::cout << cls << ", ";
-    }
-    std::cout << std::endl;
-  }
+  // for (auto const& entry : *lookup_->lookup_table_.get()->indices()) {
+  //   std::cout << entry->index() << ":\n";
+  //   std::cout << " ";
+  //   for (auto const& station_id : *entry->station_ids()) {
+  //     std::cout << station_id->str() << ", ";
+  //   }
+  //   std::cout << "\n ";
+  //   for (auto const& cls : *entry->classes()) {
+  //     std::cout << cls << ", ";
+  //   }
+  //   std::cout << std::endl;
+  // }
 
   r.register_op("/path/index",
                 [this](msg_ptr const& m) { return index_path(m); });

@@ -23,6 +23,7 @@ struct seq_graph_dijkstra {
   seq_graph_dijkstra(seq_graph const& graph, std::vector<size_t> initial,
                      std::vector<size_t> goals)
       : graph_(graph), goals_(goals), open_goals_(goals) {
+
     dists_.resize(graph_.nodes_.size(), std::numeric_limits<size_t>::max());
     links_.resize(graph_.nodes_.size(), nullptr);
 
@@ -33,6 +34,7 @@ struct seq_graph_dijkstra {
   }
 
   void run() {
+
     while (!pq_.empty()) {
       auto label = pq_.top();
       pq_.pop();
@@ -55,6 +57,17 @@ struct seq_graph_dijkstra {
         }
       }
     }
+  }
+
+  size_t get_best_goal() const {
+    if (graph_.goals_.empty()) {
+      throw std::runtime_error("INVALID GRAPH?!");  // XXX
+    }
+
+    return *std::min_element(begin(graph_.goals_), end(graph_.goals_),
+                             [&](auto const& lhs, auto const& rhs) {
+                               return get_distance(lhs) < get_distance(rhs);
+                             });
   }
 
   std::vector<seq_edge const*> get_links(size_t const goal) const {
@@ -81,6 +94,14 @@ struct seq_graph_dijkstra {
   std::vector<size_t> goals_;
   std::vector<size_t> open_goals_;
 };
+
+std::vector<seq_edge const*> find_shortest_path(seq_graph const& graph) {
+  seq_graph_dijkstra dijkstra(graph, graph.initials_, graph.goals_);
+  dijkstra.run();
+
+  auto const best_goal = dijkstra.get_best_goal();
+  return dijkstra.get_links(best_goal);
+}
 
 }  // namespace path
 }  // namespace motis

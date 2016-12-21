@@ -30,7 +30,9 @@ struct stub_strategy : public routing_strategy {
 
     return utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
-        return {s, strategy_id(), distance(f.coords_, t.coords_) + 42};
+
+
+        return {s, strategy_id(), distance(f.coords_, t.coords_) * 5};
       });
     });
   }

@@ -5,6 +5,9 @@
 #include "geo/point_rtree.h"
 #include "geo/polyline.h"
 
+#include "parser/util.h"
+
+#include "utl/repeat_n.h"
 #include "utl/to_vec.h"
 
 #include "motis/path/prepare/rel/polyline_aggregator.h"
@@ -53,7 +56,7 @@ struct relation_strategy : public routing_strategy {
       std::vector<node_ref> const& to) override {
     return utl::to_vec(from, [&](auto const& f) -> std::vector<routing_result> {
       if (f.strategy_id() != strategy_id()) {
-        return {};
+        return utl::repeat_n(routing_result{}, to.size());
       }
 
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
@@ -70,10 +73,9 @@ struct relation_strategy : public routing_strategy {
 
   geo::polyline get_polyline(node_ref const& from,
                              node_ref const& to) const override {
-    if (from.router_id_ != strategy_id() || to.router_id_ != strategy_id() ||
-        from.id_.relation_id_ != to.id_.relation_id_) {
-      return {};
-    }
+    verify(from.strategy_id_ == strategy_id(), "rel: bad 'from' strategy_id");
+    verify(to.strategy_id_ == strategy_id(), "rel: bad 'to' strategy_id");
+    verify(from.id_.relation_id_ == to.id_.relation_id_, "rel: id mismatch");
 
     // XXX direction !?
     auto p = polylines_[from.id_.relation_id_].polyline_;

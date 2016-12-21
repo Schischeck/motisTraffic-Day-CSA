@@ -28,30 +28,33 @@ struct node_ref_id {
 
 struct node_ref {
   node_ref() = default;
-  node_ref(geo::latlng coords, node_ref_id id, strategy_id_t router_id)
-      : coords_(coords), id_(id), router_id_(router_id) {}
+  node_ref(geo::latlng coords, node_ref_id id, strategy_id_t strategy_id)
+      : coords_(coords), id_(id), strategy_id_(strategy_id) {}
 
-  strategy_id_t strategy_id() const { return router_id_; };
+  strategy_id_t strategy_id() const { return strategy_id_; };
 
   geo::latlng coords_;
   node_ref_id id_;
-  strategy_id_t router_id_;  // XXX rename
+  strategy_id_t strategy_id_;
 };
 
 struct routing_result {
   routing_result()
       : source_(),
-        router_id_(kInvalidStrategyId),
+        strategy_id_(kInvalidStrategyId),
         weight_(std::numeric_limits<double>::infinity()),
         valid_(false) {}
 
-  routing_result(source_spec s, size_t router_id, double weight)
-      : source_(s), router_id_(router_id), weight_(weight), valid_(true) {}
+  routing_result(source_spec source, size_t strategy_id, double weight)
+      : source_(source),
+        strategy_id_(strategy_id),
+        weight_(weight),
+        valid_(true) {}
 
-  strategy_id_t strategy_id() const { return router_id_; };
+  strategy_id_t strategy_id() const { return strategy_id_; };
 
   source_spec source_;
-  strategy_id_t router_id_;  // XXX rename
+  strategy_id_t strategy_id_;
   double weight_;
   bool valid_;
 };

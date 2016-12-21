@@ -75,11 +75,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  fs::path path(opt.osrm_);
-  auto directory = path.parent_path();
-  if (!is_directory(directory)) {
-    throw std::runtime_error("OSRM dataset is not a folder!");
-  }
+  verify(fs::is_regular_file(opt.osrm_), "cannot find osrm dataset");
 
   std::map<std::string, std::vector<geo::latlng>> stop_positions;
   std::vector<station_seq> sequences;
@@ -101,7 +97,7 @@ int main(int argc, char** argv) {
                             << " relations";
   auto const polylines_from_rels = aggregate_polylines(relations.relations_);
 
-  auto routing = make_path_routing(polylines_from_rels);
+  auto routing = make_path_routing(polylines_from_rels, opt.osrm_);
   db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
   // XXX debugging
