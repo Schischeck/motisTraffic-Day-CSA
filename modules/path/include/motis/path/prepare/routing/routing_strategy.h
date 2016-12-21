@@ -13,6 +13,8 @@
 namespace motis {
 namespace path {
 
+using strategy_id_t = size_t;
+
 struct node_ref_id {
   node_ref_id() = default;
   node_ref_id(uint32_t id) : id_(id) {}
@@ -43,6 +45,8 @@ struct routing_result {
 };
 
 struct routing_strategy {
+  explicit routing_strategy(strategy_id_t const strategy_id)
+      : strategy_id_(strategy_id) {}
   virtual ~routing_strategy() = default;
 
   virtual std::vector<node_ref> close_nodes(geo::latlng const&) = 0;
@@ -51,7 +55,10 @@ struct routing_strategy {
   virtual geo::polyline get_polyline(node_ref const& from,
                                      node_ref const& to) const = 0;
 
-  virtual size_t id() const;
+  virtual strategy_id_t strategy_id() const;
+
+private:
+  strategy_id_t strategy_id_;
 };
 
 }  // namespace path

@@ -1,6 +1,5 @@
 #include "motis/path/lookup_index.h"
 
-#include "motis/core/common/transform_to_vec.h"
 
 namespace motis {
 namespace path {

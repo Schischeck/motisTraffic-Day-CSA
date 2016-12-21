@@ -20,7 +20,7 @@ namespace motis {
 namespace path {
 
 void resolve_sequences(std::vector<station_seq> const& sequences,
-                       routing& routing, db_builder& builder) {
+                       path_routing& routing, db_builder& builder) {
   motis::logging::scoped_timer timer("resolve_sequences");
 
   utl::parallel_for("searching routes", sequences, 250, [&](auto const& seq) {
@@ -29,8 +29,9 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
 
       auto const get_polyline = [&strategies](seq_edge const* edge) {
         auto const it = std::find_if(
-            begin(strategies), end(strategies),
-            [&edge](auto const& s) { return s->id() == edge->router_id(); });
+            begin(strategies), end(strategies), [&edge](auto const& s) {
+              return s->strategy_id() == edge->router_id();
+            });
         verify(it != end(strategies), "bad router id");
         return (*it)->get_polyline(edge->from_->ref_, edge->to_->ref_);
       };
@@ -80,23 +81,3 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
 
 }  // namespace path
 }  // namespace motis
-
-// for (auto const& nodes : g.station_to_nodes_) {
-//   std::cout << "\nStation "
-//             << (nodes.size() > 0 ? nodes[0]->station_idx_ : -1) << ":
-//             ";
-//   for (auto const& n : nodes) {
-//     std::cout << "\n\t Node " << n->idx_ << ":\n";
-//     for (auto const& e : n->edges_) {
-//       std::cout << "\n(" << n->idx_ << "|" << e.to_->idx_
-//                 << "| w: " << e.weight_ << ") ("
-//                 << e.from_->ref_.router_id_ << "|"
-//                 << e.to_->ref_.router_id_ << ")";
-//     }
-//   }
-// }
-
-// std::cout << "\n(" << edge->from_->idx_ << "|" << edge->to_->idx_
-//           << "| w: " << edge->weight_ << ") "
-//           << "(" << edge->from_->ref_.router_id_ << "|"
-//           << edge->to_->ref_.router_id_ << ")";

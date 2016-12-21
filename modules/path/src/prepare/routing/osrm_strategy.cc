@@ -13,7 +13,7 @@
 
 #include "geo/latlng.h"
 
-#include "motis/core/common/transform_to_vec.h"
+#include "utl/to_vec.h"
 
 using namespace osrm;
 using namespace osrm::util;
@@ -30,10 +30,6 @@ struct osrm_strategy::impl {
     config.use_shared_memory = false;
 
     osrm_ = std::make_unique<OSRM>(config);
-  }
-
-  FloatCoordinate make_coord(geo::latlng l) {
-    return FloatCoordinate{FloatLongitude{l.lng_}, FloatLatitude{l.lat_}};
   }
 
   std::vector<int> one_to_many(geo::latlng const& one,
@@ -61,7 +57,7 @@ struct osrm_strategy::impl {
     return costs;
   }
 
-  geo::polyline get_polyline(node_ref const& from, node_ref const& to) {
+  geo::polyline get_polyline(node_ref const& from, node_ref const& to) const {
     if (from.router_id_ != router_id_ || to.router_id_ != router_id_) {
       return {};
     }
@@ -84,9 +80,9 @@ struct osrm_strategy::impl {
       return {};
     }
     auto& route = get(all_routes, 0u);
-    auto const& points = transform_to_vec(
-        get(route, "geometry").get<Array>().values,
-        [](auto&& jc) { return jc.template get<Number>().value; });
+    auto const points =
+        utl::to_vec(get(route, "geometry").get<Array>().values,
+                    [](auto&& jc) { return jc.template get<Number>().value; });
     std::vector<geo::latlng> polyline;
     for (auto i = 0u; i < points.size() - 1; i = i + 2) {
       polyline.emplace_back(points[i], points[i + 1]);
@@ -97,8 +93,8 @@ struct osrm_strategy::impl {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
     std::vector<std::vector<routing_result>> result;
-    auto to_coords = transform_to_vec(begin(to), end(to),
-                                      [&](auto const& t) { return t.coords_; });
+    auto to_coords = utl::to_vec(begin(to), end(to),
+                                 [&](auto const& t) { return t.coords_; });
     for (auto f : from) {
       if (f.router_id_ != router_id_) {
         result.push_back({});
@@ -143,13 +139,18 @@ struct osrm_strategy::impl {
     return refs;
   }
 
+  FloatCoordinate make_coord(geo::latlng const& l) const {
+    return FloatCoordinate{FloatLongitude{l.lng_}, FloatLatitude{l.lat_}};
+  }
+
   std::unique_ptr<OSRM> osrm_;
   size_t id_ = 0;
   size_t router_id_;
 };
 
 osrm_strategy::osrm_strategy(std::size_t router_id, std::string path)
-    : impl_(std::make_unique<osrm_strategy::impl>(router_id, path)) {}
+    : routing_strategy(router_id),
+      impl_(std::make_unique<osrm_strategy::impl>(router_id, path)) {}
 osrm_strategy::~osrm_strategy() = default;
 
 std::vector<std::vector<routing_result>> osrm_strategy::find_routes(
@@ -162,7 +163,7 @@ std::vector<node_ref> osrm_strategy::close_nodes(geo::latlng const& latlng) {
 }
 
 geo::polyline osrm_strategy::get_polyline(node_ref const& from,
-                                         node_ref const& to) {
+                                          node_ref const& to) const {
   return impl_->get_polyline(from, to);
 }
 

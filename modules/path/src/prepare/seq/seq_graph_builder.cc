@@ -1,11 +1,6 @@
 #include "motis/path/prepare/seq/seq_graph_builder.h"
 
-#include "parser/util.h"
-
-#include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
-
-#include "motis/path/prepare/prepare_data.h"
+#include "utl/to_vec.h"
 
 using namespace geo;
 
@@ -54,8 +49,8 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
 }
 
 void create_edges(seq_graph& g, routing_strategy* routing_strategy) {
-  auto refs = transform_to_vec(g.station_to_nodes_, [](auto const& sn) {
-    return transform_to_vec(sn, [](auto const& node) { return node->ref_; });
+  auto refs = utl::to_vec(g.station_to_nodes_, [](auto const& sn) {
+    return utl::to_vec(sn, [](auto const& node) { return node->ref_; });
   });
 
   for (auto i = 0u; i < g.station_to_nodes_.size() - 1; ++i) {
@@ -79,10 +74,10 @@ seq_graph build_seq_graph(
     create_edges(g, s);
   }
 
-  g.initials_ = transform_to_vec(g.station_to_nodes_.front(),
-                                 [](auto&& node) { return node->idx_; });
-  g.goals_ = transform_to_vec(g.station_to_nodes_.back(),
-                              [](auto&& node) { return node->idx_; });
+  g.initials_ = utl::to_vec(g.station_to_nodes_.front(),
+                            [](auto&& node) { return node->idx_; });
+  g.goals_ = utl::to_vec(g.station_to_nodes_.back(),
+                         [](auto&& node) { return node->idx_; });
   return g;
 }
 

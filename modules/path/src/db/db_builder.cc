@@ -1,6 +1,6 @@
 #include "motis/path/db/db_builder.h"
 
-#include "motis/core/common/transform_to_vec.h"
+#include "utl/to_vec.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -17,7 +17,7 @@ int db_builder::append(std::vector<std::string> const& station_ids,
   std::lock_guard<std::mutex> lock(m_);
 
   message_creator b;
-  auto const fbs_stations = transform_to_vec(
+  auto const fbs_stations = utl::to_vec(
       station_ids, [&](auto const& id) { return b.CreateString(id); });
 
   std::vector<Offset<Polyline>> fbs_lines;
@@ -56,8 +56,8 @@ void db_builder::finish() {
     auto ids = std::get<0>(indices_[i]);
     auto classes = std::get<1>(indices_[i]);
 
-    auto const fbs_stations = transform_to_vec(
-        ids, [&](auto const& id) { return b.CreateString(id); });
+    auto const fbs_stations =
+        utl::to_vec(ids, [&](auto const& id) { return b.CreateString(id); });
 
     r.push_back(CreatePathIndex(b, b.CreateVector(fbs_stations),
                                 b.CreateVector(classes),

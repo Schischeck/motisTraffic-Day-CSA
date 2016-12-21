@@ -2,8 +2,9 @@
 
 #include <memory>
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/access/trip_access.h"
 #include "motis/core/access/trip_iterator.h"
 #include "motis/core/access/trip_section.h"
@@ -67,9 +68,9 @@ msg_ptr path::id_train_path(msg_ptr const& msg) const {
                              t->time(), t->target_station_id()->str(),
                              t->target_time(), t->line_id()->str());
 
-  auto const seq = transform_to_vec(
-      access::stops(trp),
-      [&sched](auto const& stop) { return stop.get_station(sched).eva_nr_; });
+  auto const seq = utl::to_vec(access::stops(trp), [&sched](auto const& stop) {
+    return stop.get_station(sched).eva_nr_;
+  });
   auto const clasz = trip_section{trp, 0}.fcon().clasz_;
   return get_response(lookup_->find(seq, clasz));
 }

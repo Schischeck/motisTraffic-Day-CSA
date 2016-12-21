@@ -7,9 +7,12 @@
 namespace motis {
 namespace path {
 
-struct routing {
-  routing();
-  ~routing();
+struct path_routing {
+  path_routing();
+  ~path_routing();
+
+  path_routing(path_routing&&) = default;
+  path_routing& operator=(path_routing&&) = default;
 
   std::vector<routing_strategy const*> strategies_for() const;
 
@@ -17,7 +20,7 @@ struct routing {
   std::unique_ptr<impl> impl_;
 };
 
-routing make_routing();
+path_routing make_path_routing();
 
 } // namespace path
 } // namespace motis

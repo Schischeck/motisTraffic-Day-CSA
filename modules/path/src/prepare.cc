@@ -20,7 +20,7 @@
 #include "motis/path/prepare/rel/polyline_aggregator.h"
 #include "motis/path/prepare/rel/relation_parser.h"
 #include "motis/path/prepare/resolve_sequences.h"
-#include "motis/path/prepare/routing/routing.h"
+#include "motis/path/prepare/routing/path_routing.h"
 #include "motis/path/prepare/schedule/schedule_wrapper.h"
 
 #include "version.h"
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
                             << " relations";
   auto const polylines = aggregate_polylines(relations.relations_);
 
-  auto&& routing = make_routing();
+  auto&& routing = make_path_routing();
   db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
   // XXX debugging

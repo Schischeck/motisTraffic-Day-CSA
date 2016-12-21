@@ -3,9 +3,9 @@
 #include <queue>
 
 #include "utl/erase.h"
+#include "utl/to_vec.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 
 namespace motis {
 namespace path {
@@ -92,8 +92,8 @@ std::vector<std::vector<rail_link const*>> shortest_paths(
   rail_graph_dijkstra dijkstra{graph, from, to};
   dijkstra.run();
 
-  return transform_to_vec(
-      to, [&](auto const& id) { return dijkstra.get_links(id); });
+  return utl::to_vec(to,
+                     [&](auto const& id) { return dijkstra.get_links(id); });
 }
 
 }  // namespace path

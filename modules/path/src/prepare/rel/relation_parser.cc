@@ -1,10 +1,10 @@
 #include "motis/path/prepare/rel/relation_parser.h"
 
 #include "utl/erase_if.h"
+#include "utl/get_or_create.h"
+#include "utl/to_vec.h"
 
-#include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 
 #include "motis/path/prepare/osm_util.h"
 
@@ -51,7 +51,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
         continue;
       }
 
-      ways.push_back(get_or_create(pending_ways_, member.ref(), [&]() {
+      ways.push_back(utl::get_or_create(pending_ways_, member.ref(), [&]() {
         result.way_mem_.push_back(std::make_unique<way>(member.ref()));
         return result.way_mem_.back().get();
       }));
@@ -78,8 +78,8 @@ parsed_relations parse_relations(std::string const& osm_file_) {
 
     w->second->resolved_ = true;
     w->second->nodes_ =
-        transform_to_vec(std::begin(way.nodes()), std::end(way.nodes()),
-                         [](auto&& n) { return node{n.ref()}; });
+        utl::to_vec(std::begin(way.nodes()), std::end(way.nodes()),
+                    [](auto&& n) { return node{n.ref()}; });
 
     for (auto& n : w->second->nodes_) {
       pending_nodes_[n.id_].push_back(&n);

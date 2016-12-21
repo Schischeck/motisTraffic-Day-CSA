@@ -3,9 +3,10 @@
 #include <algorithm>
 #include <map>
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 
 #include "motis/path/prepare/osm_util.h"
 #include "motis/path/prepare/rail/geojson.h"
@@ -73,19 +74,18 @@ struct rail_graph_loader {
 
       osm_ways_.emplace_back(
           way.id(),
-          transform_to_vec(
-              way.nodes(), [&](auto const& node_ref) -> osm_rail_node* {
-                auto it = osm_nodes_.find(node_ref.ref());
-                if (it == end(osm_nodes_)) {
-                  osm_node_mem_.emplace_back(std::make_unique<osm_rail_node>(
-                      node_ref.ref(), way.id()));
-                  osm_nodes_[node_ref.ref()] = osm_node_mem_.back().get();
-                  return osm_node_mem_.back().get();
-                } else {
-                  it->second->in_ways_.push_back(way.id());
-                  return it->second;
-                }
-              }));
+          utl::to_vec(way.nodes(), [&](auto const& node_ref) -> osm_rail_node* {
+            auto it = osm_nodes_.find(node_ref.ref());
+            if (it == end(osm_nodes_)) {
+              osm_node_mem_.emplace_back(
+                  std::make_unique<osm_rail_node>(node_ref.ref(), way.id()));
+              osm_nodes_[node_ref.ref()] = osm_node_mem_.back().get();
+              return osm_node_mem_.back().get();
+            } else {
+              it->second->in_ways_.push_back(way.id());
+              return it->second;
+            }
+          }));
     });
   }
 

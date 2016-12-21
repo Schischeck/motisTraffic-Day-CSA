@@ -5,11 +5,11 @@
 #include "utl/concat.h"
 #include "utl/erase_if.h"
 #include "utl/parallel_for.h"
+#include "utl/to_vec.h"
 
 #include "geo/point_rtree.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 
 #include "motis/path/prepare/rel/polyline_aggregator.h"
 #include "motis/path/prepare/rel/relation_parser.h"
@@ -41,7 +41,7 @@ struct matcher {
       if (extra_nodes != end(stop_positions_)) {
         for (auto const& stop_pos : extra_nodes->second) {
           utl::concat(close_nodes,
-                 rtree_.in_radius_with_distance(stop_pos, kMatchRadius));
+                      rtree_.in_radius_with_distance(stop_pos, kMatchRadius));
         }
       }
 
@@ -106,8 +106,8 @@ std::vector<std::vector<match_seq>> match_sequences(
   utl::parallel_for("match sequences", aps, 250, [&](auto const& ap) {
     auto const rtree = make_point_rtree(ap.polyline_);
 
-    auto const matches = transform_to_vec(
-        sequences, [&](auto const& seq) -> std::vector<match_seq> {
+    auto const matches =
+        utl::to_vec(sequences, [&](auto const& seq) -> std::vector<match_seq> {
           if (std::none_of(
                   begin(seq.categories_), end(seq.categories_),
                   [&](auto const& c) { return ap.source_.category_ == c; })) {

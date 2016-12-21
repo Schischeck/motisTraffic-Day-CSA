@@ -1,10 +1,11 @@
-#include "motis/path/prepare/station_sequences.h"
+#include "motis/path/prepare/schedule/station_sequences.h"
 
 #include <iostream>
 #include <map>
 #include <vector>
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+
 #include "motis/core/common/logging.h"
 
 #include "motis/loader/classes.h"
@@ -28,7 +29,7 @@ std::vector<station_seq> load_station_sequences(
   std::map<motis::loader::Route const*, station_seq> seqs;
   for (auto const& service : *sched->services()) {
 
-    auto& seq = get_or_create(seqs, service->route(), [&]() {
+    auto& seq = utl::get_or_create(seqs, service->route(), [&]() {
       station_seq seq;
       for (auto const& station : *service->route()->stations()) {
         seq.station_ids_.emplace_back(station->id()->str());

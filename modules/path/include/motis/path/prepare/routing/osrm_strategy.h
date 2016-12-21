@@ -7,17 +7,18 @@
 namespace motis {
 namespace path {
 
-struct osrm_osrm : public routing_strategy {
+struct osrm_strategy : public routing_strategy {
+  osrm_strategy(strategy_id_t const, std::string path);
+  ~osrm_strategy();
 
-  explicit osrm_osrm(std::size_t router_id, std::string path);
-  ~osrm_osrm();
+  std::vector<node_ref> close_nodes(geo::latlng const&) override;
 
   std::vector<std::vector<routing_result>> find_routes(
-      std::vector<node_ref> const& from, std::vector<node_ref> const& to);
+      std::vector<node_ref> const& from,
+      std::vector<node_ref> const& to) override;
 
-  std::vector<node_ref> close_nodes(geo::latlng const& latlng);
-
-  geo::polyline get_polyline(node_ref const& from, node_ref const& to);
+  geo::polyline get_polyline(node_ref const& from,
+                             node_ref const& to) const override;
 
 private:
   struct impl;
