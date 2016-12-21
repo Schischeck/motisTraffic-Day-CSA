@@ -5,8 +5,9 @@
 
 #include "boost/program_options.hpp"
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/hash_set.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/module/context/get_schedule.h"
 #include "motis/protocol/Message_generated.h"
 
@@ -50,7 +51,7 @@ void guesser::init(motis::module::registry& reg) {
     }
   }
 
-  auto stations = transform_to_vec(station_indices_, [&](unsigned i) {
+  auto stations = utl::to_vec(station_indices_, [&](unsigned i) {
     auto const& s = *sched.stations_[i];
     double factor = 0;
     for (unsigned i = 0; i < s.dep_class_events_.size(); ++i) {

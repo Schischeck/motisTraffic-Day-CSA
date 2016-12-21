@@ -6,9 +6,10 @@
 #include <tuple>
 #include <utility>
 
+#include "utl/get_or_create.h"
+
 #include "parser/util.h"
 
-#include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
 #include "motis/loader/hrd/model/rules_graph.h"
 #include "motis/loader/util.h"
@@ -71,12 +72,12 @@ void create_rule_and_service_nodes(
     auto const& s2 = std::get<1>(comb);
 
     auto s1_node = reinterpret_cast<service_node*>(
-        motis::get_or_create(service_to_node, s1, [&]() {
+        utl::get_or_create(service_to_node, s1, [&]() {
           rg.nodes_.emplace_back(new service_node(s1));
           return rg.nodes_.back().get();
         }));
     auto s2_node = reinterpret_cast<service_node*>(
-        motis::get_or_create(service_to_node, s2, [&]() {
+        utl::get_or_create(service_to_node, s2, [&]() {
           rg.nodes_.emplace_back(new service_node(s2));
           return rg.nodes_.back().get();
         }));

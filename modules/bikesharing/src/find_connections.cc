@@ -2,9 +2,9 @@
 
 #include <vector>
 
+#include "utl/get_or_create.h"
+
 #include "motis/core/common/constants.h"
-#include "motis/core/common/get_or_create.h"
-#include "motis/core/common/util.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -115,7 +115,7 @@ private:
   }
 
   persistable_terminal* load_terminal(std::string const& id) {
-    return get_or_create(
+    return utl::get_or_create(
                terminals_, id,
                [&]() {
                  return std::make_unique<persistable_terminal>(db_.get(id));
@@ -155,7 +155,7 @@ private:
   Offset<BikesharingTerminal> serialize_terminal(
       persistable_terminal* terminal) {
     auto const* t = terminal->get();
-    return get_or_create(terminal_offsets_, t->id()->str(), [&]() {
+    return utl::get_or_create(terminal_offsets_, t->id()->str(), [&]() {
       motis::Position pos(t->lat(), t->lng());
       return CreateBikesharingTerminal(mc_, mc_.CreateString(t->id()->str()),
                                        mc_.CreateString(t->name()->str()),

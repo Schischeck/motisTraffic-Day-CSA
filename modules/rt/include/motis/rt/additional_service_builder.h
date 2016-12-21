@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/station_access.h"

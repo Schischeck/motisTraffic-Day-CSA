@@ -12,10 +12,10 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "utl/to_vec.h"
+
 #include "parser/cstr.h"
 #include "parser/file.h"
-
-#include "motis/core/common/transform_to_vec.h"
 
 namespace motis {
 namespace loader {
@@ -52,7 +52,7 @@ flatbuffers64::Offset<flatbuffers64::String> to_fbs_string(
 template <typename MapType>
 inline std::vector<typename MapType::value_type::second_type> values(
     MapType const& m) {
-  return transform_to_vec(m, [](auto&& el) { return el.second; });
+  return utl::to_vec(m, [](auto&& el) { return el.second; });
 }
 
 template <typename IntType>

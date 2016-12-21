@@ -4,13 +4,15 @@
 #include "boost/filesystem.hpp"
 #include "boost/range/iterator_range.hpp"
 
-#include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "gtest/gtest.h"
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "utl/erase_if.h"
+
 #include "motis/core/common/logging.h"
 
+#include "motis/loader/hrd/builder/bitfield_builder.h"
 #include "motis/loader/hrd/builder/rule_service_builder.h"
 #include "motis/loader/hrd/model/split_service.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
@@ -63,12 +65,10 @@ protected:
     rsb_.resolve_rule_services();
 
     // remove all remaining services that does not have any traffic day left
-    rsb_.origin_services_.erase(
-        std::remove_if(begin(rsb_.origin_services_), end(rsb_.origin_services_),
-                       [](std::unique_ptr<hrd_service> const& service_ptr) {
-                         return service_ptr->traffic_days_.none();
-                       }),
-        end(rsb_.origin_services_));
+    utl::erase_if(rsb_.origin_services_,
+                  [](std::unique_ptr<hrd_service> const& service_ptr) {
+                    return service_ptr->traffic_days_.none();
+                  });
   }
 
   std::string schedule_name_;

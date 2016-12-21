@@ -1,8 +1,9 @@
 #pragma once
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+#include "utl/to_vec.h"
+
 #include "motis/core/common/hash_map.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/bfs.h"
@@ -52,9 +53,9 @@ inline void copy_trip_route(
   };
 
   for (auto const& e : route_edges(k)) {
-    auto const from = get_or_create<node const*, node*>(
+    auto const from = utl::get_or_create<node const*, node*>(
         nodes, e->from_, [&] { return build_node(e->from_); });
-    auto const to = get_or_create<node const*, node*>(
+    auto const to = utl::get_or_create<node const*, node*>(
         nodes, e->to_, [&] { return build_node(e->to_); });
 
     from->edges_.push_back(copy_edge(*e, from, to, k.lcon_idx_));
@@ -87,7 +88,7 @@ inline void update_trips(schedule& sched, ev_key const& k,
   for (auto const& t : route_trips(sched, k)) {
     sched.trip_edges_.emplace_back(
         std::make_unique<std::vector<trip::route_edge>>(
-            transform_to_vec(*t->edges_, [&](trip::route_edge const& e) {
+            utl::to_vec(*t->edges_, [&](trip::route_edge const& e) {
               return edges.at(e.get_edge());
             })));
     const_cast<trip*>(t)->edges_ = sched.trip_edges_.back().get();  // NOLINT

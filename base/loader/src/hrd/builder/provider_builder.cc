@@ -1,6 +1,7 @@
 #include "motis/loader/hrd/builder/provider_builder.h"
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/util.h"
 
@@ -17,7 +18,7 @@ provider_builder::provider_builder(
 
 Offset<Provider> provider_builder::get_or_create_provider(
     uint64_t admin, FlatBufferBuilder& fbb) {
-  return get_or_create(fbs_providers_, admin, [&]() -> Offset<Provider> {
+  return utl::get_or_create(fbs_providers_, admin, [&]() -> Offset<Provider> {
     auto it = hrd_providers_.find(admin);
     if (it == end(hrd_providers_)) {
       return 0;

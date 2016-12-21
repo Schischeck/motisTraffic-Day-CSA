@@ -3,7 +3,7 @@
 #include <set>
 #include <tuple>
 
-#include "motis/core/common/transform_to_set.h"
+#include "utl/to_set.h"
 
 #include "motis/routing/label/criteria/transfers.h"
 #include "motis/routing/label/criteria/travel_time.h"
@@ -79,9 +79,9 @@ struct journey_meta_data {
 
 struct response {
   explicit response(routing::RoutingResponse const* r)
-      : connections_(transform_to_set(
-            *r->connections(),
-            [](Connection const* c) { return journey_meta_data(c); })) {}
+      : connections_(utl::to_set(*r->connections(), [](Connection const* c) {
+          return journey_meta_data(c);
+        })) {}
   std::set<journey_meta_data> connections_;
 };
 

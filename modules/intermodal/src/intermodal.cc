@@ -2,6 +2,8 @@
 
 #include <functional>
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/constants.h"
 #include "motis/core/journey/journeys_to_message.h"
 #include "motis/core/journey/message_to_journeys.h"
@@ -69,7 +71,7 @@ msg_ptr postprocess_response(msg_ptr const& response_msg,
       MsgContent_IntermodalRoutingResponse,
       CreateIntermodalRoutingResponse(
           mc,
-          mc.CreateVector(transform_to_vec(
+          mc.CreateVector(utl::to_vec(
               journeys, [&mc](auto const& j) { return to_connection(mc, j); })))
           .Union());
 

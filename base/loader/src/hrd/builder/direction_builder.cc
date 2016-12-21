@@ -1,8 +1,9 @@
 #include "motis/loader/hrd/builder/direction_builder.h"
 
+#include "utl/get_or_create.h"
+
 #include "parser/util.h"
 
-#include "motis/core/common/get_or_create.h"
 #include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/model/hrd_service.h"
 #include "motis/loader/util.h"
@@ -25,7 +26,7 @@ Offset<Direction> direction_builder::get_or_create_direction(
     return 0;
   } else {
     auto const direction_key = directions[0];
-    return get_or_create(fbs_directions_, direction_key.first, [&]() {
+    return utl::get_or_create(fbs_directions_, direction_key.first, [&]() {
       switch (direction_key.second) {
         case hrd_service::EVA_NUMBER: {
           return CreateDirection(

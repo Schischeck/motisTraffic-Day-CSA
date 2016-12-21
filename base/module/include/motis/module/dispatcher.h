@@ -2,7 +2,7 @@
 
 #include "ctx/ctx.h"
 
-#include "motis/core/common/transform_to_vec.h"
+#include "utl/to_vec.h"
 
 #include "motis/module/ctx_data.h"
 #include "motis/module/error.h"
@@ -90,18 +90,17 @@ struct dispatcher : public receiver {
     fbb.create_and_finish(
         MsgContent_ApiDescription,
         CreateApiDescription(
-            fbb,
-            fbb.CreateVector(transform_to_vec(
-                fbs_def,
-                [&fbb](char const* str) { return fbb.CreateString(str); })),
-            fbb.CreateVector(transform_to_vec(methods,
-                                              [&fbb](method const& m) {
-                                                return CreateMethod(
-                                                    fbb,
-                                                    fbb.CreateString(m.path_),
-                                                    fbb.CreateString(m.in_),
-                                                    fbb.CreateString(m.out_));
-                                              })))
+            fbb, fbb.CreateVector(utl::to_vec(fbs_def,
+                                              [&fbb](char const* str) {
+                                                return fbb.CreateString(str);
+                                              })),
+            fbb.CreateVector(utl::to_vec(methods,
+                                         [&fbb](method const& m) {
+                                           return CreateMethod(
+                                               fbb, fbb.CreateString(m.path_),
+                                               fbb.CreateString(m.in_),
+                                               fbb.CreateString(m.out_));
+                                         })))
             .Union());
     return make_msg(fbb);
   }

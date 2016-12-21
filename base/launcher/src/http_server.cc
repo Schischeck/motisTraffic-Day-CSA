@@ -5,10 +5,11 @@
 
 #include "boost/algorithm/string/predicate.hpp"
 
+#include "utl/to_vec.h"
+
 #include "net/http/server/query_router.hpp"
 #include "net/http/server/server.hpp"
 
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/module/message.h"
 
 using namespace net::http::server;
@@ -86,16 +87,16 @@ struct http_server::impl {
       message_creator fbb;
       fbb.create_and_finish(
           MsgContent_HTTPRequest,
-          CreateHTTPRequest(fbb, translate_method_string(req.method),
-                            fbb.CreateString(get_path(req.uri)),
-                            fbb.CreateVector(transform_to_vec(
-                                req.headers,
-                                [&](header const& h) {
-                                  return CreateHTTPHeader(
-                                      fbb, fbb.CreateString(h.name),
-                                      fbb.CreateString(h.value));
-                                })),
-                            fbb.CreateString(req.content))
+          CreateHTTPRequest(
+              fbb, translate_method_string(req.method),
+              fbb.CreateString(get_path(req.uri)),
+              fbb.CreateVector(utl::to_vec(req.headers,
+                                           [&](header const& h) {
+                                             return CreateHTTPHeader(
+                                                 fbb, fbb.CreateString(h.name),
+                                                 fbb.CreateString(h.value));
+                                           })),
+              fbb.CreateString(req.content))
               .Union(),
           get_path(req.uri));
       return receiver_.on_msg(

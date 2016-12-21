@@ -4,12 +4,13 @@
 #include <algorithm>
 #include <functional>
 
+#include "utl/get_or_create.h"
+#include "utl/to_vec.h"
+
 #include "parser/cstr.h"
 
 #include "motis/core/common/constants.h"
-#include "motis/core/common/get_or_create.h"
 #include "motis/core/common/logging.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/price.h"
@@ -129,7 +130,7 @@ void graph_builder::link_meta_stations(
 
 timezone const* graph_builder::get_or_create_timezone(
     Timezone const* input_timez) {
-  return get_or_create(timezones_, input_timez, [&]() {
+  return utl::get_or_create(timezones_, input_timez, [&]() {
     auto const tz =
         input_timez->season()
             ? create_timezone(
@@ -535,7 +536,7 @@ void graph_builder::read_attributes(
     }
     auto const attribute_info = attr->info();
     active_attributes.push_back(
-        get_or_create(attributes_, attribute_info, [&]() {
+        utl::get_or_create(attributes_, attribute_info, [&]() {
           auto new_attr = std::make_unique<attribute>();
           new_attr->code_ = attribute_info->code()->str();
           new_attr->str_ = attribute_info->text()->str();
@@ -552,7 +553,7 @@ std::string const* graph_builder::get_or_create_direction(
   } else if (dir->station()) {
     return &sched_.stations_[stations_[dir->station()]->id_]->name_;
   } else /* direction text */ {
-    return get_or_create(directions_, dir->text(), [&]() {
+    return utl::get_or_create(directions_, dir->text(), [&]() {
       sched_.directions_.emplace_back(
           std::make_unique<std::string>(dir->text()->str()));
       return sched_.directions_.back().get();
@@ -564,7 +565,7 @@ provider const* graph_builder::get_or_create_provider(Provider const* p) {
   if (p == nullptr) {
     return nullptr;
   } else {
-    return get_or_create(providers_, p, [&]() {
+    return utl::get_or_create(providers_, p, [&]() {
       sched_.providers_.emplace_back(std::make_unique<provider>(
           provider(p->short_name()->str(), p->long_name()->str(),
                    p->full_name()->str())));
@@ -574,7 +575,7 @@ provider const* graph_builder::get_or_create_provider(Provider const* p) {
 }
 
 int graph_builder::get_or_create_category_index(Category const* c) {
-  return get_or_create(categories_, c, [&]() {
+  return utl::get_or_create(categories_, c, [&]() {
     int index = sched_.categories_.size();
     sched_.categories_.push_back(std::make_unique<category>(
         category(c->name()->str(), static_cast<uint8_t>(c->output_rule()))));
@@ -601,7 +602,7 @@ int graph_builder::get_or_create_track(int day,
     return no_track;
   } else {
     auto name = track_it->name()->str();
-    return get_or_create(tracks_, name, [&]() {
+    return utl::get_or_create(tracks_, name, [&]() {
       int index = sched_.tracks_.size();
       sched_.tracks_.push_back(name);
       return index;
@@ -610,7 +611,7 @@ int graph_builder::get_or_create_track(int day,
 }
 
 void graph_builder::write_trip_info(route& r) {
-  auto const edges = transform_to_vec(begin(r), end(r), [](route_section& s) {
+  auto const edges = utl::to_vec(begin(r), end(r), [](route_section& s) {
     return trip::route_edge(s.get_route_edge());
   });
 

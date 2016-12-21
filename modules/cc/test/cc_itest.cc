@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include "utl/to_vec.h"
+
 #include "motis/core/conv/event_type_conv.h"
 
 #include "motis/test/motis_instance_test.h"
@@ -132,10 +134,10 @@ struct cc_check_routed_connection_test : public motis_instance_test {
         fbb, ris::MessageUnion_RerouteMessage,
         ris::CreateRerouteMessage(
             fbb, id.to_fbs(sched, fbb),
-            fbb.CreateVector(transform_to_vec(
+            fbb.CreateVector(utl::to_vec(
                 cancel_events,
                 [&](auto const& ev) { return ev.to_fbs(sched, fbb); })),
-            fbb.CreateVector(transform_to_vec(
+            fbb.CreateVector(utl::to_vec(
                 rerouted_events,
                 [&](auto const& ev) { return ev.to_fbs(sched, fbb); })))
             .Union()));
@@ -160,7 +162,7 @@ struct cc_check_routed_connection_test : public motis_instance_test {
         ris::CreateDelayMessage(
             fbb, id.to_fbs(sched, fbb),
             is_message ? ris::DelayType_Is : ris::DelayType_Forecast,
-            fbb.CreateVector(transform_to_vec(
+            fbb.CreateVector(utl::to_vec(
                 delays, [&](auto const& ev) { return ev.to_fbs(sched, fbb); })))
             .Union()));
 

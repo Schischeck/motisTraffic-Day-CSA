@@ -4,10 +4,11 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/program_options.hpp"
 
+#include "utl/to_vec.h"
+
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
 #include "motis/core/common/timing.h"
-#include "motis/core/common/transform_to_vec.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/conv/trip_conv.h"
@@ -66,7 +67,7 @@ msg_ptr routing::route(msg_ptr const& msg) {
   message_creator fbb;
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
-      CreateRoutingResponse(fbb, &stats, fbb.CreateVector(transform_to_vec(
+      CreateRoutingResponse(fbb, &stats, fbb.CreateVector(utl::to_vec(
                                              res.journeys_,
                                              [&](journey const& j) {
                                                return to_connection(fbb, j);

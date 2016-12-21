@@ -2,6 +2,8 @@
 
 #include <queue>
 
+#include "utl/erase_if.h"
+
 #include "motis/core/common/dial.h"
 #include "motis/core/common/hash_map.h"
 
@@ -208,13 +210,9 @@ private:
          it = restart ? std::begin(results_) : std::next(it)) {
       restart = false;
       std::size_t size_before = results_.size();
-      results_.erase(
-          std::remove_if(std::begin(results_), std::end(results_),
-                         [it](Label const* l) {
-                           return l == (*it) ? false
-                                             : (*it)->dominates_post_search(*l);
-                         }),
-          std::end(results_));
+      utl::erase_if(results_, [it](Label const* l) {
+        return l == (*it) ? false : (*it)->dominates_post_search(*l);
+      });
       if (results_.size() != size_before) {
         restart = true;
       }

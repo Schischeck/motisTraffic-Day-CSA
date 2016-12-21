@@ -1,10 +1,10 @@
 #pragma once
 
-#include "motis/core/common/transform_to_vec.h"
-
 #include <algorithm>
 #include <utility>
 #include <vector>
+
+#include "utl/to_vec.h"
 
 namespace motis {
 namespace loader {
@@ -24,8 +24,8 @@ struct flat_map {
   };
 
   std::vector<T> to_vector() {
-    return transform_to_vec(begin(elements_), end(elements_),
-                            [](entry_t const& el) { return el.second; });
+    return to_vec(begin(elements_), end(elements_),
+                  [](entry_t const& el) { return el.second; });
   }
 
   template <typename... Args>

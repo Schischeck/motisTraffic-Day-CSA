@@ -3,7 +3,8 @@
 #include <map>
 #include <string>
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+
 #include "motis/core/schedule/schedule.h"
 #include "motis/loader/classes.h"
 
@@ -31,7 +32,7 @@ inline connection_info const* get_con_info(
   con_info.line_identifier_ = line_id;
   con_info.train_nr_ = train_nr;
 
-  return get_or_create(con_infos, con_info, [&sched, &con_info]() {
+  return utl::get_or_create(con_infos, con_info, [&sched, &con_info]() {
     sched.connection_infos_.emplace_back(
         std::make_unique<connection_info>(con_info));
     return sched.connection_infos_.back().get();
