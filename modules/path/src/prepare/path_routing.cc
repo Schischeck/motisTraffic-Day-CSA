@@ -2,16 +2,19 @@
 
 #include "motis/core/common/logging.h"
 
+#include "motis/path/prepare/rail/load_rail_graph.h"
+
 #include "motis/path/prepare/strategy/osrm_strategy.h"
+#include "motis/path/prepare/strategy/rail_strategy.h"
 #include "motis/path/prepare/strategy/relation_strategy.h"
 #include "motis/path/prepare/strategy/stub_strategy.h"
-
 
 namespace motis {
 namespace path {
 
 struct path_routing::strategies {
   std::unique_ptr<osrm_strategy> osrm_strategy_;
+  std::unique_ptr<rail_strategy> rail_strategy_;
   std::unique_ptr<relation_strategy> relation_strategy_;
   std::unique_ptr<stub_strategy> stub_strategy_;
 };
@@ -51,6 +54,14 @@ std::unique_ptr<relation_strategy> load_relation_strategy(
   return std::make_unique<relation_strategy>(id, std::move(polylines));
 }
 
+std::unique_ptr<rail_strategy> load_rail_strategy(strategy_id_t const id,
+                                                  std::string const& osm_path) {
+  motis::logging::scoped_timer timer("load rail strategy");
+
+  auto rail_graph = load_rail_graph(osm_path);
+  return std::make_unique<rail_strategy>(id, std::move(rail_graph));
+}
+
 path_routing make_path_routing(std::string const& osm_path,
                                std::string const& osrm_path) {
   path_routing r;
@@ -59,6 +70,7 @@ path_routing make_path_routing(std::string const& osm_path,
 
   r.strategies_->osrm_strategy_ =
       std::make_unique<osrm_strategy>(id++, osrm_path);
+  r.strategies_->rail_strategy_ = load_rail_strategy(id++, osm_path);
   r.strategies_->relation_strategy_ = load_relation_strategy(id++, osm_path);
   r.strategies_->stub_strategy_ = std::make_unique<stub_strategy>(id++);
 
