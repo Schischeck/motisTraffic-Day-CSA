@@ -24,7 +24,6 @@ namespace path {
 
 path::path() : module("Path", "path") {
   string_param(database_path_, "pathdb", "db", "/path/to/pathdb");
-  bool_param(required_, false, "required", "if you need the db");
 }
 
 path::~path() = default;
@@ -35,11 +34,28 @@ void path::init(registry& r) {
   if (auto buf = db_->try_get("__index")) {
     lookup_ = std::make_unique<lookup_index>(*buf);
   } else {
+    std::cout << "new"<< std::endl;
+
     message_creator mc;
     mc.Finish(
         CreatePathLookup(mc, mc.CreateVector<Offset<PathIndex>>({})));  // XXX ?
     lookup_ = std::make_unique<lookup_index>(
         lookup_index::lookup_table{std::move(mc)});
+  }
+
+  std::cout << "sequences: " << std::endl;
+
+  for (auto const& entry : *lookup_->lookup_table_.get()->indices()) {
+    std::cout << entry->index() << ":\n";
+    std::cout << " ";
+    for (auto const& station_id : *entry->station_ids()) {
+      std::cout << station_id->str() << ", ";
+    }
+    std::cout << "\n ";
+    for (auto const& cls : *entry->classes()) {
+      std::cout << cls << ", ";
+    }
+    std::cout << std::endl;
   }
 
   r.register_op("/path/index",

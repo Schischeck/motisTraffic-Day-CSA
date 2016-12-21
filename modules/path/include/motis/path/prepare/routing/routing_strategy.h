@@ -14,6 +14,7 @@ namespace motis {
 namespace path {
 
 using strategy_id_t = size_t;
+constexpr auto kInvalidStrategyId = std::numeric_limits<strategy_id_t>::max();
 
 struct node_ref_id {
   node_ref_id() = default;
@@ -27,21 +28,32 @@ struct node_ref_id {
 
 struct node_ref {
   node_ref() = default;
-  node_ref(geo::latlng coords, node_ref_id id, size_t router_id)
+  node_ref(geo::latlng coords, node_ref_id id, strategy_id_t router_id)
       : coords_(coords), id_(id), router_id_(router_id) {}
+
+  strategy_id_t strategy_id() const { return router_id_; };
 
   geo::latlng coords_;
   node_ref_id id_;
-  size_t router_id_;
+  strategy_id_t router_id_;  // XXX rename
 };
 
 struct routing_result {
+  routing_result()
+      : source_(),
+        router_id_(kInvalidStrategyId),
+        weight_(std::numeric_limits<double>::infinity()),
+        valid_(false) {}
+
   routing_result(source_spec s, size_t router_id, double weight)
-      : source_(s), router_id_(router_id), weight_(weight) {}
+      : source_(s), router_id_(router_id), weight_(weight), valid_(true) {}
+
+  strategy_id_t strategy_id() const { return router_id_; };
 
   source_spec source_;
-  size_t router_id_;
+  strategy_id_t router_id_;  // XXX rename
   double weight_;
+  bool valid_;
 };
 
 struct routing_strategy {
@@ -55,7 +67,7 @@ struct routing_strategy {
   virtual geo::polyline get_polyline(node_ref const& from,
                                      node_ref const& to) const = 0;
 
-  virtual strategy_id_t strategy_id() const;
+  strategy_id_t strategy_id() const { return strategy_id_; }
 
 private:
   strategy_id_t strategy_id_;

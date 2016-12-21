@@ -8,13 +8,10 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/path/db/kv_database.h"
-// #include "motis/path/prepare/rail/geojson.h"
-// #include "motis/path/prepare/rel/relation_matcher.h"
 
+#include "motis/path/prepare/seq/seq_graph_printer.h"
 #include "motis/path/prepare/seq/seq_graph_builder.h"
 #include "motis/path/prepare/seq/seq_graph_dijkstra.h"
-
-// #include "motis/path/prepare/station_sequences.h"
 
 namespace motis {
 namespace path {
@@ -53,15 +50,9 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
       std::vector<geo::polyline> lines{seq.station_ids_.size() - 1};
       std::vector<sequence_info> sequence_infos;
 
-      for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
-        verify(edge->from_->ref_.id_.relation_id_ ==
-                       edge->to_->ref_.id_.relation_id_ &&
-                   edge->router_id() != 0 &&
-                   edge->from_->ref_.router_id_ == edge->to_->ref_.router_id_ &&
-                   edge->router_id() == edge->from_->ref_.router_id_ &&
-                   edge->router_id() == edge->to_->ref_.router_id_,
-               "error prepare");
+      // print_seq_path(dijkstra.get_links(*best_goal_it));
 
+      for (auto const& edge : dijkstra.get_links(*best_goal_it)) {
         auto& line = lines[edge->from_->station_idx_];
 
         auto const size_before = line.size();
@@ -75,8 +66,6 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
                      sequence_infos);
     }
   });
-
-  builder.finish();
 }
 
 }  // namespace path

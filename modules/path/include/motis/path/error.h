@@ -11,6 +11,7 @@ enum error_code_t {
   ok = 0,
   database_error = 1,
   not_found = 2,
+  unknown_sequence = 3,
 };
 }  // namespace error
 
@@ -23,6 +24,7 @@ public:
       case error::ok: return "path: no error";
       case error::database_error: return "path: database error";
       case error::not_found: return "path: not found";
+      case error::unknown_sequence: return "path: unknown sequence";
       default: return "path: unkown error";
     }
   }

@@ -28,7 +28,6 @@ private:
   motis::module::msg_ptr get_response(std::string const&) const;
 
   std::string database_path_;
-  bool required_;
 };
 
 }  // namespace path

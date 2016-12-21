@@ -47,19 +47,5 @@ struct seq_graph {
   std::vector<std::size_t> goals_;
 };
 
-// inline void dump_seq_graph(seq_graph const& g) {
-//   std::cout << "\n\n";
-//   for(auto i = 0u; i < g.station_to_nodes_.size(); ++i) {
-//     std::cout << i << "\n";
-//     for(auto const& node : g.station_to_nodes_[i]) {
-//       std::cout << "  " << node->idx_ << " -> ";
-//       for(auto const& edge : node->edges_) {
-//         std::cout << "(" << edge.to_->idx_ << ": " << edge.weight_ << ") ";
-//       }
-//       std::cout << "\n";
-//     }
-//   }
-// }
-
 }  // namespace path
 }  // namespace motis

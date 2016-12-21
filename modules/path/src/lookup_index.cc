@@ -1,5 +1,6 @@
 #include "motis/path/lookup_index.h"
 
+#include "motis/path/error.h"
 
 namespace motis {
 namespace path {
@@ -19,7 +20,7 @@ std::string lookup_index::find(PathStationSeqRequest const* req) {
       });
 
   if (it == lookup_table_.get()->indices()->end()) {
-    return "";
+    throw std::system_error(error::unknown_sequence);
   }
   return std::to_string(it->index());
 }
@@ -40,7 +41,7 @@ std::string lookup_index::find(std::vector<std::string> const& station_ids,
       });
 
   if (it == lookup_table_.get()->indices()->end()) {
-    return "";
+    throw std::system_error(error::unknown_sequence);
   }
   return std::to_string(it->index());
 }

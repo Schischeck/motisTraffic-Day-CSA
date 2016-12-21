@@ -2,6 +2,8 @@
 
 #include "utl/to_vec.h"
 
+#include "motis/path/prepare/seq/seq_graph_printer.h"
+
 using namespace geo;
 
 namespace motis {
@@ -36,13 +38,19 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
         continue;
       }
 
-      if (std::find_if(begin(from->edges_), end(from->edges_),
-                       [&](auto const& e) {
-                         return e.to_->idx_ == to->idx_;
-                       }) != end(from->edges_) ||
-          results[i].size() <= j || results[i].size() == 0) {
+      auto result = results[i][j];
+      if(!result.valid_) {
         continue;
       }
+
+
+      // if (std::find_if(begin(from->edges_), end(from->edges_),
+      //                  [&](auto const& e) {
+      //                    return e.to_->idx_ == to->idx_;
+      //                  }) != end(from->edges_) ||
+      //     results[i].size() <= j || results[i].size() == 0) {
+      //   continue;
+      // }
       from->edges_.emplace_back(from, to, results[i][j]);
     }
   }
@@ -72,6 +80,9 @@ seq_graph build_seq_graph(
   for (auto const& s : routing_strategies) {
     add_close_nodes(g, seq, s);
     create_edges(g, s);
+
+    // std::cout << " =====================================================\n ";
+    // print_seq_graph(g);
   }
 
   g.initials_ = utl::to_vec(g.station_to_nodes_.front(),

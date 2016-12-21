@@ -35,7 +35,7 @@ struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
                             std::string const& osm = "germany-latest.osm.pbf",
                             std::string const& extent = "germany-latest.poly",
-                            std::string const& out = "routesdb",
+                            std::string const& out = "pathdb",
                             std::string const& osrm = "osrm")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
@@ -99,9 +99,9 @@ int main(int argc, char** argv) {
   auto const relations = parse_relations(opt.osm_);
   LOG(motis::logging::info) << "found " << relations.relations_.size()
                             << " relations";
-  auto const polylines = aggregate_polylines(relations.relations_);
+  auto const polylines_from_rels = aggregate_polylines(relations.relations_);
 
-  auto&& routing = make_path_routing();
+  auto routing = make_path_routing(polylines_from_rels);
   db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
   // XXX debugging
@@ -110,9 +110,11 @@ int main(int argc, char** argv) {
     if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "0104736") !=
         end(seq.station_ids_)) {
       debug_seq.push_back(seq);
-      break;
+      // break;
     }
   }
 
   resolve_sequences(debug_seq, routing, builder);
+
+  builder.finish();
 }

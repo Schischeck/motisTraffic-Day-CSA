@@ -1,7 +1,11 @@
 #pragma once
 
+#include <set>
+
 #include "geo/point_rtree.h"
 #include "geo/polyline.h"
+
+#include "utl/to_vec.h"
 
 #include "motis/path/prepare/rel/polyline_aggregator.h"
 #include "motis/path/prepare/routing/routing_strategy.h"
@@ -29,41 +33,39 @@ struct relation_strategy : public routing_strategy {
 
   std::vector<node_ref> close_nodes(geo::latlng const& latlng) override {
     std::vector<node_ref> result;
-    auto nodes = rtree_.in_radius_with_distance(latlng, kMatchRadius);
-    std::vector<std::size_t> visited;
-    for (auto i = 0u; i < (nodes.size() < 5 ? nodes.size() : 5); ++i) {
-      auto& ref = refs_[nodes[i].second];
-      if (std::find(begin(visited), end(visited), ref.id_.relation_id_) !=
-          end(visited)) {
+    std::set<size_t> visited;
+    for (auto const& idx : rtree_.in_radius(latlng, kMatchRadius)) {
+      auto const& ref = refs_[idx];
+
+      if (visited.find(ref.id_.relation_id_) != end(visited)) {
         continue;
       }
-      visited.push_back(ref.id_.relation_id_);
-      result.push_back(refs_[nodes[i].second]);
+
+      visited.insert(ref.id_.relation_id_);
+      result.push_back(ref);
     }
+
     return result;
   }
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) override {
-    std::vector<std::vector<routing_result>> result{from.size()};
-    for (auto const& f : from) {
-      if (f.router_id_ != strategy_id()) {
-        result.push_back({});
-        continue;
+    return utl::to_vec(from, [&](auto const& f) -> std::vector<routing_result> {
+      if (f.strategy_id() != strategy_id()) {
+        return {};
       }
-      std::vector<routing_result> from_result;
-      for (auto const& t : to) {
-        if (t.router_id_ != strategy_id() ||
+
+      return utl::to_vec(to, [&](auto const& t) -> routing_result {
+        if (t.strategy_id() != strategy_id() ||
             f.id_.relation_id_ != t.id_.relation_id_) {
-          continue;
+          return {};
         }
-        auto p = polylines_[f.id_.relation_id_];
-        from_result.emplace_back(p.source_, strategy_id(), 0);
-      }
-      result.push_back(std::move(from_result));
-    }
-    return result;
+
+        auto const p = polylines_[f.id_.relation_id_];
+        return {p.source_, strategy_id(), 0};
+      });
+    });
   }
 
   geo::polyline get_polyline(node_ref const& from,
