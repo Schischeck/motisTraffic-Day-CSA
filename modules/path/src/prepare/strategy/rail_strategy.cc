@@ -1,4 +1,4 @@
-#include "motis/path/prepare/routing/rail_strategy.h"
+#include "motis/path/prepare/strategy/rail_strategy.h"
 
 #include "geo/latlng.h"
 #include "geo/point_rtree.h"

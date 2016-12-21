@@ -111,6 +111,10 @@ parsed_relations parse_relations(std::string const& osm_file_) {
       return !w->resolved_ || w->nodes_.size() < 2;
     });
   }
+
+  LOG(motis::logging::info) << "found " << result.relations_.size()
+                            << " relations";
+
   return result;
 }
 

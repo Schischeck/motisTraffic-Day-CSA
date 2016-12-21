@@ -1,8 +1,11 @@
-#include "motis/path/prepare/routing/path_routing.h"
+#include "motis/path/prepare/path_routing.h"
 
-#include "motis/path/prepare/routing/osrm_strategy.h"
-#include "motis/path/prepare/routing/relation_strategy.h"
-#include "motis/path/prepare/routing/stub_strategy.h"
+#include "motis/core/common/logging.h"
+
+#include "motis/path/prepare/strategy/osrm_strategy.h"
+#include "motis/path/prepare/strategy/relation_strategy.h"
+#include "motis/path/prepare/strategy/stub_strategy.h"
+
 
 namespace motis {
 namespace path {
@@ -39,17 +42,24 @@ std::vector<routing_strategy*> path_routing::strategies_for(
   return result;
 }
 
-path_routing make_path_routing(
-    std::vector<aggregated_polyline> const& polylines_from_rels,
-    std::string const& osrm_path) {
+std::unique_ptr<relation_strategy> load_relation_strategy(
+    strategy_id_t const id, std::string const& osm_path) {
+  motis::logging::scoped_timer timer("load relation strategy");
+
+  auto const relations = parse_relations(osm_path);
+  auto polylines = aggregate_polylines(relations.relations_);
+  return std::make_unique<relation_strategy>(id, std::move(polylines));
+}
+
+path_routing make_path_routing(std::string const& osm_path,
+                               std::string const& osrm_path) {
   path_routing r;
 
   strategy_id_t id = 0;
 
   r.strategies_->osrm_strategy_ =
       std::make_unique<osrm_strategy>(id++, osrm_path);
-  r.strategies_->relation_strategy_ =
-      std::make_unique<relation_strategy>(id++, polylines_from_rels);
+  r.strategies_->relation_strategy_ = load_relation_strategy(id++, osm_path);
   r.strategies_->stub_strategy_ = std::make_unique<stub_strategy>(id++);
 
   return r;

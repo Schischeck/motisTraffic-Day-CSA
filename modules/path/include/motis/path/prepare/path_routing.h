@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "motis/path/prepare/rel/polyline_aggregator.h"
-#include "motis/path/prepare/routing/routing_strategy.h"
+#include "motis/path/prepare/strategy/routing_strategy.h"
 
 namespace motis {
 namespace path {
@@ -21,9 +21,8 @@ struct path_routing {
   std::unique_ptr<strategies> strategies_;
 };
 
-path_routing make_path_routing(
-    std::vector<aggregated_polyline> const& polylines_from_rels,
-    std::string const& osrm_path);
+path_routing make_path_routing(std::string const& osm_path,
+                               std::string const& osrm_path);
 
 }  // namespace path
 }  // namespace motis

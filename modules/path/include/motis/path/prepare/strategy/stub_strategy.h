@@ -7,7 +7,7 @@
 
 #include "utl/to_vec.h"
 
-#include "motis/path/prepare/routing/routing_strategy.h"
+#include "motis/path/prepare/strategy/routing_strategy.h"
 
 namespace motis {
 namespace path {

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "motis/path/prepare/routing/routing_strategy.h"
+#include "motis/path/prepare/strategy/routing_strategy.h"
 #include "motis/path/prepare/schedule/station_sequences.h"
 #include "motis/path/prepare/seq/seq_graph.h"
 

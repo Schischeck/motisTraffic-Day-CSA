@@ -11,7 +11,7 @@
 #include "utl/to_vec.h"
 
 #include "motis/path/prepare/rel/polyline_aggregator.h"
-#include "motis/path/prepare/routing/routing_strategy.h"
+#include "motis/path/prepare/strategy/routing_strategy.h"
 
 namespace motis {
 namespace path {
@@ -21,8 +21,8 @@ struct relation_strategy : public routing_strategy {
   static constexpr auto kMatchRadius = 200;
 
   relation_strategy(strategy_id_t const id,
-                    std::vector<aggregated_polyline> const& polylines)
-      : routing_strategy(id), polylines_(polylines) {
+                    std::vector<aggregated_polyline> polylines)
+      : routing_strategy(id), polylines_(std::move(polylines)) {
     for (auto i = 0u; i < polylines_.size(); ++i) {
       auto const& polyline = polylines_[i].polyline_;
       for (auto j = 0u; j < polyline.size(); ++j) {

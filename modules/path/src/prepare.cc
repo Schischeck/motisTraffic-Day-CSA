@@ -17,10 +17,10 @@
 
 #include "motis/path/db/rocksdb.h"
 #include "motis/path/prepare/bus_stop_positions.h"
+#include "motis/path/prepare/path_routing.h"
 #include "motis/path/prepare/rel/polyline_aggregator.h"
 #include "motis/path/prepare/rel/relation_parser.h"
 #include "motis/path/prepare/resolve_sequences.h"
-#include "motis/path/prepare/routing/path_routing.h"
 #include "motis/path/prepare/schedule/schedule_wrapper.h"
 
 #include "version.h"
@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
   }
 
   verify(fs::is_regular_file(opt.osrm_), "cannot find osrm dataset");
+  verify(fs::is_regular_file(opt.osm_), "cannot find osm dataset");
 
   std::map<std::string, std::vector<geo::latlng>> stop_positions;
   std::vector<station_seq> sequences;
@@ -92,12 +93,7 @@ int main(int argc, char** argv) {
         [&](auto const& coord) { return !geo::within(coord, extent_polygon); });
   });
 
-  auto const relations = parse_relations(opt.osm_);
-  LOG(motis::logging::info) << "found " << relations.relations_.size()
-                            << " relations";
-  auto const polylines_from_rels = aggregate_polylines(relations.relations_);
-
-  auto routing = make_path_routing(polylines_from_rels, opt.osrm_);
+  auto routing = make_path_routing(opt.osm_, opt.osrm_);
   db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
   // XXX debugging
