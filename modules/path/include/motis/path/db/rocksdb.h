@@ -8,7 +8,7 @@ namespace motis {
 namespace path {
 
 struct rocksdb_database : public kv_database {
-  rocksdb_database(std::string path);
+  explicit rocksdb_database(std::string path);
   ~rocksdb_database() override;
 
   void put(std::string const& k, std::string const& v) override;
