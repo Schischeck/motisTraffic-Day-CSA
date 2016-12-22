@@ -9,11 +9,11 @@ namespace path {
 
 struct rocksdb_database : public kv_database {
   rocksdb_database(std::string path);
-  ~rocksdb_database();
+  ~rocksdb_database() override;
 
-  void put(std::string const&, std::string const&);
-  std::string get(std::string const&);
-  boost::optional<std::string> try_get(std::string const&);
+  void put(std::string const& k, std::string const& v) override;
+  std::string get(std::string const& k) override;
+  boost::optional<std::string> try_get(std::string const& k) override;
 
 private:
   struct impl;
