@@ -24,10 +24,13 @@ if (NOT ZLIB_FOUND)
 endif()
 
 file(GLOB_RECURSE motis-path-prepare-files src/prepare.cc src/prepare/*.cc)
+file(GLOB_RECURSE motis-path-db-files src/db/*.cc)
 
 file(GLOB_RECURSE motis-path-files src/*.cc)
 
-list(APPEND motis-path-prepare-files src/db/rocksdb.cc src/db/db_builder.cc)
+foreach(file ${motis-path-prepare-files})
+  list(REMOVE_ITEM motis-path-files "${file}")
+endforeach()
 
 add_library(motis-path STATIC ${motis-path-files})
 add_dependencies(motis-path generated-path-fbs-headers)
@@ -42,7 +45,7 @@ target_link_libraries(motis-path
 )
 set_target_properties(motis-path PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 
-add_executable(path-prepare EXCLUDE_FROM_ALL ${motis-path-prepare-files})
+add_executable(path-prepare EXCLUDE_FROM_ALL ${motis-path-db-files} ${motis-path-prepare-files})
 add_dependencies(path-prepare generated-path-fbs-headers)
 target_link_libraries(path-prepare
   ${CMAKE_THREAD_LIBS_INIT}
