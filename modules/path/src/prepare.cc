@@ -2,6 +2,8 @@
 #include <map>
 #include <memory>
 
+#include <valgrind/callgrind.h>
+
 #include "boost/filesystem.hpp"
 
 #include "conf/options_parser.h"
@@ -86,6 +88,8 @@ int main(int argc, char** argv) {
     sequences = sched.load_station_sequences();
   }
 
+  std::cout << "schedule loaded" << std::endl;
+
   auto const extent_polygon = geo::read_poly_file(opt.extent_);
   utl::erase_if(sequences, [&](auto const& seq) {
     return std::any_of(
@@ -99,14 +103,23 @@ int main(int argc, char** argv) {
   // XXX debugging
   std::vector<station_seq> debug_seq;
   for (auto const seq : sequences) {
-    if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "0104736") !=
+    // if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "0104736")
+    // !=
+    if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "8000105") !=
         end(seq.station_ids_)) {
       debug_seq.push_back(seq);
       // break;
+
+      if (debug_seq.size() >= 10) {
+        break;
+      }
     }
   }
 
+  CALLGRIND_START_INSTRUMENTATION;
   resolve_sequences(debug_seq, routing, builder);
+  CALLGRIND_STOP_INSTRUMENTATION;
+  CALLGRIND_DUMP_STATS;
 
   builder.finish();
 }

@@ -13,6 +13,8 @@ struct osrm_strategy : public routing_strategy {
 
   std::vector<node_ref> close_nodes(geo::latlng const&) override;
 
+  bool can_route(node_ref const&) const override;
+
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) override;

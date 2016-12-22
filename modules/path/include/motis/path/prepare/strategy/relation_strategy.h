@@ -51,17 +51,16 @@ struct relation_strategy : public routing_strategy {
     return result;
   }
 
+  bool can_route(node_ref const& ref) const override {
+    return ref.strategy_id() == strategy_id();
+  }
+
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) override {
-    return utl::to_vec(from, [&](auto const& f) -> std::vector<routing_result> {
-      if (f.strategy_id() != strategy_id()) {
-        return utl::repeat_n(routing_result{}, to.size());
-      }
-
+    return utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
-        if (t.strategy_id() != strategy_id() ||
-            f.id_.relation_id_ != t.id_.relation_id_) {
+        if (f.id_.relation_id_ != t.id_.relation_id_) {
           return {};
         }
 

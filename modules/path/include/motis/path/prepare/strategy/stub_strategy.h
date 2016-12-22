@@ -22,6 +22,8 @@ struct stub_strategy : public routing_strategy {
     return {{pos, {}, strategy_id()}};
   }
 
+  bool can_route(node_ref const&) const override { return true; }
+
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) override {
@@ -30,7 +32,6 @@ struct stub_strategy : public routing_strategy {
 
     return utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
-
 
         return {s, strategy_id(), distance(f.coords_, t.coords_) * 5};
       });
@@ -44,4 +45,4 @@ struct stub_strategy : public routing_strategy {
 };
 
 }  // namespace path
-}  // motis
+}  // namespace motis

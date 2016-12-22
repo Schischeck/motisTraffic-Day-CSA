@@ -14,7 +14,7 @@ std::unique_ptr<kv_database> load_db(std::string const& path,
   if (path == ":memory:" ||
       (!required &&
        !boost::filesystem::is_directory(boost::filesystem::path{path}))) {
-    return std::make_unique<map_database>(path);
+    return std::make_unique<map_database>();
   }
   return std::make_unique<rocksdb_database>(path);
 }

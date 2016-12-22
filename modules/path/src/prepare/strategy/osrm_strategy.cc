@@ -57,46 +57,26 @@ struct osrm_strategy::impl {
         });
   }
 
+  bool can_route(node_ref const& ref) const {
+    return ref.strategy_id() == strategy_id_;
+  }
+
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
-    std::vector<geo::latlng> to_coords;
-    std::vector<size_t> to_mask;
-    for (auto i = 0u; i < to.size(); ++i) {
-      if (to[i].strategy_id() != strategy_id_) {
-        continue;
-      }
-      to_coords.push_back(to[i].coords_);
-      to_mask.push_back(i);
-    }
+    auto const to_coords = utl::to_vec(to, [](auto&& t) { return t.coords_; });
 
-    return utl::to_vec(from, [&](auto const& f) -> std::vector<routing_result> {
-      if (f.strategy_id() != strategy_id_ || to_coords.empty()) {
-        return utl::repeat_n(routing_result{}, to.size());
-      }
-
-      auto const costs = one_to_many(f.coords_, to_coords);
-
-      std::vector<routing_result> results;
-      for (auto i = 0u; i < to_mask.size(); ++i) {
-        while (to_mask[i] != 0 && results.size() < to_mask[i]) {
-          results.emplace_back();
-        }
-
-        source_spec s(0, source_spec::category::BUS,
-                      source_spec::type::OSRM_ROUTE);
-        results.emplace_back(s, strategy_id_, costs[i]);
-      }
-
-      while (results.size() < to.size()) {
-        results.emplace_back();
-      }
-
-      return results;
+    return utl::to_vec(from, [&](auto const& f) {
+      return utl::to_vec(one_to_many(f.coords_, to_coords),
+                         [&](auto const& cost) {
+                           source_spec s{0, source_spec::category::BUS,
+                                         source_spec::type::OSRM_ROUTE};
+                           return routing_result{s, strategy_id_, cost};
+                         });
     });
   }
 
-  std::vector<int> one_to_many(geo::latlng const& one,
-                               std::vector<geo::latlng> const& many) {
+  std::vector<double> one_to_many(geo::latlng const& one,
+                                  std::vector<geo::latlng> const& many) {
     MultiTargetParameters params;
     params.forward = true;  // ??
 
@@ -112,7 +92,7 @@ struct osrm_strategy::impl {
       return {};
     }
 
-    std::vector<int> costs;
+    std::vector<double> costs;
     for (auto const& cost : result.values["costs"].get<Array>().values) {
       auto const& cost_obj = cost.get<Object>();
       costs.emplace_back(cost_obj.values.at("distance").get<Number>().value);
@@ -166,13 +146,17 @@ osrm_strategy::osrm_strategy(strategy_id_t strategy_id, std::string const& path)
       impl_(std::make_unique<osrm_strategy::impl>(strategy_id, path)) {}
 osrm_strategy::~osrm_strategy() = default;
 
+std::vector<node_ref> osrm_strategy::close_nodes(geo::latlng const& latlng) {
+  return impl_->close_nodes(latlng);
+}
+
+bool osrm_strategy::can_route(node_ref const& ref) const {
+  return impl_->can_route(ref);
+}
+
 std::vector<std::vector<routing_result>> osrm_strategy::find_routes(
     std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
   return impl_->find_routes(from, to);
-}
-
-std::vector<node_ref> osrm_strategy::close_nodes(geo::latlng const& latlng) {
-  return impl_->close_nodes(latlng);
 }
 
 geo::polyline osrm_strategy::get_polyline(node_ref const& from,

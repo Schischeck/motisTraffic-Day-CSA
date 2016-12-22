@@ -65,8 +65,11 @@ struct routing_strategy {
   virtual ~routing_strategy() = default;
 
   virtual std::vector<node_ref> close_nodes(geo::latlng const&) = 0;
+
+  virtual bool can_route(node_ref const&) const = 0;
   virtual std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) = 0;
+
   virtual geo::polyline get_polyline(node_ref const& from,
                                      node_ref const& to) const = 0;
 

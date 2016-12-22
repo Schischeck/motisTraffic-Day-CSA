@@ -35,6 +35,10 @@ std::vector<routing_strategy*> path_routing::strategies_for(
   // always relations first
   result.push_back(strategies_->relation_strategy_.get());
 
+  if (cat == source_spec::category::RAILWAY) {
+    result.push_back(strategies_->rail_strategy_.get());
+  }
+
   if (cat == source_spec::category::BUS) {
     result.push_back(strategies_->osrm_strategy_.get());
   }

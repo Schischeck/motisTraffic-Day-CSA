@@ -8,15 +8,23 @@ namespace motis {
 namespace path {
 
 struct map_database : public kv_database {
-  map_database(std::string path);
-  ~map_database();
+  ~map_database() = default;
 
-  void put(std::string const&, std::string const&);
-  std::string get(std::string const&);
-  boost::optional<std::string> try_get(std::string const&);
+  void put(std::string const& k, std::string const& v) override {
+    db_.emplace(k, v);
+  }
+
+  std::string get(std::string const& k) override {
+    auto const& it = db_.find(k);
+    return (it != end(db_)) ? it->second : "";
+  }
+
+  boost::optional<std::string> try_get(std::string const& k) override {
+    auto const& it = db_.find(k);
+    return (it != end(db_)) ? it->second : boost::optional<std::string>{};
+  }
 
   std::map<std::string, std::string> db_;
-  std::string path_;
 };
 
 }  // namespace path

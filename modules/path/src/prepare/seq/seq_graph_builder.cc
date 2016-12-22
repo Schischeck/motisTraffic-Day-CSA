@@ -42,23 +42,33 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
         continue;
       }
 
-      from->edges_.emplace_back(from, to, results[i][j]);
+      from->edges_.emplace_back(from, to, result);
     }
   }
 }
 
 void create_edges(seq_graph& g, routing_strategy* routing_strategy) {
-  auto refs = utl::to_vec(g.station_to_nodes_, [](auto const& sn) {
-    return utl::to_vec(sn, [](auto const& node) { return node->ref_; });
+  auto filtered_nodes = utl::to_vec(g.station_to_nodes_, [&](auto const& sn) {
+    std::vector<seq_node*> filtered;
+    for (auto const& node : sn) {
+      if (routing_strategy->can_route(node->ref_)) {
+        filtered.emplace_back(node);
+      }
+    }
+    return filtered;
   });
 
-  for (auto i = 0u; i < g.station_to_nodes_.size() - 1; ++i) {
+  auto const refs = utl::to_vec(filtered_nodes, [](auto const& sn) {
+    return utl::to_vec(sn, [](auto const& n) { return n->ref_; });
+  });
+
+  for (auto i = 0u; i < filtered_nodes.size() - 1; ++i) {
     if (i != 0) {
-      connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i],
+      connect_nodes(filtered_nodes[i], filtered_nodes[i],
                     routing_strategy->find_routes(refs[i], refs[i]));
     }
 
-    connect_nodes(g.station_to_nodes_[i], g.station_to_nodes_[i + 1],
+    connect_nodes(filtered_nodes[i], filtered_nodes[i + 1],
                   routing_strategy->find_routes(refs[i], refs[i + 1]));
   }
 }
