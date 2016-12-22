@@ -1,13 +1,18 @@
 #include "motis/path/prepare/path_routing.h"
 
+#include "boost/filesystem.hpp"
+
 #include "motis/core/common/logging.h"
 
 #include "motis/path/prepare/rail/load_rail_graph.h"
+#include "motis/path/prepare/rel/polyline_cache.h"
 
 #include "motis/path/prepare/strategy/osrm_strategy.h"
 #include "motis/path/prepare/strategy/rail_strategy.h"
 #include "motis/path/prepare/strategy/relation_strategy.h"
 #include "motis/path/prepare/strategy/stub_strategy.h"
+
+namespace fs = boost::filesystem;
 
 namespace motis {
 namespace path {
@@ -51,10 +56,19 @@ std::vector<routing_strategy*> path_routing::strategies_for(
 
 std::unique_ptr<relation_strategy> load_relation_strategy(
     strategy_id_t const id, std::string const& osm_path) {
-  motis::logging::scoped_timer timer("load relation strategy");
+  std::string cache_file{"polylines.cache.raw"};
 
-  auto const relations = parse_relations(osm_path);
-  auto polylines = aggregate_polylines(relations.relations_);
+  std::vector<aggregated_polyline> polylines;
+  if (fs::is_regular_file(cache_file)) {
+    motis::logging::scoped_timer timer("using relations cache");
+    polylines = load_relation_polylines(cache_file);
+  } else {
+    motis::logging::scoped_timer timer("finding relations and building cache");
+    auto const relations = parse_relations(osm_path);
+    polylines = aggregate_polylines(relations.relations_);
+    store_relation_polylines(cache_file, polylines);
+  }
+
   return std::make_unique<relation_strategy>(id, std::move(polylines));
 }
 

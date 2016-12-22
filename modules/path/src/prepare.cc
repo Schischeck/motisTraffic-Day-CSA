@@ -18,11 +18,10 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/path/db/rocksdb.h"
-#include "motis/path/prepare/bus_stop_positions.h"
+#include "motis/path/prepare/db_statistics.h"
 #include "motis/path/prepare/path_routing.h"
-#include "motis/path/prepare/rel/polyline_aggregator.h"
-#include "motis/path/prepare/rel/relation_parser.h"
 #include "motis/path/prepare/resolve_sequences.h"
+#include "motis/path/prepare/schedule/bus_stop_positions.h"
 #include "motis/path/prepare/schedule/schedule_wrapper.h"
 
 #include "version.h"
@@ -38,13 +37,15 @@ struct prepare_settings : public conf::simple_config {
                             std::string const& osm = "germany-latest.osm.pbf",
                             std::string const& extent = "germany-latest.poly",
                             std::string const& out = "pathdb",
-                            std::string const& osrm = "osrm")
+                            std::string const& osrm = "osrm",
+                            bool stats_only = false)
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
     string_param(extent_, extent, "extent", "/path/to/germany-latest.poly");
     string_param(out_, out, "out", "/path/to/db");
     string_param(osrm_, osrm, "osrm", "path/to/osrm/files");
+    bool_param(stats_only_, stats_only, "stats_only", "the state of 'out'");
   }
 
   std::string schedule_;
@@ -52,6 +53,8 @@ struct prepare_settings : public conf::simple_config {
   std::string extent_;
   std::string out_;
   std::string osrm_;
+
+  bool stats_only_;
 };
 
 int main(int argc, char** argv) {
@@ -77,49 +80,60 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  verify(fs::is_regular_file(opt.osrm_), "cannot find osrm dataset");
-  verify(fs::is_regular_file(opt.osm_), "cannot find osm dataset");
+  if (!opt.stats_only_) {
+    verify(fs::is_regular_file(opt.osrm_), "cannot find osrm dataset");
+    verify(fs::is_regular_file(opt.osm_), "cannot find osm dataset");
+    verify(fs::is_regular_file(opt.extent_), "cannot find extent polygon");
 
-  std::map<std::string, std::vector<geo::latlng>> stop_positions;
-  std::vector<station_seq> sequences;
-  {
-    schedule_wrapper sched{opt.schedule_};
-    stop_positions = sched.find_bus_stop_positions(opt.osm_);
-    sequences = sched.load_station_sequences();
-  }
+    // std::map<std::string, std::vector<geo::latlng>> stop_positions;
+    std::vector<station_seq> sequences;
+    {
+      schedule_wrapper sched{opt.schedule_};
+      // stop_positions = sched.find_bus_stop_positions(opt.osm_);
+      sequences = sched.load_station_sequences();
+    }
 
-  std::cout << "schedule loaded" << std::endl;
+    {
+      motis::logging::scoped_timer timer("apply extent polygon");
+      auto const size_before = sequences.size();
+      auto const extent_polygon = geo::read_poly_file(opt.extent_);
+      utl::erase_if(sequences, [&](auto const& seq) {
+        return std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
+                           [&](auto const& coord) {
+                             return !geo::within(coord, extent_polygon);
+                           });
+      });
+      std::cout << sequences.size() - size_before << " sequences removed\n";
+    }
 
-  auto const extent_polygon = geo::read_poly_file(opt.extent_);
-  utl::erase_if(sequences, [&](auto const& seq) {
-    return std::any_of(
-        begin(seq.coordinates_), end(seq.coordinates_),
-        [&](auto const& coord) { return !geo::within(coord, extent_polygon); });
-  });
+    auto routing = make_path_routing(opt.osm_, opt.osrm_);
+    db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
-  auto routing = make_path_routing(opt.osm_, opt.osrm_);
-  db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
+    // XXX debugging
+    std::vector<station_seq> debug_seq;
+    for (auto const seq : sequences) {
+      // if (std::find(begin(seq.station_ids_), end(seq.station_ids_),
+      // "0104736")
+      // !=
+      if (std::find(begin(seq.station_ids_), end(seq.station_ids_),
+                    "8000068") != end(seq.station_ids_)) {
+        debug_seq.push_back(seq);
+        // break;
 
-  // XXX debugging
-  std::vector<station_seq> debug_seq;
-  for (auto const seq : sequences) {
-    // if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "0104736")
-    // !=
-    if (std::find(begin(seq.station_ids_), end(seq.station_ids_), "8000105") !=
-        end(seq.station_ids_)) {
-      debug_seq.push_back(seq);
-      // break;
-
-      if (debug_seq.size() >= 10) {
-        break;
+        // if (debug_seq.size() >= 10) {
+        //   break;
+        // }
       }
     }
+
+    CALLGRIND_START_INSTRUMENTATION;
+    resolve_sequences(debug_seq, routing, builder);
+    CALLGRIND_STOP_INSTRUMENTATION;
+    CALLGRIND_DUMP_STATS;
+
+    builder.finish();
   }
 
-  CALLGRIND_START_INSTRUMENTATION;
-  resolve_sequences(debug_seq, routing, builder);
-  CALLGRIND_STOP_INSTRUMENTATION;
-  CALLGRIND_DUMP_STATS;
-
-  builder.finish();
+  auto const db = std::make_unique<rocksdb_database>(opt.out_);
+  dump_db_statistics(*db);
 }

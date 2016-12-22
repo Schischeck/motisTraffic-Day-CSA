@@ -29,7 +29,7 @@ std::vector<station_seq> load_station_sequences(
   std::map<motis::loader::Route const*, station_seq> seqs;
   for (auto const& service : *sched->services()) {
 
-    auto& seq = utl::get_or_create(seqs, service->route(), [&]() {
+    auto& seq = utl::get_or_create(seqs, service->route(), [&] {
       station_seq seq;
       for (auto const& station : *service->route()->stations()) {
         seq.station_ids_.emplace_back(station->id()->str());

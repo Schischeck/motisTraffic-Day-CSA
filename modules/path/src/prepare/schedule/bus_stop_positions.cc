@@ -1,4 +1,4 @@
-#include "motis/path/prepare/bus_stop_positions.h"
+#include "motis/path/prepare/schedule/bus_stop_positions.h"
 
 #include "boost/algorithm/string/predicate.hpp"
 

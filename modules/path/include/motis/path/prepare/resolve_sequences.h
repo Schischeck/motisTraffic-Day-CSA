@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "motis/path/db/db_builder.h"
+#include "motis/path/prepare/db_builder.h"
 #include "motis/path/prepare/path_routing.h"
 #include "motis/path/prepare/schedule/station_sequences.h"
 

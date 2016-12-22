@@ -1,0 +1,23 @@
+namespace motis.path;
+
+struct SourceSpec {
+  id: long;
+  category: long;
+  type: long;
+}
+
+struct Position {
+  lat : double;
+  lng : double;
+}
+
+table AggregatedPolyline {
+  source: SourceSpec;
+  polyline: [Position];
+}
+
+table AggregatedPolylines {
+  entries: [AggregatedPolyline];
+}
+
+root_type AggregatedPolylines;

@@ -1,4 +1,4 @@
-#include "motis/path/db/db_builder.h"
+#include "motis/path/prepare/db_builder.h"
 
 #include "utl/to_vec.h"
 
