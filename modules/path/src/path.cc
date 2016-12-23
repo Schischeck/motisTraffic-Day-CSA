@@ -18,6 +18,7 @@ using namespace flatbuffers;
 using namespace motis::module;
 using namespace motis::osrm;
 using namespace motis::access;
+using namespace motis::logging;
 
 namespace motis {
 namespace path {
@@ -34,7 +35,7 @@ void path::init(registry& r) {
   if (auto buf = db_->try_get("__index")) {
     lookup_ = std::make_unique<lookup_index>(*buf);
   } else {
-    std::cout << "new"<< std::endl;
+    LOG(warn) << "pathdb not found!";
 
     message_creator mc;
     mc.Finish(
@@ -42,22 +43,6 @@ void path::init(registry& r) {
     lookup_ = std::make_unique<lookup_index>(
         lookup_index::lookup_table{std::move(mc)});
   }
-
-  // XXX
-  // std::cout << "sequences: " << std::endl;
-
-  // for (auto const& entry : *lookup_->lookup_table_.get()->indices()) {
-  //   std::cout << entry->index() << ":\n";
-  //   std::cout << " ";
-  //   for (auto const& station_id : *entry->station_ids()) {
-  //     std::cout << station_id->str() << ", ";
-  //   }
-  //   std::cout << "\n ";
-  //   for (auto const& cls : *entry->classes()) {
-  //     std::cout << cls << ", ";
-  //   }
-  //   std::cout << std::endl;
-  // }
 
   r.register_op("/path/index",
                 [this](msg_ptr const& m) { return index_path(m); });
