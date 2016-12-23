@@ -1,4 +1,4 @@
-#include "motis/path/prepare/rail/load_rail_graph.h"
+#include "motis/path/prepare/rail/rail_graph_builder.h"
 
 #include <algorithm>
 #include <map>
@@ -35,8 +35,8 @@ struct osm_rail_way {
   std::vector<osm_rail_node*> nodes_;
 };
 
-struct rail_graph_loader {
-  rail_graph_loader() {
+struct rail_graph_builder {
+  rail_graph_builder() {
     osm_nodes_.set_empty_key(std::numeric_limits<int64_t>::min());
     graph_nodes_.set_empty_key(std::numeric_limits<int64_t>::min());
   }
@@ -167,15 +167,15 @@ struct rail_graph_loader {
   hash_map<int64_t, rail_node*> graph_nodes_;
 };
 
-rail_graph load_rail_graph(std::string const& osm_file) {
-  rail_graph_loader loader;
-  loader.extract_rail_ways(osm_file);
-  loader.extract_rail_nodes(osm_file);
-  loader.build_graph();
+rail_graph build_rail_graph(std::string const& osm_file) {
+  rail_graph_builder builder;
+  builder.extract_rail_ways(osm_file);
+  builder.extract_rail_nodes(osm_file);
+  builder.build_graph();
 
-  dump_rail_graph(loader.graph_);
+  // dump_rail_graph(builder.graph_);
 
-  return std::move(loader.graph_);
+  return std::move(builder.graph_);
 }
 
 }  // namespace path

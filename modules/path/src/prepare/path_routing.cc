@@ -4,7 +4,8 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/path/prepare/rail/load_rail_graph.h"
+#include "motis/path/prepare/rail/rail_cache.h"
+#include "motis/path/prepare/rail/rail_graph_builder.h"
 #include "motis/path/prepare/rel/polyline_cache.h"
 
 #include "motis/path/prepare/strategy/osrm_strategy.h"
@@ -56,7 +57,7 @@ std::vector<routing_strategy*> path_routing::strategies_for(
 
 std::unique_ptr<relation_strategy> load_relation_strategy(
     strategy_id_t const id, std::string const& osm_path) {
-  std::string cache_file{"polylines.cache.raw"};
+  std::string cache_file{"polylines.path.cache.raw"};
 
   std::vector<aggregated_polyline> polylines;
   if (fs::is_regular_file(cache_file)) {
@@ -74,10 +75,19 @@ std::unique_ptr<relation_strategy> load_relation_strategy(
 
 std::unique_ptr<rail_strategy> load_rail_strategy(strategy_id_t const id,
                                                   std::string const& osm_path) {
-  motis::logging::scoped_timer timer("load rail strategy");
+  std::string cache_file{"rail.path.cache.raw"};
 
-  auto rail_graph = load_rail_graph(osm_path);
-  return std::make_unique<rail_strategy>(id, std::move(rail_graph));
+  rail_graph graph;
+  if (fs::is_regular_file(cache_file)) {
+    motis::logging::scoped_timer timer("load rail graph from existing cache");
+    graph = load_rail_graph(cache_file);
+  } else {
+    motis::logging::scoped_timer timer("building rail graph and writing cache");
+    graph = build_rail_graph(osm_path);
+    store_rail_graph(cache_file, graph);
+  }
+
+  return std::make_unique<rail_strategy>(id, std::move(graph));
 }
 
 path_routing make_path_routing(std::string const& osm_path,

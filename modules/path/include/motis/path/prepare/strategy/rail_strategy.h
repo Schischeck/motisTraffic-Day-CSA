@@ -51,8 +51,8 @@ struct rail_strategy : public routing_strategy {
 
             auto cost = 0.;
             for (auto const& edge : path) {
-              verify(edge != nullptr, "rail (find_routes) found invalid edge")
-                  cost += edge->dist_;
+              verify(edge != nullptr, "rail (find_routes) found invalid edge");
+              cost += edge->dist_;
             }
 
             source_spec s{0, source_spec::category::RAILWAY,

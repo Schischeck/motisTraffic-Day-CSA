@@ -1,5 +1,7 @@
 #include "motis/path/prepare/strategy/osrm_strategy.h"
 
+#include <atomic>
+
 #include "osrm/engine_config.hpp"
 #include "osrm/multi_target_parameters.hpp"
 #include "osrm/nearest_parameters.hpp"
@@ -27,7 +29,7 @@ namespace path {
 
 struct osrm_strategy::impl {
   impl(strategy_id_t const strategy_id, std::string const& path)
-      : strategy_id_(strategy_id) {
+      : strategy_id_(strategy_id), ref_counter_{0} {
     EngineConfig config;
     config.storage_config = {path};
     config.use_shared_memory = false;
@@ -52,7 +54,7 @@ struct osrm_strategy::impl {
           auto const& obj = wp.get<Object>();
           auto const& loc = obj.values.at("location").get<Array>().values;
           return {{loc[1].get<Number>().value, loc[0].get<Number>().value},
-                  node_ref_id{0},  // TODO
+                  node_ref_id{++ref_counter_},  // TODO
                   strategy_id_};
         });
   }
@@ -139,6 +141,7 @@ struct osrm_strategy::impl {
 
   std::unique_ptr<OSRM> osrm_;
   strategy_id_t strategy_id_;
+  std::atomic<std::uint32_t> ref_counter_;  // TODO
 };
 
 osrm_strategy::osrm_strategy(strategy_id_t strategy_id, std::string const& path)

@@ -1,0 +1,6 @@
+namespace motis.path;
+
+struct Position {
+  lat : double;
+  lng : double;
+}

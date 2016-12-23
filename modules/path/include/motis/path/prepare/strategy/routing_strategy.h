@@ -22,6 +22,10 @@ struct node_ref_id {
   node_ref_id(uint32_t relation_id, uint32_t id)
       : relation_id_(relation_id), id_(id) {}
 
+  friend bool operator==(node_ref_id const& a, node_ref_id const& b) {
+    return std::tie(a.relation_id_, a.id_) == std::tie(b.relation_id_, b.id_);
+  }
+
   uint64_t relation_id_ : 32;
   uint64_t id_ : 32;
 };
@@ -32,6 +36,11 @@ struct node_ref {
       : coords_(coords), id_(id), strategy_id_(strategy_id) {}
 
   strategy_id_t strategy_id() const { return strategy_id_; };
+
+  friend bool operator==(node_ref const& a, node_ref const& b) {
+    return std::tie(a.coords_, a.id_, a.strategy_id_) ==
+           std::tie(b.coords_, b.id_, b.strategy_id_);
+  }
 
   geo::latlng coords_;
   node_ref_id id_;

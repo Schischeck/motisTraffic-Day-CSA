@@ -3,7 +3,10 @@
 #include <chrono>
 #include <iomanip>
 #include <mutex>
+#include <stack>
 
+#include "utl/erase_if.h"
+#include "utl/repeat_n.h"
 #include "utl/to_vec.h"
 
 #include "parser/util.h"
@@ -15,21 +18,19 @@ using namespace geo;
 namespace motis {
 namespace path {
 
-void add_close_nodes(seq_graph& g, station_seq const& seq,
+size_t temp_idx = 0;  // no need for synchronization; only used for debug output
+void add_close_nodes(seq_graph& g, station_seq const& s,
                      routing_strategy* routing_strategy) {
-  for (auto i = 0u; i < seq.coordinates_.size(); ++i) {
-    for (auto const& node :
-         routing_strategy->close_nodes(seq.coordinates_[i])) {
-      g.nodes_.emplace_back(
-          std::make_unique<seq_node>(g.nodes_.size(), i, node));
-      g.station_to_nodes_[i].push_back(g.nodes_.back().get());
+  for (auto i = 0u; i < s.coordinates_.size(); ++i) {
+    for (auto const& node : routing_strategy->close_nodes(s.coordinates_[i])) {
+      g.nodes_.emplace_back(std::make_unique<seq_node>(temp_idx++, i, node));
     }
   }
 }
 
-void connect_nodes(std::vector<seq_node*>& from_nodes,
-                   std::vector<seq_node*> const& to_nodes,
-                   std::vector<std::vector<routing_result>> const& results) {
+void insert_edges(std::vector<seq_node*>& from_nodes,
+                  std::vector<seq_node*> const& to_nodes,
+                  std::vector<std::vector<routing_result>> const& results) {
   verify(results.size() == from_nodes.size(), "routing 'from' size mismatch");
   for (auto i = 0u; i < from_nodes.size(); ++i) {
     verify(results[i].size() == to_nodes.size(), "routing 'to' size mismatch");
@@ -37,7 +38,7 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
       auto& from = from_nodes[i];
       auto const& to = to_nodes[j];
 
-      if (from->idx_ == to->idx_) {
+      if (from->ref_ == to->ref_) {
         continue;
       }
 
@@ -47,33 +48,42 @@ void connect_nodes(std::vector<seq_node*>& from_nodes,
       }
 
       from->edges_.emplace_back(from, to, result);
+      ++to->incomming_edges_count_;
     }
   }
 }
 
-void create_edges(seq_graph& g, routing_strategy* routing_strategy) {
-  auto filtered_nodes = utl::to_vec(g.station_to_nodes_, [&](auto const& sn) {
-    std::vector<seq_node*> filtered;
-    for (auto const& node : sn) {
-      if (routing_strategy->can_route(node->ref_)) {
-        filtered.emplace_back(node);
-      }
-    }
-    return filtered;
-  });
+void create_edges(seq_graph& graph, routing_strategy* s) {
+  auto nodes = utl::repeat_n(std::vector<seq_node*>{}, graph.seq_size_);
+  auto refs = utl::repeat_n(std::vector<node_ref>{}, graph.seq_size_);
 
-  auto const refs = utl::to_vec(filtered_nodes, [](auto const& sn) {
-    return utl::to_vec(sn, [](auto const& n) { return n->ref_; });
-  });
-
-  for (auto i = 0u; i < filtered_nodes.size() - 1; ++i) {
-    if (i != 0) {
-      connect_nodes(filtered_nodes[i], filtered_nodes[i],
-                    routing_strategy->find_routes(refs[i], refs[i]));
+  for (auto& node : graph.nodes_) {
+    if (!s->can_route(node->ref_)) {
+      continue;
     }
 
-    connect_nodes(filtered_nodes[i], filtered_nodes[i + 1],
-                  routing_strategy->find_routes(refs[i], refs[i + 1]));
+    nodes[node->station_idx_].push_back(node.get());
+    refs[node->station_idx_].push_back(node->ref_);
+  }
+
+  for (auto i = 0u; i < graph.seq_size_ - 1; ++i) {
+    insert_edges(nodes[i], nodes[i + 1], s->find_routes(refs[i], refs[i + 1]));
+  }
+  for (auto i = 1u; i < graph.seq_size_ - 1; ++i) {
+    insert_edges(nodes[i], nodes[i], s->find_routes(refs[i], refs[i]));
+  }
+}
+
+void finish_graph(seq_graph& graph) {
+  size_t idx = 0;
+  for (auto const& node : graph.nodes_) {
+    node->idx_ = idx++;
+
+    if (node->station_idx_ == 0) {
+      graph.initials_.emplace_back(node->idx_);
+    } else if (node->station_idx_ == (graph.seq_size_ - 1)) {
+      graph.goals_.emplace_back(node->idx_);
+    }
   }
 }
 
@@ -81,34 +91,35 @@ std::mutex perf_stats_mutex;
 std::map<strategy_id_t, std::vector<size_t>> create_nodes_timings;
 std::map<strategy_id_t, std::vector<size_t>> create_edges_timings;
 
-seq_graph build_seq_graph(
-    station_seq const& seq,
-    std::vector<routing_strategy*> const& routing_strategies) {
-  seq_graph g{seq.station_ids_.size()};
+seq_graph build_seq_graph(station_seq const& seq,
+                          std::vector<routing_strategy*> const& strategies) {
   namespace sc = std::chrono;
 
-  for (auto const& s : routing_strategies) {
+  seq_graph graph{seq.station_ids_.size()};
+  for (auto const& strategy : strategies) {
     auto const t_0 = sc::steady_clock::now();
-    add_close_nodes(g, seq, s);
+    add_close_nodes(graph, seq, strategy);
     auto const t_1 = sc::steady_clock::now();
-    create_edges(g, s);
+    create_edges(graph, strategy);
     auto const t_2 = sc::steady_clock::now();
 
-    // std::cout << " =====================================================\n ";
-    // print_seq_graph(g);
+    utl::erase_if(graph.nodes_, [](auto const& node) {
+      return node->edges_.empty() && node->incomming_edges_count_ == 0;
+    });
+
+    // std::cout << "\n
+    // =====================================================\n";
+    // print_seq_graph(graph);
 
     std::lock_guard<std::mutex> lock(perf_stats_mutex);
-    create_nodes_timings[s->strategy_id()].push_back(
+    create_nodes_timings[strategy->strategy_id()].push_back(
         sc::duration_cast<sc::milliseconds>(t_1 - t_0).count());
-    create_edges_timings[s->strategy_id()].push_back(
+    create_edges_timings[strategy->strategy_id()].push_back(
         sc::duration_cast<sc::milliseconds>(t_2 - t_1).count());
   }
 
-  g.initials_ = utl::to_vec(g.station_to_nodes_.front(),
-                            [](auto&& node) { return node->idx_; });
-  g.goals_ = utl::to_vec(g.station_to_nodes_.back(),
-                         [](auto&& node) { return node->idx_; });
-  return g;
+  finish_graph(graph);
+  return graph;
 }
 
 void dump_build_seq_graph_timings() {
@@ -138,5 +149,5 @@ void dump_build_seq_graph_timings() {
   dump(create_edges_timings);
 }
 
-}  // namespace motis
 }  // namespace path
+}  // namespace motis

@@ -7,7 +7,7 @@
 namespace motis {
 namespace path {
 
-rail_graph load_rail_graph(std::string const& osm_file);
+rail_graph build_rail_graph(std::string const& osm_file);
 
 }  // namespace path
 }  // namespace motis

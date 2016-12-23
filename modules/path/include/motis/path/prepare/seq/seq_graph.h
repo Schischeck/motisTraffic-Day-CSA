@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <memory>
 #include <vector>
 
@@ -15,13 +16,18 @@ namespace path {
 struct seq_edge;
 
 struct seq_node {
-  seq_node(size_t idx, size_t station_idx, node_ref const& ref)
-      : idx_(idx), station_idx_(station_idx), ref_(ref) {}
+  seq_node(size_t const idx, size_t const station_idx, node_ref const& ref)
+      : idx_(idx),
+        incomming_edges_count_(0),
+        station_idx_(station_idx),
+        ref_(ref) {}
 
   size_t strategy_id() const { return ref_.strategy_id_; }
 
   size_t idx_;
+
   std::vector<seq_edge> edges_;
+  size_t incomming_edges_count_;
 
   size_t station_idx_;
   node_ref ref_;
@@ -41,9 +47,9 @@ struct seq_edge {
 };
 
 struct seq_graph {
-  seq_graph(size_t seq_length) { station_to_nodes_.resize(seq_length); }
+  seq_graph(size_t const seq_size) : seq_size_(seq_size) {}
 
-  std::vector<std::vector<seq_node*>> station_to_nodes_;
+  size_t seq_size_;
   std::vector<std::unique_ptr<seq_node>> nodes_;
 
   std::vector<std::size_t> initials_;

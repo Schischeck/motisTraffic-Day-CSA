@@ -1,14 +1,11 @@
+include "Position.fbs";
+
 namespace motis.path;
 
 struct SourceSpec {
   id: long;
   category: long;
   type: long;
-}
-
-struct Position {
-  lat : double;
-  lng : double;
 }
 
 table AggregatedPolyline {

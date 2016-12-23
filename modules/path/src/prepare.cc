@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
                              return !geo::within(coord, extent_polygon);
                            });
       });
-      std::cout << sequences.size() - size_before << " sequences removed\n";
+      std::cout << size_before - sequences.size() << " sequences removed\n";
     }
 
     auto routing = make_path_routing(opt.osm_, opt.osrm_);

@@ -2,8 +2,6 @@
 
 #include <queue>
 
-#include "geo/latlng.h"
-
 #include "utl/erase.h"
 #include "utl/to_vec.h"
 
@@ -14,15 +12,14 @@ namespace path {
 
 struct rail_graph_dijkstra {
   struct label {
-    label(size_t const idx, size_t const dist, size_t const est_dist,
-          rail_link const* link)
-        : idx_(idx), dist_(dist), est_dist_(est_dist), link_(link) {}
+    label(size_t const idx, size_t const dist, rail_link const* link)
+        : idx_(idx), dist_(dist), link_(link) {}
 
     friend bool operator>(label const& a, label const& b) {
-      return a.est_dist_ > b.est_dist_;
+      return a.dist_ > b.dist_;
     }
 
-    size_t idx_, dist_, est_dist_;
+    size_t idx_, dist_;
     rail_link const* link_;
   };
 
@@ -32,20 +29,10 @@ struct rail_graph_dijkstra {
     dists_.resize(graph_.nodes_.size(), std::numeric_limits<size_t>::max());
     links_.resize(graph_.nodes_.size(), nullptr);
 
-    if (!goals.empty()) {
-      for (auto const& i : initial) {
-        dists_[i] = 0;
-        pq_.push(label(i, 0, est_dist(i), nullptr));
-      }
+    for (auto const& i : initial) {
+      dists_[i] = 0;
+      pq_.push(label(i, 0, nullptr));
     }
-  }
-
-  size_t est_dist(size_t const this_idx) {
-    auto const est = utl::to_vec(goals_, [&](auto const& goal_idx) {
-      return distance(graph_.nodes_[this_idx]->pos_,
-                      graph_.nodes_[goal_idx]->pos_);
-    });
-    return *std::min_element(begin(est), end(est));
   }
 
   void run() {
@@ -67,7 +54,7 @@ struct rail_graph_dijkstra {
         if (new_dist < dists_[to_idx]) {
           dists_[to_idx] = new_dist;
           links_[to_idx] = &link;
-          pq_.emplace(to_idx, new_dist, est_dist(this_idx), &link);
+          pq_.push({to_idx, new_dist, &link});
         }
       }
     }
