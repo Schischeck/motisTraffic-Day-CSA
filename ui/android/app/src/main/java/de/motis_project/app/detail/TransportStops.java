@@ -24,38 +24,19 @@ public class TransportStops implements DetailViewHolder {
     private DetailActivity activity;
     private final boolean expanded;
 
-    @BindString(R.string.detail_transport_stops_summary)
-    String summaryTemplate;
+    @BindString(R.string.detail_transport_stops_summary) String summaryTemplate;
+    @BindString(R.string.detail_transport_stops_summary_no_stopover) String summaryNoStopoverTemplate;
+    @BindString(R.string.detail_transport_stops_summary_duration) String summaryNoDurationTemplate;
+    @BindString(R.string.stop) String stop;
+    @BindString(R.string.stops) String stops;
 
-    @BindString(R.string.detail_transport_stops_summary_no_stopover)
-    String summaryNoStopoverTemplate;
+    @BindView(R.id.detail_transport_stops_upper) ImageView upper;
+    @BindView(R.id.detail_transport_stops_lower) ImageView lower;
+    @BindView(R.id.detail_transport_stops_summary) TextView summary;
+    @BindView(R.id.detail_transport_stops_vertline) View line;
 
-    @BindString(R.string.detail_transport_stops_summary_duration)
-    String summaryNoDurationTemplate;
-
-    @BindString(R.string.stop)
-    String stop;
-
-    @BindString(R.string.stops)
-    String stops;
-
-    @BindView(R.id.detail_transport_stops_upper)
-    ImageView upper;
-
-    @BindView(R.id.detail_transport_stops_lower)
-    ImageView lower;
-
-    @BindView(R.id.detail_transport_stops_summary)
-    TextView summary;
-
-    @BindView(R.id.detail_transport_stops_vertline)
-    View line;
-
-    @BindDrawable(R.drawable.ic_expand_less_black_24dp)
-    Drawable less;
-
-    @BindDrawable(R.drawable.ic_expand_more_black_24dp)
-    Drawable more;
+    @BindDrawable(R.drawable.ic_expand_less_black_24dp) Drawable less;
+    @BindDrawable(R.drawable.ic_expand_more_black_24dp) Drawable more;
 
     @OnClick(R.id.detail_transport_stops)
     void onClick() {
@@ -79,7 +60,8 @@ public class TransportStops implements DetailViewHolder {
         long arr = con.stops(section.to).arrival().scheduleTime();
         long durationMinutes = (arr - dep) / 60;
         String durationString = durationMinutes == 0 ? "" : String.format(summaryNoDurationTemplate,
-                TimeUtil.formatDuration(durationMinutes));
+                                                                          TimeUtil.formatDuration(
+                                                                                  durationMinutes));
         int numStops = section.to - section.from - 1;
         if (numStops == 0) {
             summary.setText(
@@ -87,9 +69,9 @@ public class TransportStops implements DetailViewHolder {
         } else {
             summary.setText(
                     String.format(summaryTemplate,
-                            numStops,
-                            numStops == 1 ? stop : stops,
-                            durationString));
+                                  numStops,
+                                  numStops == 1 ? stop : stops,
+                                  durationString));
         }
 
         setupIcon(numStops != 0);

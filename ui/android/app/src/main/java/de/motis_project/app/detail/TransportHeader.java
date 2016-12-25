@@ -11,38 +11,22 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
-import de.motis_project.app.Str;
 import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.EventInfo;
-import motis.Transport;
 
 public class TransportHeader implements DetailViewHolder {
     private View layout;
 
-    @BindString(R.string.arrival_short)
-    String arrivalShort;
+    @BindString(R.string.arrival_short) String arrivalShort;
+    @BindString(R.string.interchange) String interchange;
+    @BindString(R.string.walk) String walk;
+    @BindString(R.string.track_short) String trackShort;
+    @BindString(R.string.track) String track;
 
-    @BindString(R.string.interchange)
-    String interchange;
-
-    @BindString(R.string.walk)
-    String walk;
-
-    @BindString(R.string.track_short)
-    String trackShort;
-
-    @BindString(R.string.track)
-    String track;
-
-    @BindView(R.id.detail_transport_header_transport_name)
-    TextView transportName;
-
-    @BindView(R.id.detail_transport_header_interchange)
-    TextView interchangeInfo;
-
-    @BindView(R.id.detail_transport_header_track)
-    TextView depTrack;
+    @BindView(R.id.detail_transport_header_transport_name) TextView transportName;
+    @BindView(R.id.detail_transport_header_interchange) TextView interchangeInfo;
+    @BindView(R.id.detail_transport_header_track) TextView depTrack;
 
     TransportHeader(Connection con,
                     JourneyUtil.Section prevSection,

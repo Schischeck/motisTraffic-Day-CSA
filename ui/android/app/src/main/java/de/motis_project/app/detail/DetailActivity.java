@@ -10,7 +10,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -31,32 +30,16 @@ public class DetailActivity extends AppCompatActivity {
 
     private HashSet<JourneyUtil.Section> expandedSections = new HashSet<>();
 
-    @BindString(R.string.transfer)
-    String transfer;
+    @BindString(R.string.transfer) String transfer;
+    @BindString(R.string.transfers) String transfers;
 
-    @BindString(R.string.transfers)
-    String transfers;
-
-    @BindView(R.id.detail_dep_station)
-    TextView depStation;
-
-    @BindView(R.id.detail_arr_station)
-    TextView arrStation;
-
-    @BindView(R.id.detail_dep_schedule_time)
-    TextView depSchedTime;
-
-    @BindView(R.id.detail_arr_schedule_time)
-    TextView arrSchedTime;
-
-    @BindView(R.id.detail_travel_duration)
-    TextView travelDuration;
-
-    @BindView(R.id.detail_number_of_transfers)
-    TextView numberOfTransfers;
-
-    @BindView(R.id.detail_journey_details)
-    LinearLayout journeyDetails;
+    @BindView(R.id.detail_dep_station) TextView depStation;
+    @BindView(R.id.detail_arr_station) TextView arrStation;
+    @BindView(R.id.detail_dep_schedule_time) TextView depSchedTime;
+    @BindView(R.id.detail_arr_schedule_time) TextView arrSchedTime;
+    @BindView(R.id.detail_travel_duration) TextView travelDuration;
+    @BindView(R.id.detail_number_of_transfers) TextView numberOfTransfers;
+    @BindView(R.id.detail_journey_details) LinearLayout journeyDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

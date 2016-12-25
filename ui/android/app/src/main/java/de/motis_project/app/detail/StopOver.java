@@ -20,28 +20,17 @@ import motis.Stop;
 public class StopOver implements DetailViewHolder {
     private View layout;
 
-    @BindView(R.id.detail_stopover_stop_name)
-    TextView stopName;
+    @BindView(R.id.detail_stopover_stop_name) TextView stopName;
+    @BindView(R.id.detail_stopover_delay) TextView delay;
+    @BindView(R.id.detail_stopover_stop_time) TextView stopTime;
+    @BindView(R.id.detail_stopover_vertline) View line;
+    @BindView(R.id.detail_stopover_bullet) View bullet;
 
-    @BindView(R.id.detail_stopover_delay)
-    TextView delay;
+    @BindColor(R.color.delayed) int colorRed;
+    @BindColor(R.color.ontime) int colorGreen;
 
-    @BindView(R.id.detail_stopover_stop_time)
-    TextView stopTime;
-
-    @BindView(R.id.detail_stopover_vertline)
-    View line;
-
-    @BindView(R.id.detail_stopover_bullet)
-    View bullet;
-
-    @BindColor(R.color.delayed)
-    int colorRed;
-
-    @BindColor(R.color.ontime)
-    int colorGreen;
-
-    StopOver(Connection con, JourneyUtil.Section section, Stop stop, ViewGroup parent, LayoutInflater inflater) {
+    StopOver(Connection con, JourneyUtil.Section section, Stop stop, ViewGroup parent,
+             LayoutInflater inflater) {
         layout = inflater.inflate(R.layout.detail_stopover, parent, false);
         ButterKnife.bind(this, layout);
 

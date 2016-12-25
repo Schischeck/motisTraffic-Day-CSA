@@ -14,28 +14,17 @@ import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.EventInfo;
 import motis.Stop;
-import motis.TimestampReason;
 
 public class TransportTargetStation implements DetailViewHolder {
     private View layout;
 
-    @BindView(R.id.detail_transport_target_station_arr_time)
-    TextView arrivalTime;
+    @BindView(R.id.detail_transport_target_station_arr_time) TextView arrivalTime;
+    @BindView(R.id.detail_transport_target_station_delay) TextView arrivalDelay;
+    @BindView(R.id.detail_transport_target_station) TextView targetStation;
+    @BindView(R.id.detail_transport_target_station_vertline) View line;
 
-    @BindView(R.id.detail_transport_target_station_delay)
-    TextView arrivalDelay;
-
-    @BindView(R.id.detail_transport_target_station)
-    TextView targetStation;
-
-    @BindView(R.id.detail_transport_target_station_vertline)
-    View line;
-
-    @BindColor(R.color.delayed)
-    int colorRed;
-
-    @BindColor(R.color.ontime)
-    int colorGreen;
+    @BindColor(R.color.delayed) int colorRed;
+    @BindColor(R.color.ontime) int colorGreen;
 
     TransportTargetStation(Connection con,
                            JourneyUtil.Section section,

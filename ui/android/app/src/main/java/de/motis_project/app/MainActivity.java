@@ -9,11 +9,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class MainActivity extends FragmentActivity {
-    @BindView(R.id.viewPager)
-    ViewPager viewPager;
-
-    @BindView(R.id.tabLayout)
-    TabLayout tabLayout;
+    @BindView(R.id.viewPager) ViewPager viewPager;
+    @BindView(R.id.tabLayout) TabLayout tabLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

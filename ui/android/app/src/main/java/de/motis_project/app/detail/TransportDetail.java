@@ -16,35 +16,20 @@ import de.motis_project.app.TimeUtil;
 import motis.Connection;
 import motis.EventInfo;
 import motis.Stop;
-import motis.TimestampReason;
 import motis.Transport;
 
 public class TransportDetail implements DetailViewHolder {
     private View layout;
 
-    @BindView(R.id.detail_transport_dep_station)
-    TextView station;
+    @BindView(R.id.detail_transport_dep_station) TextView station;
+    @BindView(R.id.detail_transport_dep_time) TextView time;
+    @BindView(R.id.detail_transpot_dep_delay) TextView delay;
+    @BindView(R.id.detail_transport_direction_container) LinearLayout directionContainer;
+    @BindView(R.id.detail_transport_direction) TextView direction;
+    @BindView(R.id.detail_transport_vertline) View line;
 
-    @BindView(R.id.detail_transport_dep_time)
-    TextView time;
-
-    @BindView(R.id.detail_transpot_dep_delay)
-    TextView delay;
-
-    @BindView(R.id.detail_transport_direction_container)
-    LinearLayout directionContainer;
-
-    @BindView(R.id.detail_transport_direction)
-    TextView direction;
-
-    @BindView(R.id.detail_transport_vertline)
-    View line;
-
-    @BindColor(R.color.delayed)
-    int colorRed;
-
-    @BindColor(R.color.ontime)
-    int colorGreen;
+    @BindColor(R.color.delayed) int colorRed;
+    @BindColor(R.color.ontime) int colorGreen;
 
     TransportDetail(Connection con,
                     JourneyUtil.Section section,

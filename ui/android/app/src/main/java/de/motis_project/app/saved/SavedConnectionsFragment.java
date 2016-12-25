@@ -123,7 +123,8 @@ public class SavedConnectionsFragment extends Fragment {
             @Override
             public void onNext(List<Connection> connections) {
                 getActivity().runOnUiThread(()
-                        -> listView.setAdapter(new ConnectionAdapter(context, connections)));
+                                                    -> listView
+                        .setAdapter(new ConnectionAdapter(context, connections)));
             }
         });
         return layout;
