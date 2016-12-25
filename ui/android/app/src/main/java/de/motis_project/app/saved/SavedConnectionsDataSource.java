@@ -57,6 +57,14 @@ public class SavedConnectionsDataSource {
         db.setLoggingEnabled(true);
     }
 
+    public void delete(long id) {
+        SQLiteStatement s = dbHelper.getReadableDatabase().compileStatement(
+                "DELETE FROM " + Table.TABLE
+                        + " WHERE " + Table.COL_ID + " = ?");
+        s.bindLong(1, id);
+        db.executeUpdateDelete(Table.TABLE, s);
+    }
+
     public void add(FlatBufferBuilder fbb) {
         SQLiteStatement s = dbHelper.getReadableDatabase().compileStatement(
                 "INSERT INTO " + Table.TABLE

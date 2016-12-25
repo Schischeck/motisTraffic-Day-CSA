@@ -15,40 +15,21 @@ import motis.EventInfo;
 import motis.TimestampReason;
 
 public class JourneySummaryViewHolder extends JourneyViewHolder {
-    enum ViewMode {
-        LONG,
-        SHORT,
-        OFF
-    }
+    enum ViewMode {LONG, SHORT, OFF}
 
-    @BindView(R.id.dep_sched_time)
-    TextView depSchedTime;
+    @BindView(R.id.dep_sched_time) TextView depSchedTime;
+    @BindView(R.id.dep_time) TextView depTime;
+    @BindView(R.id.arr_sched_time) TextView arrSchedTime;
+    @BindView(R.id.arr_time) TextView arrTime;
+    @BindView(R.id.duration) TextView duration;
+    @BindView(R.id.transports) LinearLayout transports;
 
-    @BindView(R.id.dep_time)
-    TextView depTime;
-
-    @BindView(R.id.arr_sched_time)
-    TextView arrSchedTime;
-
-    @BindView(R.id.arr_time)
-    TextView arrTime;
-
-    @BindView(R.id.duration)
-    TextView duration;
-
-    @BindView(R.id.transports)
-    LinearLayout transports;
-
-    @BindColor(R.color.delayed)
-    int colorRed;
-
-    @BindColor(R.color.ontime)
-    int colorGreen;
+    @BindColor(R.color.delayed) int colorRed;
+    @BindColor(R.color.ontime) int colorGreen;
 
     public JourneySummaryViewHolder(ViewGroup parent, LayoutInflater inflater) {
         super(inflater.inflate(R.layout.journey_list_item, parent, false), inflater);
     }
-
 
     void setConnection(Connection con) {
         EventInfo dep = con.stops(0).departure();

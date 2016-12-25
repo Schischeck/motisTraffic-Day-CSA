@@ -43,7 +43,6 @@ public class DetailActivity extends AppCompatActivity {
     @BindView(R.id.detail_number_of_transfers) TextView numberOfTransfers;
     @BindView(R.id.detail_journey_details) LinearLayout journeyDetails;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Bundle extras = getIntent().getExtras();
