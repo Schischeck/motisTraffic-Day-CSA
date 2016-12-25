@@ -27,9 +27,11 @@ public final class Statistics extends Struct {
   public long transfersLb() { return (long)bb.getInt(bb_pos + 52) & 0xFFFFFFFFL; }
   public long totalCalculationTime() { return (long)bb.getInt(bb_pos + 56) & 0xFFFFFFFFL; }
   public long paretoDijkstra() { return (long)bb.getInt(bb_pos + 60) & 0xFFFFFFFFL; }
+  public long numBytesInUse() { return (long)bb.getInt(bb_pos + 64) & 0xFFFFFFFFL; }
 
-  public static int createStatistics(FlatBufferBuilder builder, boolean maxLabelQuit, long labelsCreated, long startLabelCount, long labelsPopped, long labelsEqualsPopped, long labelsFiltered, long labelsDominatedByResults, long labelsDominatedByFormerLabels, long labelsDominatedByLaterLabels, long labelsPoppedUntilFirstResult, long labelsPoppedAfterLastResult, long priorityQueueMaxSize, long travelTimeLb, long transfersLb, long totalCalculationTime, long paretoDijkstra) {
-    builder.prep(4, 64);
+  public static int createStatistics(FlatBufferBuilder builder, boolean maxLabelQuit, long labelsCreated, long startLabelCount, long labelsPopped, long labelsEqualsPopped, long labelsFiltered, long labelsDominatedByResults, long labelsDominatedByFormerLabels, long labelsDominatedByLaterLabels, long labelsPoppedUntilFirstResult, long labelsPoppedAfterLastResult, long priorityQueueMaxSize, long travelTimeLb, long transfersLb, long totalCalculationTime, long paretoDijkstra, long numBytesInUse) {
+    builder.prep(4, 68);
+    builder.putInt((int)numBytesInUse);
     builder.putInt((int)paretoDijkstra);
     builder.putInt((int)totalCalculationTime);
     builder.putInt((int)transfersLb);
