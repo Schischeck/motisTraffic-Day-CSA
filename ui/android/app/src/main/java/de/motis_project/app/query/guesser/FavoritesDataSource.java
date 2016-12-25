@@ -14,7 +14,7 @@ import rx.Observable;
 import rx.schedulers.Schedulers;
 
 public class FavoritesDataSource {
-    private class FavoritesDbHelper extends SQLiteOpenHelper {
+    private class Table extends SQLiteOpenHelper {
         static final int DATABASE_VERSION = 1;
         static final String DATABASE_NAME = "stations.db";
 
@@ -30,7 +30,7 @@ public class FavoritesDataSource {
                 + COL_SELECTED_COUNT + " INTEGER NOT NULL DEFAULT 0"
                 + ")";
 
-        FavoritesDbHelper(Context context) {
+        Table(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
 
@@ -45,9 +45,9 @@ public class FavoritesDataSource {
     }
 
     private static final String SQL_GET_TOP = "" +
-            "SELECT * FROM " + FavoritesDbHelper.TABLE +
-            " WHERE " + FavoritesDbHelper.COL_STATION_NAME + " LIKE '%%%s%%'" +
-            " ORDER BY " + FavoritesDbHelper.COL_SELECTED_COUNT +
+            "SELECT * FROM " + Table.TABLE +
+            " WHERE " + Table.COL_STATION_NAME + " LIKE '%%%s%%'" +
+            " ORDER BY " + Table.COL_SELECTED_COUNT +
             " DESC LIMIT 5";
 
     private final SqlBrite sqlBrite;
@@ -57,36 +57,32 @@ public class FavoritesDataSource {
         sqlBrite = new SqlBrite.Builder()
                 .logger(message -> System.out.println("DATABASE message = [" + message + "]"))
                 .build();
-        db = sqlBrite.wrapDatabaseHelper(new FavoritesDbHelper(ctx), Schedulers.io());
+        db = sqlBrite.wrapDatabaseHelper(new Table(ctx), Schedulers.io());
         db.setLoggingEnabled(true);
     }
 
     public void addOrIncrement(String eva, String stationName) {
         try (BriteDatabase.Transaction t = db.newTransaction()) {
             db.execute(
-                    "INSERT OR IGNORE INTO " + FavoritesDbHelper.TABLE +
+                    "INSERT OR IGNORE INTO " + Table.TABLE +
                             " VALUES ('" + eva + "', '" + stationName + "', 0)");
             db.execute(
-                    "UPDATE " + FavoritesDbHelper.TABLE +
-                            " SET " + FavoritesDbHelper.COL_SELECTED_COUNT + " = " +
-                            FavoritesDbHelper.COL_SELECTED_COUNT + " + 1 " +
-                            " WHERE " + FavoritesDbHelper.COL_STATION_ID + " = " + eva);
+                    "UPDATE " + Table.TABLE +
+                            " SET " + Table.COL_SELECTED_COUNT + " = " +
+                            Table.COL_SELECTED_COUNT + " + 1 " +
+                            " WHERE " + Table.COL_STATION_ID + " = " + eva);
             t.markSuccessful();
         }
     }
 
     public Observable<List<StationGuess>> getFavorites(CharSequence queryString) {
         String query = String.format(SQL_GET_TOP, queryString);
-        QueryObservable obs = db.createQuery(FavoritesDbHelper.TABLE, query);
+        QueryObservable obs = db.createQuery(Table.TABLE, query);
         return obs.mapToList(c -> {
-            String eva = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_ID));
-            String name = c.getString(c.getColumnIndex(FavoritesDbHelper.COL_STATION_NAME));
-            int count = c.getInt(c.getColumnIndex(FavoritesDbHelper.COL_SELECTED_COUNT));
+            String eva = c.getString(c.getColumnIndex(Table.COL_STATION_ID));
+            String name = c.getString(c.getColumnIndex(Table.COL_STATION_NAME));
+            int count = c.getInt(c.getColumnIndex(Table.COL_SELECTED_COUNT));
             return new StationGuess(eva, name, count, StationGuess.FAVORITE_GUESS);
         });
-    }
-
-    public void closeDb() {
-        db.close();
     }
 }

@@ -1,6 +1,7 @@
 package de.motis_project.app.saved;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -8,13 +9,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
 
+import de.motis_project.app.JourneyUtil;
 import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
+import de.motis_project.app.detail.DetailActivity;
+import de.motis_project.app.io.Status;
+import de.motis_project.app.journey.TransportViewCreator;
 import motis.Connection;
 import motis.Stop;
 import rx.Subscriber;
@@ -75,13 +81,15 @@ public class SavedConnectionsFragment extends Fragment {
             ((TextView) view.findViewById(R.id.saved_connection_date))
                     .setText(TimeUtil.formatDate(dep.departure().time()));
 
+            TransportViewCreator.addTransportViews(
+                    JourneyUtil.getTransports(con), inflater,
+                    (LinearLayout) view.findViewById(R.id.saved_connection_transports));
+
             return view;
         }
     }
 
     private Context context;
-
-    SavedConnectionsDataSource db;
 
     private Subscription favs;
 
@@ -111,22 +119,30 @@ public class SavedConnectionsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View layout = inflater.inflate(R.layout.saved_overview, container, false);
         ListView listView = (ListView) layout.findViewById(R.id.saved_connection_list);
-        favs = db.getFavorites().subscribe(new Subscriber<List<Connection>>() {
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onNext(List<Connection> connections) {
-                getActivity().runOnUiThread(()
-                                                    -> listView
-                        .setAdapter(new ConnectionAdapter(context, connections)));
-            }
+        listView.setOnItemClickListener((adapterView, view, pos, id) -> {
+            Status.get().setConnection(((ConnectionAdapter)listView.getAdapter()).getItem(pos));
+            view.getContext().startActivity(new Intent(view.getContext(), DetailActivity.class));
         });
+        favs = Status.get().getSavedConnectionsDb().getSavedConnections()
+                .subscribe(new Subscriber<List<Connection>>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onNext(List<Connection> connections) {
+                        getActivity().runOnUiThread(
+                                () -> {
+                                    ConnectionAdapter adapter = new ConnectionAdapter(context, connections);
+                                    listView.setAdapter(adapter);
+                                    adapter.notifyDataSetChanged();
+                                });
+                    }
+                });
         return layout;
     }
 
@@ -134,19 +150,11 @@ public class SavedConnectionsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        if (db != null) {
-            db.close();
-        }
-        db = new SavedConnectionsDataSource(context);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         context = null;
-        if (db != null) {
-            db.close();
-            db = null;
-        }
     }
 }

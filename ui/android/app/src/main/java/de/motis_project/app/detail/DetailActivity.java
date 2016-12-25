@@ -22,7 +22,6 @@ import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
 import de.motis_project.app.journey.CopyConnection;
-import de.motis_project.app.saved.SavedConnectionsDataSource;
 import motis.Connection;
 
 public class DetailActivity extends AppCompatActivity {
@@ -32,6 +31,7 @@ public class DetailActivity extends AppCompatActivity {
 
     @BindString(R.string.transfer) String transfer;
     @BindString(R.string.transfers) String transfers;
+    @BindString(R.string.connection_saved) String connectionSaved;
 
     @BindView(R.id.detail_dep_station) TextView depStation;
     @BindView(R.id.detail_arr_station) TextView arrStation;
@@ -40,6 +40,7 @@ public class DetailActivity extends AppCompatActivity {
     @BindView(R.id.detail_travel_duration) TextView travelDuration;
     @BindView(R.id.detail_number_of_transfers) TextView numberOfTransfers;
     @BindView(R.id.detail_journey_details) LinearLayout journeyDetails;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,10 +122,8 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem actionViewItem = menu.findItem(R.id.detail_save_connection);
         actionViewItem.setOnMenuItemClickListener(e -> {
-            try (SavedConnectionsDataSource db = new SavedConnectionsDataSource(this)) {
-                db.add(CopyConnection.copyConnection(con));
-            }
-            Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
+            Status.get().getSavedConnectionsDb().add(CopyConnection.copyConnection(con));
+            Toast.makeText(this, connectionSaved, Toast.LENGTH_SHORT).show();
             return true;
         });
         return super.onPrepareOptionsMenu(menu);
