@@ -4,8 +4,9 @@
 
 #include "boost/filesystem.hpp"
 
+#include "utl/get_or_create.h"
+
 #include "motis/core/common/date_time_util.h"
-#include "motis/core/common/get_or_create.h"
 #include "motis/loader/gtfs/agency.h"
 #include "motis/loader/gtfs/calendar.h"
 #include "motis/loader/gtfs/calendar_date.h"
@@ -92,7 +93,7 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
   std::vector<Offset<Service>> fbs_services;
 
   auto get_or_create_stop = [&](stop const* s) {
-    return get_or_create(fbs_stations, s, [&]() {
+    return utl::get_or_create(fbs_stations, s, [&]() {
       return CreateStation(fbb, fbb.CreateString(s->id_),
                            fbb.CreateString(s->name_), s->lat_, s->lng_, 5,
                            fbb.CreateVector(std::vector<Offset<String>>()));
@@ -100,53 +101,54 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
   };
 
   auto get_or_create_category = [&](int type) {
-    return get_or_create(fbs_categories, type, [&]() {
+    return utl::get_or_create(fbs_categories, type, [&]() {
       return CreateCategory(fbb, fbb.CreateString(route::s_types_.at(type)), 2);
     });
   };
 
   auto get_or_create_provider = [&](agency const* a) {
-    return get_or_create(fbs_providers, a, [&]() {
+    return utl::get_or_create(fbs_providers, a, [&]() {
       return CreateProvider(fbb, fbb.CreateString(a->id_),
                             fbb.CreateString(a->name_), fbb.CreateString(""));
     });
   };
 
   auto get_or_create_str = [&](std::string const& s) {
-    return get_or_create(fbs_strings, s, [&]() { return fbb.CreateString(s); });
+    return utl::get_or_create(fbs_strings, s,
+                              [&]() { return fbb.CreateString(s); });
   };
 
   Interval interval(to_unix_time(services.first_day_),
                     to_unix_time(services.last_day_));
-  auto output_services = fbb.CreateVector(transform_to_vec(
+  auto output_services = fbb.CreateVector(utl::to_vec(
       begin(trips), end(trips),
       [&](std::pair<std::string const, std::unique_ptr<trip>> const& entry) {
         auto const& t = entry.second;
         auto const stop_seq = t->stops();
         return CreateService(
-            fbb,
-            get_or_create(fbs_routes, stop_seq,
-                          [&]() {
-                            return CreateRoute(
-                                fbb,  //
-                                fbb.CreateVector(transform_to_vec(
-                                    begin(stop_seq), end(stop_seq),
-                                    [&](trip::stop_identity const& s) {
-                                      return get_or_create_stop(std::get<0>(s));
-                                    })),
-                                fbb.CreateVector(transform_to_vec(
-                                    begin(stop_seq), end(stop_seq),
-                                    [](trip::stop_identity const& s) {
-                                      return static_cast<uint8_t>(
-                                          std::get<1>(s) ? 1u : 0u);
-                                    })),
-                                fbb.CreateVector(transform_to_vec(
-                                    begin(stop_seq), end(stop_seq),
-                                    [](trip::stop_identity const& s) {
-                                      return static_cast<uint8_t>(
-                                          std::get<2>(s) ? 1u : 0u);
-                                    })));
-                          }),
+            fbb, utl::get_or_create(
+                     fbs_routes, stop_seq,
+                     [&]() {
+                       return CreateRoute(
+                           fbb,  //
+                           fbb.CreateVector(utl::to_vec(
+                               begin(stop_seq), end(stop_seq),
+                               [&](trip::stop_identity const& s) {
+                                 return get_or_create_stop(std::get<0>(s));
+                               })),
+                           fbb.CreateVector(
+                               utl::to_vec(begin(stop_seq), end(stop_seq),
+                                           [](trip::stop_identity const& s) {
+                                             return static_cast<uint8_t>(
+                                                 std::get<1>(s) ? 1u : 0u);
+                                           })),
+                           fbb.CreateVector(
+                               utl::to_vec(begin(stop_seq), end(stop_seq),
+                                           [](trip::stop_identity const& s) {
+                                             return static_cast<uint8_t>(
+                                                 std::get<2>(s) ? 1u : 0u);
+                                           })));
+                     }),
             fbb.CreateString(serialize_bitset(*t->service_)),
             fbb.CreateVector(repeat_n(
                 CreateSection(

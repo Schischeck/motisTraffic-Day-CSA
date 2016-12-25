@@ -7,6 +7,8 @@
 #include <memory>
 #include <ostream>
 
+#include "utl/erase.h"
+
 #include "motis/module/message.h"
 
 using namespace motis::module;
@@ -14,11 +16,6 @@ namespace p = std::placeholders;
 
 namespace motis {
 namespace launcher {
-
-std::string strip_new_lines(std::string s) {
-  s.erase(std::remove(begin(s), end(s), '\n'), end(s));
-  return s;
-}
 
 struct query_injector : std::enable_shared_from_this<query_injector> {
 public:
@@ -89,7 +86,10 @@ private:
     }
     response->get()->mutate_id(id);
 
-    out_ << strip_new_lines(response->to_json()) << "\n";
+    auto json = response->to_json();
+    utl::erase(json, '\n');
+
+    out_ << json << "\n";
   }
 
   boost::asio::io_service& ios_;

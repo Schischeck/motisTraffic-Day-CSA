@@ -6,11 +6,11 @@
 #include <set>
 #include <vector>
 
-#include "motis/core/common/get_or_create.h"
 #include "motis/core/schedule/price.h"
 #include "motis/core/schedule/trip.h"
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/util.h"
+#include "utl/get_or_create.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
@@ -275,15 +275,15 @@ struct rule_service_route_builder {
   merged_trips_idx get_or_create_trips(
       std::array<participant, 16> const& services, int day_idx) {
     auto k = get_services_key(services, day_idx);
-    return get_or_create(trips_, k, [&]() {
+    return utl::get_or_create(trips_, k, [&]() {
       return push_mem(
           gb_.sched_.merged_trips_,
-          transform_to_vec(
-              begin(k.services_), end(k.services_), [&](Service const* s) {
-                return get_or_create(
-                    single_trips_, std::make_pair(s, day_idx),
-                    [&]() { return gb_.register_service(s, day_idx); });
-              }));
+          utl::to_vec(begin(k.services_), end(k.services_),
+                      [&](Service const* s) {
+                        return utl::get_or_create(
+                            single_trips_, std::make_pair(s, day_idx),
+                            [&]() { return gb_.register_service(s, day_idx); });
+                      }));
     });
   }
 
@@ -445,7 +445,7 @@ struct rule_service_route_builder {
   void write_trip_info(Service const* s,
                        std::vector<service_section*> const& sections) {
     push_mem(gb_.sched_.trip_edges_,
-             transform_to_vec(
+             utl::to_vec(
                  begin(sections), end(sections), [](service_section* section) {
                    return trip::route_edge(section->first.get_route_edge());
                  }));

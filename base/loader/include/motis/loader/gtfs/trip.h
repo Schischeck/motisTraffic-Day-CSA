@@ -40,12 +40,12 @@ struct trip {
       : route_(route), service_(service), headsign_(std::move(headsign)) {}
 
   stop_seq stops() {
-    return transform_to_vec(begin(stop_times_), end(stop_times_),
-                            [](flat_map<stop_time>::entry_t const& e) {
-                              return std::make_tuple(
-                                  e.second.stop_, e.second.arr_.in_out_allowed_,
-                                  e.second.dep_.in_out_allowed_);
-                            });
+    return utl::to_vec(begin(stop_times_), end(stop_times_),
+                       [](flat_map<stop_time>::entry_t const& e) {
+                         return std::make_tuple(e.second.stop_,
+                                                e.second.arr_.in_out_allowed_,
+                                                e.second.dep_.in_out_allowed_);
+                       });
   }
 
   route const* route_;

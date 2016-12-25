@@ -4,7 +4,8 @@
 #include <limits>
 #include <vector>
 
-#include "motis/core/common/get_or_create.h"
+#include "utl/get_or_create.h"
+
 #include "motis/core/schedule/schedule.h"
 
 namespace motis {
@@ -64,7 +65,7 @@ struct trip_corrector {
 
 private:
   entry& get_or_create(ev_key const& k) {
-    return motis::get_or_create(entries_, k, [&]() {
+    return utl::get_or_create(entries_, k, [&]() {
       auto di_it = sched_.graph_to_delay_info_.find(k);
       if (di_it == end(sched_.graph_to_delay_info_)) {
         return entry{delay_info{k}};

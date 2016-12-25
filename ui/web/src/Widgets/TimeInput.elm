@@ -1,4 +1,4 @@
-module Widgets.TimeInput exposing (Model, Msg, update, view, init)
+module Widgets.TimeInput exposing (Model, Msg(InitDate), update, view, init)
 
 import Task
 import String

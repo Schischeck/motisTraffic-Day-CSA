@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utl/to_vec.h"
+
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/conv/event_type_conv.h"
@@ -139,7 +141,7 @@ inline void add_additional_events(
         new_events,
     std::vector<reroute_event>& events) {
   auto const new_opt_evs = resolve_event_info(
-      sched, transform_to_vec(*new_events, [](ris::ReroutedEvent const* ev) {
+      sched, utl::to_vec(*new_events, [](ris::ReroutedEvent const* ev) {
         return ev->base()->base();
       }));
 
@@ -373,8 +375,8 @@ inline std::pair<status, trip const*> reroute(
 
   auto evs = std::vector<reroute_event>{};
   auto const del_evs = resolve_events(
-      sched, trp, transform_to_vec(*msg->cancelled_events(),
-                                   [](ris::Event const* ev) { return ev; }));
+      sched, trp, utl::to_vec(*msg->cancelled_events(),
+                              [](ris::Event const* ev) { return ev; }));
   add_additional_events(sched, cancelled_delays, trp, msg->new_events(), evs);
   add_not_deleted_trip_events(sched, del_evs, trp, evs);
   std::sort(begin(evs), end(evs));

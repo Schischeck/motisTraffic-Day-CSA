@@ -7,7 +7,8 @@ var CanvasOverlay = L.Layer.extend({
     map._panes.overlayPane.appendChild(this._el);
 
     map.on('dragend', this._updatePosition, this);
-    // map.on('move', this._updatePosition, this);
+    map.on('move', this._updatePosition, this);
+    map.on('moveend', this._updatePosition, this);
     map.on('resize', this._updateSize, this);
     map.on('zoomend', this._update, this);
 
@@ -21,6 +22,7 @@ var CanvasOverlay = L.Layer.extend({
     map.getPanes().overlayPane.removeChild(this._el);
     map.off('dragend', this._updatePosition, this);
     map.off('move', this._updatePosition, this);
+    map.off('moveend', this._updatePosition, this);
     map.off('resize', this._updateSize, this);
     map.off('zoomend', this._update, this);
   },
@@ -29,6 +31,9 @@ var CanvasOverlay = L.Layer.extend({
     var pixelBounds = this._map.getPixelBounds().min;
     var geoBounds = this._map.getBounds();
     var size = this._map.getSize();
+    var railVizBounds = L.latLngBounds(
+        this._map.unproject(pixelBounds.subtract(size)),
+        this._map.unproject(pixelBounds.add(size).add(size)));
 
     app.ports.mapUpdate.send({
       scale: Math.pow(2, this._map.getZoom()),
@@ -44,6 +49,12 @@ var CanvasOverlay = L.Layer.extend({
         west: geoBounds.getWest(),
         south: geoBounds.getSouth(),
         east: geoBounds.getEast()
+      },
+      railVizBounds: {
+        north: railVizBounds.getNorth(),
+        west: railVizBounds.getWest(),
+        south: railVizBounds.getSouth(),
+        east: railVizBounds.getEast()
       }
     });
   },
@@ -119,7 +130,7 @@ function initPorts(app) {
     window.elmMaps[id] = map;
 
     var c = new CanvasOverlay();
-    c._el = map.getContainer().querySelector('.leaflet-overlay');
+    c._el = map.getContainer().querySelector('.railviz-overlay');
     map.addLayer(c);
   });
 

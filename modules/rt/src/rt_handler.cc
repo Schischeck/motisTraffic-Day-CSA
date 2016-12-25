@@ -1,10 +1,11 @@
 #include "motis/rt/rt_handler.h"
 
+#include "utl/to_vec.h"
+
 #include "parser/util.h"
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/raii.h"
-#include "motis/core/common/transform_to_vec.h"
 
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_publish.h"
@@ -45,7 +46,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 
           auto const resolved = resolve_events(
               s, msg->trip_id(),
-              transform_to_vec(*msg->events(), [](ris::UpdatedEvent const* ev) {
+              utl::to_vec(*msg->events(), [](ris::UpdatedEvent const* ev) {
                 return ev->base();
               }));
 
@@ -88,8 +89,8 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 
           auto const resolved = resolve_events(
               s, msg->trip_id(),
-              transform_to_vec(*msg->events(),
-                               [](ris::Event const* ev) { return ev; }));
+              utl::to_vec(*msg->events(),
+                          [](ris::Event const* ev) { return ev; }));
 
           for (auto const& ev : resolved) {
             if (!ev) {

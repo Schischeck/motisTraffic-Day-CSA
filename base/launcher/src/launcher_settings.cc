@@ -6,7 +6,6 @@
 #include "boost/lexical_cast.hpp"
 
 #include "motis/core/common/date_time_util.h"
-#include "motis/core/common/util.h"
 
 #define MODE "mode"
 #define MODE_BATCH "batch"

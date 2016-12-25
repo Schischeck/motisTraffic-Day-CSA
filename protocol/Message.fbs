@@ -20,6 +20,7 @@ include "routes/RoutesIdTrainRequest.fbs";
 include "routes/RoutesIdTrainResponse.fbs";
 include "railviz/RailVizTrainsRequest.fbs";
 include "railviz/RailVizTrainsResponse.fbs";
+include "railviz/RailVizTripsRequest.fbs";
 include "osrm/OSRMOneToManyRequest.fbs";
 include "osrm/OSRMOneToManyResponse.fbs";
 include "osrm/OSRMViaRouteRequest.fbs";
@@ -121,6 +122,7 @@ union MsgContent {
   motis.routes.RoutesIdTrainResponse,
   motis.railviz.RailVizTrainsRequest,
   motis.railviz.RailVizTrainsResponse,
+  motis.railviz.RailVizTripsRequest,
   motis.osrm.OSRMOneToManyRequest,
   motis.osrm.OSRMOneToManyResponse,
   motis.osrm.OSRMViaRouteRequest,

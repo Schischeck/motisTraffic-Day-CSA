@@ -1,10 +1,24 @@
 #include "motis/bootstrap/module_settings.h"
 
 #include <ostream>
-
-#include "motis/core/common/util.h"
+#include <vector>
 
 #define MODULES "modules"
+
+namespace std {
+template <typename T>
+ostream& operator<<(ostream& out, vector<T> const& v) {
+  auto it = begin(v);
+  while (it != end(v)) {
+    if (it != begin(v)) {
+      out << " ";
+    }
+    out << *it;
+    ++it;
+  }
+  return out;
+}
+}  // namespace std
 
 namespace motis {
 namespace bootstrap {
@@ -26,7 +40,10 @@ po::options_description module_settings::desc() {
 }
 
 void module_settings::print(std::ostream& out) const {
-  out << "  " << MODULES << ": " << modules_;
+  out << "  " << MODULES << ": ";
+  for (auto const& module_name : modules_) {
+    out << module_name << " ";
+  }
 }
 
 }  // namespace bootstrap
