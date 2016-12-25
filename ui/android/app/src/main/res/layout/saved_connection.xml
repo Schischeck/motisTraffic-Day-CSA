@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/journey_list_item_vertical_margin"
+    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="@dimen/journey_list_item_vertical_margin"
+    android:orientation="vertical">
+
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:text="Von:"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/saved_connection_from"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="Braha an der Brücke, Bad Gottleuba-Berggiesßhübel" />
+        </TableRow>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="5dp" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nach: "
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/saved_connection_to"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:text="Wald-Amorbach, An der alten Brücke" />
+        </TableRow>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="5dp" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:text="An:"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/saved_connection_dep_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="11:45 (11:45)" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:text="An:"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/saved_connection_arr_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="12:57 (12:57)" />
+            </LinearLayout>
+        </TableRow>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="5dp" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:text="Datum:"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/saved_connection_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="27.11.2016" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:text="Dauer:"
+                    android:textStyle="bold" />
+
+                <Space
+                    android:layout_width="5dp"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/saved_connection_duration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:singleLine="true"
+                    android:text="1h 12m" />
+            </LinearLayout>
+        </TableRow>
+
+    </TableLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="5dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="25dp">
+
+        <include layout="@layout/journey_item_transport_train" />
+
+        <include layout="@layout/journey_item_transport_separator" />
+
+        <include layout="@layout/journey_item_transport_bus" />
+
+        <include layout="@layout/journey_item_transport_separator" />
+
+        <include layout="@layout/journey_item_transport_bus" />
+
+        <include layout="@layout/journey_item_transport_separator" />
+
+        <include layout="@layout/journey_item_transport_train" />
+    </LinearLayout>
+
+</LinearLayout>

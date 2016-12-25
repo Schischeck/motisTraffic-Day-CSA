@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import de.motis_project.app.query.QueryFragment;
+import de.motis_project.app.saved.SavedConnectionsFragment;
 
 public class TabPagerAdapter extends FragmentPagerAdapter {
     private String search = "";
@@ -21,7 +22,7 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
             case 0:
                 return new QueryFragment();
             default:
-                return new Fragment();
+                return new SavedConnectionsFragment();
         }
     }
 

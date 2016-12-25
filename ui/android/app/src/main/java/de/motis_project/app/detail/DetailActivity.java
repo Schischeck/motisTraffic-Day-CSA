@@ -8,7 +8,9 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import de.motis_project.app.R;
 import de.motis_project.app.TimeUtil;
 import de.motis_project.app.io.Status;
 import de.motis_project.app.journey.CopyConnection;
+import de.motis_project.app.saved.SavedConnectionsDataSource;
 import motis.Connection;
 
 public class DetailActivity extends AppCompatActivity {
@@ -129,6 +132,19 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.journey_detail_toolbar, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem actionViewItem = menu.findItem(R.id.detail_save_connection);
+        actionViewItem.setOnMenuItemClickListener(e -> {
+            try (SavedConnectionsDataSource db = new SavedConnectionsDataSource(this)) {
+                db.add(CopyConnection.copyConnection(con));
+            }
+            Toast.makeText(this, "saved", Toast.LENGTH_SHORT).show();
+            return true;
+        });
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private static int getNumberOfTransfers(Connection con) {
