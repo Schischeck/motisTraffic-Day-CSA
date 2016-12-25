@@ -10,10 +10,12 @@ import de.motis_project.app.saved.SavedConnectionsFragment;
 
 public class TabPagerAdapter extends FragmentPagerAdapter {
     private String search = "";
+    private String connections = "";
 
     public TabPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         search = context.getString(R.string.search);
+        connections = context.getString(R.string.connections);
     }
 
     @Override
@@ -21,8 +23,10 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
         switch (position) {
             case 0:
                 return new QueryFragment();
-            default:
+            case 1:
                 return new SavedConnectionsFragment();
+            default:
+                return null;
         }
     }
 
@@ -33,9 +37,11 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        switch (position % 2) {
+        switch (position) {
             case 0:
                 return search;
+            case 1:
+                return connections;
             default:
                 return "";
         }
