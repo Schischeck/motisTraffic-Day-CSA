@@ -120,7 +120,7 @@ public class SavedConnectionsFragment extends Fragment {
         View layout = inflater.inflate(R.layout.saved_overview, container, false);
         ListView listView = (ListView) layout.findViewById(R.id.saved_connection_list);
         listView.setOnItemClickListener((adapterView, view, pos, id) -> {
-            Status.get().setConnection(((ConnectionAdapter)listView.getAdapter()).getItem(pos));
+            Status.get().setConnection(((ConnectionAdapter) listView.getAdapter()).getItem(pos));
             view.getContext().startActivity(new Intent(view.getContext(), DetailActivity.class));
         });
         favs = Status.get().getSavedConnectionsDb().getSavedConnections()
@@ -135,12 +135,8 @@ public class SavedConnectionsFragment extends Fragment {
 
                     @Override
                     public void onNext(List<Connection> connections) {
-                        getActivity().runOnUiThread(
-                                () -> {
-                                    ConnectionAdapter adapter = new ConnectionAdapter(context, connections);
-                                    listView.setAdapter(adapter);
-                                    adapter.notifyDataSetChanged();
-                                });
+                        final ConnectionAdapter adapter = new ConnectionAdapter(context, connections);
+                        getActivity().runOnUiThread(() -> listView.setAdapter(adapter));
                     }
                 });
         return layout;
