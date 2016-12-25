@@ -25,8 +25,10 @@ import de.motis_project.app.journey.CopyConnection;
 import motis.Connection;
 
 public class DetailActivity extends AppCompatActivity {
-    private Connection con;
+    public static final String SHOW_SAVE_ACTION = "SHOW_SAVE_ACTION";
 
+    private Connection con;
+    private boolean showSaveAction = true;
     private HashSet<JourneyUtil.Section> expandedSections = new HashSet<>();
 
     @BindString(R.string.transfer) String transfer;
@@ -44,6 +46,11 @@ public class DetailActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            showSaveAction = extras.getBoolean(SHOW_SAVE_ACTION, true);
+        }
+
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail);
@@ -79,7 +86,6 @@ public class DetailActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.detail_save_connection:
-                System.out.println("DetailActivity.onOptionsItemSelected --> SAVE CONNECTION");
                 if (con != null) {
                     try {
                         CopyConnection.copyConnection(con);
@@ -115,17 +121,25 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.journey_detail_toolbar, menu);
+        if (!showSaveAction) {
+            MenuItem saveItem = menu.findItem(R.id.detail_save_connection);
+            if (saveItem.isVisible()) {
+                saveItem.setVisible(false);
+                invalidateOptionsMenu();
+            }
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem actionViewItem = menu.findItem(R.id.detail_save_connection);
-        actionViewItem.setOnMenuItemClickListener(e -> {
-            Status.get().getSavedConnectionsDb().add(CopyConnection.copyConnection(con));
-            Toast.makeText(this, connectionSaved, Toast.LENGTH_SHORT).show();
-            return true;
-        });
+        if (showSaveAction) {
+            menu.findItem(R.id.detail_save_connection).setOnMenuItemClickListener(e -> {
+                Status.get().getSavedConnectionsDb().add(CopyConnection.copyConnection(con));
+                Toast.makeText(this, connectionSaved, Toast.LENGTH_SHORT).show();
+                return true;
+            });
+        }
         return super.onPrepareOptionsMenu(menu);
     }
 

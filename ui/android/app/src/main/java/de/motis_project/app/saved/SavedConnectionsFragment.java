@@ -121,7 +121,12 @@ public class SavedConnectionsFragment extends Fragment {
         ListView listView = (ListView) layout.findViewById(R.id.saved_connection_list);
         listView.setOnItemClickListener((adapterView, view, pos, id) -> {
             Status.get().setConnection(((ConnectionAdapter) listView.getAdapter()).getItem(pos));
-            view.getContext().startActivity(new Intent(view.getContext(), DetailActivity.class));
+
+            Intent intent = new Intent(view.getContext(), DetailActivity.class);
+            Bundle b = new Bundle();
+            b.putBoolean(DetailActivity.SHOW_SAVE_ACTION, false);
+            intent.putExtras(b);
+            view.getContext().startActivity(intent);
         });
         favs = Status.get().getSavedConnectionsDb().getSavedConnections()
                 .subscribe(new Subscriber<List<Connection>>() {
