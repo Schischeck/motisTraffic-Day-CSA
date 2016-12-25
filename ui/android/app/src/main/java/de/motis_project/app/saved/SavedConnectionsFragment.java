@@ -28,12 +28,14 @@ import rx.Subscription;
 
 public class SavedConnectionsFragment extends Fragment {
     static private class ConnectionAdapter extends BaseAdapter {
+        private final Context context;
         private final LayoutInflater inflater;
         private final List<SavedConnectionsDataSource.SavedConnection> connections;
 
         public ConnectionAdapter(Context context,
                                  List<SavedConnectionsDataSource.SavedConnection> connections) {
             this.connections = connections;
+            this.context = context;
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
@@ -59,7 +61,7 @@ public class SavedConnectionsFragment extends Fragment {
                 view = inflater.inflate(R.layout.saved_connection, parent, false);
             }
 
-            Connection con = getItem(position).con;
+            final Connection con = getItem(position).con;
             Stop dep = con.stops(0);
             Stop arr = con.stops(con.stopsLength() - 1);
 
@@ -89,6 +91,16 @@ public class SavedConnectionsFragment extends Fragment {
             TransportViewCreator.addTransportViews(
                     JourneyUtil.getTransports(con), inflater,
                     (LinearLayout) view.findViewById(R.id.saved_connection_transports));
+
+            view.setOnClickListener(v -> {
+                Status.get().setConnection(con);
+
+                Intent intent = new Intent(context, DetailActivity.class);
+                Bundle b = new Bundle();
+                b.putBoolean(DetailActivity.SHOW_SAVE_ACTION, false);
+                intent.putExtras(b);
+                context.startActivity(intent);
+            });
 
             return view;
         }
