@@ -29,9 +29,10 @@ import rx.Subscription;
 public class SavedConnectionsFragment extends Fragment {
     static private class ConnectionAdapter extends BaseAdapter {
         private final LayoutInflater inflater;
-        private final List<Connection> connections;
+        private final List<SavedConnectionsDataSource.SavedConnection> connections;
 
-        public ConnectionAdapter(Context context, List<Connection> connections) {
+        public ConnectionAdapter(Context context,
+                                 List<SavedConnectionsDataSource.SavedConnection> connections) {
             this.connections = connections;
             inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
@@ -42,7 +43,7 @@ public class SavedConnectionsFragment extends Fragment {
         }
 
         @Override
-        public Connection getItem(int position) {
+        public SavedConnectionsDataSource.SavedConnection getItem(int position) {
             return connections.get(position);
         }
 
@@ -58,7 +59,7 @@ public class SavedConnectionsFragment extends Fragment {
                 view = inflater.inflate(R.layout.saved_connection, parent, false);
             }
 
-            Connection con = getItem(position);
+            Connection con = getItem(position).con;
             Stop dep = con.stops(0);
             Stop arr = con.stops(con.stopsLength() - 1);
 
@@ -80,6 +81,10 @@ public class SavedConnectionsFragment extends Fragment {
 
             ((TextView) view.findViewById(R.id.saved_connection_date))
                     .setText(TimeUtil.formatDate(dep.departure().time()));
+
+            view.findViewById(R.id.saved_connection_delete)
+                    .setOnClickListener(v -> Status.get().getSavedConnectionsDb()
+                            .delete(getItem(position).id));
 
             TransportViewCreator.addTransportViews(
                     JourneyUtil.getTransports(con), inflater,
@@ -120,7 +125,7 @@ public class SavedConnectionsFragment extends Fragment {
         View layout = inflater.inflate(R.layout.saved_overview, container, false);
         ListView listView = (ListView) layout.findViewById(R.id.saved_connection_list);
         listView.setOnItemClickListener((adapterView, view, pos, id) -> {
-            Status.get().setConnection(((ConnectionAdapter) listView.getAdapter()).getItem(pos));
+            Status.get().setConnection(((ConnectionAdapter) listView.getAdapter()).getItem(pos).con);
 
             Intent intent = new Intent(view.getContext(), DetailActivity.class);
             Bundle b = new Bundle();
@@ -129,7 +134,7 @@ public class SavedConnectionsFragment extends Fragment {
             view.getContext().startActivity(intent);
         });
         favs = Status.get().getSavedConnectionsDb().getSavedConnections()
-                .subscribe(new Subscriber<List<Connection>>() {
+                .subscribe(new Subscriber<List<SavedConnectionsDataSource.SavedConnection>>() {
                     @Override
                     public void onCompleted() {
                     }
@@ -139,7 +144,7 @@ public class SavedConnectionsFragment extends Fragment {
                     }
 
                     @Override
-                    public void onNext(List<Connection> connections) {
+                    public void onNext(List<SavedConnectionsDataSource.SavedConnection> connections) {
                         final ConnectionAdapter adapter = new ConnectionAdapter(context, connections);
                         getActivity().runOnUiThread(() -> listView.setAdapter(adapter));
                     }

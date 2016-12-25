@@ -44,6 +44,16 @@ public class SavedConnectionsDataSource {
         }
     }
 
+    public class SavedConnection {
+        final long id;
+        final Connection con;
+
+        public SavedConnection(long id, Connection con) {
+            this.id = id;
+            this.con = con;
+        }
+    }
+
     private final Table dbHelper;
     private final SqlBrite sqlBrite;
     private final BriteDatabase db;
@@ -73,11 +83,13 @@ public class SavedConnectionsDataSource {
         db.executeInsert(Table.TABLE, s);
     }
 
-    public Observable<List<Connection>> getSavedConnections() {
+    public Observable<List<SavedConnection>> getSavedConnections() {
         return db
                 .createQuery(Table.TABLE, "SELECT * FROM " + Table.TABLE)
-                .mapToList(c -> Connection.getRootAsConnection(
-                        ByteBuffer.wrap(
-                                c.getBlob(c.getColumnIndex(Table.COL_DATA)))));
+                .mapToList(c -> {
+                    long id = c.getLong(c.getColumnIndex(Table.COL_ID));
+                    ByteBuffer conBuf = ByteBuffer.wrap(c.getBlob(c.getColumnIndex(Table.COL_DATA)));
+                    return new SavedConnection(id, Connection.getRootAsConnection(conBuf));
+                });
     }
 }

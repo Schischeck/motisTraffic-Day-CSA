@@ -8,6 +8,12 @@
               android:paddingRight="@dimen/activity_horizontal_margin"
               android:paddingTop="@dimen/activity_vertical_margin">
 
+    <ImageButton
+        android:id="@+id/saved_connection_delete"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
