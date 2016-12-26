@@ -6,11 +6,13 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.util.List;
@@ -84,9 +86,24 @@ public class SavedConnectionsFragment extends Fragment {
             ((TextView) view.findViewById(R.id.saved_connection_date))
                     .setText(TimeUtil.formatDate(dep.departure().time()));
 
-            view.findViewById(R.id.saved_connection_delete)
-                    .setOnClickListener(v -> Status.get().getSavedConnectionsDb()
-                            .delete(getItem(position).id));
+            view.findViewById(R.id.saved_connection_menu_btn)
+                    .setOnClickListener(menuBtn -> {
+                        PopupMenu popup = new PopupMenu(context, menuBtn);
+                        MenuInflater inflater = popup.getMenuInflater();
+                        inflater.inflate(R.menu.saved_connection_context, popup.getMenu());
+                        popup.setOnMenuItemClickListener(item -> {
+                            switch (item.getItemId()) {
+                                case R.id.delete_saved_connection:
+                                    Status.get().getSavedConnectionsDb()
+                                            .delete(getItem(position).id);
+                                    return true;
+                                default:
+                                    return false;
+                            }
+
+                        });
+                        popup.show();
+                    });
 
             TransportViewCreator.addTransportViews(
                     JourneyUtil.getTransports(con), inflater,
