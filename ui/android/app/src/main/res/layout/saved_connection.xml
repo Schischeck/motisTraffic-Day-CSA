@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TableRow
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="horizontal">
@@ -43,6 +43,10 @@
                         android:text="@string/from"
                         android:textStyle="bold" />
 
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent" />
+
                     <TextView
                         android:id="@+id/saved_connection_from"
                         android:layout_width="wrap_content"
@@ -52,13 +56,13 @@
                         android:maxLines="1"
                         android:paddingRight="20dp"
                         android:singleLine="true"/>
-                </TableRow>
+                </LinearLayout>
 
                 <Space
                     android:layout_width="match_parent"
                     android:layout_height="5dp" />
 
-                <TableRow
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -67,6 +71,10 @@
                         android:layout_height="wrap_content"
                         android:text="@string/nach"
                         android:textStyle="bold" />
+
+                    <Space
+                        android:layout_width="5dp"
+                        android:layout_height="match_parent" />
 
                     <TextView
                         android:id="@+id/saved_connection_to"
@@ -78,7 +86,7 @@
                         android:maxLines="1"
                         android:paddingRight="20dp"
                         android:singleLine="true" />
-                </TableRow>
+                </LinearLayout>
 
                 <Space
                     android:layout_width="match_parent"
