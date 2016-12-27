@@ -39,4 +39,10 @@
     <string name="connections">Verbindungen</string>
     <string name="connection_saved">Verbindung gespeichert</string>
     <string name="delete">Löschen</string>
+    <string name="duration">Dauer:</string>
+    <string name="date">Datum:</string>
+    <string name="arrival_short_colon">An:</string>
+    <string name="departure_short_colon">Ab:</string>
+    <string name="nach">Nach:</string>
+    <string name="from">Von:</string>
 </resources>
