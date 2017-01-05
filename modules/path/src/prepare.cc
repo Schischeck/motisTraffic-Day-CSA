@@ -5,6 +5,8 @@
 #include <valgrind/callgrind.h>
 
 #include "boost/filesystem.hpp"
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
@@ -35,27 +37,66 @@ using namespace motis::path;
 struct prepare_settings : public conf::simple_config {
   explicit prepare_settings(std::string const& schedule = "rohdaten",
                             std::string const& osm = "germany-latest.osm.pbf",
-                            std::string const& extent = "germany-latest.poly",
-                            std::string const& out = "pathdb",
                             std::string const& osrm = "osrm",
+                            std::string const& out = "pathdb",
+                            std::vector<std::string> const& filter = {},
                             bool stats_only = false)
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
-    string_param(extent_, extent, "extent", "/path/to/germany-latest.poly");
-    string_param(out_, out, "out", "/path/to/db");
     string_param(osrm_, osrm, "osrm", "path/to/osrm/files");
+    string_param(out_, out, "out", "/path/to/db");
+    multitoken_param(filter_, filter, "filter", "filter station sequences");
     bool_param(stats_only_, stats_only, "stats_only", "the state of 'out'");
   }
 
   std::string schedule_;
   std::string osm_;
-  std::string extent_;
-  std::string out_;
   std::string osrm_;
+  std::string out_;
+
+  std::vector<std::string> filter_;
 
   bool stats_only_;
 };
+
+void filter_sequences(std::vector<std::string> const& filters,
+                      std::vector<station_seq>& sequences) {
+  motis::logging::scoped_timer timer("filter station sequences");
+  for (auto const& filter : filters) {
+    std::vector<std::string> tokens;
+    boost::split(tokens, filter, boost::is_any_of(":"));
+    verify(tokens.size() == 2, "unexpected filter");
+
+    if (tokens[0] == "id") {
+      utl::erase_if(sequences, [&tokens](auto const& seq) {
+        return std::none_of(
+            begin(seq.station_ids_), end(seq.station_ids_),
+            [&tokens](auto const& id) { return id == tokens[1]; });
+      });
+    } else if (tokens[0] == "seq") {
+      std::vector<std::string> ids;
+      boost::split(ids, tokens[1], boost::is_any_of("."));
+      utl::erase_if(sequences, [&ids](auto const& seq) {
+        return ids == seq.station_ids_;
+      });
+    } else if (tokens[0] == "extent") {
+      verify(fs::is_regular_file(tokens[1]), "cannot find extent polygon");
+      auto const extent_polygon = geo::read_poly_file(tokens[1]);
+      utl::erase_if(sequences, [&](auto const& seq) {
+        return std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
+                           [&](auto const& coord) {
+                             return !geo::within(coord, extent_polygon);
+                           });
+      });
+    } else if (tokens[0] == "limit") {
+      size_t const count = std::stoul(tokens[1]);
+      sequences.resize(std::min(count, sequences.size()));
+    } else {
+      LOG(motis::logging::info) << "unknown filter: " << tokens[0];
+    }
+  }
+}
 
 int main(int argc, char** argv) {
   prepare_settings opt;
@@ -83,7 +124,6 @@ int main(int argc, char** argv) {
   if (!opt.stats_only_) {
     verify(fs::is_regular_file(opt.osrm_), "cannot find osrm dataset");
     verify(fs::is_regular_file(opt.osm_), "cannot find osm dataset");
-    verify(fs::is_regular_file(opt.extent_), "cannot find extent polygon");
 
     // std::map<std::string, std::vector<geo::latlng>> stop_positions;
     std::vector<station_seq> sequences;
@@ -93,41 +133,14 @@ int main(int argc, char** argv) {
       sequences = sched.load_station_sequences();
     }
 
-    {
-      motis::logging::scoped_timer timer("apply extent polygon");
-      auto const size_before = sequences.size();
-      auto const extent_polygon = geo::read_poly_file(opt.extent_);
-      utl::erase_if(sequences, [&](auto const& seq) {
-        return std::any_of(begin(seq.coordinates_), end(seq.coordinates_),
-                           [&](auto const& coord) {
-                             return !geo::within(coord, extent_polygon);
-                           });
-      });
-      std::cout << size_before - sequences.size() << " sequences removed\n";
-    }
+    filter_sequences(opt.filter_, sequences);
+    LOG(motis::logging::info) << "station sequences: " << sequences.size();
 
     auto routing = make_path_routing(opt.osm_, opt.osrm_);
     db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
-    // XXX debugging
-    std::vector<station_seq> debug_seq;
-    for (auto const seq : sequences) {
-      // if (std::find(begin(seq.station_ids_), end(seq.station_ids_),
-      // "0104736")
-      // !=
-      if (std::find(begin(seq.station_ids_), end(seq.station_ids_),
-                    "8000068") != end(seq.station_ids_)) {
-        debug_seq.push_back(seq);
-        // break;
-
-        // if (debug_seq.size() >= 10) {
-        //   break;
-        // }
-      }
-    }
-
     CALLGRIND_START_INSTRUMENTATION;
-    resolve_sequences(debug_seq, routing, builder);
+    resolve_sequences(sequences, routing, builder);
     CALLGRIND_STOP_INSTRUMENTATION;
     CALLGRIND_DUMP_STATS;
 
@@ -136,4 +149,5 @@ int main(int argc, char** argv) {
 
   auto const db = std::make_unique<rocksdb_database>(opt.out_);
   dump_db_statistics(*db);
+  std::cout << std::endl;
 }
