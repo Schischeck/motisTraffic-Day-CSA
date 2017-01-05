@@ -5,11 +5,12 @@ import Date exposing (Date)
 import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
 import Data.Connection.Types exposing (Position)
-import Data.RailViz.Types exposing (RailVizTrainsRequest)
+import Data.RailViz.Types exposing (RailVizTrainsRequest, RailVizTripsRequest)
+import Data.Lookup.Request exposing (encodeTripId)
 
 
-encodeRequest : RailVizTrainsRequest -> Encode.Value
-encodeRequest request =
+encodeTrainsRequest : RailVizTrainsRequest -> Encode.Value
+encodeTrainsRequest request =
     Encode.object
         [ "destination"
             => Encode.object
@@ -25,6 +26,21 @@ encodeRequest request =
                 , "end_time" => encodeDate request.endTime
                 , "max_trains" => Encode.int request.maxTrains
                 ]
+        ]
+
+
+encodeTripsRequest : RailVizTripsRequest -> Encode.Value
+encodeTripsRequest request =
+    Encode.object
+        [ "destination"
+            => Encode.object
+                [ "type" => Encode.string "Module"
+                , "target" => Encode.string "/railviz/get_trips"
+                ]
+        , "content_type" => Encode.string "RailVizTripsRequest"
+        , "content"
+            => Encode.object
+                [ "trips" => Encode.list (List.map encodeTripId request.trips) ]
         ]
 
 

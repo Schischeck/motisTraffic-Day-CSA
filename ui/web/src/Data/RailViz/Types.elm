@@ -13,6 +13,10 @@ type alias RailVizTrainsRequest =
     }
 
 
+type alias RailVizTripsRequest =
+    { trips : List TripId }
+
+
 type alias RailVizTrainsResponse =
     { trains : List RailVizTrain
     , routes : List RailVizRoute
