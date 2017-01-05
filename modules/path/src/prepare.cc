@@ -2,7 +2,7 @@
 #include <map>
 #include <memory>
 
-#include <valgrind/callgrind.h>
+// #include <valgrind/callgrind.h>
 
 #include "boost/filesystem.hpp"
 #include <boost/algorithm/string/classification.hpp>
@@ -139,10 +139,10 @@ int main(int argc, char** argv) {
     auto routing = make_path_routing(opt.osm_, opt.osrm_);
     db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
-    CALLGRIND_START_INSTRUMENTATION;
+    // CALLGRIND_START_INSTRUMENTATION;
     resolve_sequences(sequences, routing, builder);
-    CALLGRIND_STOP_INSTRUMENTATION;
-    CALLGRIND_DUMP_STATS;
+    // CALLGRIND_STOP_INSTRUMENTATION;
+    // CALLGRIND_DUMP_STATS;
 
     builder.finish();
   }
