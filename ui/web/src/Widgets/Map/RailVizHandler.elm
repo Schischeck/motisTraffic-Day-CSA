@@ -11,9 +11,10 @@ import Data.Connection.Types exposing (Station, Position, TripId)
 import Date exposing (Date)
 import List.Extra
 import Util.List exposing ((!!))
+import WebGL exposing (..)
 
 
-handleRailVizTrainsResponse : RailVizTrainsResponse -> Model -> Model
+handleRailVizTrainsResponse : RailVizTrainsResponse -> Model -> RVData
 handleRailVizTrainsResponse response model =
     let
         rvStations =
@@ -73,18 +74,14 @@ handleRailVizTrainsResponse response model =
             response.trains
                 |> List.indexedMap tryBuildTrain
                 |> List.filterMap identity
-
-        filteredTrains =
-            applyFilter model.filterTrips allTrains
-
-        model_ =
-            { model
-                | allTrains = allTrains
-                , filteredTrains = filteredTrains
-                , stations = rvStations
-            }
     in
-        initStaticDrawables model_ response.routes
+        initStaticDrawables
+            { trains = allTrains
+            , stations = rvStations
+            , stationsDrawable = Points []
+            , routesDrawable = Lines []
+            }
+            response.routes
 
 
 convertSegment : RailVizSegment -> List ( Vec2, Float )
@@ -152,9 +149,9 @@ toRVStation index station =
         }
 
 
-initStaticDrawables : Model -> List RailVizRoute -> Model
-initStaticDrawables model routes =
-    { model
-        | stationsDrawable = Stations.mesh model.stations
+initStaticDrawables : RVData -> List RailVizRoute -> RVData
+initStaticDrawables data routes =
+    { data
+        | stationsDrawable = Stations.mesh data.stations
         , routesDrawable = Routes.mesh routes
     }

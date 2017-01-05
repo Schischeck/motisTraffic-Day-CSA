@@ -63,26 +63,26 @@ init remoteAddress =
     , systemTime = 0
     , timeOffset = 0
     , remoteAddress = remoteAddress
-    , allTrains = []
-    , filteredTrains = []
-    , filterTrips = Nothing
-    , stations = []
+    , fullData =
+        { trains = []
+        , stations = []
+        , stationsDrawable = Points []
+        , routesDrawable = Lines []
+        }
+    , filteredData = Nothing
     , hoveredPickId = Nothing
     , nextUpdate = Nothing
     , debounce = Debounce.init
     , mouseX = 0
     , mouseY = 0
-    , zoomOverride = Nothing
-    , stationsDrawable = Points []
-    , routesDrawable = Lines []
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
           ]
 
 
-filteredZoomOverride : number
-filteredZoomOverride =
+filteredZoomMin : number
+filteredZoomMin =
     13
 
 
@@ -100,8 +100,10 @@ type Msg
     | MouseDown Port.MapMouseUpdate
     | MouseUp Port.MapMouseUpdate
     | MouseOut Port.MapMouseUpdate
-    | ReceiveResponse RailVizTrainsRequest RailVizTrainsResponse
-    | ReceiveError RailVizTrainsRequest ApiError
+    | TrainsReceiveResponse RailVizTrainsRequest RailVizTrainsResponse
+    | TrainsReceiveError RailVizTrainsRequest ApiError
+    | TripsReceiveResponse RailVizTripsRequest RailVizTrainsResponse
+    | TripsReceiveError RailVizTripsRequest ApiError
     | CheckUpdate Time
     | RequestUpdate
     | Deb (Debounce.Msg Msg)
@@ -117,16 +119,33 @@ update msg model =
             let
                 simTime =
                     t + model.timeOffset
+
+                model_ =
+                    { model
+                        | systemTime = t
+                        , time = simTime
+                    }
+
+                updateData data =
+                    { data
+                        | trains =
+                            List.map
+                                (Trains.updateCurrentSubSegment simTime)
+                                data.trains
+                    }
             in
-                { model
-                    | systemTime = t
-                    , time = simTime
-                    , filteredTrains =
-                        List.map
-                            (Trains.updateCurrentSubSegment simTime)
-                            model.filteredTrains
-                }
-                    ! []
+                case model_.filteredData of
+                    Just data ->
+                        { model_
+                            | filteredData = Just (updateData data)
+                        }
+                            ! []
+
+                    Nothing ->
+                        { model_
+                            | fullData = updateData model_.fullData
+                        }
+                            ! []
 
         MapLoaded _ ->
             model
@@ -191,26 +210,39 @@ update msg model =
         MouseOut mapMouseUpdate ->
             handleMapMouseUpdate mapMouseUpdate model
 
-        ReceiveResponse request response ->
+        TrainsReceiveResponse request response ->
             let
                 _ =
-                    Debug.log "RailViz response"
-                        ((toString (List.length response.trains))
-                            ++ " trains, "
-                            ++ (toString (List.length response.routes))
-                            ++ " routes, "
-                            ++ (toString (List.length response.stations))
-                            ++ " stations"
-                        )
-            in
-                (handleRailVizTrainsResponse response model) ! []
+                    Debug.log "RailViz Trains response" (responseDebugMsg response)
 
-        ReceiveError request msg_ ->
+                data =
+                    handleRailVizTrainsResponse response model
+            in
+                { model | fullData = data } ! []
+
+        TrainsReceiveError request msg_ ->
             let
                 _ =
-                    Debug.log "RailViz error" msg_
+                    Debug.log "RailViz Trains error" msg_
             in
                 model ! []
+
+        TripsReceiveResponse request response ->
+            let
+                _ =
+                    Debug.log "RailViz Trips response" (responseDebugMsg response)
+
+                data =
+                    handleRailVizTrainsResponse response model
+            in
+                update (Animate model.time) { model | filteredData = Just data }
+
+        TripsReceiveError request msg_ ->
+            let
+                _ =
+                    Debug.log "RailViz Trips error" msg_
+            in
+                { model | filteredData = Nothing } ! []
 
         CheckUpdate time ->
             case model.nextUpdate of
@@ -230,15 +262,18 @@ update msg model =
             Debounce.update debounceCfg a model
 
         SetFilter filterTrips ->
-            let
-                model_ =
+            case filterTrips of
+                Just trips ->
                     { model
-                        | filterTrips = filterTrips
-                        , filteredTrains = applyFilter filterTrips model.allTrains
-                        , zoomOverride = Maybe.map (always filteredZoomOverride) filterTrips
+                        | filteredData = Just (applyFilter trips model.fullData)
                     }
-            in
-                update (Animate model.time) model_
+                        ! [ sendTripsRequest
+                                model.remoteAddress
+                                { trips = trips }
+                          ]
+
+                Nothing ->
+                    update (Animate model.time) { model | filteredData = Nothing }
 
         SetTime time ->
             { model
@@ -367,12 +402,17 @@ railVizOverlay model =
 
             Just ( trainTexture, stationTexture ) ->
                 let
+                    data =
+                        getData model
+
                     trainsBuffer =
-                        Trains.mesh model.time model.filteredTrains
+                        Trains.mesh model.time data.trains
 
                     zoom =
-                        model.zoomOverride
-                            |> Maybe.withDefault model.mapInfo.zoom
+                        if isJust model.filteredData then
+                            max filteredZoomMin model.mapInfo.zoom
+                        else
+                            model.mapInfo.zoom
 
                     persp =
                         perspective model
@@ -389,7 +429,7 @@ railVizOverlay model =
                         , render
                             Stations.vertexShader
                             Stations.fragmentShader
-                            model.stationsDrawable
+                            data.stationsDrawable
                             { uTexture = stationTexture
                             , uPerspective = persp
                             , uZoom = zoom
@@ -397,7 +437,7 @@ railVizOverlay model =
                         , render
                             Routes.vertexShader
                             Routes.fragmentShader
-                            model.routesDrawable
+                            data.routesDrawable
                             { uPerspective = persp
                             , uZoom = zoom
                             , uColor = Routes.lineColor
@@ -416,7 +456,7 @@ railVizOverlay model =
                         , render
                             Stations.offscreenVertexShader
                             Stations.offscreenFragmentShader
-                            model.stationsDrawable
+                            data.stationsDrawable
                             { uTexture = stationTexture
                             , uPerspective = persp
                             , uZoom = zoom
@@ -627,7 +667,7 @@ sendTrainRequest model =
             model.mapInfo.railVizBounds
     in
         { model | nextUpdate = nextUpdate }
-            ! [ sendRequest model.remoteAddress
+            ! [ sendTrainsRequest model.remoteAddress
                     { corner1 =
                         { lat = bounds.north
                         , lng = bounds.west
@@ -643,11 +683,31 @@ sendTrainRequest model =
               ]
 
 
-sendRequest : String -> RailVizTrainsRequest -> Cmd Msg
-sendRequest remoteAddress request =
+sendTrainsRequest : String -> RailVizTrainsRequest -> Cmd Msg
+sendTrainsRequest remoteAddress request =
     Api.sendRequest
         remoteAddress
         decodeRailVizTrainsResponse
-        (ReceiveError request)
-        (ReceiveResponse request)
-        (Data.RailViz.Request.encodeRequest request)
+        (TrainsReceiveError request)
+        (TrainsReceiveResponse request)
+        (Data.RailViz.Request.encodeTrainsRequest request)
+
+
+sendTripsRequest : String -> RailVizTripsRequest -> Cmd Msg
+sendTripsRequest remoteAddress request =
+    Api.sendRequest
+        remoteAddress
+        decodeRailVizTrainsResponse
+        (TripsReceiveError request)
+        (TripsReceiveResponse request)
+        (Data.RailViz.Request.encodeTripsRequest request)
+
+
+responseDebugMsg : RailVizTrainsResponse -> String
+responseDebugMsg response =
+    (toString (List.length response.trains))
+        ++ " trains, "
+        ++ (toString (List.length response.routes))
+        ++ " routes, "
+        ++ (toString (List.length response.stations))
+        ++ " stations"

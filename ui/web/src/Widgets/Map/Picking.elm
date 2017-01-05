@@ -45,10 +45,10 @@ stationPickIdBase =
 getHoveredTrain : Model -> Maybe RVTrain
 getHoveredTrain model =
     model.hoveredPickId
-        |> Maybe.andThen (\pickId -> model.allTrains !! pickId)
+        |> Maybe.andThen (\pickId -> (getTrains model) !! pickId)
 
 
 getHoveredStation : Model -> Maybe RVStation
 getHoveredStation model =
     model.hoveredPickId
-        |> Maybe.andThen (\pickId -> model.stations !! (pickId - stationPickIdBase))
+        |> Maybe.andThen (\pickId -> (getStations model) !! (pickId - stationPickIdBase))

@@ -838,7 +838,9 @@ selectConnection model idx =
                         , selectedConnectionIdx = Just idx
                         , selectedTripIdx = Nothing
                     }
-                        ! [ MapConnectionOverlay.showOverlay model.locale j ]
+                        ! [ MapConnectionOverlay.showOverlay model.locale j
+                          , cmds
+                          ]
 
             Nothing ->
                 update (ReplaceLocation Connections) model

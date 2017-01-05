@@ -16,16 +16,19 @@ type alias Model =
     , systemTime : Time
     , timeOffset : Float
     , remoteAddress : String
-    , allTrains : List RVTrain
-    , filteredTrains : List RVTrain
-    , filterTrips : Maybe (List TripId)
-    , stations : List RVStation
+    , fullData : RVData
+    , filteredData : Maybe RVData
     , hoveredPickId : Maybe Int
     , nextUpdate : Maybe Time
     , debounce : Debounce.State
     , mouseX : Int
     , mouseY : Int
-    , zoomOverride : Maybe Float
+    }
+
+
+type alias RVData =
+    { trains : List RVTrain
+    , stations : List RVStation
     , stationsDrawable : WebGL.Drawable StationVertex
     , routesDrawable : WebGL.Drawable RouteVertex
     }
@@ -84,15 +87,28 @@ type alias RouteVertex =
     { aCoords : Vec2 }
 
 
-applyFilter : Maybe (List TripId) -> List RVTrain -> List RVTrain
-applyFilter filterTrips allTrains =
-    case filterTrips of
-        Just trips ->
-            let
-                isFiltered train =
-                    List.any (\trip -> List.member trip trips) train.trips
-            in
-                List.filter isFiltered allTrains
+getData : Model -> RVData
+getData model =
+    Maybe.withDefault model.fullData model.filteredData
 
-        Nothing ->
-            allTrains
+
+getTrains : Model -> List RVTrain
+getTrains =
+    getData >> .trains
+
+
+getStations : Model -> List RVStation
+getStations =
+    getData >> .stations
+
+
+applyFilter : List TripId -> RVData -> RVData
+applyFilter trips data =
+    let
+        isFiltered train =
+            List.any (\trip -> List.member trip trips) train.trips
+
+        filteredTrains =
+            List.filter isFiltered data.trains
+    in
+        { data | trains = filteredTrains }
