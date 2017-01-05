@@ -77,9 +77,12 @@ void dump_db_statistics(kv_database const& db) {
     }
   });
   auto not_unknown = 0;
+  std::vector<int> exclude_class = {9, 6, 7};
+
   for (auto const& seq : result) {
     for (auto const& path : seq.second) {
-      if (path.first != 9) {
+      if (std::find(begin(exclude_class), end(exclude_class), path.first) ==
+          end(exclude_class)) {
         not_unknown++;
         for (auto i = 0u; i < path.second.size(); ++i) {
           if (i == path.second.size() - 1) {
