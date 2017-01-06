@@ -12,8 +12,8 @@ struct rocksdb_database : public kv_database {
   ~rocksdb_database() override;
 
   void put(std::string const& k, std::string const& v) override;
-  std::string get(std::string const& k) override;
-  boost::optional<std::string> try_get(std::string const& k) override;
+  std::string get(std::string const& k) const override;
+  boost::optional<std::string> try_get(std::string const& k) const override;
 
 private:
   struct impl;

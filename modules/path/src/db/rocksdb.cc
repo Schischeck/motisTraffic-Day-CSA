@@ -31,7 +31,7 @@ struct rocksdb_database::impl {
     }
   }
 
-  std::string get(std::string const& k) {
+  std::string get(std::string const& k) const {
     auto v = try_get(k);
 
     if (!v) {
@@ -41,7 +41,7 @@ struct rocksdb_database::impl {
     return *v;
   }
 
-  boost::optional<std::string> try_get(std::string const& k) {
+  boost::optional<std::string> try_get(std::string const& k) const {
     std::string v;
     Status s = db_->Get(ReadOptions(), k, &v);
 
@@ -65,11 +65,12 @@ void rocksdb_database::put(std::string const& k, std::string const& v) {
   impl_->put(k, v);
 }
 
-std::string rocksdb_database::get(std::string const& k) {
+std::string rocksdb_database::get(std::string const& k) const {
   return impl_->get(k);
 }
 
-boost::optional<std::string> rocksdb_database::try_get(std::string const& k) {
+boost::optional<std::string> rocksdb_database::try_get(
+    std::string const& k) const {
   return impl_->try_get(k);
 }
 
