@@ -3,7 +3,7 @@
 #include <chrono>
 #include <iomanip>
 #include <mutex>
-#include <stack>
+#include <numeric>
 
 #include "utl/erase_if.h"
 #include "utl/repeat_n.h"

@@ -14,12 +14,12 @@ struct map_database : public kv_database {
     db_.emplace(k, v);
   }
 
-  std::string get(std::string const& k) override {
+  std::string get(std::string const& k) const override {
     auto const& it = db_.find(k);
     return (it != end(db_)) ? it->second : "";
   }
 
-  boost::optional<std::string> try_get(std::string const& k) override {
+  boost::optional<std::string> try_get(std::string const& k) const override {
     auto const& it = db_.find(k);
     return (it != end(db_)) ? it->second : boost::optional<std::string>{};
   }

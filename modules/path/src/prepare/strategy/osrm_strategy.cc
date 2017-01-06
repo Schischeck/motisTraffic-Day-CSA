@@ -28,35 +28,50 @@ namespace motis {
 namespace path {
 
 struct osrm_strategy::impl {
-  impl(strategy_id_t const strategy_id, std::string const& path)
+  impl(strategy_id_t const strategy_id, , std::vector<station> const& stations,
+       std::string const& path)
       : strategy_id_(strategy_id), ref_counter_{0} {
     EngineConfig config;
     config.storage_config = {path};
     config.use_shared_memory = false;
 
     osrm_ = std::make_unique<OSRM>(config);
+
+    stations_to_coords_.set_empty_key("");
+    for (auto const& station : stations) {
+      NearestParameters params;
+      params.number_of_results = 3;
+      params.coordinates.push_back(make_coord(station.pos_));
+
+      Object result;
+      auto const status = osrm_->Nearest(params, result);
+
+      std::vector<geo::latlng> coords;
+      if (status == Status::Ok) {
+        coords = utl::to_vec(
+            result.values["waypoints"].get<Array>().values,
+            [&](Value const& wp) -> geo::latlng {
+              auto const& obj = wp.get<Object>();
+              auto const& loc = obj.values.at("location").get<Array>().values;
+              return {loc[1].get<Number>().value, loc[0].get<Number>().value};
+            });
+      }
+
+      stations_to_refs_[station.id_] =
+          utl::to_vec(coords, [&](auto const& coord) {
+            coord_mem_.emplace_back(coord);
+            return coord_mem_.size() - 1;
+          });
+    }
   }
 
-  std::vector<node_ref> close_nodes(geo::latlng const& latlng) {
-    NearestParameters params;
-    params.number_of_results = 3;
-    params.coordinates.push_back(make_coord(latlng));
+  std::vector<node_ref> close_nodes(std::string const& station_id) const {
+    auto const it = stations_to_refs_.find(station_id);
+    verify(it != end(stations_to_refs_), "osrm: unknown ref!");
 
-    Object result;
-    auto const status = osrm_->Nearest(params, result);
-    if (status != Status::Ok) {
-      return {};
-    }
-
-    return utl::to_vec(
-        result.values["waypoints"].get<Array>().values,
-        [&](Value const& wp) -> node_ref {
-          auto const& obj = wp.get<Object>();
-          auto const& loc = obj.values.at("location").get<Array>().values;
-          return {{loc[1].get<Number>().value, loc[0].get<Number>().value},
-                  node_ref_id{++ref_counter_},  // TODO
-                  strategy_id_};
-        });
+    return utl::to_vec(it->second, [&](auto const& idx) -> node_ref {
+      return {strategy_id_, idx, node_refs_[idx]};
+    });
   }
 
   bool can_route(node_ref const& ref) const {
@@ -65,10 +80,11 @@ struct osrm_strategy::impl {
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
-    auto const to_coords = utl::to_vec(to, [](auto&& t) { return t.coords_; });
+    auto const to_coords =
+        utl::to_vec(to, [](auto const& t) { return coord_mem_[t.id_]; });
 
     return utl::to_vec(from, [&](auto const& f) {
-      return utl::to_vec(one_to_many(f.coords_, to_coords),
+      return utl::to_vec(one_to_many(coord_mem_[f.id_], to_coords),
                          [&](auto const& cost) {
                            source_spec s{0, source_spec::category::BUS,
                                          source_spec::type::OSRM_ROUTE};
@@ -110,8 +126,8 @@ struct osrm_strategy::impl {
     params.geometries = RouteParameters::GeometriesType::CoordVec1D;
     params.overview = RouteParameters::OverviewType::Full;
 
-    params.coordinates.push_back(make_coord(from.coords_));
-    params.coordinates.push_back(make_coord(to.coords_));
+    params.coordinates.push_back(make_coord(coord_mem_[from.id_]));
+    params.coordinates.push_back(make_coord(coord_mem_[to.id_]));
 
     Object result;
     auto const status = osrm_->Route(params, result);
@@ -141,15 +157,21 @@ struct osrm_strategy::impl {
 
   std::unique_ptr<OSRM> osrm_;
   strategy_id_t strategy_id_;
-  std::atomic<std::uint32_t> ref_counter_;  // TODO
+
+  std::vector<geo::latlng> coord_mem_;
+  hash_map<std::string, std::vector<size_t>> stations_to_coords_;
 };
 
-osrm_strategy::osrm_strategy(strategy_id_t strategy_id, std::string const& path)
+osrm_strategy::osrm_strategy(strategy_id_t strategy_id, ,
+                             std::vector<station> const& stations,
+                             std::string const& osrm_path)
     : routing_strategy(strategy_id),
-      impl_(std::make_unique<osrm_strategy::impl>(strategy_id, path)) {}
+      impl_(std::make_unique<osrm_strategy::impl>(strategy_id, stations,
+                                                  osrm_path)) {}
 osrm_strategy::~osrm_strategy() = default;
 
-std::vector<node_ref> osrm_strategy::close_nodes(geo::latlng const& latlng) {
+std::vector<node_ref> osrm_strategy::close_nodes(
+    geo::latlng const& latlng) const {
   return impl_->close_nodes(latlng);
 }
 
@@ -158,7 +180,7 @@ bool osrm_strategy::can_route(node_ref const& ref) const {
 }
 
 std::vector<std::vector<routing_result>> osrm_strategy::find_routes(
-    std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
+    std::vector<node_ref> const& from, std::vector<node_ref> const& to) const {
   return impl_->find_routes(from, to);
 }
 
