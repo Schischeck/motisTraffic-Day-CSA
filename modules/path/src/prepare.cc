@@ -25,6 +25,7 @@
 #include "motis/path/prepare/resolve_sequences.h"
 #include "motis/path/prepare/schedule/bus_stop_positions.h"
 #include "motis/path/prepare/schedule/schedule_wrapper.h"
+#include "motis/path/prepare/schedule/stations.h"
 
 #include "version.h"
 
@@ -132,11 +133,12 @@ int main(int argc, char** argv) {
       // stop_positions = sched.find_bus_stop_positions(opt.osm_);
       sequences = sched.load_station_sequences();
     }
+    auto const stations = all_stations(sequences);
 
     filter_sequences(opt.filter_, sequences);
     LOG(motis::logging::info) << "station sequences: " << sequences.size();
 
-    auto routing = make_path_routing(opt.osm_, opt.osrm_);
+    auto routing = make_path_routing(stations, opt.osm_, opt.osrm_);
     db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
 
     // CALLGRIND_START_INSTRUMENTATION;

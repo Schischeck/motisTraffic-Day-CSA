@@ -41,9 +41,9 @@ std::vector<routing_strategy*> path_routing::strategies_for(
   // always relations first
   result.push_back(strategies_->relation_strategy_.get());
 
-  if (cat == source_spec::category::RAILWAY) {
-    result.push_back(strategies_->rail_strategy_.get());
-  }
+  // if (cat == source_spec::category::RAILWAY) {
+  //   result.push_back(strategies_->rail_strategy_.get());
+  // }
 
   if (cat == source_spec::category::BUS) {
     result.push_back(strategies_->osrm_strategy_.get());
@@ -56,7 +56,8 @@ std::vector<routing_strategy*> path_routing::strategies_for(
 }
 
 std::unique_ptr<relation_strategy> load_relation_strategy(
-    strategy_id_t const id, std::string const& osm_path) {
+    strategy_id_t const id, std::vector<station> const& stations,
+    std::string const& osm_path) {
   std::string cache_file{"polylines.path.cache.raw"};
 
   std::vector<aggregated_polyline> polylines;
@@ -70,11 +71,13 @@ std::unique_ptr<relation_strategy> load_relation_strategy(
     store_relation_polylines(cache_file, polylines);
   }
 
-  return std::make_unique<relation_strategy>(id, std::move(polylines));
+  return std::make_unique<relation_strategy>(id, stations,
+                                             std::move(polylines));
 }
 
-std::unique_ptr<rail_strategy> load_rail_strategy(strategy_id_t const id,
-                                                  std::string const& osm_path) {
+std::unique_ptr<rail_strategy> load_rail_strategy(
+    strategy_id_t const id, std::vector<station> const& stations,
+    std::string const& osm_path) {
   std::string cache_file{"rail.path.cache.raw"};
 
   rail_graph graph;
@@ -87,20 +90,25 @@ std::unique_ptr<rail_strategy> load_rail_strategy(strategy_id_t const id,
     store_rail_graph(cache_file, graph);
   }
 
-  return std::make_unique<rail_strategy>(id, std::move(graph));
+  print_rail_graph_stats(graph);
+
+  return std::make_unique<rail_strategy>(id, stations, std::move(graph));
 }
 
-path_routing make_path_routing(std::string const& osm_path,
+path_routing make_path_routing(std::vector<station> const& stations,
+                               std::string const& osm_path,
                                std::string const& osrm_path) {
   path_routing r;
 
   strategy_id_t id = 0;
 
   r.strategies_->osrm_strategy_ =
-      std::make_unique<osrm_strategy>(id++, osrm_path);
-  r.strategies_->rail_strategy_ = load_rail_strategy(id++, osm_path);
-  r.strategies_->relation_strategy_ = load_relation_strategy(id++, osm_path);
-  r.strategies_->stub_strategy_ = std::make_unique<stub_strategy>(id++);
+      std::make_unique<osrm_strategy>(id++, stations, osrm_path);
+  r.strategies_->rail_strategy_ = load_rail_strategy(id++, stations, osm_path);
+  r.strategies_->relation_strategy_ =
+      load_relation_strategy(id++, stations, osm_path);
+  r.strategies_->stub_strategy_ =
+      std::make_unique<stub_strategy>(id++, stations);
 
   return r;
 }

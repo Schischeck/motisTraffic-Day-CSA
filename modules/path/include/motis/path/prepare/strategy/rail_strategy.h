@@ -18,7 +18,8 @@ namespace path {
 struct rail_strategy : public routing_strategy {
   static constexpr auto kMatchRadius = 200;
 
-  explicit rail_strategy(strategy_id_t const id, rail_graph graph)
+  explicit rail_strategy(strategy_id_t const id,
+                         std::vector<station> const& stations, rail_graph graph)
       : routing_strategy(id), graph_(std::move(graph)) {
     for (auto i = 0u; i < graph_.nodes_.size(); ++i) {
       refs_.emplace_back(graph_.nodes_[i]->pos_, node_ref_id{i}, strategy_id());
@@ -29,9 +30,12 @@ struct rail_strategy : public routing_strategy {
 
   ~rail_strategy() = default;
 
-  std::vector<node_ref> close_nodes(geo::latlng const& latlng) override {
-    return utl::to_vec(rtree_.in_radius(latlng, kMatchRadius),
-                       [&](auto const& idx) { return refs_[idx]; });
+  std::vector<node_ref> close_nodes(
+      std::string const& station_id) const override {
+    // return utl::to_vec(rtree_.in_radius(latlng, kMatchRadius),
+    //                    [&](auto const& idx) { return refs_[idx]; });
+
+    return {}
   }
 
   bool can_route(node_ref const& ref) const override {
@@ -40,7 +44,7 @@ struct rail_strategy : public routing_strategy {
 
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from,
-      std::vector<node_ref> const& to) override {
+      std::vector<node_ref> const& to) const override {
     auto const to_ids = utl::to_vec(to, [](auto&& t) { return t.id_.id_; });
     return utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(

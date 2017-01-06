@@ -15,57 +15,42 @@ namespace path {
 
 using strategy_id_t = size_t;
 constexpr auto kInvalidStrategyId = std::numeric_limits<strategy_id_t>::max();
-
-struct node_ref_id {
-  node_ref_id() = default;
-  node_ref_id(uint32_t id) : id_(id) {}
-  node_ref_id(uint32_t relation_id, uint32_t id)
-      : relation_id_(relation_id), id_(id) {}
-
-  friend bool operator==(node_ref_id const& a, node_ref_id const& b) {
-    return std::tie(a.relation_id_, a.id_) == std::tie(b.relation_id_, b.id_);
-  }
-
-  uint64_t relation_id_ : 32;
-  uint64_t id_ : 32;
-};
+using node_ref_id_t = size_t;
 
 struct node_ref {
   node_ref() = default;
-  node_ref(geo::latlng coords, node_ref_id id, strategy_id_t strategy_id)
-      : coords_(coords), id_(id), strategy_id_(strategy_id) {}
+  node_ref(strategy_id_t const strategy_id, node_ref_id_t const id,
+           geo::latlng const coords)
+      : strategy_id_(strategy_id), id_(id), coords_(coords) {}
 
   strategy_id_t strategy_id() const { return strategy_id_; };
 
   friend bool operator==(node_ref const& a, node_ref const& b) {
-    return std::tie(a.coords_, a.id_, a.strategy_id_) ==
-           std::tie(b.coords_, b.id_, b.strategy_id_);
+    return std::tie(a.id_, a.strategy_id_, a.coords_) ==
+           std::tie(b.id_, b.strategy_id_, b.coords_);
   }
 
-  geo::latlng coords_;
-  node_ref_id id_;
   strategy_id_t strategy_id_;
+  node_ref_id_t id_;
+
+  geo::latlng coords_;
 };
 
 struct routing_result {
   routing_result()
-      : source_(),
-        strategy_id_(kInvalidStrategyId),
-        weight_(std::numeric_limits<double>::infinity()),
-        valid_(false) {}
+      : strategy_id_(kInvalidStrategyId),
+        source_(),
+        weight_(std::numeric_limits<double>::infinity()) {}
 
-  routing_result(source_spec source, size_t strategy_id, double weight)
-      : source_(source),
-        strategy_id_(strategy_id),
-        weight_(weight),
-        valid_(true) {}
+  routing_result(size_t strategy_id, source_spec source, double weight)
+      : strategy_id_(strategy_id), source_(source), weight_(weight) {}
 
-  strategy_id_t strategy_id() const { return strategy_id_; };
+  strategy_id_t strategy_id() const { return strategy_id_; }
+  bool is_valid() const { return strategy_id_ != kInvalidStrategyId; }
 
-  source_spec source_;
   strategy_id_t strategy_id_;
+  source_spec source_;
   double weight_;
-  bool valid_;
 };
 
 struct routing_strategy {
@@ -73,11 +58,13 @@ struct routing_strategy {
       : strategy_id_(strategy_id) {}
   virtual ~routing_strategy() = default;
 
-  virtual std::vector<node_ref> close_nodes(geo::latlng const&) = 0;
+  virtual std::vector<node_ref> close_nodes(
+      std::string const& station_id) const = 0;
 
   virtual bool can_route(node_ref const&) const = 0;
   virtual std::vector<std::vector<routing_result>> find_routes(
-      std::vector<node_ref> const& from, std::vector<node_ref> const& to) = 0;
+      std::vector<node_ref> const& from,
+      std::vector<node_ref> const& to) const = 0;
 
   virtual geo::polyline get_polyline(node_ref const& from,
                                      node_ref const& to) const = 0;
