@@ -3,13 +3,16 @@
 #include <algorithm>
 #include <map>
 
+#include "parser/util.h"
+
+#include "utl/concat.h"
+#include "utl/erase_duplicates.h"
 #include "utl/to_vec.h"
 
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/logging.h"
 
 #include "motis/path/prepare/osm_util.h"
-#include "motis/path/prepare/rail/geojson.h"
 
 using namespace motis::logging;
 using namespace geo;
@@ -35,10 +38,23 @@ struct osm_rail_way {
   std::vector<osm_rail_node*> nodes_;
 };
 
+struct temp_edge {
+  temp_edge(size_t id, int64_t from, int64_t to, geo::polyline polyline)
+      : valid_(true),
+        ids_({id}),
+        from_(from),
+        to_(to),
+        polyline_(std::move(polyline)) {}
+
+  bool valid_;
+  std::vector<size_t> ids_;
+  int64_t from_, to_;
+  geo::polyline polyline_;
+};
+
 struct rail_graph_builder {
   rail_graph_builder() {
     osm_nodes_.set_empty_key(std::numeric_limits<int64_t>::min());
-    graph_nodes_.set_empty_key(std::numeric_limits<int64_t>::min());
   }
 
   void extract_rail_ways(std::string const& osm_file) {
@@ -102,8 +118,10 @@ struct rail_graph_builder {
     });
   }
 
-  void build_graph() {
-    scoped_timer timer("building rail graph");
+  void make_temp_edges() {
+    for (auto& node : osm_node_mem_) {
+      utl::erase_duplicates(node->in_ways_);
+    }
 
     for (auto const& way : osm_ways_) {
       if (way.nodes_.size() < 2) {
@@ -120,57 +138,173 @@ struct rail_graph_builder {
           break;
         }
 
-        connect_nodes(way.id_, from, to);
+        extract_temp_edge(way.id_, from, to);
         from = to;
       }
 
       if (std::distance(from, end(way.nodes_)) > 2) {
-        connect_nodes(way.id_, from, std::next(end(way.nodes_), -1));
+        extract_temp_edge(way.id_, from, std::next(end(way.nodes_), -1));
       }
     }
   }
 
-  void connect_nodes(int64_t const id,
-                     std::vector<osm_rail_node*>::const_iterator const from,
-                     std::vector<osm_rail_node*>::const_iterator const to) {
+  void extract_temp_edge(int64_t const id,
+                         std::vector<osm_rail_node*>::const_iterator const from,
+                         std::vector<osm_rail_node*>::const_iterator const to) {
     std::vector<latlng> polyline;
     polyline.reserve(std::distance(from, to));
     for (auto it = from; it != std::next(to); ++it) {
       polyline.emplace_back((*it)->pos_.lat_, (*it)->pos_.lng_);
     }
-    auto const dist = length(polyline);
 
-    auto& nodes = graph_.nodes_;
-    auto from_node = map_get_or_create(graph_nodes_, (*from)->id_, [&]() {
-      nodes.emplace_back(std::make_unique<rail_node>(nodes.size(), (*from)->id_,
-                                                     (*from)->pos_));
-      return nodes.back().get();
-    });
+    if (polyline.size() < 2) {
+      return;
+    }
 
-    auto to_node = map_get_or_create(graph_nodes_, (*to)->id_, [&]() {
-      nodes.emplace_back(
-          std::make_unique<rail_node>(nodes.size(), (*to)->id_, (*to)->pos_));
-      return nodes.back().get();
-    });
+    temp_edges_.emplace_back(id, (*from)->id_, (*to)->id_, std::move(polyline));
+  }
 
-    from_node->links_.emplace_back(id, polyline, dist, from_node, to_node);
+  void report_cycle_detected(temp_edge const& edge, int64_t const where) {
+    LOG(motis::logging::info) << "rail graph: maybe cycle detected @ node "
+                              << where << " -- (" << edge.from_ << "->"
+                              << edge.to_ << ") ";
+    for (auto const& id : edge.ids_) {
+      std::cout << id << ", ";
+    }
+  }
 
-    std::reverse(begin(polyline), end(polyline));
-    to_node->links_.emplace_back(id, polyline, dist, to_node, from_node);
+  void aggregate_temp_edges() {
+    hash_map<int64_t, size_t> degrees;
+    degrees.set_empty_key(std::numeric_limits<int64_t>::max());
+    for (auto const& edge : temp_edges_) {
+      degrees[edge.from_] += 1;
+      degrees[edge.to_] += 1;
+    }
+
+    for (auto it = begin(temp_edges_); it != end(temp_edges_); ++it) {
+      if (!it->valid_ || it->from_ == it->to_) {
+        continue;
+      }
+
+      while (degrees[it->from_] == 2) {
+        if (it->from_ == it->to_) {
+          report_cycle_detected(*it, it->from_);
+          break;
+        }
+
+        auto other_it = std::find_if(
+            std::next(it), end(temp_edges_), [&](auto const& other) {
+              return other.valid_ &&
+                     (it->from_ == other.from_ || it->from_ == other.to_);
+            });
+
+        verify(other_it != end(temp_edges_), "rail: node not found (from)");
+
+        if (it->from_ == other_it->to_) {
+          //  --(other)--> X --(this)-->
+          it->from_ = other_it->from_;
+        } else {
+          //  <--(other)-- X --(this)-->
+          it->from_ = other_it->to_;
+
+          std::reverse(begin(other_it->polyline_), end(other_it->polyline_));
+        }
+
+        utl::concat(other_it->polyline_, it->polyline_);
+        it->polyline_ = std::move(other_it->polyline_);
+
+        utl::concat(it->ids_, other_it->ids_);
+        other_it->valid_ = false;
+      }
+
+      if (it->from_ == it->to_) {
+        break;
+      }
+
+      while (degrees[it->to_] == 2) {
+        if (it->from_ == it->to_) {
+          report_cycle_detected(*it, it->to_);
+          break;
+        }
+
+        auto other_it = std::find_if(
+            std::next(it), end(temp_edges_), [&](auto const& other) {
+              return other.valid_ &&
+                     (it->to_ == other.from_ || it->to_ == other.to_);
+            });
+
+        verify(other_it != end(temp_edges_), "rail: node not found (to)");
+
+        if (it->to_ == other_it->from_) {
+          // --(this)--> X --(other)-->
+          it->to_ = other_it->to_;
+        } else {
+          // --(this)--> X <--(other)--
+          it->to_ = other_it->from_;
+          std::reverse(begin(other_it->polyline_), end(other_it->polyline_));
+        }
+
+        utl::concat(it->polyline_, other_it->polyline_);
+        utl::concat(it->ids_, other_it->ids_);
+        other_it->valid_ = false;
+      }
+    }
+  }
+
+  void build_graph() {
+    hash_map<int64_t, rail_node*> node_map;
+    node_map.set_empty_key(std::numeric_limits<int64_t>::min());
+
+    for (auto const& e : temp_edges_) {
+      if (!e.valid_) {
+        continue;
+      }
+
+      if(e.from_ == e.to_) {
+        report_cycle_detected(e, 42);
+      }
+
+      auto& nodes = graph_.nodes_;
+      auto from = map_get_or_create(node_map, e.from_, [&] {
+        nodes.emplace_back(std::make_unique<rail_node>(nodes.size(), e.from_));
+        return nodes.back().get();
+      });
+
+      auto to = map_get_or_create(node_map, e.to_, [&] {
+        nodes.emplace_back(std::make_unique<rail_node>(nodes.size(), e.to_));
+        return nodes.back().get();
+      });
+
+      auto const info_idx = graph_.infos_.size();
+      auto const dist = length(e.polyline_);
+
+      from->edges_.emplace_back(info_idx, true, dist, from, to);
+      to->edges_.emplace_back(info_idx, false, dist, to, from);
+
+      graph_.infos_.emplace_back(std::make_unique<rail_edge_info>(
+          std::move(e.polyline_), dist, from, to));
+    }
   }
 
   std::vector<std::unique_ptr<osm_rail_node>> osm_node_mem_;
   hash_map<int64_t, osm_rail_node*> osm_nodes_;
   std::vector<osm_rail_way> osm_ways_;
 
+  std::vector<temp_edge> temp_edges_;
+
   rail_graph graph_;
-  hash_map<int64_t, rail_node*> graph_nodes_;
 };
 
 rail_graph build_rail_graph(std::string const& osm_file) {
   rail_graph_builder builder;
   builder.extract_rail_ways(osm_file);
   builder.extract_rail_nodes(osm_file);
+
+  scoped_timer timer("building rail graph");
+
+  builder.make_temp_edges();
+  builder.aggregate_temp_edges();
+
   builder.build_graph();
 
   // dump_rail_graph(builder.graph_);

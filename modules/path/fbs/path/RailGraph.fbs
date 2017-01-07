@@ -2,10 +2,11 @@ include "Position.fbs";
 
 namespace motis.path;
 
-table RailLink {
+table RailEdge {
+  from: ulong;
   to: ulong;
 
-  id: ulong; // from osm
+  //id: ulong; // from osm
 
   polyline: [Position];
   dist: ulong;
@@ -17,11 +18,11 @@ table RailNode {
   id: ulong; // from osm
 
   pos: Position;
-  links: [RailLink];
 }
 
 table RailGraph {
   nodes: [RailNode];
+  edges: [RailEdge];
 }
 
 root_type RailGraph;

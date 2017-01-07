@@ -22,7 +22,7 @@ size_t temp_idx = 0;  // no need for synchronization; only used for debug output
 void add_close_nodes(seq_graph& g, station_seq const& s,
                      routing_strategy* routing_strategy) {
   for (auto i = 0u; i < s.coordinates_.size(); ++i) {
-    for (auto const& node : routing_strategy->close_nodes(s.coordinates_[i])) {
+    for (auto const& node : routing_strategy->close_nodes(s.station_ids_[i])) {
       g.nodes_.emplace_back(std::make_unique<seq_node>(temp_idx++, i, node));
     }
   }
@@ -43,7 +43,7 @@ void insert_edges(std::vector<seq_node*>& from_nodes,
       }
 
       auto result = results[i][j];
-      if (!result.valid_) {
+      if (!result.is_valid()) {
         continue;
       }
 

@@ -34,9 +34,9 @@ struct station {
   geo::latlng pos_;
 };
 
-std::vector<station> all_stations(std::vector<station_seq> const& sequences) {
+inline std::vector<station> all_stations(std::vector<station_seq> const& seqs) {
   std::vector<station> stations;
-  for (auto const& seq : sequences) {
+  for (auto const& seq : seqs) {
     verify(seq.station_ids_.size() == seq.coordinates_.size(), "invalid seq!");
 
     for (auto i = 0u; i < seq.station_ids_.size(); ++i) {

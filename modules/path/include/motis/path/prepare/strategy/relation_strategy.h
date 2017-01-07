@@ -43,8 +43,8 @@ struct relation_strategy : public routing_strategy {
       }
     }
 
-    auto const rtree = geo::make_point_rtree(
-        node_refs_, [](auto const& r) { return r->pos_; });
+    auto const rtree =
+        geo::make_point_rtree(node_refs_, [](auto const& r) { return r.pos_; });
 
     stations_to_refs_.set_empty_key("");
     for (auto const& station : stations) {
@@ -78,11 +78,11 @@ struct relation_strategy : public routing_strategy {
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
         auto const& t_ref = node_refs_[t.id_];
 
-        if (f_ref->polyline_idx_ != t_ref->polyline_idx_) {
+        if (f_ref.polyline_idx_ != t_ref.polyline_idx_) {
           return {};
         }
 
-        auto const p = polylines_[f_ref->polyline_idx_];
+        auto const p = polylines_[f_ref.polyline_idx_];
         return {strategy_id(), p.source_, 0};
       });
     });
@@ -95,18 +95,18 @@ struct relation_strategy : public routing_strategy {
 
     auto const& f_ref = node_refs_[from.id_];
     auto const& t_ref = node_refs_[to.id_];
-    verify(f_ref->polyline_idx_ == t_ref->polyline_idx_, "rel: id mismatch");
+    verify(f_ref.polyline_idx_ == t_ref.polyline_idx_, "rel: id mismatch");
 
     // XXX direction !?
-    auto p = polylines_[f_ref->polyline_idx_].polyline_;
+    auto p = polylines_[f_ref.polyline_idx_].polyline_;
     return geo::polyline{
-        begin(p) + std::min(f_ref->point_idx_, t_ref->point_idx_),
-        begin(p) + std::max(f_ref->point_idx_, t_ref->point_idx_) + 1};
+        begin(p) + std::min(f_ref.point_idx_, t_ref.point_idx_),
+        begin(p) + std::max(f_ref.point_idx_, t_ref.point_idx_) + 1};
   }
 
   std::vector<aggregated_polyline> polylines_;
 
-  std::vector<std::unique_ptr<relation_node_ref>> node_refs_;
+  std::vector<relation_node_ref> node_refs_;
   hash_map<std::string, std::vector<size_t>> stations_to_refs_;
 };
 

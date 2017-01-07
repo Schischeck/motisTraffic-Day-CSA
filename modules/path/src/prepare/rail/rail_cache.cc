@@ -19,46 +19,46 @@ rail_graph load_rail_graph(std::string const& filename) {
 
   rail_graph graph;
   for (auto const& node : *GetRailGraph(buf.buf_)->nodes()) {
-    graph.nodes_.emplace_back(std::make_unique<rail_node>(
-        node->idx(), node->id(),
-        geo::latlng{node->pos()->lat(), node->pos()->lng()}));
+    graph.nodes_.emplace_back(
+        std::make_unique<rail_node>(node->idx(), node->id()));
   }
 
-  for (auto const& node : *GetRailGraph(buf.buf_)->nodes()) {
-    for (auto const& link : *node->links()) {
-      auto& from = graph.nodes_[node->idx()];
-      auto const& to = graph.nodes_[link->to()];
+  for (auto const& edge : *GetRailGraph(buf.buf_)->edges()) {
+    auto* from = graph.nodes_[edge->from()].get();
+    auto* to = graph.nodes_[edge->to()].get();
 
-      from->links_.emplace_back(
-          link->id(), utl::to_vec(*link->polyline(),
-                                  [](auto const& pos) {
-                                    return geo::latlng{pos->lat(), pos->lng()};
-                                  }),
-          link->dist(), from.get(), to.get());
-    }
+    auto const info_idx = graph.infos_.size();
+
+    graph.infos_.emplace_back(std::make_unique<rail_edge_info>(
+        utl::to_vec(*edge->polyline(),
+                    [](auto const& pos) {
+                      return geo::latlng{pos->lat(), pos->lng()};
+                    }),
+        edge->dist(), from, to));
+
+    from->edges_.emplace_back(info_idx, true, edge->dist(), from, to);
+    to->edges_.emplace_back(info_idx, false, edge->dist(), to, from);
   }
-
   return graph;
 }
 
 void store_rail_graph(std::string const& filename, rail_graph const& graph) {
   FlatBufferBuilder fbb;
   auto const fbs_nodes = utl::to_vec(graph.nodes_, [&](auto const& node) {
-    Position pos{node->pos_.lat_, node->pos_.lng_};
-    return CreateRailNode(
-        fbb, node->idx_, node->id_, &pos,
-        fbb.CreateVector(utl::to_vec(node->links_, [&](auto const& link) {
-          auto const positions = utl::to_vec(
-              link.polyline_,
-              [](auto const& pos) { return Position(pos.lat_, pos.lng_); });
-
-          return CreateRailLink(fbb, link.to_->idx_, link.id_,
-                                fbb.CreateVectorOfStructs(positions),
-                                link.dist_);
-        })));
+    return CreateRailNode(fbb, node->idx_, node->id_);
   });
 
-  fbb.Finish(CreateRailGraph(fbb, fbb.CreateVector(fbs_nodes)));
+  auto const fbs_edges = utl::to_vec(graph.infos_, [&](auto const& info) {
+    auto const positions = utl::to_vec(info->polyline_, [](auto const& pos) {
+      return Position(pos.lat_, pos.lng_);
+    });
+    return CreateRailEdge(fbb, info->nodes_.first->idx_,
+                          info->nodes_.second->idx_,
+                          fbb.CreateVectorOfStructs(positions), info->dist_);
+  });
+
+  fbb.Finish(CreateRailGraph(fbb, fbb.CreateVector(fbs_nodes),
+                             fbb.CreateVector(fbs_edges)));
   file{filename.c_str(), "w+"}.write(fbb.GetBufferPointer(), fbb.GetSize());
 }
 

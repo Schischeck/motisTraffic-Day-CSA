@@ -20,6 +20,8 @@
 #include "utl/repeat_n.h"
 #include "utl/to_vec.h"
 
+#include "motis/core/common/hash_map.h"
+
 using namespace osrm;
 using namespace osrm::util;
 using namespace osrm::util::json;
@@ -28,9 +30,9 @@ namespace motis {
 namespace path {
 
 struct osrm_strategy::impl {
-  impl(strategy_id_t const strategy_id, , std::vector<station> const& stations,
+  impl(strategy_id_t const strategy_id, std::vector<station> const& stations,
        std::string const& path)
-      : strategy_id_(strategy_id), ref_counter_{0} {
+      : strategy_id_(strategy_id) {
     EngineConfig config;
     config.storage_config = {path};
     config.use_shared_memory = false;
@@ -57,7 +59,7 @@ struct osrm_strategy::impl {
             });
       }
 
-      stations_to_refs_[station.id_] =
+      stations_to_coords_[station.id_] =
           utl::to_vec(coords, [&](auto const& coord) {
             coord_mem_.emplace_back(coord);
             return coord_mem_.size() - 1;
@@ -66,11 +68,11 @@ struct osrm_strategy::impl {
   }
 
   std::vector<node_ref> close_nodes(std::string const& station_id) const {
-    auto const it = stations_to_refs_.find(station_id);
-    verify(it != end(stations_to_refs_), "osrm: unknown ref!");
+    auto const it = stations_to_coords_.find(station_id);
+    verify(it != end(stations_to_coords_), "osrm: unknown station!");
 
     return utl::to_vec(it->second, [&](auto const& idx) -> node_ref {
-      return {strategy_id_, idx, node_refs_[idx]};
+      return {strategy_id_, idx, coord_mem_[idx]};
     });
   }
 
@@ -81,14 +83,14 @@ struct osrm_strategy::impl {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
     auto const to_coords =
-        utl::to_vec(to, [](auto const& t) { return coord_mem_[t.id_]; });
+        utl::to_vec(to, [&](auto const& t) { return coord_mem_[t.id_]; });
 
     return utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(one_to_many(coord_mem_[f.id_], to_coords),
                          [&](auto const& cost) {
                            source_spec s{0, source_spec::category::BUS,
                                          source_spec::type::OSRM_ROUTE};
-                           return routing_result{s, strategy_id_, cost};
+                           return routing_result{strategy_id_, s, cost};
                          });
     });
   }
@@ -162,7 +164,7 @@ struct osrm_strategy::impl {
   hash_map<std::string, std::vector<size_t>> stations_to_coords_;
 };
 
-osrm_strategy::osrm_strategy(strategy_id_t strategy_id, ,
+osrm_strategy::osrm_strategy(strategy_id_t strategy_id,
                              std::vector<station> const& stations,
                              std::string const& osrm_path)
     : routing_strategy(strategy_id),
@@ -171,8 +173,8 @@ osrm_strategy::osrm_strategy(strategy_id_t strategy_id, ,
 osrm_strategy::~osrm_strategy() = default;
 
 std::vector<node_ref> osrm_strategy::close_nodes(
-    geo::latlng const& latlng) const {
-  return impl_->close_nodes(latlng);
+    std::string const& station_id) const {
+  return impl_->close_nodes(station_id);
 }
 
 bool osrm_strategy::can_route(node_ref const& ref) const {
