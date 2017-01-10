@@ -49,4 +49,9 @@ type alias Translations =
         , provider : String
         , walk : String
         }
+    , station :
+        { direction : String
+        , noDepartures : String
+        , noArrivals : String
+        }
     }

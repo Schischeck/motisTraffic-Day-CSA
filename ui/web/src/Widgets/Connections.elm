@@ -27,6 +27,7 @@ import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Widgets.JourneyTransportGraph as JourneyTransportGraph
+import Widgets.LoadingSpinner as LoadingSpinner
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Date exposing (isSameDay, unixTime)
@@ -543,7 +544,7 @@ belongsToCurrentSearch model check =
 view : Config msg -> Localization -> Model -> Html msg
 view config locale model =
     if model.loading then
-        div [ class "loading" ] [ loadingSpinner ]
+        div [ class "loading" ] [ LoadingSpinner.view ]
     else if List.isEmpty model.journeys then
         case model.errorMessage of
             Just err ->
@@ -723,15 +724,6 @@ scheduleRangeView { t } { scheduleInfo } =
             text ""
 
 
-loadingSpinner : Html msg
-loadingSpinner =
-    div [ class "spinner" ]
-        [ div [ class "bounce1" ] []
-        , div [ class "bounce2" ] []
-        , div [ class "bounce3" ] []
-        ]
-
-
 errorView : String -> Localization -> Model -> ApiError -> Html msg
 errorView divClass locale model err =
     let
@@ -833,7 +825,7 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
                     Just error ->
                         errorView "error" locale model error
               else if model.allowExtend then
-                loadingSpinner
+                LoadingSpinner.view
               else
                 text ""
             ]

@@ -17,6 +17,7 @@ type Route
     = Connections
     | ConnectionDetails Int
     | TripDetails String Int Date String Date String
+    | StationEvents String
     | SimulationTime Date
 
 
@@ -26,6 +27,7 @@ urlParser =
         [ map Connections top
         , map ConnectionDetails (s "connection" </> int)
         , map TripDetails (s "trip" </> string </> int </> date </> string </> date </> encodedString)
+        , map StationEvents (s "station" </> string)
         , map SimulationTime (s "time" </> date)
         ]
 
@@ -80,6 +82,9 @@ toUrl route =
                 ++ dateToUrl targetTime
                 ++ "/"
                 ++ Http.encodeUri lineId
+
+        StationEvents station ->
+            "#/station/" ++ station
 
         SimulationTime time ->
             "#/time/" ++ dateToUrl time

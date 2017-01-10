@@ -200,9 +200,17 @@ update msg model =
                 cmds2 =
                     tripId
                         |> Maybe.map (\tripId -> Navigation.newUrl (toUrl (tripDetailsRoute tripId)))
-                        |> Maybe.Extra.maybeToList
+                        |> Maybe.withDefault Cmd.none
+
+                selectedStation =
+                    getHoveredStation model_
+
+                cmds3 =
+                    selectedStation
+                        |> Maybe.map (\rvs -> Navigation.newUrl (toUrl (StationEvents rvs.station.id)))
+                        |> Maybe.withDefault Cmd.none
             in
-                model_ ! (cmds1 :: cmds2)
+                model_ ! [ cmds1, cmds2, cmds3 ]
 
         MouseUp mapMouseUpdate ->
             handleMapMouseUpdate mapMouseUpdate model

@@ -77,4 +77,9 @@ enTranslations =
         , provider = "Provider"
         , walk = "Walk"
         }
+    , station =
+        { direction = "Direction"
+        , noDepartures = "No departures"
+        , noArrivals = "No arrivals"
+        }
     }

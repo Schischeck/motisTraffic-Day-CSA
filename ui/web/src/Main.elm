@@ -9,6 +9,7 @@ import Widgets.Map.RailVizModel as RailVizModel
 import Widgets.Map.ConnectionOverlay as MapConnectionOverlay
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
+import Widgets.StationEvents as StationEvents
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
@@ -35,7 +36,7 @@ import Navigation exposing (Location)
 import UrlParser
 import Routes exposing (..)
 import Debounce
-import Maybe.Extra exposing (isJust)
+import Maybe.Extra exposing (isJust, orElse)
 import Port
 import Json.Decode as Decode
 import Date exposing (Date)
@@ -71,6 +72,7 @@ type alias Model =
     , map : RailVizModel.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
+    , stationEvents : Maybe StationEvents.Model
     , selectedConnectionIdx : Maybe Int
     , selectedTripIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
@@ -119,6 +121,7 @@ init flags initialLocation =
             , map = mapModel
             , connections = Connections.init remoteAddress
             , connectionDetails = Nothing
+            , stationEvents = Nothing
             , selectedConnectionIdx = Nothing
             , selectedTripIdx = Nothing
             , scheduleInfo = Nothing
@@ -172,6 +175,7 @@ type Msg
     | CloseConnectionDetails
     | PrepareSelectTrip Int
     | LoadTrip TripId
+    | SelectTripId TripId
     | TripToConnectionError TripId ApiError
     | TripToConnectionResponse TripId Connection
     | ScheduleInfoError ApiError
@@ -184,6 +188,10 @@ type Msg
     | UpdateCurrentTime Time
     | SetSimulationTime Time
     | SetTimeOffset Time Time
+    | StationEventsUpdate StationEvents.Msg
+    | PrepareSelectStation Station
+    | SelectStation String
+    | StationEventsGoBack
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -342,6 +350,15 @@ update msg model =
         LoadTrip tripId ->
             loadTripById model tripId
 
+        SelectTripId tripId ->
+            update (NavigateTo (tripDetailsRoute tripId))
+                { model
+                    | connectionDetails = Nothing
+                    , selectedConnectionIdx = Nothing
+                    , selectedTripIdx = Nothing
+                    , stationEvents = Nothing
+                }
+
         TripToConnectionError tripId err ->
             -- TODO
             let
@@ -472,6 +489,37 @@ update msg model =
             in
                 model4 ! [ cmds1, cmds2, cmds3 ]
 
+        StationEventsUpdate msg_ ->
+            let
+                ( m, c ) =
+                    case model.stationEvents of
+                        Just state ->
+                            let
+                                ( m_, c_ ) =
+                                    StationEvents.update msg_ state
+                            in
+                                ( Just m_, c_ )
+
+                        Nothing ->
+                            Nothing ! []
+            in
+                { model | stationEvents = m }
+                    ! [ Cmd.map StationEventsUpdate c ]
+
+        PrepareSelectStation station ->
+            update (NavigateTo (StationEvents station.id)) model
+
+        SelectStation stationId ->
+            let
+                ( m, c ) =
+                    StationEvents.init model.apiEndpoint stationId (getCurrentDate model)
+            in
+                { model | stationEvents = Just m }
+                    ! [ Cmd.map StationEventsUpdate c ]
+
+        StationEventsGoBack ->
+            update (NavigateTo Connections) model
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -594,6 +642,7 @@ loadTripById model tripId =
                 { model
                     | selectedConnectionIdx = Nothing
                     , selectedTripIdx = Nothing
+                    , stationEvents = Nothing
                 }
     in
         model_ ! [ sendTripRequest model.apiEndpoint tripId ]
@@ -640,12 +689,17 @@ overlayView : Model -> Html Msg
 overlayView model =
     let
         content =
-            case model.connectionDetails of
+            case model.stationEvents of
                 Nothing ->
-                    searchView model
+                    case model.connectionDetails of
+                        Nothing ->
+                            searchView model
 
-                Just c ->
-                    detailsView model.locale (getCurrentDate model) c
+                        Just c ->
+                            detailsView model.locale (getCurrentDate model) c
+
+                Just stationEvents ->
+                    stationView model.locale stationEvents
     in
         div [ class "overlay-container" ]
             [ div [ class "overlay" ] <|
@@ -748,7 +802,22 @@ detailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
+        , selectStationMsg = PrepareSelectStation
         , goBackMsg = ConnectionDetailsGoBack
+        }
+
+
+stationView : Localization -> StationEvents.Model -> List (Html Msg)
+stationView locale model =
+    [ StationEvents.view stationConfig locale model ]
+
+
+stationConfig : StationEvents.Config Msg
+stationConfig =
+    StationEvents.Config
+        { internalMsg = StationEventsUpdate
+        , selectTripMsg = SelectTripId
+        , goBackMsg = StationEventsGoBack
         }
 
 
@@ -809,6 +878,9 @@ routeToMsg route =
                 , line_id = lineId
                 }
 
+        StationEvents station ->
+            SelectStation station
+
         SimulationTime time ->
             SetSimulationTime (Date.toTime time)
 
@@ -837,6 +909,7 @@ selectConnection model idx =
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
                         , selectedTripIdx = Nothing
+                        , stationEvents = Nothing
                     }
                         ! [ MapConnectionOverlay.showOverlay model.locale j
                           , cmds
@@ -856,6 +929,7 @@ closeSelectedConnection model =
             | connectionDetails = Nothing
             , selectedConnectionIdx = Nothing
             , selectedTripIdx = Nothing
+            , stationEvents = Nothing
         }
             ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
               , MapConnectionOverlay.hideOverlay
