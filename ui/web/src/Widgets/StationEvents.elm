@@ -30,8 +30,9 @@ import Util.Api as Api
 import Localization.Base exposing (..)
 import Widgets.LoadingSpinner as LoadingSpinner
 import Widgets.Helpers.ConnectionUtil exposing (delayText, zeroDelay, isDelayed)
+import Widgets.DateHeaders exposing (..)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
-import Maybe.Extra
+import Maybe.Extra exposing (isJust)
 
 
 -- MODEL
@@ -99,6 +100,7 @@ type Msg
     | ReceiveResponse LookupStationEventsRequest LookupStationEventsResponse
     | ReceiveError LookupStationEventsRequest ApiError
     | SetViewType ViewType
+    | ExtendInterval ExtendIntervalType
 
 
 type ExtendIntervalType
@@ -121,6 +123,34 @@ update msg model =
         SetViewType vt ->
             { model | viewType = vt } ! []
 
+        ExtendInterval direction ->
+            let
+                ( newRequest, updatedFullRequest ) =
+                    extendInterval direction model.request
+
+                loadingBefore_ =
+                    case direction of
+                        ExtendBefore ->
+                            True
+
+                        ExtendAfter ->
+                            model.loadingBefore
+
+                loadingAfter_ =
+                    case direction of
+                        ExtendBefore ->
+                            model.loadingAfter
+
+                        ExtendAfter ->
+                            True
+            in
+                { model
+                    | request = updatedFullRequest
+                    , loadingBefore = loadingBefore_
+                    , loadingAfter = loadingAfter_
+                }
+                    ! [ sendRequest model.remoteAddress updatedFullRequest ]
+
 
 handleResponse : Model -> LookupStationEventsResponse -> Model
 handleResponse model response =
@@ -136,6 +166,8 @@ handleResponse model response =
     in
         { model
             | loading = False
+            , loadingBefore = False
+            , loadingAfter = False
             , depEvents = depEvents
             , arrEvents = arrEvents
         }
@@ -149,6 +181,53 @@ handleRequestError model msg =
         , depEvents = []
         , arrEvents = []
     }
+
+
+extendInterval :
+    ExtendIntervalType
+    -> LookupStationEventsRequest
+    -> ( LookupStationEventsRequest, LookupStationEventsRequest )
+extendInterval direction base =
+    let
+        extendBy =
+            3600 * 2
+
+        newIntervalStart =
+            case direction of
+                ExtendBefore ->
+                    base.intervalStart - extendBy
+
+                ExtendAfter ->
+                    base.intervalStart
+
+        newIntervalEnd =
+            case direction of
+                ExtendBefore ->
+                    base.intervalEnd
+
+                ExtendAfter ->
+                    base.intervalEnd + extendBy
+
+        newRequest =
+            case direction of
+                ExtendBefore ->
+                    { base
+                        | intervalStart = newIntervalStart
+                        , intervalEnd = base.intervalStart - 1
+                    }
+
+                ExtendAfter ->
+                    { base
+                        | intervalStart = base.intervalEnd + 1
+                        , intervalEnd = newIntervalEnd
+                    }
+    in
+        ( newRequest
+        , { base
+            | intervalStart = newIntervalStart
+            , intervalEnd = newIntervalEnd
+          }
+        )
 
 
 
@@ -227,8 +306,18 @@ contentView config locale model =
 
 stationEventsView : Config msg -> Localization -> Model -> Html msg
 stationEventsView config locale model =
-    div [ class "event-list" ]
-        (List.map (eventView config locale) (getEvents model))
+    div []
+        [ extendIntervalButton ExtendBefore config locale model
+        , div [ class "event-list" ]
+            (withDateHeaders
+                .scheduleTime
+                (eventView config locale)
+                (dateHeader locale)
+                (getEvents model)
+            )
+        , div [ class "divider footer" ] []
+        , extendIntervalButton ExtendAfter config locale model
+        ]
 
 
 eventView : Config msg -> Localization -> StationEvent -> Html msg
@@ -251,6 +340,74 @@ eventView (Config { selectTripMsg }) locale event =
                 [ text event.direction ]
             , div [ class "pure-u-2-24 event-track" ]
                 [ text event.track ]
+            ]
+
+
+extendIntervalButton :
+    ExtendIntervalType
+    -> Config msg
+    -> Localization
+    -> Model
+    -> Html msg
+extendIntervalButton direction (Config { internalMsg }) locale model =
+    let
+        enabled =
+            case direction of
+                ExtendBefore ->
+                    not model.loadingBefore
+
+                ExtendAfter ->
+                    not model.loadingAfter
+
+        divClass =
+            case direction of
+                ExtendBefore ->
+                    "search-before"
+
+                ExtendAfter ->
+                    "search-after"
+
+        title =
+            case direction of
+                ExtendBefore ->
+                    locale.t.connections.extendBefore
+
+                ExtendAfter ->
+                    locale.t.connections.extendAfter
+
+        clickHandler =
+            if enabled then
+                internalMsg <| ExtendInterval direction
+            else
+                internalMsg NoOp
+
+        err =
+            case direction of
+                ExtendBefore ->
+                    model.errorBefore
+
+                ExtendAfter ->
+                    model.errorAfter
+    in
+        div
+            [ classList
+                [ "extend-search-interval" => True
+                , divClass => True
+                , "disabled" => not enabled
+                , "error" => (enabled && (isJust err))
+                ]
+            ]
+            [ if enabled then
+                case err of
+                    Nothing ->
+                        a
+                            [ onClick clickHandler ]
+                            [ text title ]
+
+                    Just error ->
+                        errorView "error" locale model error
+              else
+                LoadingSpinner.view
             ]
 
 

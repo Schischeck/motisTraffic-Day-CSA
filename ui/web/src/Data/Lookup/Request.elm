@@ -75,7 +75,7 @@ initialStationEventsRequest stationId date =
             unixTime date
 
         startTime =
-            selectedTime - 3600
+            selectedTime - 600
 
         endTime =
             selectedTime + 3600

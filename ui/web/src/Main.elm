@@ -511,11 +511,14 @@ update msg model =
 
         SelectStation stationId stationName ->
             let
+                ( model_, cmds_ ) =
+                    closeSelectedConnection model
+
                 ( m, c ) =
-                    StationEvents.init model.apiEndpoint stationId stationName (getCurrentDate model)
+                    StationEvents.init model_.apiEndpoint stationId stationName (getCurrentDate model_)
             in
-                { model | stationEvents = Just m }
-                    ! [ Cmd.map StationEventsUpdate c ]
+                { model_ | stationEvents = Just m }
+                    ! [ cmds_, Cmd.map StationEventsUpdate c ]
 
         StationEventsGoBack ->
             update (NavigateTo Connections) model

@@ -286,7 +286,7 @@
   display: inline-block;
 }
 
-.connections .divider {
+.divider {
   position: relative;
   z-index: -10;
   text-align: center;
@@ -294,15 +294,15 @@
   margin: 30px 0 -10px 0;
 }
 
-.connections .divider:first-of-type {
+.divider:first-of-type {
   margin-top: -25px;
 }
 
-.connections .divider.footer {
+.divider.footer {
   margin: 25px 0 20px 0;
 }
 
-.connections .divider::before {
+.divider::before {
   border-top: 1px solid #4971E7;
   content: "";
   margin: 0 auto;
@@ -315,7 +315,7 @@
   z-index: -1;
 }
 
-.connections .divider span {
+.divider span {
   background: #fff;
   padding: 0 15px;
 }
@@ -1055,5 +1055,14 @@
 }
 
 .station-events .station-event {
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
+
+.station-events .divider:first-of-type {
+  margin: -25px 0 10px 0;
+}
+
+.station-events .divider {
+  margin: 20px 0 10px 0;
+}
+

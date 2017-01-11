@@ -28,6 +28,7 @@ import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Widgets.JourneyTransportGraph as JourneyTransportGraph
 import Widgets.LoadingSpinner as LoadingSpinner
+import Widgets.DateHeaders exposing (..)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Date exposing (isSameDay, unixTime)
@@ -667,38 +668,6 @@ labelsView allLabels journeyLabels =
     in
         div [ class "labels" ]
             (List.map labelView journeyLabels)
-
-
-dateHeader : Localization -> Date -> Html msg
-dateHeader { dateConfig } date =
-    div [ class "date-header divider" ] [ span [] [ text <| formatDate dateConfig date ] ]
-
-
-withDateHeaders :
-    (a -> Date)
-    -> (a -> ( String, Html msg ))
-    -> (Date -> ( String, Html msg ))
-    -> List a
-    -> List ( String, Html msg )
-withDateHeaders getDate renderElement renderDateHeader elements =
-    let
-        f element ( lastDate, result ) =
-            let
-                currentDate =
-                    getDate element
-
-                base =
-                    if not (isSameDay currentDate lastDate) then
-                        result ++ [ renderDateHeader currentDate ]
-                    else
-                        result
-            in
-                ( currentDate, base ++ [ renderElement element ] )
-
-        ( _, result ) =
-            List.foldl f ( Date.fromTime 0, [] ) elements
-    in
-        result
 
 
 transportListViewWidth : Int
