@@ -43,6 +43,7 @@ type alias Model =
     , loadingAfter : Bool
     , remoteAddress : String
     , stationId : String
+    , stationName : String
     , depEvents : List StationEvent
     , arrEvents : List StationEvent
     , viewType : ViewType
@@ -66,8 +67,8 @@ type Config msg
         }
 
 
-init : String -> String -> Date -> ( Model, Cmd Msg )
-init remoteAddress stationId date =
+init : String -> String -> String -> Date -> ( Model, Cmd Msg )
+init remoteAddress stationId stationName date =
     let
         request =
             initialStationEventsRequest stationId date
@@ -77,6 +78,7 @@ init remoteAddress stationId date =
         , loadingAfter = False
         , remoteAddress = remoteAddress
         , stationId = stationId
+        , stationName = stationName
         , depEvents = []
         , arrEvents = []
         , viewType = Departures
@@ -170,7 +172,7 @@ headerView config locale model =
         div [ class "header" ]
             [ div [ onClick goBackMsg, class "back" ]
                 [ i [ class "icon" ] [ text "arrow_back" ] ]
-            , div [ class "station" ] [ text ("Station " ++ model.stationId) ]
+            , div [ class "station" ] [ text model.stationName ]
             , eventTypePicker config locale model
             ]
 
@@ -205,23 +207,27 @@ eventTypePicker (Config { internalMsg }) locale model =
 
 contentView : Config msg -> Localization -> Model -> Html msg
 contentView config locale model =
-    if model.loading then
-        div [ class "loading" ] [ LoadingSpinner.view ]
-    else if List.isEmpty (getEvents model) then
-        case model.errorMessage of
-            Just err ->
-                errorView "main-error" locale model err
+    let
+        content =
+            if model.loading then
+                div [ class "loading" ] [ LoadingSpinner.view ]
+            else if List.isEmpty (getEvents model) then
+                case model.errorMessage of
+                    Just err ->
+                        errorView "main-error" locale model err
 
-            Nothing ->
-                div [ class "no-results" ]
-                    [ div [] [ text locale.t.station.noDepartures ] ]
-    else
-        stationEventsView config locale model
+                    Nothing ->
+                        div [ class "no-results" ]
+                            [ div [] [ text locale.t.station.noDepartures ] ]
+            else
+                stationEventsView config locale model
+    in
+        div [ class "events" ] [ content ]
 
 
 stationEventsView : Config msg -> Localization -> Model -> Html msg
 stationEventsView config locale model =
-    div [ class "events" ]
+    div [ class "event-list" ]
         (List.map (eventView config locale) (getEvents model))
 
 
