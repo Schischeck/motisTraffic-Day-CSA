@@ -156,7 +156,7 @@ handleResponse : Model -> LookupStationEventsResponse -> Model
 handleResponse model response =
     let
         events =
-            List.sortBy (.scheduleTime >> Date.toTime) response.events
+            List.sortWith compareEvents response.events
 
         depEvents =
             List.filter (\e -> e.eventType == DEP) events
@@ -171,6 +171,21 @@ handleResponse model response =
             , depEvents = depEvents
             , arrEvents = arrEvents
         }
+
+
+compareEvents : StationEvent -> StationEvent -> Basics.Order
+compareEvents a b =
+    let
+        getDate =
+            .scheduleTime >> Date.toTime
+
+        byDate =
+            compare (getDate a) (getDate b)
+    in
+        if byDate == EQ then
+            compare a.serviceName b.serviceName
+        else
+            byDate
 
 
 handleRequestError : Model -> ApiError -> Model
