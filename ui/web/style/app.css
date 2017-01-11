@@ -1007,10 +1007,13 @@
 }
 
 .station-events .header .station {
-  margin-top: 10px;
+  margin: 10px 45px 0 45px;
   font-size: 120%;
   font-weight: bold;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .station-events .header .event-type-picker {
@@ -1066,3 +1069,11 @@
   margin: 20px 0 10px 0;
 }
 
+.station-events .no-results .msg {
+  padding-top: 20px;
+  text-align: center;
+}
+
+.station-events .main-error {
+  text-align: center;
+}

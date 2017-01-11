@@ -78,7 +78,7 @@ initialStationEventsRequest stationId date =
             selectedTime - 600
 
         endTime =
-            selectedTime + 3600
+            selectedTime + (3600 * 2)
     in
         { stationId = stationId
         , intervalStart = startTime

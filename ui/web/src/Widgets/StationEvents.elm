@@ -374,34 +374,51 @@ contentView config locale model =
         content =
             if model.loading then
                 div [ class "loading" ] [ LoadingSpinner.view ]
-            else if List.isEmpty (getEvents model) then
+            else
                 case model.errorMessage of
                     Just err ->
                         errorView "main-error" locale model err
 
                     Nothing ->
-                        div [ class "no-results" ]
-                            [ div [] [ text locale.t.station.noDepartures ] ]
-            else
-                stationEventsView config locale model
+                        stationEventsView config locale model
     in
         div [ class "events" ] [ content ]
 
 
 stationEventsView : Config msg -> Localization -> Model -> Html msg
 stationEventsView config locale model =
-    div []
-        [ extendIntervalButton ExtendBefore config locale model
-        , div [ class "event-list" ]
-            (withDateHeaders
-                .scheduleTime
-                (eventView config locale)
-                (dateHeader locale)
-                (getEvents model)
-            )
-        , div [ class "divider footer" ] []
-        , extendIntervalButton ExtendAfter config locale model
-        ]
+    let
+        events =
+            getEvents model
+
+        content =
+            if List.isEmpty events then
+                div [ class "no-results" ]
+                    [ div [ class "divider" ] []
+                    , div [ class "msg" ]
+                        [ case model.viewType of
+                            Departures ->
+                                text locale.t.station.noDepartures
+
+                            Arrivals ->
+                                text locale.t.station.noArrivals
+                        ]
+                    ]
+            else
+                div [ class "event-list" ]
+                    (withDateHeaders
+                        .scheduleTime
+                        (eventView config locale)
+                        (dateHeader locale)
+                        (getEvents model)
+                    )
+    in
+        div []
+            [ extendIntervalButton ExtendBefore config locale model
+            , content
+            , div [ class "divider footer" ] []
+            , extendIntervalButton ExtendAfter config locale model
+            ]
 
 
 eventView : Config msg -> Localization -> StationEvent -> Html msg
