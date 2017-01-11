@@ -88,7 +88,7 @@ init remoteAddress stationId stationName date =
         , errorAfter = Nothing
         , request = request
         }
-            ! [ sendRequest remoteAddress request ]
+            ! [ sendRequest remoteAddress ReplaceResults request ]
 
 
 
@@ -97,8 +97,8 @@ init remoteAddress stationId stationName date =
 
 type Msg
     = NoOp
-    | ReceiveResponse LookupStationEventsRequest LookupStationEventsResponse
-    | ReceiveError LookupStationEventsRequest ApiError
+    | ReceiveResponse SearchAction LookupStationEventsRequest LookupStationEventsResponse
+    | ReceiveError SearchAction LookupStationEventsRequest ApiError
     | SetViewType ViewType
     | ExtendInterval ExtendIntervalType
 
@@ -108,17 +108,23 @@ type ExtendIntervalType
     | ExtendAfter
 
 
+type SearchAction
+    = ReplaceResults
+    | PrependResults
+    | AppendResults
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NoOp ->
             model ! []
 
-        ReceiveResponse request response ->
-            handleResponse model response ! []
+        ReceiveResponse action request response ->
+            handleResponse model action response ! []
 
-        ReceiveError request msg_ ->
-            handleRequestError model msg_ ! []
+        ReceiveError action request msg_ ->
+            handleRequestError model action msg_ ! []
 
         SetViewType vt ->
             { model | viewType = vt } ! []
@@ -127,6 +133,14 @@ update msg model =
             let
                 ( newRequest, updatedFullRequest ) =
                     extendInterval direction model.request
+
+                action =
+                    case direction of
+                        ExtendBefore ->
+                            PrependResults
+
+                        ExtendAfter ->
+                            AppendResults
 
                 loadingBefore_ =
                     case direction of
@@ -149,11 +163,11 @@ update msg model =
                     , loadingBefore = loadingBefore_
                     , loadingAfter = loadingAfter_
                 }
-                    ! [ sendRequest model.remoteAddress updatedFullRequest ]
+                    ! [ sendRequest model.remoteAddress action newRequest ]
 
 
-handleResponse : Model -> LookupStationEventsResponse -> Model
-handleResponse model response =
+handleResponse : Model -> SearchAction -> LookupStationEventsResponse -> Model
+handleResponse model action response =
     let
         events =
             List.sortWith compareEvents response.events
@@ -163,13 +177,50 @@ handleResponse model response =
 
         arrEvents =
             List.filter (\e -> e.eventType == ARR) events
+
+        base =
+            case action of
+                ReplaceResults ->
+                    { model
+                        | loading = False
+                        , errorMessage = Nothing
+                        , errorBefore = Nothing
+                        , errorAfter = Nothing
+                    }
+
+                PrependResults ->
+                    { model
+                        | loadingBefore = False
+                        , errorBefore = Nothing
+                    }
+
+                AppendResults ->
+                    { model
+                        | loadingAfter = False
+                        , errorAfter = Nothing
+                    }
+
+        ( newDepEvents, newArrEvents ) =
+            case action of
+                ReplaceResults ->
+                    ( depEvents, arrEvents )
+
+                PrependResults ->
+                    ( depEvents ++ model.depEvents
+                    , arrEvents ++ model.arrEvents
+                    )
+
+                AppendResults ->
+                    ( model.depEvents ++ depEvents
+                    , model.arrEvents ++ arrEvents
+                    )
     in
         { model
             | loading = False
             , loadingBefore = False
             , loadingAfter = False
-            , depEvents = depEvents
-            , arrEvents = arrEvents
+            , depEvents = newDepEvents
+            , arrEvents = newArrEvents
         }
 
 
@@ -188,14 +239,32 @@ compareEvents a b =
             byDate
 
 
-handleRequestError : Model -> ApiError -> Model
-handleRequestError model msg =
-    { model
-        | loading = False
-        , errorMessage = Just msg
-        , depEvents = []
-        , arrEvents = []
-    }
+handleRequestError : Model -> SearchAction -> ApiError -> Model
+handleRequestError model action msg =
+    let
+        newModel =
+            case action of
+                ReplaceResults ->
+                    { model
+                        | loading = False
+                        , errorMessage = Just msg
+                        , depEvents = []
+                        , arrEvents = []
+                    }
+
+                PrependResults ->
+                    { model
+                        | loadingBefore = False
+                        , errorBefore = Just msg
+                    }
+
+                AppendResults ->
+                    { model
+                        | loadingAfter = False
+                        , errorAfter = Just msg
+                    }
+    in
+        newModel
 
 
 extendInterval :
@@ -509,11 +578,11 @@ delay event =
 -- API
 
 
-sendRequest : String -> LookupStationEventsRequest -> Cmd Msg
-sendRequest remoteAddress request =
+sendRequest : String -> SearchAction -> LookupStationEventsRequest -> Cmd Msg
+sendRequest remoteAddress action request =
     Api.sendRequest
         remoteAddress
         decodeLookupStationEventsResponse
-        (ReceiveError request)
-        (ReceiveResponse request)
+        (ReceiveError action request)
+        (ReceiveResponse action request)
         (encodeStationEventsRequest request)
