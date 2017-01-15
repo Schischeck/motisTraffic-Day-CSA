@@ -10,7 +10,7 @@
 #include "motis/core/common/hash_map.h"
 
 #include "motis/path/prepare/rail/rail_graph.h"
-#include "motis/path/prepare/rail/rail_phantom.h"
+#include "motis/path/prepare/rail/rail_graph_builder.h"
 #include "motis/path/prepare/rail/rail_router.h"
 
 #include "motis/path/prepare/strategy/routing_strategy.h"
@@ -21,31 +21,26 @@ namespace path {
 struct rail_strategy : public routing_strategy {
   static constexpr auto kMatchRadius = 200;
 
-  explicit rail_strategy(strategy_id_t const id,
-                         std::vector<station> const& stations, rail_graph graph)
-      : routing_strategy(id), graph_(std::move(graph)) {
-    rail_phantom_index phantom_index{graph_};
-
-    stations_to_phantoms_.set_empty_key("");
-    for (auto const& station : stations) {
-      stations_to_phantoms_[station.id_] = utl::to_vec(
-          phantom_index.get_rail_phantoms(station.pos_, kMatchRadius),
-          [&](auto const& phantom) {
-            rail_phantoms_.push_back(phantom);
-            return rail_phantoms_.size() - 1;
-          });
-    }
+  rail_strategy(strategy_id_t const id, std::vector<station> const& stations,
+                std::vector<rail_way> const& rail_ways)
+      : routing_strategy(id), graph_(build_rail_graph(rail_ways, stations)) {
+    print_rail_graph_stats(graph_);
   }
 
   ~rail_strategy() = default;
 
   std::vector<node_ref> close_nodes(
       std::string const& station_id) const override {
-    auto const it = stations_to_phantoms_.find(station_id);
-    verify(it != end(stations_to_phantoms_), "rail: unknown station!");
+    auto const it = graph_.stations_to_nodes_.find(station_id);
+    verify(it != end(graph_.stations_to_nodes_), "rail: unknown station!");
 
     return utl::to_vec(it->second, [&](auto const& idx) -> node_ref {
-      return {strategy_id(), idx, rail_phantoms_[idx].pos_};
+      auto const& edge = graph_.nodes_[idx]->edges_.front();
+      auto const& polyline = graph_.polylines_[edge.polyline_idx_];
+
+      auto const& pos = edge.is_forward() ? polyline.front() : polyline.back();
+
+      return {strategy_id(), idx, pos};
     });
   }
 
@@ -56,21 +51,22 @@ struct rail_strategy : public routing_strategy {
   std::vector<std::vector<routing_result>> find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
-    auto const to_phantoms =
-        utl::to_vec(to, [&](auto const& t) { return rail_phantoms_[t.id_]; });
+    auto const to_ids = utl::to_vec(to, [](auto&& t) { return t.id_; });
     return utl::to_vec(from, [&](auto const& f) {
-      auto const& f_phantom = rail_phantoms_[f.id_];
-      return utl::to_vec(shortest_paths(graph_, f_phantom, to_phantoms),
-                         [&](auto const& path) {
-                           if (!path.valid_) {
-                             return routing_result{};
-                           }
-
-                           auto const cost = length(graph_, path);
-                           source_spec s{0, source_spec::category::RAILWAY,
-                                         source_spec::type::RAIL_ROUTE};
-                           return routing_result{strategy_id(), s, cost};
-                         });
+      return utl::to_vec(
+          shortest_paths(graph_, {f.id_}, to_ids), [&](auto const& path) {
+            if (path.empty()) {
+              return routing_result{};
+            }
+            auto cost = 0.;
+            for (auto const& edge : path) {
+              verify(edge != nullptr, "rail (find_routes) found invalid edge");
+              cost += edge->dist_;
+            }
+            source_spec s{0, source_spec::category::RAILWAY,
+                          source_spec::type::RAIL_ROUTE};
+            return routing_result{strategy_id(), s, cost};
+          });
     });
   }
 
@@ -79,16 +75,24 @@ struct rail_strategy : public routing_strategy {
     verify(from.strategy_id_ == strategy_id(), "rail bad 'from' strategy_id");
     verify(to.strategy_id_ == strategy_id(), "rail bad 'to' strategy_id");
 
-    auto const path = shortest_paths(graph_, rail_phantoms_[from.id_],
-                                     {rail_phantoms_[to.id_]})[0];
-    return to_polyline(graph_, path);
+    auto const path = shortest_paths(graph_, {from.id_}, {to.id_})[0];
+    geo::polyline result;
+    for (auto const& edge : path) {
+      verify(edge != nullptr, "rail (get_polyline) found invalid edge");
+      auto const& polyline = graph_.polylines_[edge->polyline_idx_];
+      if (edge->is_forward()) {
+        utl::concat(result, polyline);
+      } else {
+        auto reversed{polyline};  // make this faster
+        std::reverse(begin(reversed), end(reversed));
+        utl::concat(result, reversed);
+      }
+    }
+    return result;
   }
 
   rail_graph graph_;
-
-  std::vector<rail_phantom> rail_phantoms_;
-  hash_map<std::string, std::vector<size_t>> stations_to_phantoms_;
 };
 
 }  // namespace path
-}  // motis
+}  // namespace motis

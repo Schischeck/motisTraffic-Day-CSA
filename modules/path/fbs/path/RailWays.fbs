@@ -1,0 +1,18 @@
+include "Position.fbs";
+
+namespace motis.path;
+
+table RailWay {
+  from: long;
+  to: long;
+
+  ids: [long];
+
+  polyline: [Position];
+}
+
+table RailWays {
+  ways: [RailWay];
+}
+
+root_type RailWays;

@@ -20,7 +20,7 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
                        path_routing& routing, db_builder& builder) {
   motis::logging::scoped_timer timer("resolve_sequences");
 
-  utl::parallel_for("resolve sequences", sequences, 10, [&](auto const& seq) {
+  utl::parallel_for("resolve sequences", sequences, 50, [&](auto const& seq) {
     foreach_path_category(seq.categories_, [&](auto const& path_category,
                                                auto const& motis_categories) {
       auto strategies = routing.strategies_for(path_category);

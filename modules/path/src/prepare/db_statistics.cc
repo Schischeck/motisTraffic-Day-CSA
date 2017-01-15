@@ -41,7 +41,7 @@ void dump_db_statistics(kv_database const& db) {
   std::map<std::pair<std::string, std::string>,
            std::vector<std::pair<int, std::vector<std::string>>>>
       result;
-  utl::parallel_for("checking results", indices, 10, [&](auto const& index) {
+  utl::parallel_for("checking results", indices, 50, [&](auto const& index) {
 
     auto buf = db.get(index);
     auto msg_ptr = std::make_shared<module::message>(buf.size(), buf.c_str());

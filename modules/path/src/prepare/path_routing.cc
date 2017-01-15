@@ -6,6 +6,7 @@
 
 #include "motis/path/prepare/rail/rail_cache.h"
 #include "motis/path/prepare/rail/rail_graph_builder.h"
+#include "motis/path/prepare/rail/rail_way.h"
 #include "motis/path/prepare/rel/polyline_cache.h"
 
 #include "motis/path/prepare/strategy/osrm_strategy.h"
@@ -80,19 +81,17 @@ std::unique_ptr<rail_strategy> load_rail_strategy(
     std::string const& osm_path) {
   std::string cache_file{"rail.path.cache.raw"};
 
-  rail_graph graph;
+  std::vector<rail_way> rail_ways;
   if (fs::is_regular_file(cache_file)) {
-    motis::logging::scoped_timer timer("load rail graph from existing cache");
-    graph = load_rail_graph(cache_file);
+    motis::logging::scoped_timer timer("load rail ways from existing cache");
+    rail_ways = load_rail_ways(cache_file);
   } else {
-    motis::logging::scoped_timer timer("building rail graph and writing cache");
-    graph = build_rail_graph(osm_path);
-    store_rail_graph(cache_file, graph);
+    motis::logging::scoped_timer timer("building rail ways and writing cache");
+    rail_ways = build_rail_ways(osm_path);
+    store_rail_ways(cache_file, rail_ways);
   }
 
-  print_rail_graph_stats(graph);
-
-  return std::make_unique<rail_strategy>(id, stations, std::move(graph));
+  return std::make_unique<rail_strategy>(id, stations, rail_ways);
 }
 
 path_routing make_path_routing(std::vector<station> const& stations,
