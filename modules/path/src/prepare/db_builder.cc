@@ -52,16 +52,15 @@ void db_builder::finish() {
   std::vector<Offset<motis::path::PathIndex>> r;
   std::sort(begin(indices_), end(indices_));
 
-  for (auto i = 0u; i < indices_.size(); ++i) {
-    auto ids = std::get<0>(indices_[i]);
-    auto classes = std::get<1>(indices_[i]);
+  for (auto const& index : indices_) {
+    auto ids = std::get<0>(index);
+    auto classes = std::get<1>(index);
 
     auto const fbs_stations =
         utl::to_vec(ids, [&](auto const& id) { return b.CreateString(id); });
 
     r.push_back(CreatePathIndex(b, b.CreateVector(fbs_stations),
-                                b.CreateVector(classes),
-                                std::get<2>(indices_[i])));
+                                b.CreateVector(classes), std::get<2>(index)));
   }
 
   b.Finish(CreatePathLookup(b, b.CreateVector(r)));

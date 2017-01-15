@@ -47,7 +47,7 @@ struct seq_edge {
 };
 
 struct seq_graph {
-  seq_graph(size_t const seq_size) : seq_size_(seq_size) {}
+  explicit seq_graph(size_t const seq_size) : seq_size_(seq_size) {}
 
   size_t seq_size_;
   std::vector<std::unique_ptr<seq_node>> nodes_;

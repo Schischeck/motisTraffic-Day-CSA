@@ -15,7 +15,7 @@ template <typename F>
 void foreach_osm_node(std::string const& filename, F f) {
   osmium::io::Reader reader(filename, osmium::osm_entity_bits::node);
   for (auto it = std::begin(reader); it != std::end(reader); ++it) {
-    f(static_cast<osmium::Node&>(*it));
+    f(static_cast<osmium::Node&>(*it));  // NOLINT
   }
 }
 
@@ -23,7 +23,7 @@ template <typename F>
 void foreach_osm_way(std::string const& filename, F f) {
   osmium::io::Reader reader(filename, osmium::osm_entity_bits::way);
   for (auto it = std::begin(reader); it != std::end(reader); ++it) {
-    f(static_cast<osmium::Way&>(*it));
+    f(static_cast<osmium::Way&>(*it));  // NOLINT
   }
 }
 
@@ -31,7 +31,7 @@ template <typename F>
 void foreach_osm_relation(std::string const& filename, F f) {
   osmium::io::Reader reader(filename, osmium::osm_entity_bits::relation);
   for (auto it = std::begin(reader); it != std::end(reader); ++it) {
-    f(static_cast<osmium::Relation&>(*it));
+    f(static_cast<osmium::Relation&>(*it));  // NOLINT
   }
 }
 

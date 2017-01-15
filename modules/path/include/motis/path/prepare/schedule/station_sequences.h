@@ -8,7 +8,9 @@
 namespace motis {
 
 namespace loader {
-struct Schedule;
+
+struct Schedule;  // NOLINT
+
 }  // namespace loader
 
 namespace path {

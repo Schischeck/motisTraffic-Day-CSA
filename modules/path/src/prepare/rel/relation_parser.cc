@@ -13,7 +13,7 @@ using namespace motis::logging;
 namespace motis {
 namespace path {
 
-parsed_relations parse_relations(std::string const& osm_file_) {
+parsed_relations parse_relations(std::string const& osm_file) {
   scoped_timer scoped_timer("parse osm relations");
 
   parsed_relations result;
@@ -26,7 +26,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
   std::vector<std::string> other_routes{"subway", "tram"};
   std::vector<std::string> bus_routes{"bus"};
 
-  foreach_osm_relation(osm_file_, [&](auto&& relation) {
+  foreach_osm_relation(osm_file, [&](auto&& relation) {
     auto const type = relation.get_value_by_key("type", "");
     if (std::none_of(begin(types), end(types),
                      [&](auto&& t) { return t == type; })) {
@@ -67,7 +67,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
   std::string platform = "platform";
   std::string stop = "stop";
 
-  foreach_osm_way(osm_file_, [&](auto&& way) {
+  foreach_osm_way(osm_file, [&](auto&& way) {
     auto w = pending_ways_.find(way.id());
     if (w == end(pending_ways_) ||
         platform == way.get_value_by_key("highway", "") ||
@@ -86,7 +86,7 @@ parsed_relations parse_relations(std::string const& osm_file_) {
     }
   });
 
-  foreach_osm_node(osm_file_, [&](auto&& node) {
+  foreach_osm_node(osm_file, [&](auto&& node) {
     auto it = pending_nodes_.find(node.id());
     if (it != end(pending_nodes_)) {
       for (auto& n : it->second) {

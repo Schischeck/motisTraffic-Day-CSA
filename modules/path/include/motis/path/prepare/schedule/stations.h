@@ -13,8 +13,6 @@
 
 #include "motis/path/prepare/schedule/station_sequences.h"
 
-using namespace motis::logging;
-
 namespace motis {
 namespace path {
 

@@ -111,4 +111,4 @@ struct relation_strategy : public routing_strategy {
 };
 
 }  // namespace path
-}  // motis
+}  // namespace motis

@@ -19,8 +19,6 @@ namespace motis {
 namespace path {
 
 struct rail_strategy : public routing_strategy {
-  static constexpr auto kMatchRadius = 200;
-
   rail_strategy(strategy_id_t const id, std::vector<station> const& stations,
                 std::vector<rail_way> const& rail_ways)
       : routing_strategy(id), graph_(build_rail_graph(rail_ways, stations)) {

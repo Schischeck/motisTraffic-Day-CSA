@@ -30,7 +30,7 @@ struct sequence_info {
 };
 
 struct db_builder {
-  db_builder(std::unique_ptr<kv_database> db) : db_(std::move(db)) {}
+  explicit db_builder(std::unique_ptr<kv_database> db) : db_(std::move(db)) {}
 
   int append(std::vector<std::string> const& station_ids,
              std::vector<uint32_t> const& classes,

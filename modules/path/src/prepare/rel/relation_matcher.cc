@@ -29,8 +29,8 @@ struct matcher {
       : ap_(ap), seq_(seq), stop_positions_(stop_positions), rtree_(rtree) {}
 
   void run() {
-    long last = -1;
-    long first = -1;
+    int64_t last = -1;
+    int64_t first = -1;
     std::vector<std::pair<size_t, size_t>> stations;
 
     for (auto i = 0u; i < seq_.coordinates_.size(); ++i) {
@@ -46,7 +46,7 @@ struct matcher {
       }
 
       utl::erase_if(close_nodes, [&](auto const& pair) {
-        return static_cast<long>(pair.second) <= last;
+        return static_cast<int64_t>(pair.second) <= last;
       });
 
       if (close_nodes.empty()) {
@@ -140,5 +140,5 @@ std::vector<std::vector<match_seq>> match_osm_relations(
   return match_sequences(polylines, sequences, additional_stop_positions);
 };
 
-}  // namespace motis
 }  // namespace path
+}  // namespace motis

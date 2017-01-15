@@ -43,7 +43,9 @@ struct routing_result {
         weight_(std::numeric_limits<double>::infinity()) {}
 
   routing_result(size_t strategy_id, source_spec source, double weight)
-      : strategy_id_(strategy_id), source_(source), weight_(weight) {}
+      : strategy_id_(strategy_id),
+        source_(std::move(source)),
+        weight_(weight) {}
 
   strategy_id_t strategy_id() const { return strategy_id_; }
   bool is_valid() const { return strategy_id_ != kInvalidStrategyId; }
@@ -76,4 +78,4 @@ private:
 };
 
 }  // namespace path
-}  // motis
+}  // namespace motis

@@ -30,16 +30,16 @@ struct rail_edge_phantom {
   geo::latlng pos_;
 };
 
-bool way_idx_match(std::vector<size_t> const& vec, size_t const val) {
+inline bool way_idx_match(std::vector<size_t> const& vec, size_t const val) {
   return std::find(begin(vec), end(vec), val) != end(vec);
 }
 
-bool way_idx_match(size_t const val, std::vector<size_t> const& vec) {
+inline bool way_idx_match(size_t const val, std::vector<size_t> const& vec) {
   return way_idx_match(vec, val);
 }
 
 struct rail_phantom_index {
-  rail_phantom_index(std::vector<rail_way> const& rail_ways) {
+  explicit rail_phantom_index(std::vector<rail_way> const& rail_ways) {
     hash_map<int64_t, rail_node_phantom> node_phantoms;
     node_phantoms.set_empty_key(std::numeric_limits<int64_t>::max());
 

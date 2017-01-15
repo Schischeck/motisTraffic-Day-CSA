@@ -14,7 +14,7 @@ namespace path {
 
 struct node {
   node() = default;
-  node(int64_t id) : id_(id), resolved_(false) {}
+  explicit node(int64_t id) : id_(id), resolved_(false) {}
 
   int64_t id_;
   bool resolved_;
@@ -22,7 +22,7 @@ struct node {
 };
 
 struct way {
-  way(int64_t id) : id_(id), resolved_(false) {}
+  explicit way(int64_t id) : id_(id), resolved_(false) {}
 
   node const& head() const { return nodes_.back(); }
   node const& tail() const { return nodes_.front(); }

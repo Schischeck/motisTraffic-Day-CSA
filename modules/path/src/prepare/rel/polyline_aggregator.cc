@@ -138,7 +138,7 @@ void append(polyline& result, way const* w, bool const forward) {
       result.push_back(n.pos_);
     }
   } else {
-    for (long i = static_cast<int>(w->nodes_.size()) - 1; i >= 0; --i) {
+    for (int i = static_cast<int>(w->nodes_.size()) - 1; i >= 0; --i) {
       result.push_back(w->nodes_[i].pos_);
     }
   }

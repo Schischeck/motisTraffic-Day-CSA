@@ -13,8 +13,9 @@ namespace path {
 struct lookup_index {
   using lookup_table = typed_flatbuffer<motis::path::PathLookup>;
 
-  lookup_index(std::string const& s) : lookup_table_(s.size(), s.data()) {}
-  lookup_index(lookup_table lut) : lookup_table_(std::move(lut)) {}
+  explicit lookup_index(std::string const& s)
+      : lookup_table_(s.size(), s.data()) {}
+  explicit lookup_index(lookup_table lut) : lookup_table_(std::move(lut)) {}
 
   std::string find(PathStationSeqRequest const* req);
 

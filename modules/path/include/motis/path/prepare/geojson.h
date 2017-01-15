@@ -12,9 +12,9 @@ namespace path {
 inline void dump_polylines(std::vector<geo::polyline> const& polylines,
                            const char* filename = "polylines.json") {
   FILE* fp = std::fopen(filename, "w");
-  char writeBuffer[65536];
+  char write_buffer[65536];
 
-  rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+  rapidjson::FileWriteStream os(fp, write_buffer, sizeof(write_buffer));
   rapidjson::PrettyWriter<rapidjson::FileWriteStream> w(os);
 
   w.StartObject();

@@ -11,7 +11,7 @@ namespace path {
 struct osrm_strategy : public routing_strategy {
   osrm_strategy(strategy_id_t const, std::vector<station> const&,
                 std::string const& osrm_path);
-  ~osrm_strategy();
+  ~osrm_strategy() override;
 
   std::vector<node_ref> close_nodes(
       std::string const& station_id) const override;
@@ -31,4 +31,4 @@ private:
 };
 
 }  // namespace path
-}  // motis
+}  // namespace motis
