@@ -7,7 +7,6 @@
 #include "motis/path/prepare/rail/rail_graph.h"
 #include "motis/path/prepare/rail/rail_way.h"
 
-
 namespace motis {
 namespace path {
 

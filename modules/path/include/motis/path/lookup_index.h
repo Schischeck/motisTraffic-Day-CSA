@@ -4,8 +4,8 @@
 
 #include "motis/core/common/typed_flatbuffer.h"
 
-#include "motis/protocol/PathStationSeqRequest_generated.h"
 #include "motis/path/fbs/PathIndex_generated.h"
+#include "motis/protocol/PathStationSeqRequest_generated.h"
 
 namespace motis {
 namespace path {
@@ -15,7 +15,6 @@ struct lookup_index {
 
   lookup_index(std::string const& s) : lookup_table_(s.size(), s.data()) {}
   lookup_index(lookup_table lut) : lookup_table_(std::move(lut)) {}
-
 
   std::string find(PathStationSeqRequest const* req);
 

@@ -6,8 +6,8 @@
 
 #include "parser/buffer.h"
 
-#include "motis/path/prepare/schedule/station_sequences.h"
 #include "motis/path/prepare/schedule/bus_stop_positions.h"
+#include "motis/path/prepare/schedule/station_sequences.h"
 
 namespace motis {
 namespace path {

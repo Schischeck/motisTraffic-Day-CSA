@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "motis/path/prepare/strategy/routing_strategy.h"
 #include "motis/path/prepare/schedule/stations.h"
+#include "motis/path/prepare/strategy/routing_strategy.h"
 
 namespace motis {
 namespace path {

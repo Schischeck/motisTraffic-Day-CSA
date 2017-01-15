@@ -20,7 +20,7 @@ struct rail_way {
         polyline_(std::move(polyline)) {}
 
   bool is_valid() const { return !ids_.empty(); }
-  void invalidate() { ids_.clear();}
+  void invalidate() { ids_.clear(); }
 
   int64_t from_, to_;
 
@@ -32,4 +32,3 @@ std::vector<rail_way> build_rail_ways(std::string const& osm_file);
 
 }  // namespace path
 }  // namespace motis
- 
