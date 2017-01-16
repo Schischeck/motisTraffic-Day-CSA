@@ -79,7 +79,7 @@ void filter_sequences(std::vector<std::string> const& filters,
       std::vector<std::string> ids;
       boost::split(ids, tokens[1], boost::is_any_of("."));
       utl::erase_if(sequences, [&ids](auto const& seq) {
-        return ids == seq.station_ids_;
+        return ids != seq.station_ids_;
       });
     } else if (tokens[0] == "extent") {
       verify(fs::is_regular_file(tokens[1]), "cannot find extent polygon");
