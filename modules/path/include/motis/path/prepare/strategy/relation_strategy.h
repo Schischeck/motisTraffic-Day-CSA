@@ -47,9 +47,16 @@ struct relation_strategy : public routing_strategy {
         geo::make_point_rtree(node_refs_, [](auto const& r) { return r.pos_; });
 
     stations_to_refs_.set_empty_key("");
+    std::set<size_t> relations;
     for (auto const& station : stations) {
-      stations_to_refs_[station.id_] =
-          rtree.in_radius(station.pos_, kMatchRadius);
+      stations_to_refs_[station.id_];
+      for (auto id : rtree.in_radius(station.pos_, kMatchRadius)) {
+        if (relations.find(id) != end(relations)) {
+          continue;
+        }
+        relations.insert(id);
+        stations_to_refs_[station.id_].push_back(id);
+      }
     }
   }
 
@@ -99,9 +106,7 @@ struct relation_strategy : public routing_strategy {
 
     // XXX direction !?
     auto p = polylines_[f_ref.polyline_idx_].polyline_;
-    return geo::polyline{
-        begin(p) + std::min(f_ref.point_idx_, t_ref.point_idx_),
-        begin(p) + std::max(f_ref.point_idx_, t_ref.point_idx_) + 1};
+    return geo::extract(p, f_ref.point_idx_, t_ref.point_idx_);
   }
 
   std::vector<aggregated_polyline> polylines_;
