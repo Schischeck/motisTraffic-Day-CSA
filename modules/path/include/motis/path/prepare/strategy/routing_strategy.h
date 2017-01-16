@@ -30,6 +30,11 @@ struct node_ref {
            std::tie(b.id_, b.strategy_id_, b.coords_);
   }
 
+  friend bool operator<(node_ref const& a, node_ref const& b) {
+    return std::tie(a.id_, a.strategy_id_, a.coords_) <
+           std::tie(b.id_, b.strategy_id_, b.coords_);
+  }
+
   strategy_id_t strategy_id_;
   node_ref_id_t id_;
 
