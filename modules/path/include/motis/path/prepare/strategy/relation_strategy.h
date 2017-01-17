@@ -47,16 +47,17 @@ struct relation_strategy : public routing_strategy {
         geo::make_point_rtree(node_refs_, [](auto const& r) { return r.pos_; });
 
     stations_to_refs_.set_empty_key("");
-    std::set<size_t> relations;
     for (auto const& station : stations) {
-      stations_to_refs_[station.id_];
+      std::set<size_t> relations;
+      std::vector<size_t> node_refs;
       for (auto id : rtree.in_radius(station.pos_, kMatchRadius)) {
-        if (relations.find(id) != end(relations)) {
+        if (relations.find(node_refs_[id].polyline_idx_) != end(relations)) {
           continue;
         }
-        relations.insert(id);
-        stations_to_refs_[station.id_].push_back(id);
+        relations.insert(node_refs_[id].polyline_idx_);
+        node_refs.push_back(id);
       }
+      stations_to_refs_[station.id_] = std::move(node_refs);
     }
   }
 

@@ -41,14 +41,15 @@ struct prepare_settings : public conf::simple_config {
                             std::string const& osrm = "osrm",
                             std::string const& out = "pathdb",
                             std::vector<std::string> const& filter = {},
-                            bool stats_only = false)
+                            std::string stats = "off")
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
     string_param(osrm_, osrm, "osrm", "path/to/osrm/files");
     string_param(out_, out, "out", "/path/to/db");
     multitoken_param(filter_, filter, "filter", "filter station sequences");
-    bool_param(stats_only_, stats_only, "stats_only", "the state of 'out'");
+    string_param(stats_, stats, "stats",
+                 "the state of 'out' (only, combined, off)");
   }
 
   std::string schedule_;
@@ -58,7 +59,7 @@ struct prepare_settings : public conf::simple_config {
 
   std::vector<std::string> filter_;
 
-  bool stats_only_;
+  std::string stats_;
 };
 
 void filter_sequences(std::vector<std::string> const& filters,
@@ -122,7 +123,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  if (!opt.stats_only_) {
+  if (opt.stats_ != "only") {
     verify(fs::is_regular_file(opt.osrm_), "cannot find osrm dataset");
     verify(fs::is_regular_file(opt.osm_), "cannot find osm dataset");
 
@@ -149,7 +150,9 @@ int main(int argc, char** argv) {
     builder.finish();
   }
 
-  auto const db = std::make_unique<rocksdb_database>(opt.out_);
-  dump_db_statistics(*db);
+  if (opt.stats_ != "off") {
+    auto const db = std::make_unique<rocksdb_database>(opt.out_);
+    dump_db_statistics(*db);
+  }
   std::cout << std::endl;
 }

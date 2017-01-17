@@ -90,6 +90,7 @@ void finish_graph(seq_graph& graph) {
 std::mutex perf_stats_mutex;
 std::map<strategy_id_t, std::vector<size_t>> create_nodes_timings;
 std::map<strategy_id_t, std::vector<size_t>> create_edges_timings;
+std::map<strategy_id_t, std::vector<size_t>> added_close_nodes;
 
 seq_graph build_seq_graph(station_seq const& seq,
                           std::vector<routing_strategy*> const& strategies) {
@@ -97,6 +98,7 @@ seq_graph build_seq_graph(station_seq const& seq,
 
   seq_graph graph{seq.station_ids_.size()};
   for (auto const& strategy : strategies) {
+    auto const& n_before = graph.nodes_.size();
     auto const t_0 = sc::steady_clock::now();
     add_close_nodes(graph, seq, strategy);
     auto const t_1 = sc::steady_clock::now();
@@ -106,6 +108,7 @@ seq_graph build_seq_graph(station_seq const& seq,
     utl::erase_if(graph.nodes_, [](auto const& node) {
       return node->edges_.empty() && node->incomming_edges_count_ == 0;
     });
+    auto const& n_after = graph.nodes_.size();
 
     // std::cout << "\n
     // =====================================================\n";
@@ -116,6 +119,8 @@ seq_graph build_seq_graph(station_seq const& seq,
         sc::duration_cast<sc::milliseconds>(t_1 - t_0).count());
     create_edges_timings[strategy->strategy_id()].push_back(
         sc::duration_cast<sc::milliseconds>(t_2 - t_1).count());
+    added_close_nodes[strategy->strategy_id()].push_back(
+        (n_after - n_before) / seq.station_ids_.size());
   }
 
   finish_graph(graph);
@@ -147,6 +152,9 @@ void dump_build_seq_graph_timings() {
 
   std::cout << " === create edges  timings === " << std::endl;
   dump(create_edges_timings);
+
+  std::cout << " === added close nodes ===" << std::endl;
+  dump(added_close_nodes);
 }
 
 }  // namespace path
