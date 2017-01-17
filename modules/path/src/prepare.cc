@@ -94,6 +94,10 @@ void filter_sequences(std::vector<std::string> const& filters,
     } else if (tokens[0] == "limit") {
       size_t const count = std::stoul(tokens[1]);
       sequences.resize(std::min(count, sequences.size()));
+    } else if (tokens[0] == "cat") {
+      for (auto& seq : sequences) {
+        seq.categories_.erase(std::stoi(tokens[1]));
+      }
     } else {
       LOG(motis::logging::info) << "unknown filter: " << tokens[0];
     }
