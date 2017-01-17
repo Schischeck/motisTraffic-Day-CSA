@@ -17,8 +17,9 @@ struct stub_strategy : public routing_strategy {
                          std::vector<station> const& stations)
       : routing_strategy(strategy_id) {
     stations_to_coords_.set_empty_key("");
+    auto id = 0u;
     for (auto const& station : stations) {
-      stations_to_coords_[station.id_] = station.pos_;
+      stations_to_coords_[station.id_] = {strategy_id, id++, station.pos_};
     }
   }
 
@@ -28,7 +29,7 @@ struct stub_strategy : public routing_strategy {
       std::string const& station_id) const override {
     auto const it = stations_to_coords_.find(station_id);
     verify(it != end(stations_to_coords_), "stub: unknown station!");
-    return {{strategy_id(), 0, it->second}};
+    return {it->second};
   }
 
   bool can_route(node_ref const&) const override { return true; }
@@ -51,7 +52,7 @@ struct stub_strategy : public routing_strategy {
     return {from.coords_, to.coords_};
   }
 
-  hash_map<std::string, geo::latlng> stations_to_coords_;
+  hash_map<std::string, node_ref> stations_to_coords_;
 };
 
 }  // namespace path
