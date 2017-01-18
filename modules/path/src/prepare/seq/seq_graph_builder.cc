@@ -28,63 +28,94 @@ void add_close_nodes(seq_graph& g, station_seq const& s,
   }
 }
 
-void insert_edges(std::vector<seq_node*>& from_nodes,
-                  std::vector<seq_node*> const& to_nodes,
-                  std::vector<std::vector<routing_result>> const& results) {
-  verify(results.size() == from_nodes.size(), "routing 'from' size mismatch");
-  for (auto i = 0u; i < from_nodes.size(); ++i) {
-    verify(results[i].size() == to_nodes.size(), "routing 'to' size mismatch");
-    for (auto j = 0u; j < to_nodes.size(); ++j) {
-      auto& from = from_nodes[i];
-      auto const& to = to_nodes[j];
+struct station_cluster {
+  explicit station_cluster(std::string station_id)
+      : station_id_(std::move(station_id)) {}
 
-      if (from->ref_ == to->ref_) {
+  std::string station_id_;
+  std::vector<std::pair<node_ref, seq_node*>> nodes_;
+};
+
+void insert_edges(station_cluster& from, station_cluster const& to,
+                  routing_result_matrix const& results) {
+  results.verify_dimensions(from.nodes_.size(), to.nodes_.size());
+
+  for (auto i = 0u; i < from.nodes_.size(); ++i) {
+    for (auto j = 0u; j < to.nodes_.size(); ++j) {
+      auto& from_node = from.nodes_[i].second;
+      auto const& to_node = to.nodes_[j].second;
+
+      if (from_node->ref_ == to_node->ref_) {
         continue;
       }
 
-      auto result = results[i][j];
+      auto result = results.get(i, j);
       if (!result.is_valid()) {
         continue;
       }
 
-      from->edges_.emplace_back(from, to, result);
-      ++to->incomming_edges_count_;
+      from_node->edges_.emplace_back(from_node, to_node, result);
+      ++to_node->incomming_edges_count_;
     }
   }
 }
 
-void create_edges(seq_graph& graph, routing_strategy* s) {
-  auto station_vecs = utl::repeat_n(
-      std::vector<std::pair<node_ref, seq_node*>>{}, graph.seq_size_);
+routing_result_matrix route(station_cluster const& from,
+                            station_cluster const& to,
+                            routing_strategy const* s, distance_cache& cache) {
+  if (!s->is_cacheable()) {
+    auto const to_ref = [](auto const& pair) { return pair.first; };
+    return s->find_routes(utl::to_vec(from.nodes_, to_ref),
+                          utl::to_vec(to.nodes_, to_ref));
+  }
+
+  distance_cache::key key{from.station_id_, to.station_id_, s->strategy_id()};
+
+  auto cached_result = cache.get(key);
+  if (cached_result.is_valid()) {
+
+    return cached_result;
+  } else {
+    auto const to_ref = [](auto const& pair) { return pair.first; };
+    auto routed_result = s->find_routes(utl::to_vec(from.nodes_, to_ref),
+                                        utl::to_vec(to.nodes_, to_ref));
+    cache.put(key, routed_result);
+    return routed_result;
+  }
+}
+
+void create_edges(seq_graph& graph, station_seq const& seq,
+                  routing_strategy const* s, distance_cache& cache) {
+  auto clusters = utl::to_vec(
+      seq.station_ids_, [](auto const& id) { return station_cluster{id}; });
+
   for (auto& node : graph.nodes_) {
     if (!s->can_route(node->ref_)) {
       continue;
     }
 
-    station_vecs.emplace_back(node->ref_, node.get());
+    clusters[node->station_idx_].nodes_.emplace_back(node->ref_, node.get());
   }
 
-  for (auto& station_vec : station_vecs) {
-    std::sort(begin(station_vec), end(station_vec));
+  for (auto& cluster : clusters) {
+    std::sort(begin(cluster.nodes_), end(cluster.nodes_));
   }
 
-  auto const nodes = utl::to_vec(station_vecs, [](auto const& station_vec) {
-    return utl::to_vec(station_vec,
-                       [](auto const& pair) { return pair.second; });
-  });
+  for (auto i = 0u; i < graph.seq_size_ - 1; ++i) {  // between stations
+    if (clusters[i].nodes_.empty() || clusters[i + 1].nodes_.empty()) {
+      continue;
+    }
 
-  auto const refs = utl::to_vec(station_vecs, [](auto const& station_vec) {
-    return utl::to_vec(station_vec,
-                       [](auto const& pair) { return pair.second; });
-  });
-
-  // TODO
-
-  for (auto i = 0u; i < graph.seq_size_ - 1; ++i) {
-    insert_edges(nodes[i], nodes[i + 1], s->find_routes(refs[i], refs[i + 1]));
+    insert_edges(clusters[i], clusters[i + 1],
+                 route(clusters[i], clusters[i + 1], s, cache));
   }
-  for (auto i = 1u; i < graph.seq_size_ - 1; ++i) {
-    insert_edges(nodes[i], nodes[i], s->find_routes(refs[i], refs[i]));
+  for (auto i = 1u; i < graph.seq_size_ - 1; ++i) {  // within station
+    if (clusters[i].nodes_.empty()) {
+      continue;
+    }
+
+    insert_edges(clusters[i], clusters[i],
+                 route(clusters[i], clusters[i], s, cache));
   }
 }
 
@@ -107,7 +138,8 @@ std::map<strategy_id_t, std::vector<size_t>> create_edges_timings;
 std::map<strategy_id_t, std::vector<size_t>> added_close_nodes;
 
 seq_graph build_seq_graph(station_seq const& seq,
-                          std::vector<routing_strategy*> const& strategies) {
+                          std::vector<routing_strategy*> const& strategies,
+                          distance_cache& cache) {
   namespace sc = std::chrono;
 
   seq_graph graph{seq.station_ids_.size()};
@@ -116,7 +148,7 @@ seq_graph build_seq_graph(station_seq const& seq,
     auto const t_0 = sc::steady_clock::now();
     add_close_nodes(graph, seq, strategy);
     auto const t_1 = sc::steady_clock::now();
-    create_edges(graph, strategy);
+    create_edges(graph, seq, strategy, cache);
     auto const t_2 = sc::steady_clock::now();
 
     utl::erase_if(graph.nodes_, [](auto const& node) {
@@ -158,7 +190,6 @@ void dump_build_seq_graph_timings() {
                 << " q95:" << std::setw(8) << vec[0.95 * (vec.size() - 1)]  //
                 << std::endl;
     }
-
   };
 
   std::cout << " === create nodes  timings === " << std::endl;

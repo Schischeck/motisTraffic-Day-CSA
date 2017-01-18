@@ -7,6 +7,8 @@
 #include "geo/latlng.h"
 #include "geo/polyline.h"
 
+#include "parser/util.h"
+
 #include "motis/path/prepare/schedule/station_sequences.h"
 #include "motis/path/prepare/source_spec.h"
 
@@ -60,6 +62,50 @@ struct routing_result {
   double weight_;
 };
 
+struct routing_result_matrix {
+  using raw_results_t = std::vector<std::vector<routing_result>>;
+
+  routing_result_matrix() : ptr_(nullptr) {}
+
+  explicit routing_result_matrix(raw_results_t const* ptr,
+                                 bool is_transposed = false)
+      : ptr_(ptr), is_transposed_(is_transposed) {}
+
+  explicit routing_result_matrix(raw_results_t results,
+                                 bool is_transposed = false)
+      : mem_(std::make_unique<raw_results_t>(std::move(results))),
+        ptr_(mem_.get()),
+        is_transposed_(is_transposed) {}
+
+  routing_result_matrix(routing_result_matrix&&) = default;
+  routing_result_matrix& operator=(routing_result_matrix&&) = default;
+
+  void verify_dimensions(size_t const from, size_t const to) const {
+    if (!is_transposed_) {
+      verify(from == ptr_->size(), "from size mismatch (nt)");
+      for (auto const& vec : *ptr_) {
+        verify(to == vec.size(), "to size mismatch (nt)");
+      }
+    } else {
+      verify(to == ptr_->size(), "to size mismatch (t!)");
+      for (auto const& vec : *ptr_) {
+        verify(from == vec.size(), "from size mismatch (t!)");
+      }
+    }
+  }
+
+  bool is_valid() const { return ptr_ != nullptr; }
+
+  routing_result const& get(size_t const from, size_t const to) const {
+    return is_transposed_ ? ptr_->at(to).at(from) : ptr_->at(from).at(to);
+  }
+
+  std::unique_ptr<raw_results_t> mem_;
+  raw_results_t const* ptr_;
+
+  bool is_transposed_;
+};
+
 struct routing_strategy {
   explicit routing_strategy(strategy_id_t const strategy_id)
       : strategy_id_(strategy_id) {}
@@ -68,8 +114,10 @@ struct routing_strategy {
   virtual std::vector<node_ref> close_nodes(
       std::string const& station_id) const = 0;
 
+  virtual bool is_cacheable() const = 0;
   virtual bool can_route(node_ref const&) const = 0;
-  virtual std::vector<std::vector<routing_result>> find_routes(
+
+  virtual routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const = 0;
 

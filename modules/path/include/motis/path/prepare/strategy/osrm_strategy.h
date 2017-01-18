@@ -16,9 +16,11 @@ struct osrm_strategy : public routing_strategy {
   std::vector<node_ref> close_nodes(
       std::string const& station_id) const override;
 
+  bool is_cacheable() const override { return true; }
+
   bool can_route(node_ref const&) const override;
 
-  std::vector<std::vector<routing_result>> find_routes(
+  routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override;
 

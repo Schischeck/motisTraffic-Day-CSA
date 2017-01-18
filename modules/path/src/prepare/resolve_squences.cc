@@ -20,6 +20,8 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
                        path_routing& routing, db_builder& builder) {
   motis::logging::scoped_timer timer("resolve_sequences");
 
+  distance_cache cache;
+
   utl::parallel_for("resolve sequences", sequences, 50, [&](auto const& seq) {
     foreach_path_category(seq.categories_, [&](auto const& path_category,
                                                auto const& motis_categories) {
@@ -37,12 +39,18 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
       std::vector<geo::polyline> lines{seq.station_ids_.size() - 1};
       std::vector<sequence_info> sequence_infos;
 
-      auto const graph = build_seq_graph(seq, strategies);
+      auto const graph = build_seq_graph(seq, strategies, cache);
       for (auto const& edge : find_shortest_path(graph)) {
         auto& line = lines[edge->from_->station_idx_];
 
         auto const size_before = line.size();
-        utl::concat(line, get_polyline(edge));
+
+        auto&& polyline = get_polyline(edge);
+        if(polyline.size() == 2 && polyline[0] == polyline[1]) {
+          continue;
+        }
+
+        utl::concat(line, polyline);
 
         sequence_infos.emplace_back(edge->from_->station_idx_,  //
                                     size_before, line.size(),
@@ -54,6 +62,7 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
   });
 
   dump_build_seq_graph_timings();
+  cache.dump_stats();
 }
 
 }  // namespace path

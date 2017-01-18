@@ -73,14 +73,16 @@ struct relation_strategy : public routing_strategy {
     });
   }
 
+  bool is_cacheable() const override { return false; }
+
   bool can_route(node_ref const& ref) const override {
     return ref.strategy_id() == strategy_id();
   }
 
-  std::vector<std::vector<routing_result>> find_routes(
+  routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
-    return utl::to_vec(from, [&](auto const& f) {
+    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
       auto const& f_ref = node_refs_[f.id_];
 
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
@@ -93,7 +95,7 @@ struct relation_strategy : public routing_strategy {
         auto const p = polylines_[f_ref.polyline_idx_];
         return {strategy_id(), p.source_, 0};
       });
-    });
+    })};
   }
 
   geo::polyline get_polyline(node_ref const& from,

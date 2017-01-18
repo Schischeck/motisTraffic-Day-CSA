@@ -32,19 +32,24 @@ struct stub_strategy : public routing_strategy {
     return {it->second};
   }
 
+  bool is_cacheable() const override { return false; }
   bool can_route(node_ref const&) const override { return true; }
 
-  std::vector<std::vector<routing_result>> find_routes(
+  routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
     source_spec s{0, source_spec::category::UNKNOWN,
                   source_spec::type::STUB_ROUTE};
 
-    return utl::to_vec(from, [&](auto const& f) {
+    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
-        return {strategy_id(), s, distance(f.coords_, t.coords_) * 5};
+        if (f == t) {
+          return {};
+        } else {
+          return {strategy_id(), s, distance(f.coords_, t.coords_) * 5};
+        }
       });
-    });
+    })};
   }
 
   geo::polyline get_polyline(node_ref const& from,

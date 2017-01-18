@@ -12,6 +12,8 @@
 
 using websocketpp::md5::md5_hash_hex;
 
+using namespace motis::module;
+
 namespace motis {
 namespace path {
 
@@ -40,7 +42,12 @@ void check_databases(kv_database const& expected, kv_database const& actual) {
     auto const a_buf = actual.try_get(a_idx);
     verify(a_buf, "missing actual db entry");
 
-    verify(*e_buf == *a_buf, "entry mismatch");
+    if(*e_buf != *a_buf) {
+      std::cout << make_msg(e_buf->data(), e_buf->size())->to_json() << "\n";
+      std::cout << " =================================== \n";
+      std::cout << make_msg(a_buf->data(), a_buf->size())->to_json() << "\n";
+      return;
+    }
   }
 
   std::cout << "checked " << e_lut.get()->indices()->size() << " entries.\n";

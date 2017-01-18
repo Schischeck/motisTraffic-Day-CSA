@@ -80,19 +80,19 @@ struct osrm_strategy::impl {
     return ref.strategy_id() == strategy_id_;
   }
 
-  std::vector<std::vector<routing_result>> find_routes(
-      std::vector<node_ref> const& from, std::vector<node_ref> const& to) {
+  routing_result_matrix find_routes(std::vector<node_ref> const& from,
+                                    std::vector<node_ref> const& to) {
     auto const to_coords =
         utl::to_vec(to, [&](auto const& t) { return coord_mem_[t.id_]; });
 
-    return utl::to_vec(from, [&](auto const& f) {
+    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(one_to_many(coord_mem_[f.id_], to_coords),
                          [&](auto const& cost) {
                            source_spec s{0, source_spec::category::BUS,
                                          source_spec::type::OSRM_ROUTE};
                            return routing_result{strategy_id_, s, cost};
                          });
-    });
+    })};
   }
 
   std::vector<double> one_to_many(geo::latlng const& one,
@@ -181,7 +181,7 @@ bool osrm_strategy::can_route(node_ref const& ref) const {
   return impl_->can_route(ref);
 }
 
-std::vector<std::vector<routing_result>> osrm_strategy::find_routes(
+routing_result_matrix osrm_strategy::find_routes(
     std::vector<node_ref> const& from, std::vector<node_ref> const& to) const {
   return impl_->find_routes(from, to);
 }

@@ -42,15 +42,17 @@ struct rail_strategy : public routing_strategy {
     });
   }
 
+  bool is_cacheable() const override { return true; }
+
   bool can_route(node_ref const& ref) const override {
     return ref.strategy_id() == strategy_id();
   }
 
-  std::vector<std::vector<routing_result>> find_routes(
+  routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
     auto const to_ids = utl::to_vec(to, [](auto&& t) { return t.id_; });
-    return utl::to_vec(from, [&](auto const& f) {
+    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
       return utl::to_vec(
           shortest_paths(graph_, {f.id_}, to_ids), [&](auto const& path) {
             if (path.empty()) {
@@ -65,7 +67,7 @@ struct rail_strategy : public routing_strategy {
                           source_spec::type::RAIL_ROUTE};
             return routing_result{strategy_id(), s, cost};
           });
-    });
+    })};
   }
 
   geo::polyline get_polyline(node_ref const& from,
