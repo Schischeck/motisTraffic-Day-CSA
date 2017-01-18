@@ -20,6 +20,7 @@
 #include "motis/core/common/logging.h"
 
 #include "motis/path/db/rocksdb.h"
+#include "motis/path/prepare/db_check.h"
 #include "motis/path/prepare/db_statistics.h"
 #include "motis/path/prepare/path_routing.h"
 #include "motis/path/prepare/resolve_sequences.h"
@@ -41,15 +42,19 @@ struct prepare_settings : public conf::simple_config {
                             std::string const& osrm = "osrm",
                             std::string const& out = "pathdb",
                             std::vector<std::string> const& filter = {},
-                            std::string stats = "off")
+                            std::string stats = "off",
+                            std::vector<std::string> const& check = {})
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");
     string_param(osm_, osm, "osm", "/path/to/germany-latest.osm.pbf");
     string_param(osrm_, osrm, "osrm", "path/to/osrm/files");
     string_param(out_, out, "out", "/path/to/db");
     multitoken_param(filter_, filter, "filter", "filter station sequences");
+
     string_param(stats_, stats, "stats",
                  "the state of 'out' (only, combined, off)");
+
+    multitoken_param(check_, check, "check", "check two results are equal");
   }
 
   std::string schedule_;
@@ -60,6 +65,7 @@ struct prepare_settings : public conf::simple_config {
   std::vector<std::string> filter_;
 
   std::string stats_;
+  std::vector<std::string> check_;
 };
 
 void filter_sequences(std::vector<std::string> const& filters,
@@ -125,6 +131,15 @@ int main(int argc, char** argv) {
   } catch (std::exception const& e) {
     std::cout << "options error: " << e.what() << "\n";
     return 1;
+  }
+
+  if (!opt.check_.empty()) {
+    verify(opt.check_.size() == 2,
+           "check expects exactly two database paths") auto const expected =
+        std::make_unique<rocksdb_database>(opt.check_[0]);
+    auto const actual = std::make_unique<rocksdb_database>(opt.check_[1]);
+    check_databases(*expected, *actual);
+    return 0;
   }
 
   if (opt.stats_ != "only") {
