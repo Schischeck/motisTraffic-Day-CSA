@@ -54,17 +54,31 @@ void insert_edges(std::vector<seq_node*>& from_nodes,
 }
 
 void create_edges(seq_graph& graph, routing_strategy* s) {
-  auto nodes = utl::repeat_n(std::vector<seq_node*>{}, graph.seq_size_);
-  auto refs = utl::repeat_n(std::vector<node_ref>{}, graph.seq_size_);
-
+  auto station_vecs = utl::repeat_n(
+      std::vector<std::pair<node_ref, seq_node*>>{}, graph.seq_size_);
   for (auto& node : graph.nodes_) {
     if (!s->can_route(node->ref_)) {
       continue;
     }
 
-    nodes[node->station_idx_].push_back(node.get());
-    refs[node->station_idx_].push_back(node->ref_);
+    station_vecs.emplace_back(node->ref_, node.get());
   }
+
+  for (auto& station_vec : station_vecs) {
+    std::sort(begin(station_vec), end(station_vec));
+  }
+
+  auto const nodes = utl::to_vec(station_vecs, [](auto const& station_vec) {
+    return utl::to_vec(station_vec,
+                       [](auto const& pair) { return pair.second; });
+  });
+
+  auto const refs = utl::to_vec(station_vecs, [](auto const& station_vec) {
+    return utl::to_vec(station_vec,
+                       [](auto const& pair) { return pair.second; });
+  });
+
+  // TODO
 
   for (auto i = 0u; i < graph.seq_size_ - 1; ++i) {
     insert_edges(nodes[i], nodes[i + 1], s->find_routes(refs[i], refs[i + 1]));
