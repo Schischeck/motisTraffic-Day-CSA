@@ -1,5 +1,8 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "motis/path/db/kv_database.h"
 
 namespace motis {

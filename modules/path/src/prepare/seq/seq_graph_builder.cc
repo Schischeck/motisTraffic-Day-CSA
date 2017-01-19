@@ -1,9 +1,7 @@
 #include "motis/path/prepare/seq/seq_graph_builder.h"
 
 #include <chrono>
-#include <iomanip>
 #include <mutex>
-#include <numeric>
 
 #include "utl/erase_if.h"
 #include "utl/repeat_n.h"
@@ -12,11 +10,17 @@
 #include "parser/util.h"
 
 #include "motis/path/prepare/seq/seq_graph_printer.h"
+#include "motis/path/prepare/stats_util.h"
 
 using namespace geo;
 
 namespace motis {
 namespace path {
+
+std::mutex strategy_mutex, routing_mutex;
+std::map<strategy_id_t, std::vector<size_t>> strategy_timings;
+std::map<strategy_id_t, std::vector<size_t>> routing_timings;
+std::map<strategy_id_t, std::vector<size_t>> nodes_per_station;
 
 size_t temp_idx = 0;  // no need for synchronization; only used for debug output
 void add_close_nodes(seq_graph& g, station_seq const& s,
@@ -77,9 +81,20 @@ routing_result_matrix route(station_cluster const& from,
     return cached_result;
   } else {
     auto const to_ref = [](auto const& pair) { return pair.first; };
+
+    namespace sc = std::chrono;
+
+    auto const t_0 = sc::steady_clock::now();
     auto routed_result = s->find_routes(utl::to_vec(from.nodes_, to_ref),
                                         utl::to_vec(to.nodes_, to_ref));
+    auto const t_1 = sc::steady_clock::now();
+
     cache.put(key, routed_result);
+
+    std::lock_guard<std::mutex> lock(routing_mutex);
+    routing_timings[s->strategy_id()].push_back(
+        sc::duration_cast<sc::milliseconds>(t_1 - t_0).count());
+
     return routed_result;
   }
 }
@@ -132,11 +147,6 @@ void finish_graph(seq_graph& graph) {
   }
 }
 
-std::mutex perf_stats_mutex;
-std::map<strategy_id_t, std::vector<size_t>> create_nodes_timings;
-std::map<strategy_id_t, std::vector<size_t>> create_edges_timings;
-std::map<strategy_id_t, std::vector<size_t>> added_close_nodes;
-
 seq_graph build_seq_graph(station_seq const& seq,
                           std::vector<routing_strategy*> const& strategies,
                           distance_cache& cache) {
@@ -145,11 +155,11 @@ seq_graph build_seq_graph(station_seq const& seq,
   seq_graph graph{seq.station_ids_.size()};
   for (auto const& strategy : strategies) {
     auto const& n_before = graph.nodes_.size();
+
     auto const t_0 = sc::steady_clock::now();
     add_close_nodes(graph, seq, strategy);
-    auto const t_1 = sc::steady_clock::now();
     create_edges(graph, seq, strategy, cache);
-    auto const t_2 = sc::steady_clock::now();
+    auto const t_1 = sc::steady_clock::now();
 
     utl::erase_if(graph.nodes_, [](auto const& node) {
       return node->edges_.empty() && node->incomming_edges_count_ == 0;
@@ -160,12 +170,10 @@ seq_graph build_seq_graph(station_seq const& seq,
     // =====================================================\n";
     // print_seq_graph(graph);
 
-    std::lock_guard<std::mutex> lock(perf_stats_mutex);
-    create_nodes_timings[strategy->strategy_id()].push_back(
+    std::lock_guard<std::mutex> lock(strategy_mutex);
+    strategy_timings[strategy->strategy_id()].push_back(
         sc::duration_cast<sc::milliseconds>(t_1 - t_0).count());
-    create_edges_timings[strategy->strategy_id()].push_back(
-        sc::duration_cast<sc::milliseconds>(t_2 - t_1).count());
-    added_close_nodes[strategy->strategy_id()].push_back(
+    nodes_per_station[strategy->strategy_id()].push_back(
         (n_after - n_before) / seq.station_ids_.size());
   }
 
@@ -174,32 +182,24 @@ seq_graph build_seq_graph(station_seq const& seq,
 }
 
 void dump_build_seq_graph_timings() {
-  std::lock_guard<std::mutex> lock(perf_stats_mutex);
+  std::lock_guard<std::mutex> strategy_lock(strategy_mutex);
+  std::lock_guard<std::mutex> routing_lock(routing_mutex);
 
   auto const dump = [](auto& timings) {
     for (auto& pair : timings) {
-      auto& vec = pair.second;
-      auto const avg = std::accumulate(begin(vec), end(vec), 0) / vec.size();
-
-      std::sort(begin(vec), end(vec));
-      std::cout << pair.first << " | "  //
-                << " count:" << std::setw(8) << vec.size()  //
-                << " avg:" << std::setw(8) << avg  //
-                << " q75:" << std::setw(8) << vec[0.75 * (vec.size() - 1)]  //
-                << " q90:" << std::setw(8) << vec[0.90 * (vec.size() - 1)]  //
-                << " q95:" << std::setw(8) << vec[0.95 * (vec.size() - 1)]  //
-                << std::endl;
+      std::cout << pair.first << " | ";
+      dump_stats(pair.second);
     }
   };
 
-  std::cout << " === create nodes  timings === " << std::endl;
-  dump(create_nodes_timings);
+  std::cout << " === strategy timings === " << std::endl;
+  dump(strategy_timings);
 
-  std::cout << " === create edges  timings === " << std::endl;
-  dump(create_edges_timings);
+  std::cout << " === routing timings === " << std::endl;
+  dump(routing_timings);
 
-  std::cout << " === added close nodes ===" << std::endl;
-  dump(added_close_nodes);
+  std::cout << " === nodes per station ===" << std::endl;
+  dump(nodes_per_station);
 }
 
 }  // namespace path
