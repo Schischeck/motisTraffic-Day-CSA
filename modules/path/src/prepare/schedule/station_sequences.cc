@@ -4,7 +4,11 @@
 #include <map>
 #include <vector>
 
+#include "utl/concat.h"
+#include "utl/equal_ranges.h"
+#include "utl/erase_duplicates.h"
 #include "utl/get_or_create.h"
+#include "utl/to_vec.h"
 
 #include "motis/core/common/logging.h"
 
@@ -22,7 +26,6 @@ namespace path {
 std::vector<station_seq> load_station_sequences(
     motis::loader::Schedule const* sched) {
   scoped_timer timer("loading station sequences");
-  std::vector<station_seq> result;
 
   auto const& mapping = loader::class_mapping();
 
@@ -48,9 +51,32 @@ std::vector<station_seq> load_station_sequences(
     }
   }
 
-  for (auto& s : seqs) {
-    result.emplace_back(std::move(s.second));
-  }
+  auto sequences =
+      utl::to_vec(seqs, [](auto const& pair) { return pair.second; });
+
+  std::vector<station_seq> result;
+  utl::equal_ranges(
+      sequences,
+      [](auto const& lhs, auto const& rhs) {
+        return lhs.station_ids_ < rhs.station_ids_;
+      },
+      [&](auto const& lb, auto const& ub) {
+        auto elem = *lb;
+
+        if (std::distance(lb, ub) > 1) {
+          std::cout << std::distance(lb, ub) << std::endl;
+        }
+
+        for (auto it = std::next(lb); it != ub; ++it) {
+          elem.categories_.insert(begin(it->categories_), end(it->categories_));
+          elem.train_nrs_.insert(begin(it->train_nrs_), end(it->train_nrs_));
+        }
+
+        result.emplace_back(elem);
+      });
+
+  LOG(motis::logging::info) << result.size() << " station sequences "
+                            << "(was: " << sequences.size() << ")";
 
   return result;
 }
