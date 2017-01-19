@@ -670,7 +670,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
-        , Sub.map MapUpdate (RailViz.subscriptions model.map)
+          -- , Sub.map MapUpdate (RailViz.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]

@@ -381,7 +381,15 @@ view locale model =
     div [ class "map-container" ]
         [ div [ class "inner-map-container" ]
             [ div [ id mapId ]
-                [ railVizOverlay model ]
+                [ Html.canvas
+                    [ classList
+                        [ "railviz-overlay" => True
+                        , "leaflet-zoom-hide" => True
+                        , "train-hover" => isJust model.hoveredPickId
+                        ]
+                    ]
+                    []
+                ]
             , railVizTooltip model
             , simulationTimeOverlay locale model
             ]
