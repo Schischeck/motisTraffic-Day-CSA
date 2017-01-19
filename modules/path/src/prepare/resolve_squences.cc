@@ -31,7 +31,8 @@ void resolve_sequences(std::vector<station_seq> const& sequences,
 
   distance_cache cache;
 
-  utl::parallel_for("resolve sequences", sequences, 50, [&](auto const& seq) {
+  std::cout << std::endl;
+  utl::parallel_for("resolve sequences", sequences, 250, [&](auto const& seq) {
     foreach_path_category(seq.categories_, [&](auto const& path_category,
                                                auto const& motis_categories) {
       auto const t_r_0 = sc::steady_clock::now();

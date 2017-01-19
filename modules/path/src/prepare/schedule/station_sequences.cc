@@ -1,7 +1,9 @@
 #include "motis/path/prepare/schedule/station_sequences.h"
 
+#include <algorithm>
 #include <iostream>
 #include <map>
+#include <random>
 #include <vector>
 
 #include "utl/concat.h"
@@ -63,10 +65,6 @@ std::vector<station_seq> load_station_sequences(
       [&](auto const& lb, auto const& ub) {
         auto elem = *lb;
 
-        if (std::distance(lb, ub) > 1) {
-          std::cout << std::distance(lb, ub) << std::endl;
-        }
-
         for (auto it = std::next(lb); it != ub; ++it) {
           elem.categories_.insert(begin(it->categories_), end(it->categories_));
           elem.train_nrs_.insert(begin(it->train_nrs_), end(it->train_nrs_));
@@ -74,6 +72,9 @@ std::vector<station_seq> load_station_sequences(
 
         result.emplace_back(elem);
       });
+
+  std::mt19937 g(0);
+  std::shuffle(begin(result), end(result), g);
 
   LOG(motis::logging::info) << result.size() << " station sequences "
                             << "(was: " << sequences.size() << ")";
