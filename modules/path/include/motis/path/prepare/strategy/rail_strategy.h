@@ -51,23 +51,34 @@ struct rail_strategy : public routing_strategy {
   routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
+    auto const from_ids = utl::to_vec(from, [](auto&& f) { return f.id_; });
     auto const to_ids = utl::to_vec(to, [](auto&& t) { return t.id_; });
-    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
-      return utl::to_vec(
-          shortest_paths(graph_, {f.id_}, to_ids), [&](auto const& path) {
-            if (path.empty()) {
-              return routing_result{};
-            }
-            auto cost = 0.;
-            for (auto const& edge : path) {
-              verify(edge != nullptr, "rail (find_routes) found invalid edge");
-              cost += edge->dist_;
-            }
-            source_spec s{0, source_spec::category::RAILWAY,
-                          source_spec::type::RAIL_ROUTE};
-            return routing_result{strategy_id(), s, cost};
-          });
-    })};
+
+    auto const path_to_result = [&](auto const& path) {
+      if (path.empty()) {
+        return routing_result{};
+      }
+      auto cost = 0.;
+      for (auto const& edge : path) {
+        verify(edge != nullptr, "rail (find_routes) found invalid edge");
+        cost += edge->dist_;
+      }
+      source_spec s{0, source_spec::category::RAILWAY,
+                    source_spec::type::RAIL_ROUTE};
+      return routing_result{strategy_id(), s, cost};
+    };
+
+    auto const route = [&path_to_result](auto const& froms, auto const& tos) {
+      return utl::to_vec(froms, [&](auto const& f) {
+        return utl::to_vec(shortest_paths(graph_, f, tos), path_to_result);
+      });
+    };
+
+    if (from.size() <= to.size()) {
+      return routing_result_matrix{route(from, to)};
+    } else {
+      return routing_result_matrix{route(to, from), true};
+    }
   }
 
   geo::polyline get_polyline(node_ref const& from,
