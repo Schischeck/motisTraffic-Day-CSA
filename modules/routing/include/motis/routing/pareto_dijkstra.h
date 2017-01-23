@@ -55,7 +55,7 @@ struct pareto_dijkstra {
           stats_.labels_created_ > max_labels_) {
         stats_.max_label_quit_ = true;
         filter_results();
-        return results_;
+        return;
       }
 
       // get best label
