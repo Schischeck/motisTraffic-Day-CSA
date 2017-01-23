@@ -2,14 +2,10 @@
 
 #include <atomic>
 
-#include "osrm/engine_config.hpp"
 #include "osrm/route_parameters.hpp"
 
-// #include "engine/datafacade/datafacade_base.hpp"
 #include "engine/datafacade/internal_datafacade.hpp"  // osrm
 #include "engine/plugins/viaroute.hpp"  // osrm
-
-// #include "engine/datafacade/internal_datafacade.hpp" // osrm
 #include "engine/routing_algorithms/multi_target.hpp"  // osrm
 
 #include "util/coordinate.hpp"  // osrm

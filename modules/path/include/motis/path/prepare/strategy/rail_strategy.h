@@ -32,13 +32,8 @@ struct rail_strategy : public routing_strategy {
     auto const it = graph_.stations_to_nodes_.find(station_id);
     verify(it != end(graph_.stations_to_nodes_), "rail: unknown station!");
 
-    return utl::to_vec(it->second, [&](auto const& idx) -> node_ref {
-      auto const& edge = graph_.nodes_[idx]->edges_.front();
-      auto const& polyline = graph_.polylines_[edge.polyline_idx_];
-
-      auto const& pos = edge.is_forward() ? polyline.front() : polyline.back();
-
-      return {strategy_id(), idx, pos};
+    return utl::to_vec(it->second, [&](auto const& idx) {
+      return node_ref{strategy_id(), idx, graph_.nodes_[idx]->pos_};
     });
   }
 

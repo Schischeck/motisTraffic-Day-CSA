@@ -26,6 +26,17 @@ struct rail_graph_dijkstra {
   rail_graph_dijkstra(rail_graph const& graph, std::vector<size_t> initial,
                       std::vector<size_t> goals)
       : graph_(graph), goals_(goals), open_goals_(goals) {
+    for (auto const& i : initial) {
+      for (auto const& g : goals) {
+        auto const dist =
+            geo::distance(graph_.nodes_[i]->pos_, graph_.nodes_[g]->pos_);
+        if (dist > limit_) {
+          limit_ = dist;
+        }
+      }
+    }
+    limit_ *= 10;
+
     dists_.resize(graph_.nodes_.size(), std::numeric_limits<size_t>::max());
     edges_.resize(graph_.nodes_.size(), nullptr);
 
@@ -51,7 +62,7 @@ struct rail_graph_dijkstra {
       for (auto const& edge : node->edges_) {
         size_t const new_dist = label.dist_ + edge.dist_;
         size_t const to_idx = edge.to_->idx_;
-        if (new_dist < dists_[to_idx]) {
+        if (new_dist < limit_ && new_dist < dists_[to_idx]) {
           dists_[to_idx] = new_dist;
           edges_[to_idx] = &edge;
           pq_.push({to_idx, new_dist, &edge});
@@ -83,6 +94,8 @@ struct rail_graph_dijkstra {
 
   std::vector<size_t> goals_;
   std::vector<size_t> open_goals_;
+
+  size_t limit_ = 0;
 };
 
 std::vector<std::vector<rail_edge const*>> shortest_paths(

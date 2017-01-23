@@ -57,7 +57,7 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
   hash_map<osm_idx_t, rail_node*> node_map;
   node_map.set_empty_key(std::numeric_limits<osm_idx_t>::max());
 
-  auto const make_osm_node = [&](osm_idx_t const id) {
+  auto const make_osm_node = [&](osm_idx_t const id, geo::latlng const& pos) {
     return map_get_or_create(node_map, id, [&] {
       auto const node_idx = graph.nodes_.size();
 
@@ -68,7 +68,7 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
         }
       }
 
-      graph.nodes_.emplace_back(std::make_unique<rail_node>(node_idx));
+      graph.nodes_.emplace_back(std::make_unique<rail_node>(node_idx, pos));
       return graph.nodes_.back().get();
     });
   };
@@ -80,14 +80,15 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
     return graph.polylines_.size() - 1;
   };
 
-  auto const make_way_node = [&](auto const& lb, auto const& ub) {
+  auto const make_way_node = [&](auto const& lb, auto const& ub,
+                                 geo::latlng const& pos) {
     auto const node_idx = graph.nodes_.size();
 
     for (auto it = lb; it != ub; ++it) {
       stations_to_nodes[it->second].push_back(node_idx);
     }
 
-    graph.nodes_.emplace_back(std::make_unique<rail_node>(node_idx));
+    graph.nodes_.emplace_back(std::make_unique<rail_node>(node_idx, pos));
     return graph.nodes_.back().get();
   };
 
@@ -102,7 +103,7 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
   for (auto i = 0u; i < rail_ways.size(); ++i) {
     auto const& way = rail_ways[i];
 
-    auto prev_node = make_osm_node(way.from_);
+    auto prev_node = make_osm_node(way.from_, way.polyline_.front());
     auto prev_offset = 0;
 
     utl::equal_ranges(
@@ -110,7 +111,8 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
         [](auto const& lhs, auto const& rhs) { return lhs < rhs; },
         [&](auto const lb, auto const ub) {
           auto const polyline_idx = make_polyline(way, prev_offset, lb->first);
-          auto curr_node = make_way_node(lb, ub);
+          auto curr_node =
+              make_way_node(lb, ub, graph.polylines_.back().back());
 
           make_edges(prev_node, curr_node, polyline_idx);
 
@@ -120,7 +122,7 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
 
     auto const polyline_idx =
         make_polyline(way, prev_offset, way.polyline_.size() - 1);
-    auto curr_node = make_osm_node(way.to_);
+    auto curr_node = make_osm_node(way.to_, way.polyline_.back());
 
     make_edges(prev_node, curr_node, polyline_idx);
   }

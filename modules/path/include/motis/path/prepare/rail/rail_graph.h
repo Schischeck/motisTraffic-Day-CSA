@@ -31,9 +31,12 @@ struct rail_graph {
 };
 
 struct rail_node {
-  explicit rail_node(size_t const idx) : idx_(idx) {}
+  rail_node(size_t const idx, geo::latlng pos)
+      : idx_(idx), pos_(std::move(pos)) {}
 
   size_t idx_;
+  geo::latlng pos_;
+
   std::vector<rail_edge> edges_;
 };
 
