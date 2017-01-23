@@ -3,76 +3,82 @@
 #include <atomic>
 
 #include "osrm/engine_config.hpp"
-#include "osrm/multi_target_parameters.hpp"
-#include "osrm/nearest_parameters.hpp"
-#include "osrm/osrm.hpp"
 #include "osrm/route_parameters.hpp"
-#include "osrm/smooth_via_parameters.hpp"
 
-#include "util/coordinate.hpp"
-#include "util/json_container.hpp"
-#include "util/json_util.hpp"
+// #include "engine/datafacade/datafacade_base.hpp"
+#include "engine/datafacade/internal_datafacade.hpp"
+#include "engine/plugins/viaroute.hpp"
+
+// #include "engine/datafacade/internal_datafacade.hpp" // osrm
+#include "engine/routing_algorithms/multi_target.hpp"  // osrm
+
+#include "util/coordinate.hpp"  // osrm
+#include "util/json_container.hpp"  // osrm
+#include "util/json_util.hpp"  // osrm
 
 #include "geo/latlng.h"
 
 #include "parser/util.h"
 
+#include "utl/concat.h"
 #include "utl/repeat_n.h"
 #include "utl/to_vec.h"
 
 #include "motis/core/common/hash_map.h"
 
 using namespace osrm;
+using namespace osrm::engine;
+using namespace osrm::engine::datafacade;
+using namespace osrm::engine::plugins;
+using namespace osrm::engine::routing_algorithms;
 using namespace osrm::util;
 using namespace osrm::util::json;
 
 namespace motis {
 namespace path {
 
+FloatCoordinate make_coord(geo::latlng const& pos) {
+  return FloatCoordinate{FloatLongitude{pos.lng_}, FloatLatitude{pos.lat_}};
+}
+
+geo::latlng make_latlng(FloatCoordinate const& coord) {
+  return {static_cast<double>(coord.lat), static_cast<double>(coord.lon)};
+}
+
 struct osrm_strategy::impl {
   impl(strategy_id_t const strategy_id, std::vector<station> const& stations,
        std::string const& path)
       : strategy_id_(strategy_id) {
-    EngineConfig config;
-    config.storage_config = {path};
-    config.use_shared_memory = false;
 
-    osrm_ = std::make_unique<OSRM>(config);
+    osrm_data_facade_ = std::make_unique<InternalDataFacade>({path});
 
-    stations_to_coords_.set_empty_key("");
+    osrm_heaps_ = std::make_unique<SearchEngineData>();
+    mt_forward_ = {osrm_data_facade_.get(), *osrm_heaps_};
+    mt_backward_ = {osrm_data_facade_.get(), *osrm_heaps_};
+
+    route_plugin_ = std::make_unique<ViaRoutePlugin>(*query_data_facade, -1);
+
+    stations_to_nodes_.set_empty_key("");
     for (auto const& station : stations) {
-      NearestParameters params;
-      params.number_of_results = 3;
-      params.coordinates.push_back(make_coord(station.pos_));
+      auto const nodes_with_dists =
+          osrm_data_facade_->NearestPhantomNodesFromBigComponent(
+              make_fixed_coord(station.pos_), 3);
 
-      Object result;
-      auto const status = osrm_->Nearest(params, result);
-
-      std::vector<geo::latlng> coords;
-      if (status == Status::Ok) {
-        coords = utl::to_vec(
-            result.values["waypoints"].get<Array>().values,
-            [&](Value const& wp) -> geo::latlng {
-              auto const& obj = wp.get<Object>();
-              auto const& loc = obj.values.at("location").get<Array>().values;
-              return {loc[1].get<Number>().value, loc[0].get<Number>().value};
-            });
-      }
-
-      stations_to_coords_[station.id_] =
-          utl::to_vec(coords, [&](auto const& coord) {
-            coord_mem_.emplace_back(coord);
-            return coord_mem_.size() - 1;
+      stations_to_nodes_[station.id_] =
+          utl::to_vec(nodes_with_dists, [&](auto const& node_with_dist) {
+            node_mem_.emplace_back(node_with_dist.phantom_node);
+            return node_mem_.size() - 1;
           });
     }
   }
 
   std::vector<node_ref> close_nodes(std::string const& station_id) const {
-    auto const it = stations_to_coords_.find(station_id);
-    verify(it != end(stations_to_coords_), "osrm: unknown station!");
+    auto const it = stations_to_nodes_.find(station_id);
+    verify(it != end(stations_to_nodes_), "osrm: unknown station!");
 
     return utl::to_vec(it->second, [&](auto const& idx) -> node_ref {
-      return {strategy_id_, idx, coord_mem_[idx]};
+      return {strategy_id_, idx,
+              make_latlng(node_mem_[idx].phantom_node.location)};
     });
   }
 
@@ -82,42 +88,46 @@ struct osrm_strategy::impl {
 
   routing_result_matrix find_routes(std::vector<node_ref> const& from,
                                     std::vector<node_ref> const& to) {
-    auto const to_coords =
-        utl::to_vec(to, [&](auto const& t) { return coord_mem_[t.id_]; });
-
-    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
-      return utl::to_vec(one_to_many(coord_mem_[f.id_], to_coords),
-                         [&](auto const& cost) {
-                           source_spec s{0, source_spec::category::BUS,
-                                         source_spec::type::OSRM_ROUTE};
-                           return routing_result{strategy_id_, s, cost};
-                         });
-    })};
-  }
-
-  std::vector<double> one_to_many(geo::latlng const& one,
-                                  std::vector<geo::latlng> const& many) {
-    MultiTargetParameters params;
-    params.forward = true;  // ??
-
-    params.coordinates.push_back(make_coord(one));
-
-    for (auto const& m : many) {
-      params.coordinates.push_back(make_coord(m));
+    if (from.empty() || to.empty()) {
+      return routing_result_matrix{};
     }
 
-    Object result;
-    auto const status = osrm_->MultiTarget(params, result);
-    if (status != Status::Ok) {
-      return {};
-    }
+    auto const pair_to_result = [&](auto const& pair) {
+      if (pair.first == INVALID_EDGE_WEIGHT) {
+        return routing_result{};
+      }
 
-    std::vector<double> costs;
-    for (auto const& cost : result.values["costs"].get<Array>().values) {
-      auto const& cost_obj = cost.get<Object>();
-      costs.emplace_back(cost_obj.values.at("distance").get<Number>().value);
+      source_spec s{0, source_spec::category::BUS,
+                    source_spec::type::OSRM_ROUTE};
+      return routing_result{strategy_id_, s, pair.second};
+    };
+
+    auto const route = [&](auto const& from_nodes, auto const& to_nodes,
+                           bool forward) {
+      std::vector<PhantomNode> query_phantoms{PhantomNode{}};
+      utl::concat(query_phantoms, to_nodes);
+
+      return utl::to_vec(from_nodes, [&](auto const& f) {
+        query_phantoms[0] = f;
+
+        auto const results = forward ? mt_backward_(query_phantoms)
+                                     : mt_backward_(query_phantoms);
+        verify(results, "osrm routing error!");
+
+        return utl::to_vec(*results, pair_to_result);
+      });
+    };
+
+    auto const from_nodes =
+        utl::to_vec(from, [&](auto const& f) { return node_mem_[f.id_]; });
+    auto const to_nodes =
+        utl::to_vec(to, [&](auto const& t) { return node_mem_[t.id_]; });
+
+    if (from_nodes.size() <= to_nodes.size()) {
+      return routing_result_matrix{route(from_nodes, to_nodes, true)};
+    } else {
+      return routing_result_matrix{route(to_nodes, from_nodes, false), true};
     }
-    return costs;
   }
 
   geo::polyline get_polyline(node_ref const& from, node_ref const& to) const {
@@ -128,11 +138,11 @@ struct osrm_strategy::impl {
     params.geometries = RouteParameters::GeometriesType::CoordVec1D;
     params.overview = RouteParameters::OverviewType::Full;
 
-    params.coordinates.push_back(make_coord(coord_mem_[from.id_]));
-    params.coordinates.push_back(make_coord(coord_mem_[to.id_]));
+    params.coordinates.push_back(toFloating(node_mem_[from.id_]).location);
+    params.coordinates.push_back(toFloating(node_mem_[to.id_].location));
 
     Object result;
-    auto const status = osrm_->Route(params, result);
+    auto const status = route_plugin_->HandleRequest(params, result);
 
     if (status != Status::Ok) {
       return {};
@@ -153,15 +163,18 @@ struct osrm_strategy::impl {
     return polyline;
   }
 
-  FloatCoordinate make_coord(geo::latlng const& l) const {
-    return FloatCoordinate{FloatLongitude{l.lng_}, FloatLatitude{l.lat_}};
-  }
-
-  std::unique_ptr<OSRM> osrm_;
   strategy_id_t strategy_id_;
 
-  std::vector<geo::latlng> coord_mem_;
-  hash_map<std::string, std::vector<size_t>> stations_to_coords_;
+  std::unique_ptr<InternalDataFacade> osrm_data_facade_;
+
+  std::unique_ptr<SearchEngineData> osrm_heaps_;
+  MultiTargetRouting<BaseDataFacade, true> mt_forward_;
+  MultiTargetRouting<BaseDataFacade, false> mt_backward_;
+
+  std::unique_ptr<ViaRoutePlugin> route_plugin_;
+
+  std::vector<PhantomNode> node_mem_;
+  hash_map<std::string, std::vector<size_t>> stations_to_nodes_;
 };
 
 osrm_strategy::osrm_strategy(strategy_id_t strategy_id,

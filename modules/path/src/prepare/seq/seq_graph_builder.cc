@@ -42,6 +42,10 @@ struct station_cluster {
 
 void insert_edges(station_cluster& from, station_cluster const& to,
                   routing_result_matrix const& results) {
+  if(!results.is_valid()) {
+    return;
+  }
+
   results.verify_dimensions(from.nodes_.size(), to.nodes_.size());
 
   for (auto i = 0u; i < from.nodes_.size(); ++i) {

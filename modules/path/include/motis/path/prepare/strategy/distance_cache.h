@@ -1,8 +1,8 @@
 #pragma once
 
 #include <atomic>
-#include <limits>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
@@ -72,7 +72,11 @@ struct distance_cache {
     }
 
     ++put_;
-    mem_.push_back(std::make_unique<value>(*matrix.ptr_));
+    if (matrix.ptr_ == nullptr) {
+      mem_.emplace_back(nullptr);
+    } else {
+      mem_.push_back(std::make_unique<value>(*matrix.ptr_));
+    }
 
     if (matrix.is_transposed_) {
       struct key t_key {

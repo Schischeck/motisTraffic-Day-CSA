@@ -51,9 +51,6 @@ struct rail_strategy : public routing_strategy {
   routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
-    auto const from_ids = utl::to_vec(from, [](auto&& f) { return f.id_; });
-    auto const to_ids = utl::to_vec(to, [](auto&& t) { return t.id_; });
-
     auto const path_to_result = [&](auto const& path) {
       if (path.empty()) {
         return routing_result{};
@@ -68,16 +65,18 @@ struct rail_strategy : public routing_strategy {
       return routing_result{strategy_id(), s, cost};
     };
 
-    auto const route = [&path_to_result](auto const& froms, auto const& tos) {
-      return utl::to_vec(froms, [&](auto const& f) {
-        return utl::to_vec(shortest_paths(graph_, f, tos), path_to_result);
+    auto const route = [&](auto const& from_ids, auto const& to_ids) {
+      return utl::to_vec(from_ids, [&](auto const& f) {
+        return utl::to_vec(shortest_paths(graph_, {f}, to_ids), path_to_result);
       });
     };
 
-    if (from.size() <= to.size()) {
-      return routing_result_matrix{route(from, to)};
+    auto const from_ids = utl::to_vec(from, [](auto&& f) { return f.id_; });
+    auto const to_ids = utl::to_vec(to, [](auto&& t) { return t.id_; });
+    if (from_ids.size() <= to_ids.size()) {
+      return routing_result_matrix{route(from_ids, to_ids)};
     } else {
-      return routing_result_matrix{route(to, from), true};
+      return routing_result_matrix{route(to_ids, from_ids), true};
     }
   }
 
