@@ -1,6 +1,7 @@
 module Data.Connection.Types exposing (..)
 
 import Date exposing (Date)
+import Time exposing (Time)
 import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Set exposing (Set)
 import Util.List exposing (..)
@@ -93,9 +94,9 @@ type alias Range =
 type alias TripId =
     { station_id : String
     , train_nr : Int
-    , time : Date
+    , time : Int
     , target_station_id : String
-    , target_time : Date
+    , target_time : Int
     , line_id : String
     }
 

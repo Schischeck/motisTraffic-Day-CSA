@@ -192,6 +192,7 @@ type Msg
     | PrepareSelectStation Station
     | SelectStation String String
     | StationEventsGoBack
+    | ShowStationDetails ( String, String )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -523,6 +524,9 @@ update msg model =
         StationEventsGoBack ->
             update (NavigateTo Connections) model
 
+        ShowStationDetails ( id, name ) ->
+            update (NavigateTo (StationEvents id name)) model
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -672,6 +676,8 @@ subscriptions model =
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
           -- , Sub.map MapUpdate (RailViz.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
+        , Port.showStationDetails ShowStationDetails
+        , Port.showTripDetails SelectTripId
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
 

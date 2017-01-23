@@ -33,6 +33,8 @@
   <script type="text/javascript" src="js/railviz/preprocessing.js"></script>
   <script type="text/javascript" src="js/railviz/picking.js"></script>
   <script type="text/javascript" src="js/railviz/render.js"></script>
+  <script type="text/javascript" src="js/railviz/api.js"></script>
+  <script type="text/javascript" src="js/railviz/main.js"></script>
   <script type="text/javascript" src="map.js"></script>
 
   <script type="text/javascript">
@@ -43,7 +45,7 @@
 
     window.elmMaps = {};
 
-    initPorts(app);
+    initPorts(app, apiEndpoint);
 
     function handleDrop(element) {
       element.addEventListener('drop', function (e) {

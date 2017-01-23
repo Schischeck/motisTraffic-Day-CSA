@@ -36,7 +36,7 @@ var CanvasOverlay = L.Layer.extend({
     //     this._map.unproject(pixelBounds.add(size).add(size)));
     var railVizBounds = geoBounds;
 
-    app.ports.mapUpdate.send({
+    var mapInfo = {
       scale: Math.pow(2, this._map.getZoom()),
       zoom: this._map.getZoom(),
       pixelBounds: {
@@ -57,7 +57,10 @@ var CanvasOverlay = L.Layer.extend({
         south: railVizBounds.getSouth(),
         east: railVizBounds.getEast()
       }
-    });
+    };
+
+    app.ports.mapUpdate.send(mapInfo);
+    RailViz.Main.mapUpdate(mapInfo);
   },
 
   _updateSize: function() {
@@ -112,7 +115,7 @@ var MapOverlays = {
 
 };
 
-function initPorts(app) {
+function initPorts(app, apiEndpoint) {
   app.ports.mapInit.subscribe(function(id) {
     var map = L.map('map', {zoomControl: false}).setView([49.8728, 8.6512], 14);
 
@@ -134,7 +137,7 @@ function initPorts(app) {
     c._el = map.getContainer().querySelector('.railviz-overlay');
     map.addLayer(c);
 
-    RailViz.Render.init(c._el);
+    RailViz.Main.init(c._el, apiEndpoint, app.ports);
   });
 
   app.ports.mapSetOverlays.subscribe(function(m) {

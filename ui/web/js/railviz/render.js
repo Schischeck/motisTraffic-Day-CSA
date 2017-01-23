@@ -7,23 +7,25 @@ RailViz.Render = (function() {
   const n_trains = 1000;
 
   var data;
+  var mapInfo;
+  var timeOffset = 0;
   var canvas;
   var gl;
   var startTime;
   var rafRequest;
   var offscreen = {};
+  var mouseHandler;
   const pixelRatio = window.devicePixelRatio;
 
-  function init(c) {
-    data = RailViz.DemoGenerator.generate(
-        n_stations, n_routes, n_trains, 1600, 860);
-    RailViz.Preprocessing.preprocess(data);
-
-    RailViz.Stations.init(data.stations);
-    RailViz.Routes.init(data.routes);
-    RailViz.Trains.init(data.trains, data.routes);
+  function init(c, mouseEventHandler) {
+    // data = RailViz.DemoGenerator.generate(
+    //     n_stations, n_routes, n_trains, 1600, 860);
+    // RailViz.Preprocessing.preprocess(data);
+    setData({stations: [], routes: [], trains: []});
+    setMapInfo({zoom: 14, scale: 1, pixelBounds: {north: 0, west: 0}});
 
     canvas = c;
+    mouseHandler = mouseEventHandler || function() {};
 
     // https://www.khronos.org/webgl/wiki/HandlingContextLost
     canvas.addEventListener('webglcontextlost', contextLost, false);
@@ -37,6 +39,18 @@ RailViz.Render = (function() {
 
     setup();
   }
+
+  function setData(newData) {
+    data = newData;
+
+    RailViz.Stations.init(data.stations);
+    RailViz.Routes.init(data.routes);
+    RailViz.Trains.init(data.trains, data.routes);
+  }
+
+  function setMapInfo(newMapInfo) { mapInfo = newMapInfo; }
+
+  function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
 
   function setup() {
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -61,11 +75,19 @@ RailViz.Render = (function() {
 
     var perspective = WebGL.Util.makeOrtho2D(
         0, gl.canvas.clientWidth, gl.canvas.clientHeight, 0);
-    var zoom = 10 * pixelRatio;
+    WebGL.Util.m4Scale(
+        perspective, [mapInfo.scale, mapInfo.scale, mapInfo.scale]);
+    WebGL.Util.m4Translate(perspective, [
+      -(mapInfo.pixelBounds.west / mapInfo.scale),
+      -(mapInfo.pixelBounds.north / mapInfo.scale), 0
+    ]);
+    var zoom = mapInfo.zoom * pixelRatio;
+
+    var time = timeOffset + (Date.now() / 1000);
 
     createOffscreenBuffer();
 
-    RailViz.Trains.preRender(gl, timestamp);
+    RailViz.Trains.preRender(gl, time);
 
     for (var i = 0; i <= 1; i++) {
       var isOffscreen = i == 0;
@@ -168,8 +190,10 @@ RailViz.Render = (function() {
   }
 
   function handleMouseEvent(eventType, event) {
-    const pickingX = (event.pageX - canvas.offsetLeft) * pixelRatio;
-    const pickingY = (event.pageY - canvas.offsetTop) * pixelRatio;
+    const mouseX = (event.pageX - canvas.offsetLeft);
+    const mouseY = (event.pageY - canvas.offsetTop);
+    const pickingX = mouseX * pixelRatio;
+    const pickingY = mouseY * pixelRatio;
 
     const offscreenPixel = readOffscreenPixel(pickingX, pickingY);
     const pickId = RailViz.Picking.colorToPickId(offscreenPixel);
@@ -177,28 +201,25 @@ RailViz.Render = (function() {
     const pickedTrainIndex = RailViz.Trains.getPickedTrainIndex(pickId);
     const pickedStationIndex = RailViz.Stations.getPickedStationIndex(pickId);
 
+    const pickedTrain =
+        pickedTrainIndex != null ? data.trains[pickedTrainIndex] : null;
+    const pickedStation =
+        pickedStationIndex != null ? data.stations[pickedStationIndex] : null;
+
     if (pickId && eventType != 'mouseout') {
       canvas.style.cursor = 'pointer';
     } else {
       canvas.style.cursor = 'default';
     }
 
-    if (eventType == 'mousedown') {
-      console.log('click', pickingX, pickingY, offscreenPixel, pickId);
-      if (pickedTrainIndex != null) {
-        console.log(
-            'clicked train', pickedTrainIndex, data.trains[pickedTrainIndex]);
-      } else if (pickedStationIndex != null) {
-        console.log(
-            'clicked station', pickedStationIndex,
-            data.stations[pickedStationIndex])
-      }
-    }
+    mouseHandler(eventType, mouseX, mouseY, pickedTrain, pickedStation);
   }
 
   return {
     init: init,
-    setup: setup,
+    setData: setData,
+    setMapInfo: setMapInfo,
+    setTimeOffset: setTimeOffset,
     render: render,
     getCanvas: function() { return canvas; }
   };

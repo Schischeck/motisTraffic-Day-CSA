@@ -18,7 +18,9 @@ RailViz.Trains = (function() {
             if (a_progress < 0.0) {
                 gl_Position = vec4(-2.0, -2.0, 0.0, 1.0);
             } else {
-                gl_Position = u_perspective * mix(a_startPos, a_endPos, a_progress);
+                vec4 startPrj = u_perspective * a_startPos;
+                vec4 endPrj = u_perspective * a_endPos;
+                gl_Position = mix(startPrj, endPrj, a_progress);
             }
             gl_PointSize = u_zoom;
             v_color = a_color;
@@ -115,9 +117,7 @@ RailViz.Trains = (function() {
     filterBufferInitialized = false;
   }
 
-  function preRender(gl, timestamp) {
-    const time = (timestamp / 1000) % 100;
-
+  function preRender(gl, time) {
     if (!positionData) {
       fillPositionBuffer();
     }
