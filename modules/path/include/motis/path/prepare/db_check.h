@@ -7,5 +7,5 @@ namespace path {
 
 void check_databases(kv_database const& expected, kv_database const& actual);
 
-} // namespace path
-} // namespace motis
+}  // namespace path
+}  // namespace motis
