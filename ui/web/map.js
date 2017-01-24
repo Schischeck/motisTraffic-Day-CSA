@@ -150,4 +150,5 @@ function initPorts(app, apiEndpoint) {
   });
 
   app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
+  app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
 }

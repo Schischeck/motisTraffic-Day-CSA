@@ -24,7 +24,11 @@ RailViz.Main = (function() {
     debouncedSendTrainsRequest();
   }
 
-  function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
+  function setTimeOffset(newTimeOffset) {
+    timeOffset = newTimeOffset / 1000;
+    RailViz.Render.setTimeOffset(timeOffset);
+    debouncedSendTrainsRequest();
+  }
 
   function setFilter(tripIds) {
     filteredTripIds = tripIds;

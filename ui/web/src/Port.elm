@@ -16,3 +16,6 @@ port showTripDetails : (TripId -> msg) -> Sub msg
 
 
 port setRailVizFilter : Maybe (List TripId) -> Cmd msg
+
+
+port setTimeOffset : Float -> Cmd msg

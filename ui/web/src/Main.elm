@@ -488,7 +488,12 @@ update msg model =
                 ( model4, cmds3 ) =
                     update (TimeUpdate (TimeInput.InitDate newDate)) model3
             in
-                model4 ! [ cmds1, cmds2, cmds3 ]
+                model4
+                    ! [ cmds1
+                      , cmds2
+                      , cmds3
+                      , Port.setTimeOffset offset
+                      ]
 
         StationEventsUpdate msg_ ->
             let
