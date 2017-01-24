@@ -42,7 +42,7 @@ struct prepare_settings : public conf::simple_config {
                             std::string const& osrm = "osrm",
                             std::string const& out = "pathdb",
                             std::vector<std::string> const& filter = {},
-                            std::string stats = "off",
+                            std::string const& stats = "off",
                             std::vector<std::string> const& check = {})
       : simple_config("Prepare Options", "") {
     string_param(schedule_, schedule, "schedule", "/path/to/rohdaten");

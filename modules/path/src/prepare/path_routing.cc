@@ -22,7 +22,9 @@ namespace path {
 struct path_routing::strategies {
   std::unique_ptr<osrm_strategy> osrm_strategy_;
   std::unique_ptr<rail_strategy> rail_strategy_;
-  std::unique_ptr<relation_strategy> relation_strategy_;
+  std::unique_ptr<relation_strategy> relation_rail_strategy_;
+  std::unique_ptr<relation_strategy> relation_bus_strategy_;
+  std::unique_ptr<relation_strategy> relation_sub_strategy_;
   std::unique_ptr<stub_strategy> stub_strategy_;
 };
 
@@ -39,15 +41,18 @@ std::vector<routing_strategy*> path_routing::strategies_for(
     source_spec::category const cat) {
   std::vector<routing_strategy*> result;
 
-  // always relations first
-  result.push_back(strategies_->relation_strategy_.get());
-
   if (cat == source_spec::category::RAILWAY) {
+    result.push_back(strategies_->relation_rail_strategy_.get());
     result.push_back(strategies_->rail_strategy_.get());
   }
 
   if (cat == source_spec::category::BUS) {
+    result.push_back(strategies_->relation_bus_strategy_.get());
     result.push_back(strategies_->osrm_strategy_.get());
+  }
+
+  if (cat == source_spec::category::SUBWAY) {
+    result.push_back(strategies_->relation_sub_strategy_.get());
   }
 
   // always stub last
@@ -58,7 +63,7 @@ std::vector<routing_strategy*> path_routing::strategies_for(
 
 std::unique_ptr<relation_strategy> load_relation_strategy(
     strategy_id_t const id, std::vector<station> const& stations,
-    std::string const& osm_path) {
+    std::string const& osm_path, source_spec::category const& category) {
   std::string cache_file{"polylines.path.cache.raw"};
 
   std::vector<aggregated_polyline> polylines;
@@ -72,14 +77,17 @@ std::unique_ptr<relation_strategy> load_relation_strategy(
     store_relation_polylines(cache_file, polylines);
   }
 
-  return std::make_unique<relation_strategy>(id, stations,
-                                             std::move(polylines));
+  return std::make_unique<relation_strategy>(id, stations, std::move(polylines),
+                                             category);
 }
 
 std::unique_ptr<rail_strategy> load_rail_strategy(
     strategy_id_t const id, std::vector<station> const& stations,
-    std::string const& osm_path) {
+    std::string const& osm_path, source_spec::category const& category) {
   std::string cache_file{"rail.path.cache.raw"};
+  if (category == source_spec::category::SUBWAY) {
+    cache_file = "subway.path.cache.raw";
+  }
 
   std::vector<rail_way> rail_ways;
   if (fs::is_regular_file(cache_file)) {
@@ -87,7 +95,11 @@ std::unique_ptr<rail_strategy> load_rail_strategy(
     rail_ways = load_rail_ways(cache_file);
   } else {
     motis::logging::scoped_timer timer("building rail ways and writing cache");
-    rail_ways = build_rail_ways(osm_path);
+    if (category == source_spec::category::RAILWAY) {
+      rail_ways = build_rail_ways(osm_path);
+    } else {
+      rail_ways = build_sub_ways(osm_path);
+    }
     store_rail_ways(cache_file, rail_ways);
   }
 
@@ -103,9 +115,14 @@ path_routing make_path_routing(std::vector<station> const& stations,
 
   r.strategies_->osrm_strategy_ =
       std::make_unique<osrm_strategy>(id++, stations, osrm_path);
-  r.strategies_->rail_strategy_ = load_rail_strategy(id++, stations, osm_path);
-  r.strategies_->relation_strategy_ =
-      load_relation_strategy(id++, stations, osm_path);
+  r.strategies_->rail_strategy_ = load_rail_strategy(
+      id++, stations, osm_path, source_spec::category::RAILWAY);
+  r.strategies_->relation_rail_strategy_ = load_relation_strategy(
+      id++, stations, osm_path, source_spec::category::RAILWAY);
+  r.strategies_->relation_bus_strategy_ = load_relation_strategy(
+      id++, stations, osm_path, source_spec::category::BUS);
+  r.strategies_->relation_sub_strategy_ = load_relation_strategy(
+      id++, stations, osm_path, source_spec::category::SUBWAY);
   r.strategies_->stub_strategy_ =
       std::make_unique<stub_strategy>(id++, stations);
 

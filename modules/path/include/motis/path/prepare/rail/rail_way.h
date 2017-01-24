@@ -30,5 +30,7 @@ struct rail_way {
 
 std::vector<rail_way> build_rail_ways(std::string const& osm_file);
 
+std::vector<rail_way> build_sub_ways(std::string const& osm_file);
+
 }  // namespace path
 }  // namespace motis

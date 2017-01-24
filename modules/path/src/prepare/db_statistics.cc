@@ -30,7 +30,8 @@ using lookup_table = typed_flatbuffer<motis::path::PathLookup>;
 
 constexpr char kStubType[] = "STUB_ROUTE";
 constexpr int kMaxDist = 5;
-constexpr double kMaxAngle = 90.0;
+constexpr double kMaxAngle = 120.0;
+constexpr double kMinAngle = 90.0;
 
 bool excluded(stat_result const& result) {
   std::vector<int> excluded_class = {9, 6, 7};
@@ -49,8 +50,9 @@ bool invalid_angles(geo::polyline const& polyline) {
     if (i + 1 >= polyline.size()) break;
     auto angle1 = bearings[i] - bearings[i + 1];
     auto angle2 = bearings[i + 1] - bearings[i];
-    if (std::min(angle1 < 0 ? angle1 + 360 : angle1,
-                 angle2 < 0 ? angle2 + 360 : angle2) >= kMaxAngle) {
+    auto angle = std::min(angle1 < 0 ? angle1 + 360 : angle1,
+                          angle2 < 0 ? angle2 + 360 : angle2);
+    if (angle > kMinAngle && angle <= kMaxAngle) {
       return true;
     }
   }
@@ -239,7 +241,7 @@ void dump_db_statistics(kv_database const& db) {
                   [&](auto const& i) { return std::to_string(i->index()); });
 
   auto const& results = check_responses(db, indices);
-  print_results(results, false);
+  print_results(results, true);
 }
 
 }  // namespace path

@@ -34,9 +34,14 @@ struct relation_strategy : public routing_strategy {
 
   relation_strategy(strategy_id_t const id,
                     std::vector<station> const& stations,
-                    std::vector<aggregated_polyline> polylines)
+                    std::vector<aggregated_polyline> polylines,
+                    source_spec::category category)
       : routing_strategy(id), polylines_(std::move(polylines)) {
     for (auto i = 0u; i < polylines_.size(); ++i) {
+      if (polylines_[i].source_.category_ != category &&
+          polylines_[i].source_.category_ != source_spec::category::UNKNOWN) {
+        continue;
+      }
       auto const& polyline = polylines_[i].polyline_;
       for (auto j = 0u; j < polyline.size(); ++j) {
         node_refs_.emplace_back(i, j, polyline[j]);

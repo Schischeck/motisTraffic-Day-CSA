@@ -7,7 +7,7 @@ namespace motis {
 namespace path {
 
 struct source_spec {
-  enum class category { UNKNOWN, RAILWAY, BUS };
+  enum class category { UNKNOWN, RAILWAY, BUS, SUBWAY };
 
   enum class type { RELATION, OSRM_ROUTE, STUB_ROUTE, RAIL_ROUTE };
 
@@ -41,6 +41,7 @@ template <typename Fun>
 void foreach_path_category(std::set<int> const& motis_categories, Fun&& fun) {
   std::vector<uint32_t> railway_cat;
   std::vector<uint32_t> bus_cat;
+  std::vector<uint32_t> subway_cat;
   std::vector<uint32_t> unknown_cat;
 
   for (auto const& category : motis_categories) {
@@ -48,6 +49,8 @@ void foreach_path_category(std::set<int> const& motis_categories, Fun&& fun) {
       railway_cat.push_back(category);
     } else if (category == 8) {
       bus_cat.push_back(category);
+    } else if (category == 6) {
+      subway_cat.push_back(category);
     } else {
       unknown_cat.push_back(category);
     }
@@ -58,6 +61,9 @@ void foreach_path_category(std::set<int> const& motis_categories, Fun&& fun) {
   }
   if (!bus_cat.empty()) {
     fun(source_spec::category::BUS, bus_cat);
+  }
+  if (!subway_cat.empty()) {
+    fun(source_spec::category::SUBWAY, subway_cat);
   }
   if (!unknown_cat.empty()) {
     fun(source_spec::category::UNKNOWN, unknown_cat);

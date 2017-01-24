@@ -22,9 +22,10 @@ parsed_relations parse_relations(std::string const& osm_file) {
   std::map<int64_t, std::vector<node*>> pending_nodes_;
 
   std::vector<std::string> types{"route", "public_transport"};
-  std::vector<std::string> rail_routes{"railway", "train", "light_rail"};
-  std::vector<std::string> other_routes{"subway", "tram"};
+  std::vector<std::string> rail_routes{"railway", "train"};
+  std::vector<std::string> other_routes{"tram"};
   std::vector<std::string> bus_routes{"bus"};
+  std::vector<std::string> sub_routes{"light_rail", "subway"};
 
   foreach_osm_relation(osm_file, [&](auto&& relation) {
     auto const type = relation.get_value_by_key("type", "");
@@ -38,6 +39,8 @@ parsed_relations parse_relations(std::string const& osm_file) {
     auto const is_rail = std::any_of(begin(rail_routes), end(rail_routes),
                                      [&](auto&& r) { return r == route; });
     auto const is_bus = std::any_of(begin(bus_routes), end(bus_routes),
+                                    [&](auto&& r) { return r == route; });
+    auto const is_sub = std::any_of(begin(sub_routes), end(sub_routes),
                                     [&](auto&& r) { return r == route; });
     if (!is_rail && !is_bus &&
         std::none_of(begin(other_routes), end(other_routes),
@@ -59,7 +62,8 @@ parsed_relations parse_relations(std::string const& osm_file) {
 
     auto cat = is_rail ? source_spec::category::RAILWAY
                        : is_bus ? source_spec::category::BUS
-                                : source_spec::category::UNKNOWN;
+                                : is_sub ? source_spec::category::SUBWAY
+                                         : source_spec::category::UNKNOWN;
     result.relations_.push_back(
         {{relation.id(), cat, source_spec::type::RELATION}, ways});
   });

@@ -40,37 +40,14 @@ struct osm_rail_way {
 struct builder {
   builder() { osm_nodes_.set_empty_key(std::numeric_limits<int64_t>::min()); }
 
-  void extract_osm_ways(std::string const& osm_file) {
+  template <typename Fun>
+  void extract_osm_ways(std::string const& osm_file, Fun&& is_valid) {
     scoped_timer timer("parsing osm rail ways");
 
-    std::string rail{"rail"};
-    std::string yes{"yes"};
-    std::string crossover{"crossover"};
-    std::vector<std::string> excluded_usages{"industrial", "military", "test",
-                                             "tourism"};
-    std::vector<std::string> excluded_services{"yard", "spur"};  // , "siding"
-
     foreach_osm_way(osm_file, [&](auto&& way) {
-      if (rail != way.get_value_by_key("railway", "")) {
+      if (!is_valid(way)) {
         return;
       }
-
-      auto const usage = way.get_value_by_key("usage", "");
-      if (std::any_of(begin(excluded_usages), end(excluded_usages),
-                      [&](auto&& u) { return u == usage; })) {
-        return;
-      }
-
-      auto const service = way.get_value_by_key("service", "");
-      if (std::any_of(begin(excluded_services), end(excluded_services),
-                      [&](auto&& s) { return s == service; })) {
-        return;
-      }
-
-      if (yes == way.get_value_by_key("railway:preserved", "")) {
-        return;
-      }
-
       osm_ways_.emplace_back(
           way.id(),
           utl::to_vec(way.nodes(), [&](auto const& node_ref) -> osm_rail_node* {
@@ -245,15 +222,67 @@ struct builder {
   std::vector<rail_way> rail_ways_;
 };
 
-std::vector<rail_way> build_rail_ways(std::string const& osm_file) {
+template <typename Fun>
+std::vector<rail_way> build_rail_ways(std::string const& osm_file,
+                                      Fun&& is_valid) {
   builder b;
-  b.extract_osm_ways(osm_file);
+
+  b.extract_osm_ways(osm_file, is_valid);
   b.extract_osm_nodes(osm_file);
 
   b.make_rail_ways();
   b.aggregate_rail_ways();
 
   return std::move(b.rail_ways_);
+}
+
+std::vector<rail_way> build_rail_ways(std::string const& osm_file) {
+  std::string rail{"rail"};
+  std::string yes{"yes"};
+  std::vector<std::string> excluded_usages{"industrial", "military", "test",
+                                           "tourism"};
+  std::vector<std::string> excluded_services{"yard", "spur"};  // , "siding"
+  auto const& is_valid = [&](auto&& way) {
+    if (rail != way.get_value_by_key("railway", "")) {
+      return false;
+    }
+
+    auto const usage = way.get_value_by_key("usage", "");
+    if (std::any_of(begin(excluded_usages), end(excluded_usages),
+                    [&](auto&& u) { return u == usage; })) {
+      return false;
+    }
+
+    auto const service = way.get_value_by_key("service", "");
+    if (std::any_of(begin(excluded_services), end(excluded_services),
+                    [&](auto&& s) { return s == service; })) {
+      return false;
+    }
+
+    if (yes == way.get_value_by_key("railway:preserved", "")) {
+      return false;
+    }
+    return true;
+  };
+  return build_rail_ways(osm_file, is_valid);
+}
+
+std::vector<rail_way> build_sub_ways(std::string const& osm_file) {
+  // XXX: implement this
+  std::string rail{"light_rail", "subway"};
+  std::vector<std::string> excluded_usages{"industrial", "military", "test",
+                                           "tourism"};
+  auto const& is_valid = [&](auto&& way) {
+    if (rail != way.get_value_by_key("railway", "")) {
+      return false;
+    }
+
+    auto const usage = way.get_value_by_key("usage", "");
+    if (std::any_of(begin(excluded_usages), end(excluded_usages),
+                    [&](auto&& u) { return u == usage; })) {
+      return false;
+    }
+  }
 }
 
 }  // namespace path
