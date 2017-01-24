@@ -162,7 +162,7 @@ motis::module::msg_ptr railviz::get_station(
           fbb, to_fbs(fbb, *sched.stations_.at(station->id_)),
           fbb.CreateVector(utl::to_vec(
               events,
-              [&](ev_info const& ev) -> Offset<Event> {
+              [&](ev_info const& ev) {
                 auto const di = get_delay_info(sched, ev.k_);
                 return CreateEvent(
                     fbb, get_trips(ev.k_), to_fbs(ev.k_.ev_type_),
