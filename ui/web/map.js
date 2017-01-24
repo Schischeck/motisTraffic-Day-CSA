@@ -13,7 +13,7 @@ var CanvasOverlay = L.Layer.extend({
     map.on('zoomend', this._update, this);
 
     setTimeout(function() {
-      app.ports.mapLoaded.send('');
+      // app.ports.mapLoaded.send('');
       this._updateSize();
     }.bind(this), 100);
   },

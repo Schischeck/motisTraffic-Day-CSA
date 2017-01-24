@@ -10,6 +10,8 @@ RailViz.Main = (function() {
   var filteredTripIds;
   var fullData, filteredData;
 
+  var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
+
   var debouncedSendTrainsRequest = debounce(sendTrainsRequest, 500);
 
   function init(canvas, endpoint, ports) {
@@ -102,7 +104,47 @@ RailViz.Main = (function() {
         elmPorts.showStationDetails.send(
             [pickedStation.id, pickedStation.name]);
       }
+    } else {
+      if (eventType != 'mouseout') {
+        setTooltip(x, y, pickedTrain, pickedStation);
+      } else {
+        setTooltip(-1, -1, null, null);
+      }
     }
+  }
+
+  function setTooltip(x, y, pickedTrain, pickedStation) {
+    if (hoverInfo.x == x && hoverInfo.y == y &&
+        hoverInfo.pickedTrain == pickedTrain &&
+        hoverInfo.pickedStation == pickedStation) {
+      return;
+    }
+
+    hoverInfo.x = x;
+    hoverInfo.y = y;
+    hoverInfo.pickedTrain = pickedTrain;
+    hoverInfo.pickedStation = pickedStation;
+
+    var rvTrain = null;
+    if (pickedTrain) {
+      rvTrain = {
+        names: pickedTrain.names,
+        departureTime: pickedTrain.d_time * 1000,
+        arrivalTime: pickedTrain.a_time * 1000,
+        scheduledDepartureTime: pickedTrain.sched_d_time * 1000,
+        scheduledArrivalTime: pickedTrain.sched_a_time * 1000,
+        departureStation: pickedTrain.departureStation.name,
+        arrivalStation: pickedTrain.arrivalStation.name
+      };
+    }
+    var rvStation = pickedStation && pickedStation.name;
+
+    elmPorts.mapSetTooltip.send({
+      mouseX: x,
+      mouseY: y,
+      hoveredTrain: rvTrain,
+      hoveredStation: rvStation
+    });
   }
 
   function debounce(f, t) {

@@ -187,11 +187,11 @@ RailViz.Render = (function() {
     const pickedStation =
         pickedStationIndex != null ? data.stations[pickedStationIndex] : null;
 
-    if (pickId && eventType != 'mouseout') {
-      canvas.style.cursor = 'pointer';
-    } else {
-      canvas.style.cursor = 'default';
-    }
+    // if (pickId && eventType != 'mouseout') {
+    //   canvas.style.cursor = 'pointer';
+    // } else {
+    //   canvas.style.cursor = 'default';
+    // }
 
     mouseHandler(eventType, mouseX, mouseY, pickedTrain, pickedStation);
   }

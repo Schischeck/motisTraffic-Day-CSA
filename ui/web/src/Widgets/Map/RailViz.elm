@@ -37,17 +37,6 @@ type alias Model =
     }
 
 
-type alias RVTrain =
-    { names : List String
-    , departureTime : Time
-    , arrivalTime : Time
-    , scheduledDepartureTime : Time
-    , scheduledArrivalTime : Time
-    , departureStation : String
-    , arrivalStation : String
-    }
-
-
 init : String -> ( Model, Cmd Msg )
 init remoteAddress =
     { mapInfo =
@@ -87,6 +76,7 @@ type Msg
     = MapUpdate MapInfo
     | SetTime Time
     | SetTimeOffset Float
+    | SetTooltip MapTooltip
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -113,6 +103,15 @@ update msg model =
             }
                 ! []
 
+        SetTooltip tt ->
+            { model
+                | mouseX = tt.mouseX
+                , mouseY = tt.mouseY
+                , hoveredTrain = tt.hoveredTrain
+                , hoveredStation = tt.hoveredStation
+            }
+                ! []
+
 
 
 -- SUBSCRIPTIONS
@@ -122,6 +121,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
         [ mapUpdate MapUpdate
+        , mapSetTooltip SetTooltip
         , Time.every Time.second SetTime
         ]
 

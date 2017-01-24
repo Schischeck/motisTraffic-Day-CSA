@@ -5,7 +5,7 @@ RailViz.Preprocessing = (function() {
   function preprocess(data) {
     data.stations.forEach(preprocessStation);
     data.routes.forEach(route => route.segments.forEach(preprocessSegment));
-    data.trains.forEach(preprocessTrain);
+    data.trains.forEach(train => preprocessTrain(train, data));
   }
 
   function preprocessSegment(segment) {
@@ -34,10 +34,20 @@ RailViz.Preprocessing = (function() {
     station.pos.y = pos.y;
   }
 
-  function preprocessTrain(train) {
+  function preprocessTrain(train, data) {
     train.route_index = train.route_index || 0;
     train.segment_index = train.segment_index || 0;
     train.trip.forEach(trip => {trip.train_nr = trip.train_nr || 0});
+    const route = data.routes[train.route_index];
+    const segment = route.segments[train.segment_index];
+    train.departureStation =
+        findStationById(segment.from_station_id, data.stations);
+    train.arrivalStation =
+        findStationById(segment.to_station_id, data.stations);
+  }
+
+  function findStationById(id, stations) {
+    return stations.find(station => station.id == id);
   }
 
   function convertPolyline(polyline) {
