@@ -83,6 +83,9 @@ motis::module::msg_ptr railviz::get_station(
     events.resize(interesting_size);
   };
 
+  std::sort(begin(events), end(events),
+            [](ev_info const& a, ev_info const& b) { return a.t_ < b.t_; });
+
   // collect departure events (only in allowed)
   for (auto const& se : station->edges_) {
     if (se.type() == edge::INVALID_EDGE || !se.to_->is_route_node()) {
@@ -126,26 +129,22 @@ motis::module::msg_ptr railviz::get_station(
     auto const range = Range{0, 0};
     auto const& merged_trips = *sched.merged_trips_[k.lcon()->trips_];
 
-    auto con_info = k.lcon()->full_con_->con_info_;
     auto merged_trips_idx = 0u;
-    while (con_info != nullptr) {
-      auto const& cat_name = sched.categories_.at(con_info->family_)->name_;
+    for (auto ci = k.lcon()->full_con_->con_info_; ci != nullptr;
+         ci = ci->merged_with_, ++merged_trips_idx) {
+      auto const& cat_name = sched.categories_.at(ci->family_)->name_;
       auto const clasz_it = sched.classes_.find(cat_name);
       auto const clasz = clasz_it == end(sched.classes_) ? 9 : clasz_it->second;
 
       trips.push_back(CreateTripInfo(
           fbb, to_fbs(sched, fbb, merged_trips[merged_trips_idx]),
           CreateTransport(
-              fbb, &range, fbb.CreateString(cat_name), con_info->family_, clasz,
-              output_train_nr(con_info->train_nr_,
-                              con_info->original_train_nr_),
-              fbb.CreateString(con_info->line_identifier_),
-              fbb.CreateString(get_service_name(sched, con_info)),
-              fbb.CreateString(con_info->provider_->full_name_),
-              fbb.CreateString(con_info->dir_ != nullptr ? *con_info->dir_
-                                                         : ""))));
-
-      ++merged_trips_idx;
+              fbb, &range, fbb.CreateString(cat_name), ci->family_, clasz,
+              output_train_nr(ci->train_nr_, ci->original_train_nr_),
+              fbb.CreateString(ci->line_identifier_),
+              fbb.CreateString(get_service_name(sched, ci)),
+              fbb.CreateString(ci->provider_ ? ci->provider_->full_name_ : ""),
+              fbb.CreateString(ci->dir_ ? *ci->dir_ : ""))));
     }
 
     return fbb.CreateVector(trips);
