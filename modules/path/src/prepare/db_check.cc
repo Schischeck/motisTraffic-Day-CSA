@@ -42,7 +42,7 @@ void check_databases(kv_database const& expected, kv_database const& actual) {
     auto const a_buf = actual.try_get(a_idx);
     verify(a_buf, "missing actual db entry");
 
-    if(*e_buf != *a_buf) {
+    if (*e_buf != *a_buf) {
       std::cout << make_msg(e_buf->data(), e_buf->size())->to_json() << "\n";
       std::cout << " =================================== \n";
       std::cout << make_msg(a_buf->data(), a_buf->size())->to_json() << "\n";
