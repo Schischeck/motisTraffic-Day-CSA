@@ -5,11 +5,13 @@ RailViz.Trains = (function() {
         attribute vec4 a_startPos;
         attribute vec4 a_endPos;
         attribute float a_progress;
-        attribute vec4 a_color;
+        attribute vec4 a_delayColor;
+        attribute vec4 a_categoryColor;
         attribute vec4 a_pickColor;
         
         uniform mat4 u_perspective;
         uniform float u_zoom;
+        uniform bool u_useCategoryColor;
         
         varying vec4 v_color;
         varying vec4 v_pickColor;
@@ -23,7 +25,7 @@ RailViz.Trains = (function() {
                 gl_Position = mix(startPrj, endPrj, a_progress);
             }
             gl_PointSize = u_zoom;
-            v_color = a_color;
+            v_color = u_useCategoryColor ? a_categoryColor : a_delayColor;
             v_pickColor = a_pickColor;
         }
     `;
@@ -48,6 +50,7 @@ RailViz.Trains = (function() {
 
   var trains = [];
   var routes = [];
+  var useCategoryColor = false;
   var positionBuffer = null;
   var progressBuffer = null;
   var colorBuffer = null;
@@ -67,10 +70,12 @@ RailViz.Trains = (function() {
   var a_startPos;
   var a_endPos;
   var a_progress;
-  var a_color;
+  var a_delayColor;
+  var a_categoryColor;
   var a_pickColor;
   var u_perspective;
   var u_zoom;
+  var u_useCategoryColor;
   var u_offscreen;
   var u_texture;
 
@@ -88,6 +93,8 @@ RailViz.Trains = (function() {
     filteredIndices = null;
   }
 
+  function setUseCategoryColor(useCategory) { useCategoryColor = useCategory; }
+
   function setup(gl) {
     const vshader = WebGL.Util.createShader(gl, gl.VERTEX_SHADER, vertexShader);
     const fshader =
@@ -99,10 +106,12 @@ RailViz.Trains = (function() {
     a_startPos = gl.getAttribLocation(program, 'a_startPos');
     a_endPos = gl.getAttribLocation(program, 'a_endPos');
     a_progress = gl.getAttribLocation(program, 'a_progress');
-    a_color = gl.getAttribLocation(program, 'a_color');
+    a_delayColor = gl.getAttribLocation(program, 'a_delayColor');
+    a_categoryColor = gl.getAttribLocation(program, 'a_categoryColor');
     a_pickColor = gl.getAttribLocation(program, 'a_pickColor');
     u_perspective = gl.getUniformLocation(program, 'u_perspective');
     u_zoom = gl.getUniformLocation(program, 'u_zoom');
+    u_useCategoryColor = gl.getUniformLocation(program, 'u_useCategoryColor');
     u_offscreen = gl.getUniformLocation(program, 'u_offscreen');
     u_texture = gl.getUniformLocation(program, 'u_texture');
 
@@ -171,14 +180,17 @@ RailViz.Trains = (function() {
     gl.vertexAttribPointer(a_progress, 1, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.enableVertexAttribArray(a_color);
-    gl.vertexAttribPointer(a_color, 3, gl.UNSIGNED_BYTE, true, 8, 0);
+    gl.enableVertexAttribArray(a_delayColor);
+    gl.vertexAttribPointer(a_delayColor, 3, gl.UNSIGNED_BYTE, true, 12, 0);
+    gl.enableVertexAttribArray(a_categoryColor);
+    gl.vertexAttribPointer(a_categoryColor, 3, gl.UNSIGNED_BYTE, true, 12, 4);
     gl.enableVertexAttribArray(a_pickColor);
-    gl.vertexAttribPointer(a_pickColor, 3, gl.UNSIGNED_BYTE, true, 8, 4);
+    gl.vertexAttribPointer(a_pickColor, 3, gl.UNSIGNED_BYTE, true, 12, 8);
 
     gl.uniformMatrix4fv(u_perspective, false, perspective);
     gl.uniform1f(u_zoom, zoom);
     gl.uniform1i(u_offscreen, isOffscreen);
+    gl.uniform1i(u_useCategoryColor, useCategoryColor);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -193,7 +205,8 @@ RailViz.Trains = (function() {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
     gl.disableVertexAttribArray(a_pickColor);
-    gl.disableVertexAttribArray(a_color);
+    gl.disableVertexAttribArray(a_categoryColor);
+    gl.disableVertexAttribArray(a_delayColor);
     gl.disableVertexAttribArray(a_endPos);
     gl.disableVertexAttribArray(a_startPos);
   }
@@ -303,25 +316,53 @@ RailViz.Trains = (function() {
   }
 
   function fillColorBuffer(gl) {
-    var data = new Uint8Array(trains.length * 8);
+    var data = new Uint8Array(trains.length * 12);
     for (var i = 0; i < trains.length; i++) {
       const train = trains[i];
-      const base = i * 8;
+      const base = i * 12;
       const pickColor = RailViz.Picking.pickIdToColor(PICKING_BASE + i);
 
-      // a_color
-      data[base] = Math.floor(Math.random() * 255);
-      data[base + 1] = Math.floor(Math.random() * 255);
-      data[base + 2] = Math.floor(Math.random() * 255);
+      // a_delayColor
+      setDelayColor(train, data, base);
+
+      // a_categoryColor
+      data[base + 4] = Math.floor(Math.random() * 255);
+      data[base + 5] = Math.floor(Math.random() * 255);
+      data[base + 6] = Math.floor(Math.random() * 255);
 
       // a_pickColor
-      data[base + 4] = pickColor[0];
-      data[base + 5] = pickColor[1];
-      data[base + 6] = pickColor[2];
+      data[base + 8] = pickColor[0];
+      data[base + 9] = pickColor[1];
+      data[base + 10] = pickColor[2];
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     colorBufferInitialized = true;
+  }
+
+  const colDelay3Min = [69, 209, 74];
+  const colDelay5Min = [255, 237, 0];
+  const colDelay10Min = [255, 102, 0];
+  const colDelay15Min = [255, 48, 71];
+  const colDelayMax = [163, 0, 10];
+
+  function setDelayColor(train, data, offset) {
+    const delay = (train.d_time - train.sched_d_time) / 60;
+    let color;
+    if (delay <= 3) {
+      color = colDelay3Min;
+    } else if (delay <= 5) {
+      color = colDelay5Min;
+    } else if (delay <= 10) {
+      color = colDelay10Min;
+    } else if (delay <= 15) {
+      color = colDelay15Min;
+    } else {
+      color = colDelayMax;
+    }
+    data[offset] = color[0];
+    data[offset + 1] = color[1];
+    data[offset + 2] = color[2];
   }
 
   function setFilteredIndices(indices) {
@@ -354,6 +395,7 @@ RailViz.Trains = (function() {
   return {
     init: init, setup: setup, render: render, preRender: preRender,
         setFilteredIndices: setFilteredIndices,
-        getPickedTrainIndex: getPickedTrainIndex
+        getPickedTrainIndex: getPickedTrainIndex,
+        setUseCategoryColor: setUseCategoryColor
   }
 })();
