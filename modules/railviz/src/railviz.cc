@@ -129,7 +129,6 @@ motis::module::msg_ptr railviz::get_station(
     auto con_info = k.lcon()->full_con_->con_info_;
     auto merged_trips_idx = 0u;
     while (con_info != nullptr) {
-
       auto const& cat_name = sched.categories_.at(con_info->family_)->name_;
       auto const clasz_it = sched.classes_.find(cat_name);
       auto const clasz = clasz_it == end(sched.classes_) ? 9 : clasz_it->second;
