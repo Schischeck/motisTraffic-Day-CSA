@@ -28,12 +28,14 @@ public:
   }
 
   inline T const& top() {
+    assert(!empty());
     current_bucket_ = get_next_bucket();
     assert(!buckets_[current_bucket_].empty());
     return buckets_[current_bucket_].back();
   }
 
   inline void pop() {
+    assert(!empty());
     current_bucket_ = get_next_bucket();
     buckets_[current_bucket_].pop_back();
     --size_;
@@ -47,7 +49,7 @@ private:
   inline std::size_t get_next_bucket() const {
     assert(size_ != 0);
     auto bucket = current_bucket_;
-    while (buckets_[bucket].empty() && bucket < buckets_.size()) {
+    while (bucket < buckets_.size() && buckets_[bucket].empty()) {
       ++bucket;
     }
     return bucket;
