@@ -7,7 +7,7 @@ namespace motis {
 namespace path {
 
 struct source_spec {
-  enum class category { UNKNOWN, RAILWAY, BUS, SUBWAY };
+  enum class category { UNKNOWN, RAILWAY, SUBWAY, BUS };
 
   enum class type { RELATION, OSRM_ROUTE, STUB_ROUTE, RAIL_ROUTE };
 

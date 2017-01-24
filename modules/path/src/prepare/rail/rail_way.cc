@@ -268,12 +268,13 @@ std::vector<rail_way> build_rail_ways(std::string const& osm_file) {
 }
 
 std::vector<rail_way> build_sub_ways(std::string const& osm_file) {
-  // XXX: implement this
-  std::string rail{"light_rail", "subway"};
+  std::vector<std::string> rail_route{"light_rail", "subway"};
   std::vector<std::string> excluded_usages{"industrial", "military", "test",
                                            "tourism"};
   auto const& is_valid = [&](auto&& way) {
-    if (rail != way.get_value_by_key("railway", "")) {
+    auto const rail = way.get_value_by_key("railway", "");
+    if (std::none_of(begin(rail_route), end(rail_route),
+                     [&](auto&& r) { return r == rail; })) {
       return false;
     }
 

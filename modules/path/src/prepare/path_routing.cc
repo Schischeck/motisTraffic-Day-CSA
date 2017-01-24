@@ -22,6 +22,7 @@ namespace path {
 struct path_routing::strategies {
   std::unique_ptr<osrm_strategy> osrm_strategy_;
   std::unique_ptr<rail_strategy> rail_strategy_;
+  std::unique_ptr<rail_strategy> sub_strategy_;
   std::unique_ptr<relation_strategy> relation_rail_strategy_;
   std::unique_ptr<relation_strategy> relation_bus_strategy_;
   std::unique_ptr<relation_strategy> relation_sub_strategy_;
@@ -53,6 +54,7 @@ std::vector<routing_strategy*> path_routing::strategies_for(
 
   if (cat == source_spec::category::SUBWAY) {
     result.push_back(strategies_->relation_sub_strategy_.get());
+    result.push_back(strategies_->sub_strategy_.get());
   }
 
   // always stub last
@@ -115,14 +117,19 @@ path_routing make_path_routing(std::vector<station> const& stations,
 
   r.strategies_->osrm_strategy_ =
       std::make_unique<osrm_strategy>(id++, stations, osrm_path);
+
   r.strategies_->rail_strategy_ = load_rail_strategy(
       id++, stations, osm_path, source_spec::category::RAILWAY);
+  r.strategies_->sub_strategy_ = load_rail_strategy(
+      id++, stations, osm_path, source_spec::category::SUBWAY);
+
   r.strategies_->relation_rail_strategy_ = load_relation_strategy(
       id++, stations, osm_path, source_spec::category::RAILWAY);
   r.strategies_->relation_bus_strategy_ = load_relation_strategy(
       id++, stations, osm_path, source_spec::category::BUS);
   r.strategies_->relation_sub_strategy_ = load_relation_strategy(
       id++, stations, osm_path, source_spec::category::SUBWAY);
+
   r.strategies_->stub_strategy_ =
       std::make_unique<stub_strategy>(id++, stations);
 
