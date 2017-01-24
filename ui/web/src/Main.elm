@@ -5,7 +5,6 @@ import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Widgets.Map.RailViz as RailViz
-import Widgets.Map.RailVizModel as RailVizModel
 import Widgets.Map.ConnectionOverlay as MapConnectionOverlay
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
@@ -69,7 +68,7 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
-    , map : RailVizModel.Model
+    , map : RailViz.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
@@ -679,7 +678,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
-          -- , Sub.map MapUpdate (RailViz.subscriptions model.map)
+        , Sub.map MapUpdate (RailViz.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
         , Port.showStationDetails ShowStationDetails
         , Port.showTripDetails SelectTripId
@@ -975,17 +974,7 @@ showFullTripConnection model tripId connection =
 
 setRailVizFilter : Model -> Maybe (List TripId) -> ( Model, Cmd Msg )
 setRailVizFilter model filterTrips =
-    let
-        ( map_, cmds ) =
-            RailViz.update (RailViz.SetFilter filterTrips) model.map
-
-        model_ =
-            { model | map = map_ }
-    in
-        model_
-            ! [ Cmd.map MapUpdate cmds
-              , Port.setRailVizFilter filterTrips
-              ]
+    model ! [ Port.setRailVizFilter filterTrips ]
 
 
 journeyTrips : Journey -> List TripId
