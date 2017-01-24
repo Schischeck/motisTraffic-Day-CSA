@@ -4,6 +4,8 @@ module Util.Api
         , MotisErrorInfo(..)
         , ModuleErrorInfo(..)
         , RoutingErrorInfo(..)
+        , LookupErrorInfo(..)
+        , AccessErrorInfo(..)
         , MotisErrorDetail
         , sendRequest
         )

@@ -90,7 +90,8 @@
   display: block;
 }
 
-.railviz-tooltip .transport-name {
+.railviz-tooltip .transport-name,
+.railviz-tooltip .station-name {
   font-weight: 700;
   text-align: center;
 }
@@ -285,7 +286,7 @@
   display: inline-block;
 }
 
-.connections .divider {
+.divider {
   position: relative;
   z-index: -10;
   text-align: center;
@@ -293,15 +294,15 @@
   margin: 30px 0 -10px 0;
 }
 
-.connections .divider:first-of-type {
+.divider:first-of-type {
   margin-top: -25px;
 }
 
-.connections .divider.footer {
+.divider.footer {
   margin: 25px 0 20px 0;
 }
 
-.connections .divider::before {
+.divider::before {
   border-top: 1px solid #4971E7;
   content: "";
   margin: 0 auto;
@@ -314,7 +315,7 @@
   z-index: -1;
 }
 
-.connections .divider span {
+.divider span {
   background: #fff;
   padding: 0 15px;
 }
@@ -593,6 +594,7 @@
 .train-detail .stop .station span {
   padding: 0;
   box-shadow: 6px 0 0 #fff, -6px 0 0 #fff;
+  cursor: pointer;
 }
 
 .train-detail .timeline {
@@ -980,4 +982,98 @@
 
 .connection-details .train-box.train-class-walk {
   cursor: default;
+}
+
+.station-events {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.station-events .header {
+  height: 110px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 16px 24px;
+  font-weight: 300;
+  border-bottom: 1px solid #4971E7;
+  position: relative;
+}
+
+.station-events .header .back {
+  position: absolute;
+  left: 24px;
+  top: 16px;
+}
+
+.station-events .header .station {
+  margin: 10px 45px 0 45px;
+  font-size: 120%;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.station-events .header .event-type-picker {
+  margin: 10px auto 0 auto;
+}
+
+.station-events .events {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding: 20px;
+}
+
+.event-type-picker {
+  display: flex;
+  justify-content: center;
+}
+
+.event-type-picker label {
+  display: block;
+  min-width: 100px;
+  text-align: center;
+  font-size: 80%;
+  border-width: 0;
+  border: 2px solid #6d8dec;
+  border-radius: .35em;
+  padding: 2px 0;
+  margin: 4px;
+  cursor: pointer;
+}
+
+.event-type-picker input {
+  display: none;
+}
+
+.event-type-picker input:checked+label {
+  background-color: #6d8dec;
+  color: white;
+}
+
+.station-events .event-train span {
+  cursor: pointer;
+}
+
+.station-events .station-event {
+  margin-top: 10px;
+}
+
+.station-events .divider:first-of-type {
+  margin: -25px 0 10px 0;
+}
+
+.station-events .divider {
+  margin: 20px 0 10px 0;
+}
+
+.station-events .no-results .msg {
+  padding-top: 20px;
+  text-align: center;
+}
+
+.station-events .main-error {
+  text-align: center;
 }

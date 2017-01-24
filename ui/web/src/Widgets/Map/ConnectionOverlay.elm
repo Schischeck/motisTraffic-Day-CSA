@@ -1,10 +1,11 @@
-module Widgets.MapConnectionOverlay
+module Widgets.Map.ConnectionOverlay
     exposing
         ( hideOverlay
         , showOverlay
         )
 
-import Port exposing (..)
+import Widgets.Map.Port exposing (..)
+import Widgets.Map.RailViz exposing (mapId)
 import Data.Journey.Types exposing (..)
 import Data.Connection.Types exposing (..)
 import Localization.Base exposing (..)
@@ -15,7 +16,7 @@ import Util.List exposing ((!!))
 
 hideOverlay : Cmd msg
 hideOverlay =
-    mapClearOverlays "map"
+    mapClearOverlays mapId
 
 
 showOverlay : Localization -> Journey -> Cmd msg
@@ -31,7 +32,7 @@ showOverlay locale journey =
             stopCircles journey.connection.stops
     in
         mapSetOverlays
-            { mapId = "map"
+            { mapId = mapId
             , overlays =
                 trainLines
                     ++ walkLines

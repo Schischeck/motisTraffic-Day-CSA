@@ -77,4 +77,9 @@ deTranslations =
         , provider = "Betreiber"
         , walk = "Fußweg"
         }
+    , station =
+        { direction = "Richtung"
+        , noDepartures = "Keine Abfahrten im gewählten Zeitraum"
+        , noArrivals = "Keine Ankünfte im gewählten Zeitraum"
+        }
     }

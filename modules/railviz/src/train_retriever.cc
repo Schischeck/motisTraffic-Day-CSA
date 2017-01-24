@@ -24,7 +24,7 @@ std::vector<ev_key> train_retriever::trains(time const from, time const to,
     for (auto const& e : edge_index_[clasz]->edges(area)) {
       for (auto i = 0u; i < e->m_.route_edge_.conns_.size(); ++i) {
         auto const& con = e->m_.route_edge_.conns_[i];
-        if (con.a_time_ >= from && con.d_time_ <= to) {
+        if (con.a_time_ >= from && con.d_time_ <= to && con.valid_) {
           connections.emplace_back(ev_key{e, i, event_type::DEP});
           if (connections.size() >= max_count) {
             goto end;

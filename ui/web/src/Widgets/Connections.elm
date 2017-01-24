@@ -27,6 +27,8 @@ import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Widgets.JourneyTransportGraph as JourneyTransportGraph
+import Widgets.LoadingSpinner as LoadingSpinner
+import Widgets.DateHeaders exposing (..)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Date exposing (isSameDay, unixTime)
@@ -543,7 +545,7 @@ belongsToCurrentSearch model check =
 view : Config msg -> Localization -> Model -> Html msg
 view config locale model =
     if model.loading then
-        div [ class "loading" ] [ loadingSpinner ]
+        div [ class "loading" ] [ LoadingSpinner.view ]
     else if List.isEmpty model.journeys then
         case model.errorMessage of
             Just err ->
@@ -668,38 +670,6 @@ labelsView allLabels journeyLabels =
             (List.map labelView journeyLabels)
 
 
-dateHeader : Localization -> Date -> Html msg
-dateHeader { dateConfig } date =
-    div [ class "date-header divider" ] [ span [] [ text <| formatDate dateConfig date ] ]
-
-
-withDateHeaders :
-    (a -> Date)
-    -> (a -> ( String, Html msg ))
-    -> (Date -> ( String, Html msg ))
-    -> List a
-    -> List ( String, Html msg )
-withDateHeaders getDate renderElement renderDateHeader elements =
-    let
-        f element ( lastDate, result ) =
-            let
-                currentDate =
-                    getDate element
-
-                base =
-                    if not (isSameDay currentDate lastDate) then
-                        result ++ [ renderDateHeader currentDate ]
-                    else
-                        result
-            in
-                ( currentDate, base ++ [ renderElement element ] )
-
-        ( _, result ) =
-            List.foldl f ( Date.fromTime 0, [] ) elements
-    in
-        result
-
-
 transportListViewWidth : Int
 transportListViewWidth =
     335
@@ -721,15 +691,6 @@ scheduleRangeView { t } { scheduleInfo } =
 
         Nothing ->
             text ""
-
-
-loadingSpinner : Html msg
-loadingSpinner =
-    div [ class "spinner" ]
-        [ div [ class "bounce1" ] []
-        , div [ class "bounce2" ] []
-        , div [ class "bounce3" ] []
-        ]
 
 
 errorView : String -> Localization -> Model -> ApiError -> Html msg
@@ -833,7 +794,7 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
                     Just error ->
                         errorView "error" locale model error
               else if model.allowExtend then
-                loadingSpinner
+                LoadingSpinner.view
               else
                 text ""
             ]

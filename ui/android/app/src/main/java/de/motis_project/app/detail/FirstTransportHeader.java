@@ -17,14 +17,10 @@ import motis.Connection;
 public class FirstTransportHeader implements DetailViewHolder {
     private View layout;
 
-    @BindString(R.string.track)
-    String track;
+    @BindString(R.string.track) String track;
 
-    @BindView(R.id.detail_first_transport_name)
-    TextView transportName;
-
-    @BindView(R.id.detail_first_transport_track)
-    TextView depTrack;
+    @BindView(R.id.detail_first_transport_name) TextView transportName;
+    @BindView(R.id.detail_first_transport_track) TextView depTrack;
 
     FirstTransportHeader(Connection con,
                          JourneyUtil.Section section,

@@ -123,7 +123,7 @@ inline void build_change_edges(
 
     if (in_out.out_allowed_ && station_node->foot_node_) {
       route_node->edges_.push_back(
-          make_after_train_edge(route_node, station_node->foot_node_));
+          make_after_train_edge(route_node, station_node->foot_node_, 0, true));
     }
   }
 }

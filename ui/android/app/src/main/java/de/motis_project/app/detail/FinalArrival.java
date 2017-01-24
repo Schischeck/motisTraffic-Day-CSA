@@ -22,35 +22,18 @@ import motis.TimestampReason;
 public class FinalArrival implements DetailViewHolder {
     private View layout;
 
-    @BindString(R.string.track)
-    String track;
+    @BindString(R.string.track) String track;
 
-    @BindView(R.id.detail_final_arrival_time)
-    TextView arrivalTime;
+    @BindView(R.id.detail_final_arrival_time) TextView arrivalTime;
+    @BindView(R.id.detail_final_arrival_station) TextView arrivalStation;
+    @BindView(R.id.detail_final_arrival_track) TextView arrivalTrack;
+    @BindView(R.id.detail_transport_final_arrival_vertline) View line;
+    @BindView(R.id.detail_transport_final_arrival_bullet) View bullet;
+    @BindView(R.id.detail_final_arrival_delay_placeholder) View delayPlaceholder;
+    @BindView(R.id.detail_final_arrival_delay) TextView delay;
 
-    @BindView(R.id.detail_final_arrival_station)
-    TextView arrivalStation;
-
-    @BindView(R.id.detail_final_arrival_track)
-    TextView arrivalTrack;
-
-    @BindView(R.id.detail_transport_final_arrival_vertline)
-    View line;
-
-    @BindView(R.id.detail_transport_final_arrival_bullet)
-    View bullet;
-
-    @BindView(R.id.detail_final_arrival_delay_placeholder)
-    View delayPlaceholder;
-
-    @BindView(R.id.detail_final_arrival_delay)
-    TextView delay;
-
-    @BindColor(R.color.delayed)
-    int colorRed;
-
-    @BindColor(R.color.ontime)
-    int colorGreen;
+    @BindColor(R.color.delayed) int colorRed;
+    @BindColor(R.color.ontime) int colorGreen;
 
     FinalArrival(Connection con,
                  JourneyUtil.Section section,

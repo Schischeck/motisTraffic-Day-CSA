@@ -4,10 +4,12 @@ import Widgets.TimeInput as TimeInput
 import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
-import Widgets.Map as Map
-import Widgets.MapConnectionOverlay as MapConnectionOverlay
+import Widgets.Map.RailViz as RailViz
+import Widgets.Map.RailVizModel as RailVizModel
+import Widgets.Map.ConnectionOverlay as MapConnectionOverlay
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
+import Widgets.StationEvents as StationEvents
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
@@ -34,7 +36,7 @@ import Navigation exposing (Location)
 import UrlParser
 import Routes exposing (..)
 import Debounce
-import Maybe.Extra exposing (isJust)
+import Maybe.Extra exposing (isJust, orElse)
 import Port
 import Json.Decode as Decode
 import Date exposing (Date)
@@ -67,9 +69,10 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
-    , map : Map.Model
+    , map : RailVizModel.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
+    , stationEvents : Maybe StationEvents.Model
     , selectedConnectionIdx : Maybe Int
     , selectedTripIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
@@ -99,7 +102,7 @@ init flags initialLocation =
             TimeInput.init
 
         ( mapModel, mapCmd ) =
-            Map.init remoteAddress
+            RailViz.init remoteAddress
 
         ( fromLocationModel, fromLocationCmd ) =
             Typeahead.init remoteAddress "Willy-Brandt-Platz, Darmstadt"
@@ -118,6 +121,7 @@ init flags initialLocation =
             , map = mapModel
             , connections = Connections.init remoteAddress
             , connectionDetails = Nothing
+            , stationEvents = Nothing
             , selectedConnectionIdx = Nothing
             , selectedTripIdx = Nothing
             , scheduleInfo = Nothing
@@ -160,7 +164,7 @@ type Msg
     | TimeUpdate TimeInput.Msg
     | SearchDirectionUpdate SearchDirection
     | SwitchInputs
-    | MapUpdate Map.Msg
+    | MapUpdate RailViz.Msg
     | ConnectionsUpdate Connections.Msg
     | SearchConnections
     | PrepareSelectConnection Int
@@ -171,6 +175,7 @@ type Msg
     | CloseConnectionDetails
     | PrepareSelectTrip Int
     | LoadTrip TripId
+    | SelectTripId TripId
     | TripToConnectionError TripId ApiError
     | TripToConnectionResponse TripId Connection
     | ScheduleInfoError ApiError
@@ -183,6 +188,10 @@ type Msg
     | UpdateCurrentTime Time
     | SetSimulationTime Time
     | SetTimeOffset Time Time
+    | StationEventsUpdate StationEvents.Msg
+    | PrepareSelectStation Station
+    | SelectStation String String
+    | StationEventsGoBack
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -197,7 +206,7 @@ update msg model =
         MapUpdate msg_ ->
             let
                 ( m, c ) =
-                    Map.update msg_ model.map
+                    RailViz.update msg_ model.map
             in
                 ( { model | map = m }, Cmd.map MapUpdate c )
 
@@ -341,6 +350,15 @@ update msg model =
         LoadTrip tripId ->
             loadTripById model tripId
 
+        SelectTripId tripId ->
+            update (NavigateTo (tripDetailsRoute tripId))
+                { model
+                    | connectionDetails = Nothing
+                    , selectedConnectionIdx = Nothing
+                    , selectedTripIdx = Nothing
+                    , stationEvents = Nothing
+                }
+
         TripToConnectionError tripId err ->
             -- TODO
             let
@@ -461,7 +479,7 @@ update msg model =
                     getCurrentDate model1
 
                 ( model2, cmds1 ) =
-                    update (MapUpdate (Map.SetTimeOffset offset)) model1
+                    update (MapUpdate (RailViz.SetTimeOffset offset)) model1
 
                 ( model3, cmds2 ) =
                     update (DateUpdate (Calendar.InitDate newDate)) model2
@@ -470,6 +488,40 @@ update msg model =
                     update (TimeUpdate (TimeInput.InitDate newDate)) model3
             in
                 model4 ! [ cmds1, cmds2, cmds3 ]
+
+        StationEventsUpdate msg_ ->
+            let
+                ( m, c ) =
+                    case model.stationEvents of
+                        Just state ->
+                            let
+                                ( m_, c_ ) =
+                                    StationEvents.update msg_ state
+                            in
+                                ( Just m_, c_ )
+
+                        Nothing ->
+                            Nothing ! []
+            in
+                { model | stationEvents = m }
+                    ! [ Cmd.map StationEventsUpdate c ]
+
+        PrepareSelectStation station ->
+            update (NavigateTo (StationEvents station.id station.name)) model
+
+        SelectStation stationId stationName ->
+            let
+                ( model_, cmds_ ) =
+                    closeSelectedConnection model
+
+                ( m, c ) =
+                    StationEvents.init model_.apiEndpoint stationId stationName (getCurrentDate model_)
+            in
+                { model_ | stationEvents = Just m }
+                    ! [ cmds_, Cmd.map StationEventsUpdate c ]
+
+        StationEventsGoBack ->
+            update (NavigateTo Connections) model
 
 
 buildRoutingRequest : Model -> RoutingRequest
@@ -593,6 +645,7 @@ loadTripById model tripId =
                 { model
                     | selectedConnectionIdx = Nothing
                     , selectedTripIdx = Nothing
+                    , stationEvents = Nothing
                 }
     in
         model_ ! [ sendTripRequest model.apiEndpoint tripId ]
@@ -617,7 +670,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
-        , Sub.map MapUpdate (Map.subscriptions model.map)
+        , Sub.map MapUpdate (RailViz.subscriptions model.map)
         , Port.setRoutingResponses SetRoutingResponses
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
@@ -630,7 +683,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ Html.map MapUpdate (Map.view model.locale model.map)
+        [ Html.map MapUpdate (RailViz.view model.locale model.map)
         , lazy overlayView model
         ]
 
@@ -639,12 +692,17 @@ overlayView : Model -> Html Msg
 overlayView model =
     let
         content =
-            case model.connectionDetails of
+            case model.stationEvents of
                 Nothing ->
-                    searchView model
+                    case model.connectionDetails of
+                        Nothing ->
+                            searchView model
 
-                Just c ->
-                    detailsView model.locale (getCurrentDate model) c
+                        Just c ->
+                            detailsView model.locale (getCurrentDate model) c
+
+                Just stationEvents ->
+                    stationView model.locale stationEvents
     in
         div [ class "overlay-container" ]
             [ div [ class "overlay" ] <|
@@ -747,7 +805,22 @@ detailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
+        , selectStationMsg = PrepareSelectStation
         , goBackMsg = ConnectionDetailsGoBack
+        }
+
+
+stationView : Localization -> StationEvents.Model -> List (Html Msg)
+stationView locale model =
+    [ StationEvents.view stationConfig locale model ]
+
+
+stationConfig : StationEvents.Config Msg
+stationConfig =
+    StationEvents.Config
+        { internalMsg = StationEventsUpdate
+        , selectTripMsg = SelectTripId
+        , goBackMsg = StationEventsGoBack
         }
 
 
@@ -808,6 +881,9 @@ routeToMsg route =
                 , line_id = lineId
                 }
 
+        StationEvents stationId stationName ->
+            SelectStation stationId stationName
+
         SimulationTime time ->
             SetSimulationTime (Date.toTime time)
 
@@ -836,8 +912,11 @@ selectConnection model idx =
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
                         , selectedTripIdx = Nothing
+                        , stationEvents = Nothing
                     }
-                        ! [ MapConnectionOverlay.showOverlay model.locale j ]
+                        ! [ MapConnectionOverlay.showOverlay model.locale j
+                          , cmds
+                          ]
 
             Nothing ->
                 update (ReplaceLocation Connections) model
@@ -853,6 +932,7 @@ closeSelectedConnection model =
             | connectionDetails = Nothing
             , selectedConnectionIdx = Nothing
             , selectedTripIdx = Nothing
+            , stationEvents = Nothing
         }
             ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
               , MapConnectionOverlay.hideOverlay
@@ -886,7 +966,7 @@ setRailVizFilter : Model -> Maybe (List TripId) -> ( Model, Cmd Msg )
 setRailVizFilter model filterTrips =
     let
         ( map_, cmds ) =
-            Map.update (Map.SetFilter filterTrips) model.map
+            RailViz.update (RailViz.SetFilter filterTrips) model.map
 
         model_ =
             { model | map = map_ }

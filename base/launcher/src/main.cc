@@ -61,8 +61,8 @@ int main(int argc, char** argv) {
   http_server http(ios, instance);
   socket_server tcp(ios, instance);
 
-  listener_settings listener_opt(true, false, false, "0.0.0.0", "8080", false,
-                                 "0.0.0.0", "8081", "0.0.0.0", "7000", "");
+  listener_settings listener_opt(false, true, false, "0.0.0.0", "8081", false,
+                                 "0.0.0.0", "8080", "0.0.0.0", "7000", "");
   dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, true, true, false);
   module_settings module_opt(instance.module_names());
   launcher_settings launcher_opt(launcher_settings::motis_mode_t::SERVER,

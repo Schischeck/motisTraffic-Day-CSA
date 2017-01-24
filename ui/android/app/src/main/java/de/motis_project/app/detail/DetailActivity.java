@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,39 +25,31 @@ import de.motis_project.app.journey.CopyConnection;
 import motis.Connection;
 
 public class DetailActivity extends AppCompatActivity {
-    private Connection con;
+    public static final String SHOW_SAVE_ACTION = "SHOW_SAVE_ACTION";
 
+    private Connection con;
+    private boolean showSaveAction = true;
     private HashSet<JourneyUtil.Section> expandedSections = new HashSet<>();
 
-    @BindString(R.string.transfer)
-    String transfer;
+    @BindString(R.string.transfer) String transfer;
+    @BindString(R.string.transfers) String transfers;
+    @BindString(R.string.connection_saved) String connectionSaved;
 
-    @BindString(R.string.transfers)
-    String transfers;
-
-    @BindView(R.id.detail_dep_station)
-    TextView depStation;
-
-    @BindView(R.id.detail_arr_station)
-    TextView arrStation;
-
-    @BindView(R.id.detail_dep_schedule_time)
-    TextView depSchedTime;
-
-    @BindView(R.id.detail_arr_schedule_time)
-    TextView arrSchedTime;
-
-    @BindView(R.id.detail_travel_duration)
-    TextView travelDuration;
-
-    @BindView(R.id.detail_number_of_transfers)
-    TextView numberOfTransfers;
-
-    @BindView(R.id.detail_journey_details)
-    LinearLayout journeyDetails;
+    @BindView(R.id.detail_dep_station) TextView depStation;
+    @BindView(R.id.detail_arr_station) TextView arrStation;
+    @BindView(R.id.detail_dep_schedule_time) TextView depSchedTime;
+    @BindView(R.id.detail_arr_schedule_time) TextView arrSchedTime;
+    @BindView(R.id.detail_travel_duration) TextView travelDuration;
+    @BindView(R.id.detail_number_of_transfers) TextView numberOfTransfers;
+    @BindView(R.id.detail_journey_details) LinearLayout journeyDetails;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            showSaveAction = extras.getBoolean(SHOW_SAVE_ACTION, true);
+        }
+
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.detail);
@@ -92,7 +85,6 @@ public class DetailActivity extends AppCompatActivity {
                 finish();
                 return true;
             case R.id.detail_save_connection:
-                System.out.println("DetailActivity.onOptionsItemSelected --> SAVE CONNECTION");
                 if (con != null) {
                     try {
                         CopyConnection.copyConnection(con);
@@ -128,7 +120,26 @@ public class DetailActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.journey_detail_toolbar, menu);
+        if (!showSaveAction) {
+            MenuItem saveItem = menu.findItem(R.id.detail_save_connection);
+            if (saveItem.isVisible()) {
+                saveItem.setVisible(false);
+                invalidateOptionsMenu();
+            }
+        }
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (showSaveAction) {
+            menu.findItem(R.id.detail_save_connection).setOnMenuItemClickListener(e -> {
+                Status.get().getSavedConnectionsDb().add(CopyConnection.copyConnection(con));
+                Toast.makeText(this, connectionSaved, Toast.LENGTH_SHORT).show();
+                return true;
+            });
+        }
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private static int getNumberOfTransfers(Connection con) {

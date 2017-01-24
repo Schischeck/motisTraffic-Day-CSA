@@ -32,8 +32,6 @@ public class GuesserActivity extends FragmentActivity {
     private GuesserListAdapter adapter;
     private Subscription subscription;
 
-    FavoritesDataSource favDataSource;
-
     @BindView(R.id.suggestionslist)
     ListView suggestions;
 
@@ -61,7 +59,7 @@ public class GuesserActivity extends FragmentActivity {
         i.putExtra(RESULT_ID, selected.eva);
         setResult(Activity.RESULT_OK, i);
 
-        favDataSource.addOrIncrement(selected.eva, selected.name);
+        Status.get().getFavoritesDb().addOrIncrement(selected.eva, selected.name);
 
         finish();
     }
@@ -75,8 +73,6 @@ public class GuesserActivity extends FragmentActivity {
         adapter = new GuesserListAdapter(this);
         suggestions.setAdapter(adapter);
 
-        favDataSource = new FavoritesDataSource(this);
-
         String query = getIntent().getStringExtra(QUERY);
         if (query != null) {
             subscription = setupSubscription(query);
@@ -88,7 +84,6 @@ public class GuesserActivity extends FragmentActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        favDataSource.closeDb();
         subscription.unsubscribe();
     }
 
@@ -109,7 +104,7 @@ public class GuesserActivity extends FragmentActivity {
                         .map(CharSequence::toString)
                         .startWith(init)
                         .map(String::toLowerCase)
-                        .flatMap(in -> favDataSource.getFavorites(in));
+                        .flatMap(in -> Status.get().getFavoritesDb().getFavorites(in));
 
         Observable<List<StationGuess>> serverGuesses =
                 RxTextView.textChangeEvents(searchInput)
