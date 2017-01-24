@@ -282,7 +282,9 @@ std::vector<rail_way> build_sub_ways(std::string const& osm_file) {
                     [&](auto&& u) { return u == usage; })) {
       return false;
     }
-  }
+    return true;
+  };
+  return build_rail_ways(osm_file, is_valid);
 }
 
 }  // namespace path
