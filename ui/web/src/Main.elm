@@ -977,7 +977,10 @@ setRailVizFilter model filterTrips =
         model_ =
             { model | map = map_ }
     in
-        model_ ! [ Cmd.map MapUpdate cmds ]
+        model_
+            ! [ Cmd.map MapUpdate cmds
+              , Port.setRailVizFilter filterTrips
+              ]
 
 
 journeyTrips : Journey -> List TripId

@@ -142,9 +142,9 @@ RailViz.Trains = (function() {
     }
 
     // if (totalFrames % 300 == 0) {
-    //     console.log('position buffer uploaded:',
-    //         updatedBufferFrames, '/', totalFrames, '=',
-    //         (updatedBufferFrames / totalFrames * 100), '% of all frames');
+    //   console.log(
+    //       'position buffer uploaded:', updatedBufferFrames, '/', totalFrames,
+    //       '=', (updatedBufferFrames / totalFrames * 100), '% of all frames');
     // }
 
     if (isFiltered && !filterBufferInitialized) {

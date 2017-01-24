@@ -148,4 +148,6 @@ function initPorts(app, apiEndpoint) {
   app.ports.mapClearOverlays.subscribe(function(id) {
     MapOverlays.clearOverlays();
   });
+
+  app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
 }

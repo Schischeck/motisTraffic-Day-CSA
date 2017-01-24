@@ -13,3 +13,6 @@ port showStationDetails : (( String, String ) -> msg) -> Sub msg
 
 
 port showTripDetails : (TripId -> msg) -> Sub msg
+
+
+port setRailVizFilter : Maybe (List TripId) -> Cmd msg

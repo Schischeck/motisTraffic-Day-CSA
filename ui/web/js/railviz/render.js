@@ -2,10 +2,6 @@ var RailViz = RailViz || {};
 
 RailViz.Render = (function() {
 
-  const n_stations = 100;
-  const n_routes = 200;
-  const n_trains = 1000;
-
   var data;
   var mapInfo;
   var timeOffset = 0;
@@ -18,10 +14,7 @@ RailViz.Render = (function() {
   const pixelRatio = window.devicePixelRatio;
 
   function init(c, mouseEventHandler) {
-    // data = RailViz.DemoGenerator.generate(
-    //     n_stations, n_routes, n_trains, 1600, 860);
-    // RailViz.Preprocessing.preprocess(data);
-    setData({stations: [], routes: [], trains: []});
+    setData(null);
     setMapInfo({zoom: 14, scale: 1, pixelBounds: {north: 0, west: 0}});
 
     canvas = c;
@@ -41,7 +34,7 @@ RailViz.Render = (function() {
   }
 
   function setData(newData) {
-    data = newData;
+    data = newData || {stations: [], routes: [], trains: []};
 
     RailViz.Stations.init(data.stations);
     RailViz.Routes.init(data.routes);
@@ -128,10 +121,6 @@ RailViz.Render = (function() {
       gl.deleteFramebuffer(offscreen.framebuffer);
       offscreen.framebuffer = null;
     }
-    if (offscreen.renderbuffer && gl.isRenderbuffer(offscreen.renderbuffer)) {
-      gl.deleteRenderbuffer(offscreen.renderbuffer);
-      offscreen.renderbuffer = null;
-    }
     if (offscreen.texture && gl.isTexture(offscreen.texture)) {
       gl.deleteTexture(offscreen.texture);
       offscreen.texture = null;
@@ -147,21 +136,13 @@ RailViz.Render = (function() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    // offscreen.renderbuffer = gl.createRenderbuffer();
-    // gl.bindRenderbuffer(gl.RENDERBUFFER, offscreen.renderbuffer);
-    // gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width,
-    // height);
-
     offscreen.framebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, offscreen.framebuffer);
     gl.framebufferTexture2D(
         gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, offscreen.texture,
         0);
-    // gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT,
-    // gl.RENDERBUFFER, offscreen.renderbuffer);
 
     gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
