@@ -72,7 +72,7 @@ struct matcher {
     finish_match(first, last, stations);
   }
 
-  void finish_match(long first, long last,
+  void finish_match(int64_t first, int64_t last,
                     std::vector<std::pair<size_t, size_t>>& stations) {
     if (stations.size() < 2) {
       stations.clear();

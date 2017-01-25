@@ -17,6 +17,13 @@ namespace path {
 
 struct distance_cache {
   struct key {
+    key() = default;
+
+    key(std::string from, std::string to, strategy_id_t strategy_id)
+        : from_(std::move(from)),
+          to_(std::move(to)),
+          strategy_id_(strategy_id) {}
+
     struct hash {
       std::size_t operator()(motis::path::distance_cache::key const& k) const {
         std::size_t seed = 0;
@@ -82,10 +89,10 @@ struct distance_cache {
       struct key t_key {
         key.to_, key.from_, key.strategy_id_
       };
-      map_[t_key] = mem_.back().get();
+      map_.insert({t_key, mem_.back().get()});
 
     } else {
-      map_[key] = mem_.back().get();
+      map_.insert({key, mem_.back().get()});
     }
   }
 

@@ -95,7 +95,7 @@ struct seq_graph_dijkstra {
   std::vector<size_t> open_goals_;
 };
 
-std::vector<seq_edge const*> find_shortest_path(seq_graph const& graph) {
+inline std::vector<seq_edge const*> find_shortest_path(seq_graph const& graph) {
   seq_graph_dijkstra dijkstra(graph, graph.initials_, graph.goals_);
   dijkstra.run();
 

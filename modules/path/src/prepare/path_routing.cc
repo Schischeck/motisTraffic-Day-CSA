@@ -35,8 +35,8 @@ path_routing::path_routing()
     : strategies_(std::make_unique<path_routing::strategies>()) {}
 path_routing::~path_routing() = default;
 
-path_routing::path_routing(path_routing&&) = default;
-path_routing& path_routing::operator=(path_routing&&) = default;
+path_routing::path_routing(path_routing&&) noexcept = default;
+path_routing& path_routing::operator=(path_routing&&) noexcept = default;
 
 std::vector<routing_strategy*> path_routing::strategies_for(
     source_spec::category const cat) {

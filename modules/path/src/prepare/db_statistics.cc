@@ -42,12 +42,16 @@ bool excluded(stat_result const& result) {
 bool invalid_angles(geo::polyline const& polyline) {
   std::vector<double> bearings;
   for (auto i = 0u; i < polyline.size() - 1; ++i) {
-    if (i + 1 >= polyline.size()) break;
+    if (i + 1 >= polyline.size()) {
+      break;
+    }
     bearings.push_back(geo::bearing(polyline[i], polyline[i + 1]));
   }
 
   for (auto i = 0u; i < bearings.size() - 1; ++i) {
-    if (i + 1 >= polyline.size()) break;
+    if (i + 1 >= polyline.size()) {
+      break;
+    }
     auto angle1 = bearings[i] - bearings[i + 1];
     auto angle2 = bearings[i + 1] - bearings[i];
     auto angle = std::min(angle1 < 0 ? angle1 + 360 : angle1,
@@ -140,7 +144,9 @@ void print_results(std::map<std::pair<std::string, std::string>,
 
     for (auto const& category : categories) {
       switch (category) {
-        case stat_result::category::IN_STATIONS: stats.in_stations_++; break;
+        case stat_result::category::IN_STATIONS:  //
+          stats.in_stations_++;
+          break;
         case stat_result::category::BETWEEN_STATIONS:
           stats.btw_stations_++;
           break;
@@ -199,9 +205,9 @@ void check_response(PathSeqResponse const* msg,
 
     if (category != stat_result::category::UNKNOWN) {
       auto new_results = create_new_results(msg, category);
-      auto station_pair = std::make_pair<std::string, std::string>(
+      std::pair<std::string, std::string> station_pair{
           msg->station_ids()->Get(current->segment_idx())->str(),
-          msg->station_ids()->Get(current->segment_idx() + 1)->str());
+          msg->station_ids()->Get(current->segment_idx() + 1)->str()};
 
       std::lock_guard<std::mutex> lock(mtx);
       auto& value = utl::get_or_create(

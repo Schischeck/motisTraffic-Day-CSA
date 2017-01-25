@@ -25,7 +25,7 @@ struct rail_strategy : public routing_strategy {
     print_rail_graph_stats(graph_);
   }
 
-  ~rail_strategy() = default;
+  ~rail_strategy() override = default;
 
   std::vector<node_ref> close_nodes(
       std::string const& station_id) const override {

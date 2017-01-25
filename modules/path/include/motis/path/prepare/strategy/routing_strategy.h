@@ -77,8 +77,9 @@ struct routing_result_matrix {
         ptr_(mem_.get()),
         is_transposed_(is_transposed) {}
 
-  routing_result_matrix(routing_result_matrix&&) = default;
-  routing_result_matrix& operator=(routing_result_matrix&&) = default;
+  routing_result_matrix(routing_result_matrix&&) = default;  // NOLINT
+  routing_result_matrix& operator=(routing_result_matrix&&) =  // NOLINT
+      default;
 
   void verify_dimensions(size_t const from, size_t const to) const {
     if (!is_transposed_) {

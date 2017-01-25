@@ -17,7 +17,9 @@ struct stat_result {
   };
 
   stat_result(int clasz, category c, std::vector<std::string> station_sequences)
-      : clasz_(clasz), category_(c), station_sequences_(station_sequences){};
+      : clasz_(clasz),
+        category_(c),
+        station_sequences_(std::move(station_sequences)) {}
 
   std::string category_str() const {
     switch (category_) {

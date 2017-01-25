@@ -23,7 +23,7 @@ struct stub_strategy : public routing_strategy {
     }
   }
 
-  ~stub_strategy() = default;
+  ~stub_strategy() override = default;
 
   std::vector<node_ref> close_nodes(
       std::string const& station_id) const override {

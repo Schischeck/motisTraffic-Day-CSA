@@ -20,7 +20,7 @@ struct seq_node {
       : idx_(idx),
         incomming_edges_count_(0),
         station_idx_(station_idx),
-        ref_(ref) {}
+        ref_(std::move(ref)) {}
 
   size_t strategy_id() const { return ref_.strategy_id_; }
 

@@ -19,18 +19,20 @@
 namespace motis {
 namespace path {
 
+static constexpr auto kRelationMatchRadius = 200;
+
 struct relation_strategy : public routing_strategy {
   struct relation_node_ref {
     relation_node_ref(size_t polyline_idx, size_t point_idx, geo::latlng pos)
-        : polyline_idx_(polyline_idx), point_idx_(point_idx), pos_(pos) {}
+        : polyline_idx_(polyline_idx),
+          point_idx_(point_idx),
+          pos_(std::move(pos)) {}
 
     size_t polyline_idx_;  // n-th polyline
     size_t point_idx_;  // m-th point on polyline
 
     geo::latlng pos_;
   };
-
-  static constexpr auto kMatchRadius = 200;
 
   relation_strategy(strategy_id_t const id,
                     std::vector<station> const& stations,
@@ -55,7 +57,7 @@ struct relation_strategy : public routing_strategy {
     for (auto const& station : stations) {
       std::set<size_t> relations;
       std::vector<size_t> node_refs;
-      for (auto id : rtree.in_radius(station.pos_, kMatchRadius)) {
+      for (auto id : rtree.in_radius(station.pos_, kRelationMatchRadius)) {
         if (relations.find(node_refs_[id].polyline_idx_) != end(relations)) {
           continue;
         }
@@ -66,7 +68,7 @@ struct relation_strategy : public routing_strategy {
     }
   }
 
-  ~relation_strategy() = default;
+  ~relation_strategy() override = default;
 
   std::vector<node_ref> close_nodes(
       std::string const& station_id) const override {
