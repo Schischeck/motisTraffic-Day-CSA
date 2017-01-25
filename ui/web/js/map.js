@@ -12,10 +12,7 @@ var CanvasOverlay = L.Layer.extend({
     map.on('resize', this._updateSize, this);
     map.on('zoomend', this._update, this);
 
-    setTimeout(function() {
-      // app.ports.mapLoaded.send('');
-      this._updateSize();
-    }.bind(this), 100);
+    setTimeout(function() { this._updateSize(); }.bind(this), 100);
   },
 
   onRemove: function(map) {
