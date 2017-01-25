@@ -16,4 +16,6 @@ namespace motis.path;
 // }
 table PathIdTrainRequest {
   trip_id: TripId;
+  zoom_level: byte = -1;
+  debug_info: bool = false;
 }

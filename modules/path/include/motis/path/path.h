@@ -22,10 +22,11 @@ struct path : public motis::module::module {
   std::unique_ptr<lookup_index> lookup_;
 
 private:
-  motis::module::msg_ptr index_path(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr station_seq_path(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr id_train_path(motis::module::msg_ptr const&) const;
-  motis::module::msg_ptr get_response(std::string const&) const;
+
+  motis::module::msg_ptr get_response(std::string const&, int const zoom_level,
+                                      bool const debug_info) const;
 
   std::string database_path_;
 };

@@ -3,4 +3,7 @@ namespace motis.path;
 table PathStationSeqRequest {
   station_ids: [string];
   clasz: uint;
+
+  zoom_level: byte = -1;
+  debug_info: bool = false;
 }
