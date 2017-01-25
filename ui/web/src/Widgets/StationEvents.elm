@@ -14,7 +14,7 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (..)
 import Date exposing (Date)
 import Time exposing (Time)
-import Data.Connection.Types exposing (TripId)
+import Data.Connection.Types exposing (TripId, Station)
 import Data.RailViz.Types exposing (..)
 import Data.RailViz.Decode exposing (decodeRailVizStationResponse)
 import Data.RailViz.Request as StationRequest exposing (encodeStationRequest, initialStationRequest)
@@ -46,7 +46,7 @@ type alias Model =
     , loadingAfter : Bool
     , remoteAddress : String
     , stationId : String
-    , stationName : String
+    , station : Maybe Station
     , depEvents : List RailVizEvent
     , arrEvents : List RailVizEvent
     , viewType : ViewType
@@ -74,8 +74,8 @@ type Config msg
         }
 
 
-init : String -> String -> String -> Date -> ( Model, Cmd Msg )
-init remoteAddress stationId stationName date =
+init : String -> String -> Date -> ( Model, Cmd Msg )
+init remoteAddress stationId date =
     let
         request =
             initialStationRequest stationId date
@@ -85,7 +85,7 @@ init remoteAddress stationId stationName date =
         , loadingAfter = False
         , remoteAddress = remoteAddress
         , stationId = stationId
-        , stationName = stationName
+        , station = Nothing
         , depEvents = []
         , arrEvents = []
         , viewType = Departures
@@ -249,6 +249,7 @@ handleResponse model action response =
             , arrEvents = newArrEvents
             , minTime = newMinTime
             , maxTime = newMaxTime
+            , station = Just response.station
         }
 
 
@@ -336,7 +337,12 @@ headerView config locale model =
         div [ class "header" ]
             [ div [ onClick goBackMsg, class "back" ]
                 [ i [ class "icon" ] [ text "arrow_back" ] ]
-            , div [ class "station" ] [ text model.stationName ]
+            , div [ class "station" ]
+                [ model.station
+                    |> Maybe.map .name
+                    |> Maybe.withDefault locale.t.station.loading
+                    |> text
+                ]
             , eventTypePicker config locale model
             ]
 

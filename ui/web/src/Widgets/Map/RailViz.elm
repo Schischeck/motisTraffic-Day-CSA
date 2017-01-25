@@ -207,7 +207,7 @@ update msg model =
 
                 cmds3 =
                     selectedStation
-                        |> Maybe.map (\rvs -> Navigation.newUrl (toUrl (StationEvents rvs.station.id rvs.station.name)))
+                        |> Maybe.map (\rvs -> Navigation.newUrl (toUrl (StationEvents rvs.station.id)))
                         |> Maybe.withDefault Cmd.none
             in
                 model_ ! [ cmds1, cmds2, cmds3 ]

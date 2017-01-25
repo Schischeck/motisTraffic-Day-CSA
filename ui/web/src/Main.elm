@@ -190,7 +190,7 @@ type Msg
     | SetTimeOffset Time Time
     | StationEventsUpdate StationEvents.Msg
     | PrepareSelectStation Station
-    | SelectStation String String
+    | SelectStation String
     | StationEventsGoBack
 
 
@@ -507,15 +507,15 @@ update msg model =
                     ! [ Cmd.map StationEventsUpdate c ]
 
         PrepareSelectStation station ->
-            update (NavigateTo (StationEvents station.id station.name)) model
+            update (NavigateTo (StationEvents station.id)) model
 
-        SelectStation stationId stationName ->
+        SelectStation stationId ->
             let
                 ( model_, cmds_ ) =
                     closeSelectedConnection model
 
                 ( m, c ) =
-                    StationEvents.init model_.apiEndpoint stationId stationName (getCurrentDate model_)
+                    StationEvents.init model_.apiEndpoint stationId (getCurrentDate model_)
             in
                 { model_ | stationEvents = Just m }
                     ! [ cmds_, Cmd.map StationEventsUpdate c ]
@@ -881,8 +881,8 @@ routeToMsg route =
                 , line_id = lineId
                 }
 
-        StationEvents stationId stationName ->
-            SelectStation stationId stationName
+        StationEvents stationId ->
+            SelectStation stationId
 
         SimulationTime time ->
             SetSimulationTime (Date.toTime time)

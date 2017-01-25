@@ -53,5 +53,6 @@ type alias Translations =
         { direction : String
         , noDepartures : String
         , noArrivals : String
+        , loading : String
         }
     }
