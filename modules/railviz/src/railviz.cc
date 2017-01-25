@@ -132,19 +132,24 @@ motis::module::msg_ptr railviz::get_station(
     auto merged_trips_idx = 0u;
     for (auto ci = k.lcon()->full_con_->con_info_; ci != nullptr;
          ci = ci->merged_with_, ++merged_trips_idx) {
+      auto const& trp = merged_trips.at(merged_trips_idx);
       auto const& cat_name = sched.categories_.at(ci->family_)->name_;
       auto const clasz_it = sched.classes_.find(cat_name);
       auto const clasz = clasz_it == end(sched.classes_) ? 9 : clasz_it->second;
 
       trips.push_back(CreateTripInfo(
-          fbb, to_fbs(sched, fbb, merged_trips[merged_trips_idx]),
+          fbb, to_fbs(sched, fbb, trp),
           CreateTransport(
               fbb, &range, fbb.CreateString(cat_name), ci->family_, clasz,
               output_train_nr(ci->train_nr_, ci->original_train_nr_),
               fbb.CreateString(ci->line_identifier_),
               fbb.CreateString(get_service_name(sched, ci)),
               fbb.CreateString(ci->provider_ ? ci->provider_->full_name_ : ""),
-              fbb.CreateString(ci->dir_ ? *ci->dir_ : ""))));
+              fbb.CreateString(
+                  ci->dir_ ? *ci->dir_
+                           : sched.stations_
+                                 .at(trp->id_.secondary_.target_station_id_)
+                                 ->name_))));
     }
 
     return fbb.CreateVector(trips);
