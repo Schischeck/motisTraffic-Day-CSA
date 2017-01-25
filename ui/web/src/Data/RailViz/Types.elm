@@ -1,7 +1,14 @@
 module Data.RailViz.Types exposing (..)
 
 import Date exposing (Date)
-import Data.Connection.Types exposing (Position, TripId, Station)
+import Data.Connection.Types
+    exposing
+        ( Position
+        , TripId
+        , Station
+        , TransportInfo
+        , EventInfo
+        )
 
 
 type alias RailVizTrainsRequest =
@@ -49,3 +56,42 @@ type alias RailVizRoute =
 
 type alias Polyline =
     { coordinates : List Float }
+
+
+type RailVizStationDirection
+    = LATER
+    | EARLIER
+    | BOTH
+
+
+type EventType
+    = DEP
+    | ARR
+
+
+type alias RailVizStationRequest =
+    { stationId : String
+    , time : Int
+    , eventCount : Int
+    , direction : RailVizStationDirection
+    , byScheduleTime : Bool
+    }
+
+
+type alias RailVizStationResponse =
+    { station : Station
+    , events : List RailVizEvent
+    }
+
+
+type alias RailVizEvent =
+    { trips : List TripInfo
+    , eventType : EventType
+    , event : EventInfo
+    }
+
+
+type alias TripInfo =
+    { id : TripId
+    , transport : TransportInfo
+    }

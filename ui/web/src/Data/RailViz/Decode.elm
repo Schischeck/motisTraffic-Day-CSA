@@ -1,4 +1,8 @@
-module Data.RailViz.Decode exposing (decodeRailVizTrainsResponse)
+module Data.RailViz.Decode
+    exposing
+        ( decodeRailVizTrainsResponse
+        , decodeRailVizStationResponse
+        )
 
 import Data.RailViz.Types exposing (..)
 import Json.Decode as JD
@@ -14,9 +18,16 @@ import Json.Decode as JD
         , fail
         , at
         )
-import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded)
+import Json.Decode.Pipeline exposing (decode, required, optional, requiredAt)
 import Util.Json exposing (decodeDate)
-import Data.Connection.Decode exposing (decodePosition, decodeTripId, decodeStation)
+import Data.Connection.Decode
+    exposing
+        ( decodePosition
+        , decodeTripId
+        , decodeStation
+        , decodeEventInfo
+        , decodeTransportInfo
+        )
 
 
 decodeRailVizTrainsResponse : JD.Decoder RailVizTrainsResponse
@@ -63,3 +74,47 @@ decodePolyline : JD.Decoder Polyline
 decodePolyline =
     decode Polyline
         |> required "coordinates" (list float)
+
+
+decodeRailVizStationResponse : JD.Decoder RailVizStationResponse
+decodeRailVizStationResponse =
+    at [ "content" ] decodeRailVizStationResponseContent
+
+
+decodeRailVizStationResponseContent : JD.Decoder RailVizStationResponse
+decodeRailVizStationResponseContent =
+    decode RailVizStationResponse
+        |> required "station" decodeStation
+        |> required "events" (list decodeRailVizEvent)
+
+
+decodeRailVizEvent : JD.Decoder RailVizEvent
+decodeRailVizEvent =
+    decode RailVizEvent
+        |> required "trips" (list decodeTripInfo)
+        |> optional "type" decodeEventType DEP
+        |> required "event" decodeEventInfo
+
+
+decodeTripInfo : JD.Decoder TripInfo
+decodeTripInfo =
+    decode TripInfo
+        |> required "id" decodeTripId
+        |> required "transport" decodeTransportInfo
+
+
+decodeEventType : JD.Decoder EventType
+decodeEventType =
+    let
+        decodeToType string =
+            case string of
+                "DEP" ->
+                    succeed DEP
+
+                "ARR" ->
+                    succeed ARR
+
+                _ ->
+                    fail ("Not valid pattern for decoder to EventType. Pattern: " ++ (toString string))
+    in
+        string |> JD.andThen decodeToType

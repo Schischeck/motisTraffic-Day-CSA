@@ -81,5 +81,6 @@ enTranslations =
         { direction = "Direction"
         , noDepartures = "No departures"
         , noArrivals = "No arrivals"
+        , loading = "Loading..."
         }
     }

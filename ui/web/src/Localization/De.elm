@@ -81,5 +81,6 @@ deTranslations =
         { direction = "Richtung"
         , noDepartures = "Keine Abfahrten im gewählten Zeitraum"
         , noArrivals = "Keine Ankünfte im gewählten Zeitraum"
+        , loading = "Laden..."
         }
     }

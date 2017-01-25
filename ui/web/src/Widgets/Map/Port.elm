@@ -1,5 +1,7 @@
 port module Widgets.Map.Port exposing (..)
 
+import Time exposing (Time)
+
 
 type alias MapInfo =
     { scale : Float
@@ -50,10 +52,26 @@ type alias MapOverlayOptions =
     }
 
 
+type alias MapTooltip =
+    { mouseX : Int
+    , mouseY : Int
+    , hoveredTrain : Maybe RVTrain
+    , hoveredStation : Maybe String
+    }
+
+
+type alias RVTrain =
+    { names : List String
+    , departureTime : Time
+    , arrivalTime : Time
+    , scheduledDepartureTime : Time
+    , scheduledArrivalTime : Time
+    , departureStation : String
+    , arrivalStation : String
+    }
+
+
 port mapInit : String -> Cmd msg
-
-
-port mapLoaded : (String -> msg) -> Sub msg
 
 
 port mapUpdate : (MapInfo -> msg) -> Sub msg
@@ -65,24 +83,4 @@ port mapSetOverlays : MapOverlays -> Cmd msg
 port mapClearOverlays : String -> Cmd msg
 
 
-
--- Map: Picking
-
-
-type alias MapMouseUpdate =
-    { x : Float
-    , y : Float
-    , color : Maybe ( Int, Int, Int, Int )
-    }
-
-
-port mapMouseMove : (MapMouseUpdate -> msg) -> Sub msg
-
-
-port mapMouseDown : (MapMouseUpdate -> msg) -> Sub msg
-
-
-port mapMouseUp : (MapMouseUpdate -> msg) -> Sub msg
-
-
-port mapMouseOut : (MapMouseUpdate -> msg) -> Sub msg
+port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
