@@ -44,7 +44,9 @@ import Time exposing (Time)
 
 
 type alias ProgramFlags =
-    { apiEndpoint : String }
+    { apiEndpoint : String
+    , currentTime : Time
+    }
 
 
 main : Program ProgramFlags Model Msg
@@ -130,7 +132,7 @@ init flags initialLocation =
             , currentRoutingRequest = Nothing
             , debounce = Debounce.init
             , connectionListScrollPos = 0
-            , currentTime = Date.fromTime 0
+            , currentTime = Date.fromTime flags.currentTime
             , timeOffset = 0
             }
 
