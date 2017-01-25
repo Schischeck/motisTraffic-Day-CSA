@@ -31,7 +31,12 @@ import Util.Api as Api
         )
 import Localization.Base exposing (..)
 import Widgets.LoadingSpinner as LoadingSpinner
-import Widgets.Helpers.ConnectionUtil exposing (delay)
+import Widgets.Helpers.ConnectionUtil
+    exposing
+        ( delay
+        , trainBox
+        , TransportViewMode(..)
+        )
 import Widgets.DateHeaders exposing (..)
 import Maybe.Extra exposing (isJust)
 import Random exposing (maxInt)
@@ -470,6 +475,11 @@ eventView (Config { selectTripMsg }) locale event =
         serviceName =
             getServiceName event
 
+        trainColumn =
+            transport
+                |> Maybe.map (trainBox LongName locale)
+                |> Maybe.withDefault (text serviceName)
+
         direction =
             transport
                 |> Maybe.map .direction
@@ -487,9 +497,9 @@ eventView (Config { selectTripMsg }) locale event =
                 , text " "
                 , delay event.event
                 ]
-            , div [ class "pure-u-4-24 event-train" ]
-                [ span clickAttr [ text serviceName ] ]
-            , div [ class "pure-u-13-24 event-direction" ]
+            , div [ class "pure-u-6-24 event-train" ]
+                [ span clickAttr [ trainColumn ] ]
+            , div [ class "pure-u-11-24 event-direction" ]
                 [ text direction ]
             , div [ class "pure-u-3-24 event-track" ]
                 [ text track ]
