@@ -83,9 +83,6 @@ motis::module::msg_ptr railviz::get_station(
     events.resize(interesting_size);
   };
 
-  std::sort(begin(events), end(events),
-            [](ev_info const& a, ev_info const& b) { return a.t_ < b.t_; });
-
   // collect departure events (only in allowed)
   for (auto const& se : station->edges_) {
     if (se.type() == edge::INVALID_EDGE || !se.to_->is_route_node()) {
@@ -119,6 +116,9 @@ motis::module::msg_ptr railviz::get_station(
       }
     }
   }
+
+  std::sort(begin(events), end(events),
+            [](ev_info const& a, ev_info const& b) { return a.t_ < b.t_; });
 
   // convert to message buffer
   message_creator fbb;
