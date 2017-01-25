@@ -38,12 +38,15 @@ RailViz.Trains = (function() {
         
         varying vec4 v_color;
         varying vec4 v_pickColor;
+
+        const vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
         
         void main() {
+            vec4 tex = texture2D(u_texture, gl_PointCoord);
             if (u_offscreen) {
-                gl_FragColor = v_pickColor;
+                gl_FragColor = tex.a == 0.0 ? transparent : v_pickColor;
             } else {
-                gl_FragColor = v_color * texture2D(u_texture, gl_PointCoord);
+                gl_FragColor = v_color * tex;
             }
         }
     `;
