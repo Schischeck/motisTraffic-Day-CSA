@@ -16,7 +16,7 @@ import Http
 type Route
     = Connections
     | ConnectionDetails Int
-    | TripDetails String Int Date String Date String
+    | TripDetails String Int Int String Int String
     | StationEvents String
     | SimulationTime Date
 
@@ -26,7 +26,7 @@ urlParser =
     oneOf
         [ map Connections top
         , map ConnectionDetails (s "connection" </> int)
-        , map TripDetails (s "trip" </> string </> int </> date </> string </> date </> encodedString)
+        , map TripDetails (s "trip" </> string </> int </> int </> string </> int </> encodedString)
         , map StationEvents (s "station" </> string)
         , map SimulationTime (s "time" </> date)
         ]
@@ -75,11 +75,11 @@ toUrl route =
                 ++ "/"
                 ++ toString trainNr
                 ++ "/"
-                ++ dateToUrl time
+                ++ toString time
                 ++ "/"
                 ++ targetStation
                 ++ "/"
-                ++ dateToUrl targetTime
+                ++ toString targetTime
                 ++ "/"
                 ++ Http.encodeUri lineId
 
