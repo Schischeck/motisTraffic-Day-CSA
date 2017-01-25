@@ -62,6 +62,7 @@ type LookupErrorInfo
 type AccessErrorInfo
     = AccessStationNotFound
     | AccessServiceNotFound
+    | AccessTimestampNotInSchedule
     | UnknownAccessError MotisErrorDetail
 
 
@@ -276,6 +277,9 @@ mapAccessError err =
 
         3 ->
             AccessServiceNotFound
+
+        4 ->
+            AccessTimestampNotInSchedule
 
         _ ->
             UnknownAccessError err

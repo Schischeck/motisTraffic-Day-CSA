@@ -4,6 +4,8 @@ module Data.Connection.Decode
         , decodeStation
         , decodePosition
         , decodeTripId
+        , decodeEventInfo
+        , decodeTransportInfo
         )
 
 import Data.Connection.Types exposing (..)

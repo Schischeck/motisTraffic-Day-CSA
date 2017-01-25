@@ -13,26 +13,28 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
 import Date exposing (Date)
+import Time exposing (Time)
 import Data.Connection.Types exposing (TripId)
-import Data.Lookup.Types exposing (..)
-import Data.Lookup.Decode exposing (decodeLookupStationEventsResponse)
-import Data.Lookup.Request as LookupRequest exposing (encodeStationEventsRequest, initialStationEventsRequest)
+import Data.RailViz.Types exposing (..)
+import Data.RailViz.Decode exposing (decodeRailVizStationResponse)
+import Data.RailViz.Request as StationRequest exposing (encodeStationRequest, initialStationRequest)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
+import Util.List exposing (last)
 import Util.Api as Api
     exposing
         ( ApiError(..)
         , MotisErrorInfo(..)
         , ModuleErrorInfo(..)
-        , LookupErrorInfo(..)
+        , AccessErrorInfo(..)
         , MotisErrorDetail
         )
 import Localization.Base exposing (..)
 import Widgets.LoadingSpinner as LoadingSpinner
-import Widgets.Helpers.ConnectionUtil exposing (delayText, zeroDelay, isDelayed)
+import Widgets.Helpers.ConnectionUtil exposing (delay)
 import Widgets.DateHeaders exposing (..)
-import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Maybe.Extra exposing (isJust)
+import Random exposing (maxInt)
 
 
 -- MODEL
@@ -45,13 +47,17 @@ type alias Model =
     , remoteAddress : String
     , stationId : String
     , stationName : String
-    , depEvents : List StationEvent
-    , arrEvents : List StationEvent
+    , depEvents : List RailVizEvent
+    , arrEvents : List RailVizEvent
     , viewType : ViewType
     , errorMessage : Maybe ApiError
     , errorBefore : Maybe ApiError
     , errorAfter : Maybe ApiError
-    , request : LookupStationEventsRequest
+    , request : RailVizStationRequest
+    , minTime : Int
+    , maxTime : Int
+    , allowBefore : Bool
+    , allowAfter : Bool
     }
 
 
@@ -72,7 +78,7 @@ init : String -> String -> String -> Date -> ( Model, Cmd Msg )
 init remoteAddress stationId stationName date =
     let
         request =
-            initialStationEventsRequest stationId date
+            initialStationRequest stationId date
     in
         { loading = True
         , loadingBefore = False
@@ -87,6 +93,10 @@ init remoteAddress stationId stationName date =
         , errorBefore = Nothing
         , errorAfter = Nothing
         , request = request
+        , minTime = maxInt
+        , maxTime = 0
+        , allowBefore = True
+        , allowAfter = True
         }
             ! [ sendRequest remoteAddress ReplaceResults request ]
 
@@ -97,8 +107,8 @@ init remoteAddress stationId stationName date =
 
 type Msg
     = NoOp
-    | ReceiveResponse SearchAction LookupStationEventsRequest LookupStationEventsResponse
-    | ReceiveError SearchAction LookupStationEventsRequest ApiError
+    | ReceiveResponse SearchAction RailVizStationRequest RailVizStationResponse
+    | ReceiveError SearchAction RailVizStationRequest ApiError
     | SetViewType ViewType
     | ExtendInterval ExtendIntervalType
 
@@ -131,8 +141,8 @@ update msg model =
 
         ExtendInterval direction ->
             let
-                ( newRequest, updatedFullRequest ) =
-                    extendInterval direction model.request
+                newRequest =
+                    extendInterval direction model
 
                 action =
                     case direction of
@@ -159,14 +169,13 @@ update msg model =
                             True
             in
                 { model
-                    | request = updatedFullRequest
-                    , loadingBefore = loadingBefore_
+                    | loadingBefore = loadingBefore_
                     , loadingAfter = loadingAfter_
                 }
                     ! [ sendRequest model.remoteAddress action newRequest ]
 
 
-handleResponse : Model -> SearchAction -> LookupStationEventsResponse -> Model
+handleResponse : Model -> SearchAction -> RailVizStationResponse -> Model
 handleResponse model action response =
     let
         events =
@@ -178,6 +187,22 @@ handleResponse model action response =
         arrEvents =
             List.filter (\e -> e.eventType == ARR) events
 
+        newMinTime =
+            events
+                |> List.head
+                |> Maybe.map getScheduleTime
+                |> Maybe.map (\t -> floor (t / 1000))
+                |> Maybe.map (Basics.min model.minTime)
+                |> Maybe.withDefault model.minTime
+
+        newMaxTime =
+            events
+                |> last
+                |> Maybe.map getScheduleTime
+                |> Maybe.map (\t -> floor (t / 1000))
+                |> Maybe.map (Basics.max model.maxTime)
+                |> Maybe.withDefault model.maxTime
+
         base =
             case action of
                 ReplaceResults ->
@@ -186,18 +211,22 @@ handleResponse model action response =
                         , errorMessage = Nothing
                         , errorBefore = Nothing
                         , errorAfter = Nothing
+                        , allowBefore = True
+                        , allowAfter = True
                     }
 
                 PrependResults ->
                     { model
                         | loadingBefore = False
                         , errorBefore = Nothing
+                        , allowBefore = not (List.isEmpty events)
                     }
 
                 AppendResults ->
                     { model
                         | loadingAfter = False
                         , errorAfter = Nothing
+                        , allowAfter = not (List.isEmpty events)
                     }
 
         ( newDepEvents, newArrEvents ) =
@@ -215,26 +244,22 @@ handleResponse model action response =
                     , model.arrEvents ++ arrEvents
                     )
     in
-        { model
-            | loading = False
-            , loadingBefore = False
-            , loadingAfter = False
-            , depEvents = newDepEvents
+        { base
+            | depEvents = newDepEvents
             , arrEvents = newArrEvents
+            , minTime = newMinTime
+            , maxTime = newMaxTime
         }
 
 
-compareEvents : StationEvent -> StationEvent -> Basics.Order
+compareEvents : RailVizEvent -> RailVizEvent -> Basics.Order
 compareEvents a b =
     let
-        getDate =
-            .scheduleTime >> Date.toTime
-
         byDate =
-            compare (getDate a) (getDate b)
+            compare (getScheduleTime a) (getScheduleTime b)
     in
         if byDate == EQ then
-            compare a.serviceName b.serviceName
+            compare (getServiceName a) (getServiceName b)
         else
             byDate
 
@@ -269,49 +294,25 @@ handleRequestError model action msg =
 
 extendInterval :
     ExtendIntervalType
-    -> LookupStationEventsRequest
-    -> ( LookupStationEventsRequest, LookupStationEventsRequest )
-extendInterval direction base =
+    -> Model
+    -> RailVizStationRequest
+extendInterval direction model =
     let
-        extendBy =
-            3600 * 2
-
-        newIntervalStart =
-            case direction of
-                ExtendBefore ->
-                    base.intervalStart - extendBy
-
-                ExtendAfter ->
-                    base.intervalStart
-
-        newIntervalEnd =
-            case direction of
-                ExtendBefore ->
-                    base.intervalEnd
-
-                ExtendAfter ->
-                    base.intervalEnd + extendBy
-
-        newRequest =
-            case direction of
-                ExtendBefore ->
-                    { base
-                        | intervalStart = newIntervalStart
-                        , intervalEnd = base.intervalStart - 1
-                    }
-
-                ExtendAfter ->
-                    { base
-                        | intervalStart = base.intervalEnd + 1
-                        , intervalEnd = newIntervalEnd
-                    }
+        base =
+            model.request
     in
-        ( newRequest
-        , { base
-            | intervalStart = newIntervalStart
-            , intervalEnd = newIntervalEnd
-          }
-        )
+        case direction of
+            ExtendBefore ->
+                { base
+                    | time = model.minTime
+                    , direction = EARLIER
+                }
+
+            ExtendAfter ->
+                { base
+                    | time = model.maxTime
+                    , direction = LATER
+                }
 
 
 
@@ -407,7 +408,7 @@ stationEventsView config locale model =
             else
                 div [ class "event-list" ]
                     (withDateHeaders
-                        .scheduleTime
+                        getScheduleDate
                         (eventView config locale)
                         (dateHeader locale)
                         (getEvents model)
@@ -421,26 +422,41 @@ stationEventsView config locale model =
             ]
 
 
-eventView : Config msg -> Localization -> StationEvent -> Html msg
+eventView : Config msg -> Localization -> RailVizEvent -> Html msg
 eventView (Config { selectTripMsg }) locale event =
     let
         clickAttr =
-            List.head event.tripId
-                |> Maybe.map (selectTripMsg >> onClick)
+            List.head event.trips
+                |> Maybe.map (.id >> selectTripMsg >> onClick)
                 |> Maybe.Extra.maybeToList
+
+        scheduleTime =
+            getScheduleDate event
+
+        transport =
+            List.head event.trips
+                |> Maybe.map .transport
+
+        serviceName =
+            getServiceName event
+
+        direction =
+            transport
+                |> Maybe.map .direction
+                |> Maybe.withDefault "?"
     in
         div [ class "pure-g station-event" ]
             [ div [ class "pure-u-4-24 event-time" ]
-                [ text (formatTime event.scheduleTime)
+                [ text (formatTime scheduleTime)
                 , text " "
-                , delay event
+                , delay event.event
                 ]
             , div [ class "pure-u-4-24 event-train" ]
-                [ span clickAttr [ text event.serviceName ] ]
+                [ span clickAttr [ text serviceName ] ]
             , div [ class "pure-u-14-24 event-direction" ]
-                [ text event.direction ]
+                [ text direction ]
             , div [ class "pure-u-2-24 event-track" ]
-                [ text event.track ]
+                [ text event.event.track ]
             ]
 
 
@@ -452,13 +468,22 @@ extendIntervalButton :
     -> Html msg
 extendIntervalButton direction (Config { internalMsg }) locale model =
     let
-        enabled =
+        allowed =
             case direction of
                 ExtendBefore ->
-                    not model.loadingBefore
+                    model.allowBefore
 
                 ExtendAfter ->
-                    not model.loadingAfter
+                    model.allowAfter
+
+        enabled =
+            allowed
+                && case direction of
+                    ExtendBefore ->
+                        not model.loadingBefore
+
+                    ExtendAfter ->
+                        not model.loadingAfter
 
         divClass =
             case direction of
@@ -507,8 +532,10 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
 
                     Just error ->
                         errorView "error" locale model error
-              else
+              else if allowed then
                 LoadingSpinner.view
+              else
+                text ""
             ]
 
 
@@ -540,14 +567,14 @@ errorView divClass locale model err =
 motisErrorMsg : Localization -> MotisErrorInfo -> String
 motisErrorMsg { t } err =
     case err of
-        LookupError LookupNotInSchedulePeriod ->
+        AccessError AccessTimestampNotInSchedule ->
             t.connections.errors.journeyDateNotInSchedule
 
         _ ->
             t.connections.errors.internalError (toString err)
 
 
-getEvents : Model -> List StationEvent
+getEvents : Model -> List RailVizEvent
 getEvents model =
     case model.viewType of
         Departures ->
@@ -557,49 +584,37 @@ getEvents model =
             model.arrEvents
 
 
-delay : StationEvent -> Html msg
-delay event =
-    let
-        diff =
-            Duration.diff event.time event.scheduleTime
+getScheduleTime : RailVizEvent -> Time
+getScheduleTime event =
+    event.event.schedule_time
+        |> Maybe.map Date.toTime
+        |> Maybe.withDefault 0
 
-        noDelay =
-            zeroDelay diff
 
-        posDelay =
-            isDelayed diff
-    in
-        if noDelay then
-            text ""
-        else
-            div
-                [ class <|
-                    if posDelay then
-                        "delay pos-delay"
-                    else
-                        "delay neg-delay"
-                ]
-                [ span []
-                    [ text <|
-                        (if posDelay then
-                            "+"
-                         else
-                            "-"
-                        )
-                            ++ (delayText diff)
-                    ]
-                ]
+getScheduleDate : RailVizEvent -> Date
+getScheduleDate event =
+    event.event.schedule_time
+        |> Maybe.withDefault (Date.fromTime 0)
+
+
+getServiceName : RailVizEvent -> String
+getServiceName =
+    .trips
+        >> List.head
+        >> Maybe.map .transport
+        >> Maybe.map .name
+        >> Maybe.withDefault "?"
 
 
 
 -- API
 
 
-sendRequest : String -> SearchAction -> LookupStationEventsRequest -> Cmd Msg
+sendRequest : String -> SearchAction -> RailVizStationRequest -> Cmd Msg
 sendRequest remoteAddress action request =
     Api.sendRequest
         remoteAddress
-        decodeLookupStationEventsResponse
+        decodeRailVizStationResponse
         (ReceiveError action request)
         (ReceiveResponse action request)
-        (encodeStationEventsRequest request)
+        (encodeStationRequest request)
