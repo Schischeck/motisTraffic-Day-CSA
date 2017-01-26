@@ -85,8 +85,8 @@ var CanvasOverlay = L.Layer.extend({
 
   _updateSize: function() {
     var size = this._map.getSize();
-    this._el.width = size.x;
-    this._el.height = size.y;
+    this._el.style.width = size.x + 'px';
+    this._el.style.height = size.y + 'px';
     this._updatePosition();
   },
 
