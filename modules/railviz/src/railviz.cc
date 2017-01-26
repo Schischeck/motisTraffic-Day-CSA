@@ -237,11 +237,16 @@ std::vector<Offset<Train>> events_to_trains(
     auto const segment_idx =
         std::distance(begin(edges), edges.find(dep.route_edge_));
     auto const arr = dep.get_opposite();
-    return CreateTrain(fbb, service_names(dep),
+
+    auto const dep_di = get_delay_info(sched, dep);
+    auto const arr_di = get_delay_info(sched, arr);
+
+    return CreateTrain(fbb, service_names(dep), dep.lcon()->full_con_->clasz_,
                        motis_to_unixtime(sched, dep.get_time()),
                        motis_to_unixtime(sched, arr.get_time()),
-                       motis_to_unixtime(sched, get_schedule_time(sched, dep)),
-                       motis_to_unixtime(sched, get_schedule_time(sched, arr)),
+                       motis_to_unixtime(sched, dep_di.get_schedule_time()),
+                       motis_to_unixtime(sched, arr_di.get_schedule_time()),
+                       to_fbs(dep_di.get_reason()), to_fbs(arr_di.get_reason()),
                        route, segment_idx, get_trips(dep));
   });
 }
