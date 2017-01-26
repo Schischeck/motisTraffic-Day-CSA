@@ -12,11 +12,6 @@ using namespace motis::test;
 using namespace motis::module;
 using namespace motis::railviz;
 
-std::string fmt(time_t const t) {
-  std::string s = std::ctime(&t);
-  return s.substr(0, s.length() - 1);
-}
-
 struct railviz_get_trains_test : public motis_instance_test {
   railviz_get_trains_test()
       : motis::test::motis_instance_test(dataset_opt, {"railviz"}) {}

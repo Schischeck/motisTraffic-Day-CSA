@@ -11,7 +11,8 @@ enum error_code_t {
   ok = 0,
   not_implemented = 1,
   station_not_found = 2,
-  service_not_found = 3
+  service_not_found = 3,
+  timestamp_not_in_schedule = 4
 };
 }  // namespace error
 
@@ -25,6 +26,8 @@ public:
       case error::not_implemented: return "access: not implemented";
       case error::station_not_found: return "access: station not found";
       case error::service_not_found: return "access: service not found";
+      case error::timestamp_not_in_schedule:
+        return "access: timestamp not in schedule";
       default: return "access: unkown error";
     }
   }
@@ -48,4 +51,5 @@ namespace std {
 template <>
 struct is_error_code_enum<motis::access::error::error_code_t>
     : public std::true_type {};
+
 }  // namespace std
