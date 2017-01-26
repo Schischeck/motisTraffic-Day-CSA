@@ -19,7 +19,7 @@
 .overlay {
   z-index: 10;
   background-color: white;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
   transition: all .4s ease;
   width: 550px;
@@ -76,7 +76,7 @@
   background: #fff;
   color: #777;
   border: 1px solid #BBB;
-  box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
   border-radius: 2px;
   padding: 2px 5px;
   width: 240px;
@@ -128,7 +128,17 @@
   background: rgba(255, 255, 255, 0.7);
 }
 
-#search, #connections {
+.train-color-picker-overlay {
+  position: absolute;
+  bottom: 30px;
+  right: 0px;
+  padding: 0 5px 5px 5px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+#search,
+#connections {
   padding: 24px;
 }
 
@@ -147,7 +157,8 @@
   content: attr(data-tooltip);
   display: inline;
   position: absolute;
-  top: 22px; left: 0;
+  top: 22px;
+  left: 0;
   opacity: 0;
   line-height: 1.5em;
   padding: 0.5em 0.8em;
@@ -155,9 +166,10 @@
   background: #fff;
   color: #777;
   border: 1px solid #BBB;
-  box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
   border-radius: 2px;
-  pointer-events: none; /* This prevents the box from apearing when hovered. */
+  pointer-events: none;
+  /* This prevents the box from apearing when hovered. */
   transition: opacity 250ms, top 250ms;
   white-space: nowrap;
 }
@@ -166,19 +178,35 @@
   content: '';
   display: block;
   position: absolute;
-  top: 12px; left: 20px;
+  top: 12px;
+  left: 20px;
   opacity: 0;
-  width: 0; height: 0;
+  width: 0;
+  height: 0;
   border: solid transparent 5px;
   border-bottom-color: #fff;
   transition: opacity 250ms, top 250ms;
 }
 
-.with-tooltip:hover {z-index: 2;} /* Keeps the info boxes on top of other elements */
+.with-tooltip:hover {
+  z-index: 2;
+}
+
+
+/* Keeps the info boxes on top of other elements */
+
 .with-tooltip:hover::after,
-.with-tooltip:hover::before {opacity: 1;}
-.with-tooltip:hover::after {top: 30px;}
-.with-tooltip:hover::before {top: 20px;}
+.with-tooltip:hover::before {
+  opacity: 1;
+}
+
+.with-tooltip:hover::after {
+  top: 30px;
+}
+
+.with-tooltip:hover::before {
+  top: 20px;
+}
 
 .from-location {
   position: relative;
@@ -199,7 +227,7 @@
   transition: all 0.2s ease;
 }
 
-.swap-locations-btn :checked + .icon {
+.swap-locations-btn :checked+.icon {
   transform: rotate(180deg);
 }
 
@@ -449,7 +477,7 @@
   height: 29px;
 }
 
-.train-box > * {
+.train-box>* {
   color: white;
 }
 
@@ -494,7 +522,7 @@
   padding: 29px 0 5px 32px;
 }
 
-.train-detail > * {
+.train-detail>* {
   color: #000;
 }
 
@@ -917,7 +945,7 @@
   margin-bottom: 10px;
 }
 
-.connection-info .connection-times > div {
+.connection-info .connection-times>div {
   display: inline-block;
 }
 
@@ -956,7 +984,8 @@
   background: #eee;
 }
 
-.connection-info .duration i, .connection-info .interchanges i {
+.connection-info .duration i,
+.connection-info .interchanges i {
   vertical-align: baseline;
   font-size: 16px;
   margin-right: 5px;
@@ -967,9 +996,9 @@
 }
 
 .connection-details .connection-journey {
-    overflow-y: auto;
-    flex: 1 1 auto;
-    padding: 20px 20px 0 20px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  padding: 20px 20px 0 20px;
 }
 
 .connection-details .train-box {

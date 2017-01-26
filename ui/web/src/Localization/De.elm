@@ -84,4 +84,9 @@ deTranslations =
         , loading = "Laden..."
         , trackAbbr = "Gl."
         }
+    , railViz =
+        { trainColors = "Zugfarben"
+        , delayColors = "Verspätung"
+        , classColors = "Kategorie"
+        }
     }

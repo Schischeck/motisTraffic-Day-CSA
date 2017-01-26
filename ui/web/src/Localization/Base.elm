@@ -56,4 +56,9 @@ type alias Translations =
         , loading : String
         , trackAbbr : String
         }
+    , railViz :
+        { trainColors : String
+        , delayColors : String
+        , classColors : String
+        }
     }

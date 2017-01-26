@@ -178,4 +178,7 @@ function initPorts(app, apiEndpoint) {
         L.latLngBounds([L.latLng(opt.lat, opt.lng)]),
         {paddingTopLeft: [600, 0], maxZoom: 16});
   });
+
+  app.ports.mapUseTrainClassColors.subscribe(
+      RailViz.Trains.setUseCategoryColor);
 }

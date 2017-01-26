@@ -84,4 +84,9 @@ enTranslations =
         , loading = "Loading..."
         , trackAbbr = "Tr."
         }
+    , railViz =
+        { trainColors = "Train colors"
+        , delayColors = "Delay"
+        , classColors = "Category"
+        }
     }

@@ -10,8 +10,9 @@ module Widgets.Map.RailViz
         )
 
 import Widgets.Map.Port as Port exposing (..)
-import Html exposing (Html, Attribute, div, text, span)
-import Html.Attributes exposing (id, class, classList, style)
+import Html exposing (Html, Attribute, div, text, span, input, label)
+import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Time exposing (Time)
 import Date exposing (Date)
 import Task exposing (..)
@@ -25,6 +26,11 @@ import Localization.Base exposing (..)
 -- MODEL
 
 
+type TrainColors
+    = DelayColors
+    | ClassColors
+
+
 type alias Model =
     { mapInfo : MapInfo
     , time : Time
@@ -34,6 +40,7 @@ type alias Model =
     , mouseY : Int
     , hoveredTrain : Maybe RVTrain
     , hoveredStation : Maybe String
+    , trainColors : TrainColors
     }
 
 
@@ -53,6 +60,7 @@ init remoteAddress =
     , mouseY = 0
     , hoveredTrain = Nothing
     , hoveredStation = Nothing
+    , trainColors = DelayColors
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
@@ -77,6 +85,7 @@ type Msg
     | SetTime Time
     | SetTimeOffset Float
     | SetTooltip MapTooltip
+    | SetTrainColors TrainColors
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -111,6 +120,10 @@ update msg model =
                 , hoveredStation = tt.hoveredStation
             }
                 ! []
+
+        SetTrainColors colors ->
+            { model | trainColors = colors }
+                ! [ mapUseTrainClassColors (colors == ClassColors) ]
 
 
 
@@ -151,6 +164,7 @@ view locale model =
                 ]
             , railVizTooltip model
             , simulationTimeOverlay locale model
+            , trainColorPickerView locale model
             ]
         ]
 
@@ -189,8 +203,8 @@ railVizTrainTooltip model train =
 
         x =
             (model.mouseX - (ttWidth // 2))
-                |> max margin
-                |> min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
+                |> Basics.max margin
+                |> Basics.min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
 
         below =
             model.mouseY + margin + ttHeight < floor model.mapInfo.pixelBounds.height
@@ -261,8 +275,8 @@ railVizStationTooltip model stationName =
 
         x =
             (model.mouseX - (ttWidth // 2))
-                |> max margin
-                |> min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
+                |> Basics.max margin
+                |> Basics.min (floor model.mapInfo.pixelBounds.width - ttWidth - margin)
 
         below =
             model.mouseY + margin + ttHeight < floor model.mapInfo.pixelBounds.height
@@ -316,3 +330,32 @@ delayView minutes =
                 toString minutes
     in
         span [ class delayType ] [ text delayText ]
+
+
+trainColorPickerView : Localization -> Model -> Html Msg
+trainColorPickerView locale model =
+    div [ class "train-color-picker-overlay" ]
+        [ div [] [ text (locale.t.railViz.trainColors ++ ":") ]
+        , div []
+            [ input
+                [ type_ "radio"
+                , id "train-color-picker-delay"
+                , name "train-color-picker"
+                , checked (model.trainColors == DelayColors)
+                , onClick (SetTrainColors DelayColors)
+                ]
+                []
+            , label [ for "train-color-picker-delay" ] [ text locale.t.railViz.delayColors ]
+            ]
+        , div []
+            [ input
+                [ type_ "radio"
+                , id "train-color-picker-class"
+                , name "train-color-picker"
+                , checked (model.trainColors == ClassColors)
+                , onClick (SetTrainColors ClassColors)
+                ]
+                []
+            , label [ for "train-color-picker-class" ] [ text locale.t.railViz.classColors ]
+            ]
+        ]

@@ -94,3 +94,6 @@ port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
 
 
 port mapFlyTo : MapFlyLocation -> Cmd msg
+
+
+port mapUseTrainClassColors : Bool -> Cmd msg
