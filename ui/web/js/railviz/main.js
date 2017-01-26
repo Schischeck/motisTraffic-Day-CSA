@@ -45,7 +45,7 @@ RailViz.Main = (function() {
   function makeTrainsRequest() {
     var bounds = mapInfo.railVizBounds;
     return RailViz.API.makeTrainsRequest(
-        {lat: bounds.north, lng: bounds.west},
+        mapInfo.zoom, {lat: bounds.north, lng: bounds.west},
         {lat: bounds.south, lng: bounds.east}, timeOffset + (Date.now() / 1000),
         timeOffset + (Date.now() / 1000) + 120, 1000);
   }

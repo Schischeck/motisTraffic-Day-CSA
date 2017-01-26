@@ -2,11 +2,13 @@ var RailViz = RailViz || {};
 
 RailViz.API = (function() {
 
-  function makeTrainsRequest(corner1, corner2, startTime, endTime, maxTrains) {
+  function makeTrainsRequest(
+      zoom_level, corner1, corner2, startTime, endTime, maxTrains) {
     return {
       destination: {type: 'Module', target: '/railviz/get_trains'},
       content_type: 'RailVizTrainsRequest',
       content: {
+        zoom_level: zoom_level,
         corner1: corner1,
         corner2: corner2,
         start_time: Math.floor(startTime),
