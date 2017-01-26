@@ -143,7 +143,7 @@ view locale model =
                 [ Html.canvas
                     [ classList
                         [ "railviz-overlay" => True
-                        , "leaflet-zoom-hide" => True
+                        , "leaflet-zoom-animated" => True
                         , "train-hover" => (isJust model.hoveredTrain || isJust model.hoveredStation)
                         ]
                     ]

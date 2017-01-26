@@ -2,10 +2,7 @@ var CanvasOverlay = L.Layer.extend({
   initialize: function() { L.setOptions(this, {}); },
 
   onAdd: function(map) {
-    this._map = map;
-
     map._panes.overlayPane.appendChild(this._el);
-
 
     setTimeout(function() { this._updateSize(); }.bind(this), 100);
   },
@@ -18,10 +15,36 @@ var CanvasOverlay = L.Layer.extend({
       move: this._updatePosition,
       moveend: this._updatePosition,
       resize: this._updateSize,
-      zoomend: this._update
+      zoom: this._zoom,
+      zoomend: this._zoomEnd
     };
 
+    if (this._zoomAnimated) {
+      events.zoomanim = this._animateZoom;
+    }
+
     return events;
+  },
+
+  _animateZoom: function(e) { this._updateTransform(e.center, e.zoom); },
+
+  _zoom: function() {
+    this._updateTransform(this._map.getCenter(), this._map.getZoom());
+  },
+
+  _zoomEnd: function() { this._update(); },
+
+  _updateTransform: function(center, zoom) {
+    var scale = this._map.getZoomScale(zoom),
+        position = L.DomUtil.getPosition(this._el),
+        viewHalf = this._map.getSize().multiplyBy(0.5),
+        currentCenterPoint = this._map.project(this._map.getCenter(), zoom),
+        destCenterPoint = this._map.project(center, zoom),
+        centerOffset = destCenterPoint.subtract(currentCenterPoint),
+        topLeftOffset =
+            viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(
+                centerOffset);
+    L.DomUtil.setTransform(this._el, topLeftOffset, scale);
   },
 
   _update: function() {
