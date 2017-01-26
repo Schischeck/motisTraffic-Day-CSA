@@ -23,7 +23,7 @@ struct railviz_get_trains_test : public motis_instance_test {
     message_creator fbb;
     fbb.create_and_finish(
         MsgContent_RailVizTrainsRequest,
-        CreateRailVizTrainsRequest(fbb, &corner1, &corner2, min, max, 100)
+        CreateRailVizTrainsRequest(fbb, 18, &corner1, &corner2, min, max, 100)
             .Union(),
         "/railviz/get_trains");
     return make_msg(fbb);

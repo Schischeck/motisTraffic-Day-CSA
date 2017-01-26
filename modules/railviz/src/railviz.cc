@@ -1,6 +1,7 @@
 #include "motis/railviz/railviz.h"
 
 #include "utl/concat.h"
+#include "utl/get_or_create.h"
 #include "utl/to_vec.h"
 
 #include "motis/core/access/bfs.h"
@@ -14,11 +15,15 @@
 #include "motis/core/conv/trip_conv.h"
 
 #include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_call.h"
 
+#include "motis/railviz/path_resolver.h"
 #include "motis/railviz/train_retriever.h"
 
 using namespace motis::module;
 using namespace flatbuffers;
+
+constexpr auto const MAX_ZOOM = 18u;
 
 namespace motis {
 namespace railviz {
@@ -182,20 +187,18 @@ motis::module::msg_ptr railviz::get_station(
 }
 
 std::vector<Offset<Train>> events_to_trains(
-    schedule const& sched, FlatBufferBuilder& fbb,
+    schedule const& sched, FlatBufferBuilder& fbb, path_resolver& pr,
     std::vector<ev_key> const& evs,  //
     std::map<int, int>& routes, std::vector<Offset<Route>>& fbs_routes,
     std::vector<std::set<trip::route_edge>>& route_edges) {
-  auto const get_route_segments = [&fbb, &sched](
-      std::set<trip::route_edge> const& edges) {
+  auto const get_route_segments = [&](std::set<trip::route_edge> const& edges) {
+    std::map<std::vector<std::string>, std::vector<std::vector<double>>> paths;
     return fbb.CreateVector(utl::to_vec(edges, [&](trip::route_edge const& e) {
       auto const& from = *sched.stations_[e->from_->get_station()->id_];
       auto const& to = *sched.stations_[e->to_->get_station()->id_];
       return CreateSegment(
           fbb, fbb.CreateString(from.eva_nr_), fbb.CreateString(to.eva_nr_),
-          CreatePolyline(
-              fbb, fbb.CreateVector(std::vector<double>(
-                       {from.width_, from.length_, to.width_, to.length_}))));
+          CreatePolyline(fbb, fbb.CreateVector(pr.get_segment_path(e))));
     }));
   };
 
@@ -271,9 +274,10 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
   std::map<int, int> routes;
   std::vector<Offset<Route>> fbs_routes;
   std::vector<std::set<trip::route_edge>> route_edges;
+  path_resolver pr(sched, req->zoom_level());
 
   auto const fbs_trains = events_to_trains(
-      sched, fbb,
+      sched, fbb, pr,
       train_retriever_->trains(
           unix_to_motistime(sched, req->start_time()),
           unix_to_motistime(sched, req->end_time()), req->max_trains(),
@@ -298,6 +302,7 @@ msg_ptr railviz::get_trips(msg_ptr const& msg) const {
   std::map<int, int> routes;
   std::vector<Offset<Route>> fbs_routes;
   std::vector<std::set<trip::route_edge>> route_edges;
+  path_resolver pr(sched, MAX_ZOOM);
 
   std::vector<Offset<Train>> fbs_trains;
   for (auto const& trip : *motis_content(RailVizTripsRequest, msg)->trips()) {
@@ -307,7 +312,7 @@ msg_ptr railviz::get_trips(msg_ptr const& msg) const {
     utl::concat(
         fbs_trains,
         events_to_trains(
-            sched, fbb,
+            sched, fbb, pr,
             utl::to_vec(route_bfs(first_dep, bfs_direction::BOTH, false),
                         [&trp](trip::route_edge const& e) {
                           return ev_key{e, trp->lcon_idx_, event_type::DEP};
