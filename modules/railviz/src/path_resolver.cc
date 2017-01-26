@@ -46,9 +46,7 @@ std::vector<std::vector<double>> path_resolver::get_trip_path(trip const* trp) {
         "/path/station_seq");
 
     using path::PathSeqResponse;
-    auto const req = make_msg(fbb);
-    auto const path_res = motis_call(req)->val();
-
+    auto const path_res = motis_call(make_msg(fbb))->val();
     return utl::to_vec(
         *motis_content(PathSeqResponse, path_res)->segments(),
         [&](Polyline const* l) { return utl::to_vec(*l->coordinates()); });
