@@ -175,7 +175,6 @@ motis::module::msg_ptr railviz::get_station(
                         fbb, motis_to_unixtime(sched, ev.k_.get_time()),
                         motis_to_unixtime(sched, di.get_schedule_time()),
                         get_track(ev), to_fbs(di.get_reason())));
-
               })))
           .Union());
 
