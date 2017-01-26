@@ -6,22 +6,22 @@ var CanvasOverlay = L.Layer.extend({
 
     map._panes.overlayPane.appendChild(this._el);
 
-    map.on('dragend', this._updatePosition, this);
-    map.on('move', this._updatePosition, this);
-    map.on('moveend', this._updatePosition, this);
-    map.on('resize', this._updateSize, this);
-    map.on('zoomend', this._update, this);
 
     setTimeout(function() { this._updateSize(); }.bind(this), 100);
   },
 
-  onRemove: function(map) {
-    map.getPanes().overlayPane.removeChild(this._el);
-    map.off('dragend', this._updatePosition, this);
-    map.off('move', this._updatePosition, this);
-    map.off('moveend', this._updatePosition, this);
-    map.off('resize', this._updateSize, this);
-    map.off('zoomend', this._update, this);
+  onRemove: function(map) { map.getPanes().overlayPane.removeChild(this._el); },
+
+  getEvents: function() {
+    var events = {
+      dragend: this._updatePosition,
+      move: this._updatePosition,
+      moveend: this._updatePosition,
+      resize: this._updateSize,
+      zoomend: this._update
+    };
+
+    return events;
   },
 
   _update: function() {
