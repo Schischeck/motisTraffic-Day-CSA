@@ -35,6 +35,8 @@ import Widgets.Helpers.ConnectionUtil exposing (delay)
 import Widgets.DateHeaders exposing (..)
 import Maybe.Extra exposing (isJust)
 import Random exposing (maxInt)
+import Widgets.Map.Port as Port exposing (MapFlyLocation)
+import Widgets.Map.RailViz exposing (mapId)
 
 
 -- MODEL
@@ -131,7 +133,29 @@ update msg model =
             model ! []
 
         ReceiveResponse action request response ->
-            handleResponse model action response ! []
+            let
+                model_ =
+                    handleResponse model action response
+
+                cmds =
+                    case action of
+                        ReplaceResults ->
+                            case model_.station of
+                                Just station ->
+                                    [ Port.mapFlyTo
+                                        { mapId = mapId
+                                        , lat = station.pos.lat
+                                        , lng = station.pos.lng
+                                        }
+                                    ]
+
+                                _ ->
+                                    []
+
+                        _ ->
+                            []
+            in
+                model_ ! cmds
 
         ReceiveError action request msg_ ->
             handleRequestError model action msg_ ! []

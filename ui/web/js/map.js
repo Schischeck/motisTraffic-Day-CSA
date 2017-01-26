@@ -171,4 +171,11 @@ function initPorts(app, apiEndpoint) {
 
   app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
   app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
+
+  app.ports.mapFlyTo.subscribe(function(opt) {
+    var map = window.elmMaps[opt.mapId];
+    map.flyToBounds(
+        L.latLngBounds([L.latLng(opt.lat, opt.lng)]),
+        {paddingTopLeft: [600, 0], maxZoom: 16});
+  });
 }
