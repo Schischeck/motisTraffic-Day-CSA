@@ -235,6 +235,9 @@ railVizTrainTooltip model train =
 
         arrDelay =
             ceiling ((train.arrivalTime - train.scheduledArrivalTime) / 60000)
+
+        hasDelayInfos =
+            train.hasDepartureDelayInfo || train.hasArrivalDelayInfo
     in
         div
             [ class "railviz-tooltip train visible"
@@ -246,16 +249,16 @@ railVizTrainTooltip model train =
             [ div [ class "transport-name" ] [ text trainName ]
             , div [ class "departure" ]
                 [ span [ class "station" ] [ text train.departureStation ]
-                , div [ class "time" ]
+                , div [ classList [ "time" => True, "no-delay-infos" => not hasDelayInfos ] ]
                     [ span [ class "schedule" ] [ text (formatTime schedDep) ]
-                    , delayView depDelay
+                    , delayView train.hasDepartureDelayInfo depDelay
                     ]
                 ]
             , div [ class "arrival" ]
                 [ span [ class "station" ] [ text train.arrivalStation ]
-                , div [ class "time" ]
+                , div [ classList [ "time" => True, "no-delay-infos" => not hasDelayInfos ] ]
                     [ span [ class "schedule" ] [ text (formatTime schedArr) ]
-                    , delayView arrDelay
+                    , delayView train.hasArrivalDelayInfo arrDelay
                     ]
                 ]
             ]
@@ -314,8 +317,8 @@ simulationTimeOverlay locale model =
             [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
 
 
-delayView : Int -> Html Msg
-delayView minutes =
+delayView : Bool -> Int -> Html Msg
+delayView hasDelayInfo minutes =
     let
         delayType =
             if minutes > 0 then
@@ -329,7 +332,10 @@ delayView minutes =
             else
                 toString minutes
     in
-        span [ class delayType ] [ text delayText ]
+        if hasDelayInfo then
+            span [ class delayType ] [ text delayText ]
+        else
+            text ""
 
 
 trainColorPickerView : Localization -> Model -> Html Msg

@@ -66,6 +66,8 @@ type alias RVTrain =
     , arrivalTime : Time
     , scheduledDepartureTime : Time
     , scheduledArrivalTime : Time
+    , hasDepartureDelayInfo : Bool
+    , hasArrivalDelayInfo : Bool
     , departureStation : String
     , arrivalStation : String
     }

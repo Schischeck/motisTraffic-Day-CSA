@@ -132,6 +132,12 @@ RailViz.Main = (function() {
         arrivalTime: pickedTrain.a_time * 1000,
         scheduledDepartureTime: pickedTrain.sched_d_time * 1000,
         scheduledArrivalTime: pickedTrain.sched_a_time * 1000,
+        hasDepartureDelayInfo:
+            !!(pickedTrain.d_time_reason &&
+               pickedTrain.d_time_reason != 'SCHEDULE'),
+        hasArrivalDelayInfo:
+            !!(pickedTrain.a_time_reason &&
+               pickedTrain.a_time_reason != 'SCHEDULE'),
         departureStation: pickedTrain.departureStation.name,
         arrivalStation: pickedTrain.arrivalStation.name
       };

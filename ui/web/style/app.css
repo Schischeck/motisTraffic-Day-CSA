@@ -114,6 +114,11 @@
   min-width: 50px;
 }
 
+.railviz-tooltip .time.no-delay-infos {
+  justify-content: flex-end;
+  min-width: 35px;
+}
+
 .railviz-tooltip .time .delay {
   padding-left: 4px;
 }
