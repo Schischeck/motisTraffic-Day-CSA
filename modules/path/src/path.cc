@@ -40,12 +40,7 @@ void path::init(registry& r) {
     lookup_ = std::make_unique<lookup_index>(*buf);
   } else {
     LOG(warn) << "pathdb not found!";
-
-    message_creator mc;
-    mc.Finish(
-        CreatePathLookup(mc, mc.CreateVector<Offset<PathIndex>>({})));  // XXX ?
-    lookup_ = std::make_unique<lookup_index>(
-        lookup_index::lookup_table{std::move(mc)});
+    lookup_ = std::make_unique<lookup_index>();
   }
 
   r.register_op("/path/station_seq",
@@ -56,7 +51,12 @@ void path::init(registry& r) {
 
 msg_ptr path::station_seq_path(msg_ptr const& msg) const {
   auto req = motis_content(PathStationSeqRequest, msg);
-  return get_response(lookup_->find(req), req->zoom_level(), req->debug_info());
+
+  return get_response(
+      lookup_->find({utl::to_vec(*req->station_ids(),
+                                 [](auto const& s) { return s->str(); }),
+                     req->clasz()}),
+      req->zoom_level(), req->debug_info());
 }
 
 msg_ptr path::id_train_path(msg_ptr const& msg) const {
@@ -71,7 +71,7 @@ msg_ptr path::id_train_path(msg_ptr const& msg) const {
     return stop.get_station(sched).eva_nr_;
   });
   auto const clasz = trip_section{trp, 0}.fcon().clasz_;
-  return get_response(lookup_->find(seq, clasz), req->zoom_level(),
+  return get_response(lookup_->find({seq, clasz}), req->zoom_level(),
                       req->debug_info());
 }
 
@@ -94,7 +94,8 @@ msg_ptr path::get_response(std::string const& index, int const zoom_level,
 
   auto const copy = [&mc, &original] {
     return utl::to_vec(*original->segments(), [&mc](auto const& segment) {
-      return motis_copy_table(Polyline, mc, segment);
+      auto const polyline = utl::to_vec(*segment->coordinates());
+      return CreatePolyline(mc, mc.CreateVector(polyline));
     });
   };
 
