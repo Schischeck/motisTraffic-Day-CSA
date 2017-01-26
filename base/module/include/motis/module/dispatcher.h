@@ -4,12 +4,16 @@
 
 #include "utl/to_vec.h"
 
+#include "motis/core/common/logging.h"
+
 #include "motis/module/ctx_data.h"
 #include "motis/module/error.h"
 #include "motis/module/future.h"
 #include "motis/module/message.h"
 #include "motis/module/receiver.h"
 #include "motis/module/registry.h"
+
+using namespace motis::logging;
 
 namespace motis {
 namespace module {
@@ -51,22 +55,22 @@ struct dispatcher : public receiver {
     id.created_at = "dispatcher::on_msg";
     id.parent_index = 0;
     id.name = msg->get()->destination()->target()->str();
-    return scheduler_.enqueue(ctx_data(this, registry_.sched_),
-                              [this, id, cb, msg]() {
-                                try {
-                                  return cb(
-                                      registry_.operations_.at(id.name)(msg),
-                                      std::error_code());
-                                } catch (std::system_error const& e) {
-                                  return cb(nullptr, e.code());
-                                } catch (std::out_of_range const&) {
-                                  printf("NOT FOUND\n");
-                                  return cb(nullptr, error::target_not_found);
-                                } catch (...) {
-                                  return cb(nullptr, error::unknown_error);
-                                }
-                              },
-                              id);
+    return scheduler_.enqueue(
+        ctx_data(this, registry_.sched_),
+        [this, id, cb, msg]() {
+          try {
+            return cb(registry_.operations_.at(id.name)(msg),
+                      std::error_code());
+          } catch (std::system_error const& e) {
+            return cb(nullptr, e.code());
+          } catch (std::out_of_range const&) {
+            LOG(log_level::error) << "target \"" << id.name << "\" not found";
+            return cb(nullptr, error::target_not_found);
+          } catch (...) {
+            return cb(nullptr, error::unknown_error);
+          }
+        },
+        id);
   }
 
   msg_ptr api() const {

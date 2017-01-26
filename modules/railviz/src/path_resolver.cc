@@ -49,13 +49,6 @@ std::vector<std::vector<double>> path_resolver::get_trip_path(trip const* trp) {
     auto const req = make_msg(fbb);
     auto const path_res = motis_call(req)->val();
 
-    for (auto const& s :
-         *motis_content(PathSeqResponse, path_res)->segments()) {
-      if (s->coordinates()->size() < 4) {
-        std::cout << "empty segment for query: " << req->to_json() << std::endl;
-      }
-    }
-
     return utl::to_vec(
         *motis_content(PathSeqResponse, path_res)->segments(),
         [&](Polyline const* l) { return utl::to_vec(*l->coordinates()); });
@@ -74,8 +67,13 @@ std::vector<double> path_resolver::get_segment_path(edge const* e) {
           std::find_if(begin(*trp->edges_), end(*trp->edges_),
                        [&](edge const* trp_e) { return trp_e == e; });
       verify(it != end(*trp->edges_), "trip edge data error");
-      return get_trip_path(trp).at(std::distance(begin(*trp->edges_), it));
-    } catch (...) {
+
+      auto segment =
+          get_trip_path(trp).at(std::distance(begin(*trp->edges_), it));
+      verify(segment.size() >= 4, "no empty segments allowed");
+
+      return segment;
+    } catch (std::exception const& ex) {
       auto const& from = *sched_.stations_[e->from_->get_station()->id_];
       auto const& to = *sched_.stations_[e->to_->get_station()->id_];
       return std::vector<double>(
