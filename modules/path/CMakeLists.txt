@@ -41,6 +41,7 @@ target_link_libraries(motis-path
   rocksdb
   ${ZLIB_LIBRARIES}
   geo
+  osrm
   motis-module
 )
 set_target_properties(motis-path PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

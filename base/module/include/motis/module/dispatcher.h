@@ -13,8 +13,6 @@
 #include "motis/module/receiver.h"
 #include "motis/module/registry.h"
 
-using namespace motis::logging;
-
 namespace motis {
 namespace module {
 
@@ -64,7 +62,8 @@ struct dispatcher : public receiver {
           } catch (std::system_error const& e) {
             return cb(nullptr, e.code());
           } catch (std::out_of_range const&) {
-            LOG(log_level::error) << "target \"" << id.name << "\" not found";
+            LOG(logging::log_level::error) << "target \"" << id.name
+                                           << "\" not found";
             return cb(nullptr, error::target_not_found);
           } catch (...) {
             return cb(nullptr, error::unknown_error);

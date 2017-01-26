@@ -24,6 +24,27 @@ using namespace motis::osrm;
 using namespace motis::access;
 using namespace motis::logging;
 
+// --
+
+#include "util/coordinate.hpp"  // osrm
+#include "util/json_container.hpp"  // osrm
+#include "util/json_util.hpp"  // osrm
+
+#include "engine/douglas_peucker.hpp"  // osrm
+
+using namespace osrm::util;
+using namespace osrm::engine;
+
+FloatCoordinate make_coord(geo::latlng const& pos) {
+  return FloatCoordinate{FloatLongitude{pos.lng_}, FloatLatitude{pos.lat_}};
+}
+
+geo::latlng make_latlng(FloatCoordinate const& coord) {
+  return {static_cast<double>(coord.lat), static_cast<double>(coord.lon)};
+}
+
+// --
+
 namespace motis {
 namespace path {
 
@@ -105,8 +126,17 @@ msg_ptr path::get_response(std::string const& index, int const zoom_level,
         *original->segments(), [&mc, &zoom_level](auto const& segment) {
           auto const original_polyline =
               geo::deserialize(utl::to_vec(*segment->coordinates()));
-          auto const simplified_polyline =
-              geo::simplify<256, 20>(original_polyline, zoom_level);
+
+          auto const osrm_coords = utl::to_vec(
+              original_polyline,
+              [](auto const& c) -> Coordinate { return make_coord(c); });
+
+          auto const simplified_osrm_coords =
+              douglasPeucker(osrm_coords, zoom_level);
+
+          auto const simplified_polyline = utl::to_vec(
+              simplified_osrm_coords,
+              [](auto const& osrm_coord) { return make_latlng(osrm_coord); });
 
           return CreatePolyline(
               mc, mc.CreateVector(geo::serialize(simplified_polyline)));

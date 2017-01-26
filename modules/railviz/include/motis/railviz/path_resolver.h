@@ -14,6 +14,8 @@ struct path_resolver {
   std::vector<std::vector<double>> get_trip_path(trip const* trp);
   std::vector<double> get_segment_path(edge const* e);
 
+  int get_req_count() const { return req_count_; }
+
 private:
   schedule const& sched_;
   unsigned zoom_level_;
@@ -21,6 +23,7 @@ private:
            std::vector<std::vector<double>>>
       trip_cache_;
   std::map<edge const*, std::vector<double>> edge_cache_;
+  int req_count_;
 };
 
 }  // namespace railviz

@@ -12,7 +12,7 @@ RailViz.Main = (function() {
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
 
-  var debouncedSendTrainsRequest = debounce(sendTrainsRequest, 500);
+  var debouncedSendTrainsRequest = debounce(sendTrainsRequest, 200);
 
   function init(canvas, endpoint, ports) {
     apiEndpoint = endpoint;

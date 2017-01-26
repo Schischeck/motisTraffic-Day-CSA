@@ -14,10 +14,12 @@ namespace motis {
 namespace railviz {
 
 path_resolver::path_resolver(schedule const& sched, int zoom_level)
-    : sched_(sched), zoom_level_(zoom_level) {}
+    : sched_(sched), zoom_level_(zoom_level), req_count_(0) {}
 
 std::vector<std::vector<double>> path_resolver::get_trip_path(trip const* trp) {
   return utl::get_or_create(trip_cache_, trp->edges_, [&]() {
+    ++req_count_;
+
     std::vector<std::string> ids;
     for (auto i = 0u; i < trp->edges_->size(); ++i) {
       if (i == 0) {

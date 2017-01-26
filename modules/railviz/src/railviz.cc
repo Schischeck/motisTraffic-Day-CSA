@@ -4,6 +4,8 @@
 #include "utl/get_or_create.h"
 #include "utl/to_vec.h"
 
+#include "motis/core/common/logging.h"
+
 #include "motis/core/access/bfs.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/access/realtime_access.h"
@@ -20,6 +22,7 @@
 #include "motis/railviz/path_resolver.h"
 #include "motis/railviz/train_retriever.h"
 
+using namespace motis::logging;
 using namespace motis::module;
 using namespace flatbuffers;
 
@@ -271,6 +274,8 @@ std::vector<Offset<Station>> get_stations(
 };
 
 msg_ptr railviz::get_trains(msg_ptr const& msg) const {
+  logging::scoped_timer timer("get_trains");
+
   auto const req = motis_content(RailVizTrainsRequest, msg);
   auto const& sched = get_schedule();
 
@@ -296,6 +301,8 @@ msg_ptr railviz::get_trains(msg_ptr const& msg) const {
           fbb, fbb.CreateVector(fbs_trains), fbb.CreateVector(fbs_routes),
           fbb.CreateVector(get_stations(sched, fbb, route_edges)))
           .Union());
+
+  LOG(info) << "path module requests: " << pr.get_req_count();
 
   return make_msg(fbb);
 }
