@@ -26,9 +26,9 @@ encodeTripId tripId =
     Encode.object
         [ "station_id" => string tripId.station_id
         , "train_nr" => int tripId.train_nr
-        , "time" => int (unixTime tripId.time)
+        , "time" => int tripId.time
         , "target_station_id" => string tripId.target_station_id
-        , "target_time" => int (unixTime tripId.target_time)
+        , "target_time" => int tripId.target_time
         , "line_id" => string tripId.line_id
         ]
 

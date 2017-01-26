@@ -12,10 +12,7 @@ var CanvasOverlay = L.Layer.extend({
     map.on('resize', this._updateSize, this);
     map.on('zoomend', this._update, this);
 
-    setTimeout(function() {
-      app.ports.mapLoaded.send('');
-      this._updateSize();
-    }.bind(this), 100);
+    setTimeout(function() { this._updateSize(); }.bind(this), 100);
   },
 
   onRemove: function(map) {
@@ -36,7 +33,7 @@ var CanvasOverlay = L.Layer.extend({
     //     this._map.unproject(pixelBounds.add(size).add(size)));
     var railVizBounds = geoBounds;
 
-    app.ports.mapUpdate.send({
+    var mapInfo = {
       scale: Math.pow(2, this._map.getZoom()),
       zoom: this._map.getZoom(),
       pixelBounds: {
@@ -57,7 +54,10 @@ var CanvasOverlay = L.Layer.extend({
         south: railVizBounds.getSouth(),
         east: railVizBounds.getEast()
       }
-    });
+    };
+
+    app.ports.mapUpdate.send(mapInfo);
+    RailViz.Main.mapUpdate(mapInfo);
   },
 
   _updateSize: function() {
@@ -112,7 +112,7 @@ var MapOverlays = {
 
 };
 
-function initPorts(app) {
+function initPorts(app, apiEndpoint) {
   app.ports.mapInit.subscribe(function(id) {
     var map = L.map('map', {zoomControl: false}).setView([49.8728, 8.6512], 14);
 
@@ -133,6 +133,8 @@ function initPorts(app) {
     var c = new CanvasOverlay();
     c._el = map.getContainer().querySelector('.railviz-overlay');
     map.addLayer(c);
+
+    RailViz.Main.init(c._el, apiEndpoint, app.ports);
   });
 
   app.ports.mapSetOverlays.subscribe(function(m) {
@@ -144,82 +146,6 @@ function initPorts(app) {
     MapOverlays.clearOverlays();
   });
 
-  var ports = {
-    'mousedown': app.ports.mapMouseDown,
-    'mouseup': app.ports.mapMouseUp,
-    'mouseout': app.ports.mapMouseOut,
-    'mousemove': app.ports.mapMouseMove
-  };
-
-  var webglCache = null;
-  var lastPickingUpdate = {x: null, y: null, color: null};
-
-  var isSameUpdate = function(a, b) {
-    if (a.x != b.x || a.y != b.y) {
-      return false;
-    }
-    if (a.color === null && b.color !== null ||
-        a.color !== null && b.color === null) {
-      return false;
-    }
-    if (a.color.length != b.color.length) {
-      return false;
-    }
-    for (var i = 0; i < a.color.length; i++) {
-      if (a.color[i] != b.color[i]) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  document.addEventListener('elmgl-update', function(e) {
-    var picking = e.detail.picking;
-    var update = {x: picking.x, y: picking.y, color: picking.pixel};
-    if (!isSameUpdate(lastPickingUpdate, update)) {
-      ports['mousemove'].send(update);
-      lastPickingUpdate = update;
-    }
-  });
-
-  document.addEventListener('elmgl-init', function(e) {
-    var canvas = e.detail.canvas;
-    var gl = e.detail.gl;
-    webglCache = e.detail.cache;
-
-    var eventHandler =
-        function(eventType) {
-      return function(e) {
-        if (!webglCache) {
-          console.log('missing webglCache!');
-          return;
-        }
-        var top = window.pageXOffset, left = -window.pageYOffset, obj = canvas;
-        while (obj && obj.tagName !== 'BODY') {
-          top += obj.offsetTop;
-          left += obj.offsetLeft;
-          obj = obj.offsetParent;
-        }
-        var x = e.clientX - left;
-        var y = e.clientY - top;
-        webglCache.picking.x = x;
-        webglCache.picking.y = y;
-        webglCache.picking.enabled = eventType != 'mouseout';
-
-        if (eventType == 'mouseout') {
-          ports[eventType].send({x: x, y: y, color: null});
-        } else if (eventType == 'mousedown' || eventType == 'mouseup') {
-          ports[eventType].send({x: x, y: y, color: webglCache.picking.pixel});
-        }
-      }
-    }
-
-    var register = function(eventType) {
-      canvas.addEventListener(eventType, eventHandler(eventType));
-    };
-
-    for (var port in ports) {
-      register(port);
-    }
-  });
+  app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
+  app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
 }

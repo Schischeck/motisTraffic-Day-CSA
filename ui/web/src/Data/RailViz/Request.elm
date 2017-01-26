@@ -5,7 +5,13 @@ import Date exposing (Date)
 import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
 import Data.Connection.Types exposing (Position)
-import Data.RailViz.Types exposing (RailVizTrainsRequest, RailVizTripsRequest)
+import Data.RailViz.Types
+    exposing
+        ( RailVizTrainsRequest
+        , RailVizTripsRequest
+        , RailVizStationRequest
+        , RailVizStationDirection(..)
+        )
 import Data.Lookup.Request exposing (encodeTripId)
 
 
@@ -55,3 +61,50 @@ encodePosition pos =
 encodeDate : Date -> Encode.Value
 encodeDate date =
     Encode.int (unixTime date)
+
+
+encodeStationRequest : RailVizStationRequest -> Encode.Value
+encodeStationRequest req =
+    Encode.object
+        [ "destination"
+            => Encode.object
+                [ "type" => Encode.string "Module"
+                , "target" => Encode.string "/railviz/get_station"
+                ]
+        , "content_type" => Encode.string "RailVizStationRequest"
+        , "content"
+            => Encode.object
+                [ "station_id" => Encode.string req.stationId
+                , "time" => Encode.int req.time
+                , "event_count" => Encode.int req.eventCount
+                , "direction" => encodeDirection req.direction
+                , "by_schedule_time" => Encode.bool req.byScheduleTime
+                ]
+        ]
+
+
+encodeDirection : RailVizStationDirection -> Encode.Value
+encodeDirection dir =
+    case dir of
+        LATER ->
+            Encode.string "LATER"
+
+        EARLIER ->
+            Encode.string "EARLIER"
+
+        BOTH ->
+            Encode.string "BOTH"
+
+
+initialStationRequest : String -> Date -> RailVizStationRequest
+initialStationRequest stationId date =
+    let
+        selectedTime =
+            unixTime date
+    in
+        { stationId = stationId
+        , time = selectedTime
+        , eventCount = 20
+        , direction = BOTH
+        , byScheduleTime = True
+        }

@@ -4,6 +4,8 @@ module Data.Connection.Decode
         , decodeStation
         , decodePosition
         , decodeTripId
+        , decodeEventInfo
+        , decodeTransportInfo
         )
 
 import Data.Connection.Types exposing (..)
@@ -160,7 +162,7 @@ decodeTripId =
     decode TripId
         |> required "station_id" string
         |> optional "train_nr" int 0
-        |> required "time" decodeDate
+        |> required "time" int
         |> required "target_station_id" string
-        |> required "target_time" decodeDate
+        |> required "target_time" int
         |> required "line_id" string
