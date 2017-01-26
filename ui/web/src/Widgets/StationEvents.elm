@@ -474,6 +474,12 @@ eventView (Config { selectTripMsg }) locale event =
             transport
                 |> Maybe.map .direction
                 |> Maybe.withDefault "?"
+
+        track =
+            if String.isEmpty event.event.track then
+                ""
+            else
+                locale.t.station.trackAbbr ++ " " ++ event.event.track
     in
         div [ class "pure-g station-event" ]
             [ div [ class "pure-u-4-24 event-time" ]
@@ -483,10 +489,10 @@ eventView (Config { selectTripMsg }) locale event =
                 ]
             , div [ class "pure-u-4-24 event-train" ]
                 [ span clickAttr [ text serviceName ] ]
-            , div [ class "pure-u-14-24 event-direction" ]
+            , div [ class "pure-u-13-24 event-direction" ]
                 [ text direction ]
-            , div [ class "pure-u-2-24 event-track" ]
-                [ text event.event.track ]
+            , div [ class "pure-u-3-24 event-track" ]
+                [ text track ]
             ]
 
 
