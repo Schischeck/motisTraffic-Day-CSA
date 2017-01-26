@@ -82,5 +82,6 @@ enTranslations =
         , noDepartures = "No departures"
         , noArrivals = "No arrivals"
         , loading = "Loading..."
+        , trackAbbr = "Tr."
         }
     }

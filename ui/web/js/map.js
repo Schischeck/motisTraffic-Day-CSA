@@ -2,26 +2,49 @@ var CanvasOverlay = L.Layer.extend({
   initialize: function() { L.setOptions(this, {}); },
 
   onAdd: function(map) {
-    this._map = map;
-
     map._panes.overlayPane.appendChild(this._el);
-
-    map.on('dragend', this._updatePosition, this);
-    map.on('move', this._updatePosition, this);
-    map.on('moveend', this._updatePosition, this);
-    map.on('resize', this._updateSize, this);
-    map.on('zoomend', this._update, this);
 
     setTimeout(function() { this._updateSize(); }.bind(this), 100);
   },
 
-  onRemove: function(map) {
-    map.getPanes().overlayPane.removeChild(this._el);
-    map.off('dragend', this._updatePosition, this);
-    map.off('move', this._updatePosition, this);
-    map.off('moveend', this._updatePosition, this);
-    map.off('resize', this._updateSize, this);
-    map.off('zoomend', this._update, this);
+  onRemove: function(map) { map.getPanes().overlayPane.removeChild(this._el); },
+
+  getEvents: function() {
+    var events = {
+      dragend: this._updatePosition,
+      move: this._updatePosition,
+      moveend: this._updatePosition,
+      resize: this._updateSize,
+      zoom: this._zoom,
+      zoomend: this._zoomEnd
+    };
+
+    if (this._zoomAnimated) {
+      events.zoomanim = this._animateZoom;
+    }
+
+    return events;
+  },
+
+  _animateZoom: function(e) { this._updateTransform(e.center, e.zoom); },
+
+  _zoom: function() {
+    this._updateTransform(this._map.getCenter(), this._map.getZoom());
+  },
+
+  _zoomEnd: function() { this._update(); },
+
+  _updateTransform: function(center, zoom) {
+    var scale = this._map.getZoomScale(zoom),
+        position = L.DomUtil.getPosition(this._el),
+        viewHalf = this._map.getSize().multiplyBy(0.5),
+        currentCenterPoint = this._map.project(this._map.getCenter(), zoom),
+        destCenterPoint = this._map.project(center, zoom),
+        centerOffset = destCenterPoint.subtract(currentCenterPoint),
+        topLeftOffset =
+            viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(
+                centerOffset);
+    L.DomUtil.setTransform(this._el, topLeftOffset, scale);
   },
 
   _update: function() {
@@ -62,8 +85,8 @@ var CanvasOverlay = L.Layer.extend({
 
   _updateSize: function() {
     var size = this._map.getSize();
-    this._el.width = size.x;
-    this._el.height = size.y;
+    this._el.style.width = size.x + 'px';
+    this._el.style.height = size.y + 'px';
     this._updatePosition();
   },
 
@@ -148,4 +171,11 @@ function initPorts(app, apiEndpoint) {
 
   app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
   app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
+
+  app.ports.mapFlyTo.subscribe(function(opt) {
+    var map = window.elmMaps[opt.mapId];
+    map.flyToBounds(
+        L.latLngBounds([L.latLng(opt.lat, opt.lng)]),
+        {paddingTopLeft: [600, 0], maxZoom: 16});
+  });
 }

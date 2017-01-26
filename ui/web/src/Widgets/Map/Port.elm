@@ -71,6 +71,13 @@ type alias RVTrain =
     }
 
 
+type alias MapFlyLocation =
+    { mapId : String
+    , lat : Float
+    , lng : Float
+    }
+
+
 port mapInit : String -> Cmd msg
 
 
@@ -84,3 +91,6 @@ port mapClearOverlays : String -> Cmd msg
 
 
 port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
+
+
+port mapFlyTo : MapFlyLocation -> Cmd msg

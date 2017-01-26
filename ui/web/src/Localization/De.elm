@@ -82,5 +82,6 @@ deTranslations =
         , noDepartures = "Keine Abfahrten im gewählten Zeitraum"
         , noArrivals = "Keine Ankünfte im gewählten Zeitraum"
         , loading = "Laden..."
+        , trackAbbr = "Gl."
         }
     }

@@ -35,6 +35,8 @@ import Widgets.Helpers.ConnectionUtil exposing (delay)
 import Widgets.DateHeaders exposing (..)
 import Maybe.Extra exposing (isJust)
 import Random exposing (maxInt)
+import Widgets.Map.Port as Port exposing (MapFlyLocation)
+import Widgets.Map.RailViz exposing (mapId)
 
 
 -- MODEL
@@ -131,7 +133,29 @@ update msg model =
             model ! []
 
         ReceiveResponse action request response ->
-            handleResponse model action response ! []
+            let
+                model_ =
+                    handleResponse model action response
+
+                cmds =
+                    case action of
+                        ReplaceResults ->
+                            case model_.station of
+                                Just station ->
+                                    [ Port.mapFlyTo
+                                        { mapId = mapId
+                                        , lat = station.pos.lat
+                                        , lng = station.pos.lng
+                                        }
+                                    ]
+
+                                _ ->
+                                    []
+
+                        _ ->
+                            []
+            in
+                model_ ! cmds
 
         ReceiveError action request msg_ ->
             handleRequestError model action msg_ ! []
@@ -450,6 +474,12 @@ eventView (Config { selectTripMsg }) locale event =
             transport
                 |> Maybe.map .direction
                 |> Maybe.withDefault "?"
+
+        track =
+            if String.isEmpty event.event.track then
+                ""
+            else
+                locale.t.station.trackAbbr ++ " " ++ event.event.track
     in
         div [ class "pure-g station-event" ]
             [ div [ class "pure-u-4-24 event-time" ]
@@ -459,10 +489,10 @@ eventView (Config { selectTripMsg }) locale event =
                 ]
             , div [ class "pure-u-4-24 event-train" ]
                 [ span clickAttr [ text serviceName ] ]
-            , div [ class "pure-u-14-24 event-direction" ]
+            , div [ class "pure-u-13-24 event-direction" ]
                 [ text direction ]
-            , div [ class "pure-u-2-24 event-track" ]
-                [ text event.event.track ]
+            , div [ class "pure-u-3-24 event-track" ]
+                [ text track ]
             ]
 
 

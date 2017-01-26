@@ -54,5 +54,6 @@ type alias Translations =
         , noDepartures : String
         , noArrivals : String
         , loading : String
+        , trackAbbr : String
         }
     }
