@@ -34,7 +34,7 @@
     <string name="server_error">Die Anfrage konnte nicht bearbeitet werden</string>
     <string name="empty_response">Keine Verbindungen in diesem Zeitraum</string>
     <string name="schedule_range">Auskunft von %1$s bis %2$s möglich</string>
-    <string name="routing_error">Zeitram nicht im Fahrplan</string>
+    <string name="routing_error">Zeitraum nicht im Fahrplan</string>
     <string name="crash_toast_text">Crash Report!</string>
     <string name="connections">Verbindungen</string>
     <string name="connection_saved">Verbindung gespeichert</string>

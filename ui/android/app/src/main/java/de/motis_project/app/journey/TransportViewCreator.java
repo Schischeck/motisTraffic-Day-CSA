@@ -44,7 +44,7 @@ public class TransportViewCreator {
     static private JourneySummaryViewHolder.ViewMode getViewMode(
             List<JourneyUtil.DisplayTransport> transports) {
         final long MAX_SIZE = 30;
-        final long transportsTerm = 2 * transports.size();
+        final long transportsTerm = 3 * transports.size();
         if (getTextLengthSum(transports, JourneySummaryViewHolder.ViewMode.LONG) + transportsTerm <=
                 MAX_SIZE) {
             return JourneySummaryViewHolder.ViewMode.LONG;
