@@ -2,15 +2,18 @@ var RailViz = RailViz || {};
 
 RailViz.Routes = (function() {
   const vertexShader = `
-        attribute vec2 a_pos;
+        attribute vec4 a_pos;
         attribute vec2 a_normal;
         
+        uniform vec2 u_resolution;
         uniform mat4 u_perspective;
         uniform float u_width;
         
         void main() {
-            vec2 delta = a_normal * u_width;
-            gl_Position = u_perspective * vec4(a_pos + delta, 0.0, 1.0);
+            vec4 base = u_perspective * a_pos;
+            vec2 offset = u_width * a_normal / u_resolution;
+
+            gl_Position = base + vec4(offset, 0.0, 0.0);
         }
     `;
 
@@ -18,7 +21,6 @@ RailViz.Routes = (function() {
         precision mediump float;
         
         void main() {
-            // gl_FragColor = vec4(0.4, 0.4, 0.4, 0.8);
             gl_FragColor = vec4(0.4, 0.4, 0.4, 1.0);
         }
     `;
@@ -33,6 +35,7 @@ RailViz.Routes = (function() {
   var program;
   var a_pos;
   var a_normal;
+  var u_resolution;
   var u_perspective;
   var u_width;
 
@@ -55,6 +58,7 @@ RailViz.Routes = (function() {
 
     a_pos = gl.getAttribLocation(program, 'a_pos');
     a_normal = gl.getAttribLocation(program, 'a_normal');
+    u_resolution = gl.getUniformLocation(program, 'u_resolution');
     u_perspective = gl.getUniformLocation(program, 'u_perspective');
     u_width = gl.getUniformLocation(program, 'u_width');
 
@@ -84,15 +88,9 @@ RailViz.Routes = (function() {
     gl.enableVertexAttribArray(a_normal);
     gl.vertexAttribPointer(a_normal, 2, gl.FLOAT, false, 16, 8);
 
+    gl.uniform2f(u_resolution, gl.canvas.width, gl.canvas.height);
     gl.uniformMatrix4fv(u_perspective, false, perspective);
-    // gl.uniform1f(u_width, (performance.now() % 500) / 500000);
-    // gl.uniform1f(u_width, 0.00001 * zoom);
-    // gl.uniform1f(u_width, 0.0001);
-    // gl.uniform1f(u_width, 0.0014 / zoom);
-    // gl.uniform1f(u_width, lineWidth);
-    const lineWidth = zoom == 18 ? 0.00002 : 0.00001 * Math.pow(2, 18 - zoom);
-    // gl.uniform1f(u_width, lineWidth);
-    gl.uniform1f(u_width, lineWidth * (performance.now() % 1000) / 500);
+    gl.uniform1f(u_width, 1.0 + 8.0 * (performance.now() % 4000) / 4000);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
     gl.drawElements(
@@ -196,7 +194,8 @@ RailViz.Routes = (function() {
             if (nlen > 0) {
               nx = nlen != 0 ? anx / nlen : 0;
               ny = nlen != 0 ? any / nlen : 0;
-              miterLen = Math.min(2.0, 1 / (nx * nnx + ny * nny));
+              miterLen =
+                  Math.max(0.5, Math.min(2.0, 1 / (nx * nnx + ny * nny)));
             } else {
               nx = pnx;
               ny = pny;
