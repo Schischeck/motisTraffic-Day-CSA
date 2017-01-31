@@ -6,6 +6,11 @@ RailViz.Preprocessing = (function() {
     data.stations.forEach(preprocessStation);
     data.routes.forEach(route => route.segments.forEach(preprocessSegment));
     data.trains.forEach(train => preprocessTrain(train, data));
+    data.routeVertexCount = data.routes.reduce(
+        (acc, route) => acc +
+            route.segments.reduce(
+                (a, s) => a + s.coordinates.coordinates.length, 0),
+        0);
   }
 
   function preprocessSegment(segment) {

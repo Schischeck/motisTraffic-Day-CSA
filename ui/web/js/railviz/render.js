@@ -34,10 +34,11 @@ RailViz.Render = (function() {
   }
 
   function setData(newData) {
-    data = newData || {stations: [], routes: [], trains: []};
+    data =
+        newData || {stations: [], routes: [], trains: [], routeVertexCount: 0};
 
     RailViz.Stations.init(data.stations);
-    RailViz.Routes.init(data.routes);
+    RailViz.Routes.init(data.routes, data.routeVertexCount);
     RailViz.Trains.init(data.trains, data.routes);
   }
 
@@ -94,7 +95,7 @@ RailViz.Render = (function() {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
 
-      RailViz.Routes.render(gl, perspective, isOffscreen);
+      RailViz.Routes.render(gl, perspective, zoom, isOffscreen);
       RailViz.Stations.render(gl, perspective, zoom, isOffscreen);
       RailViz.Trains.render(gl, perspective, zoom, isOffscreen);
     }
