@@ -193,10 +193,15 @@ RailViz.Routes = (function() {
             // average normals
             const anx = pnx + nnx, any = pny + nny;
             const nlen = Math.sqrt(anx * anx + any * any);
-            nx = nlen != 0 ? anx / nlen : 0;
-            ny = nlen != 0 ? any / nlen : 0;
-
-            miterLen = Math.min(2.0, 1 / (nx * nnx + ny * nny));
+            if (nlen > 0) {
+              nx = nlen != 0 ? anx / nlen : 0;
+              ny = nlen != 0 ? any / nlen : 0;
+              miterLen = Math.min(2.0, 1 / (nx * nnx + ny * nny));
+            } else {
+              nx = pnx;
+              ny = pny;
+              miterLen = 1.0;
+            }
           }
 
           const x = coords[i * 2], y = coords[i * 2 + 1];
