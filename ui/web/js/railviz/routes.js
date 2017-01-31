@@ -24,6 +24,7 @@ RailViz.Routes = (function() {
     `;
 
   var routes = [];
+  var vertexCount = 0;
   var mesh;
   var buffer = null;
   var elementArrayBuffer = null;
@@ -35,9 +36,10 @@ RailViz.Routes = (function() {
   var u_perspective;
   var u_width;
 
-  function init(newRoutes, vertexCount) {
+  function init(newRoutes, newVertexCount) {
     routes = newRoutes || [];
-    mesh = createMesh(routes, vertexCount || 0);
+    mesh = null;
+    vertexCount = newVertexCount || 0;
     buffer = buffer || null;
     bufferValid = false;
     lineCount = 0;
@@ -62,11 +64,16 @@ RailViz.Routes = (function() {
   }
 
   function render(gl, perspective, zoom, isOffscreen) {
-    if (isOffscreen || mesh.elementArray.length == 0) {
+    if (isOffscreen || vertexCount == 0) {
       return;
     }
 
     gl.useProgram(program);
+
+    if (!mesh) {
+      mesh = createMesh(gl, routes, vertexCount);
+    }
+
     if (!bufferValid) {
       fillBuffer(gl);
     }
@@ -89,7 +96,7 @@ RailViz.Routes = (function() {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
     gl.drawElements(
-        gl.TRIANGLES, mesh.elementArray.length, gl.UNSIGNED_SHORT, 0);
+        gl.TRIANGLES, mesh.elementArray.length, mesh.elementArrayType, 0);
 
     gl.disableVertexAttribArray(a_normal);
     gl.disableVertexAttribArray(a_pos);
@@ -105,11 +112,12 @@ RailViz.Routes = (function() {
     bufferValid = true;
   }
 
-  function createMesh(routes, vertexCount) {
+  function createMesh(gl, routes, vertexCount) {
     if (vertexCount == 0) {
       return {
         vertexArray: new Float32Array(0),
-        elementArray: new Uint16Array(0)
+        elementArray: new Uint16Array(0),
+        elementArrayType: gl.UNSIGNED_SHORT
       };
     }
 
@@ -120,14 +128,21 @@ RailViz.Routes = (function() {
 
     const VERTEX_SIZE = 4;
     const vertexArray = new Float32Array(vertexCount * VERTEX_SIZE);
-    const elementArray = new Uint16Array(elementCount);
+    const uintExt = gl.getExtension('OES_element_index_uint');
+    const elementArrayType =
+        (elementCount > 65535 && uintExt) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
+    const elementArray = elementArrayType == gl.UNSIGNED_INT ?
+        new Uint32Array(elementCount) :
+        new Uint16Array(elementCount);
 
     let vertexIndex = 0;
     let elementIndex = 0;
 
     console.log(
         'createMesh:', 'vertexCount =', vertexCount, 'triangleCount =',
-        triangleCount, 'elementCount =', elementCount);
+        triangleCount, 'elementCount =', elementCount, 'elementArrayType =',
+        (elementArrayType == gl.UNSIGNED_INT ? 'UNSIGNED_INT' :
+                                               'UNSIGNED_SHORT'));
 
     // Each segment is an independent line
     for (let routeIdx = 0; routeIdx < routes.length; routeIdx++) {
@@ -138,9 +153,8 @@ RailViz.Routes = (function() {
         const subsegmentCount = pointCount - 1;
         const firstVertexIndex = vertexIndex;
 
-        // calculate normalized per segment direction vectors (used to calculate
-        // per segment normals)
-        const directionVectors = new Array(subsegmentCount * 2);
+        // calculate unit normals for each segment
+        const normals = new Array(subsegmentCount * 2);
         for (let i = 0; i < subsegmentCount; i++) {
           const base = i * 2;
           const x0 = coords[base], y0 = coords[base + 1], x1 = coords[base + 2],
@@ -150,8 +164,8 @@ RailViz.Routes = (function() {
           const dy = y1 - y0;
           // normalized direction vector
           const dlen = Math.sqrt(dx * dx + dy * dy);
-          directionVectors[base] = dx / dlen;
-          directionVectors[base + 1] = dy / dlen;
+          normals[base] = dlen != 0 ? -dy / dlen : 0;
+          normals[base + 1] = dlen != 0 ? dx / dlen : 0;
         }
 
         // points -> vertices (2 vertices per point)
@@ -159,45 +173,49 @@ RailViz.Routes = (function() {
           const prevSubsegment = i - 1;
           const nextSubsegment = i;
 
-          let dx, dy;
+          let nx, ny;
+          let miterLen = 1.0;
+
           if (prevSubsegment == -1) {
             // first point of the polyline
-            dx = directionVectors[nextSubsegment * 2];
-            dy = directionVectors[nextSubsegment * 2 + 1];
+            nx = normals[nextSubsegment * 2];
+            ny = normals[nextSubsegment * 2 + 1];
 
           } else if (nextSubsegment == subsegmentCount) {
             // last point of the polyline
-            dx = directionVectors[prevSubsegment * 2];
-            dy = directionVectors[prevSubsegment * 2 + 1];
+            nx = normals[prevSubsegment * 2];
+            ny = normals[prevSubsegment * 2 + 1];
           } else {
-            const dx0 = directionVectors[prevSubsegment * 2],
-                  dy0 = directionVectors[prevSubsegment * 2 + 1],
-                  dx1 = directionVectors[nextSubsegment * 2],
-                  dy1 = directionVectors[nextSubsegment * 2 + 1];
-            // average normalized vector
-            const nx = dx0 + dx1, ny = dy0 + dy1;
-            const nlen = Math.sqrt(nx * nx + ny * ny);
-            dx = nx / nlen;
-            dy = ny / nlen;
+            const pnx = normals[prevSubsegment * 2],
+                  pny = normals[prevSubsegment * 2 + 1],
+                  nnx = normals[nextSubsegment * 2],
+                  nny = normals[nextSubsegment * 2 + 1];
+            // average normals
+            const anx = pnx + nnx, any = pny + nny;
+            const nlen = Math.sqrt(anx * anx + any * any);
+            nx = nlen != 0 ? anx / nlen : 0;
+            ny = nlen != 0 ? any / nlen : 0;
+
+            miterLen = Math.min(2.0, 1 / (nx * nnx + ny * nny));
           }
 
           const x = coords[i * 2], y = coords[i * 2 + 1];
 
           vertexArray[vertexIndex] = x;
           vertexArray[vertexIndex + 1] = y;
-          vertexArray[vertexIndex + 2] = -dy;
-          vertexArray[vertexIndex + 3] = dx;
-          vertexIndex += 4;
+          vertexArray[vertexIndex + 2] = nx * miterLen;
+          vertexArray[vertexIndex + 3] = ny * miterLen;
+          vertexIndex += VERTEX_SIZE;
 
           vertexArray[vertexIndex] = x;
           vertexArray[vertexIndex + 1] = y;
-          vertexArray[vertexIndex + 2] = dy;
-          vertexArray[vertexIndex + 3] = -dx;
-          vertexIndex += 4;
+          vertexArray[vertexIndex + 2] = nx * -miterLen;
+          vertexArray[vertexIndex + 3] = ny * -miterLen;
+          vertexIndex += VERTEX_SIZE;
         }
 
         for (let i = 0; i < subsegmentCount; i++) {
-          const base = firstVertexIndex / 4 + i * 2;
+          const base = firstVertexIndex / VERTEX_SIZE + i * 2;
           // 1st triangle
           elementArray[elementIndex++] = base;
           elementArray[elementIndex++] = base + 1;
@@ -210,7 +228,11 @@ RailViz.Routes = (function() {
       }
     }
 
-    return {vertexArray: vertexArray, elementArray: elementArray};
+    return {
+      vertexArray: vertexArray,
+      elementArray: elementArray,
+      elementArrayType: elementArrayType
+    };
   }
 
   return { init: init, setup: setup, render: render }
