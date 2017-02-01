@@ -56,9 +56,10 @@ var CanvasOverlay = L.Layer.extend({
     //     this._map.unproject(pixelBounds.add(size).add(size)));
     var railVizBounds = geoBounds;
 
+    var zoom = Math.round(this._map.getZoom());
     var mapInfo = {
-      scale: Math.pow(2, this._map.getZoom()),
-      zoom: this._map.getZoom(),
+      scale: Math.pow(2, zoom),
+      zoom: zoom,
       pixelBounds: {
         north: pixelBounds.y,
         west: pixelBounds.x,
