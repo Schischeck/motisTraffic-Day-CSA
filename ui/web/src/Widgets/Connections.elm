@@ -39,6 +39,7 @@ import Util.Api as Api
         , MotisErrorInfo(..)
         , ModuleErrorInfo(..)
         , RoutingErrorInfo(..)
+        , AccessErrorInfo(..)
         , MotisErrorDetail
         )
 import Localization.Base exposing (..)
@@ -723,6 +724,9 @@ motisErrorMsg : Localization -> MotisErrorInfo -> String
 motisErrorMsg { t } err =
     case err of
         RoutingError JourneyDateNotInSchedule ->
+            t.connections.errors.journeyDateNotInSchedule
+
+        AccessError AccessTimestampNotInSchedule ->
             t.connections.errors.journeyDateNotInSchedule
 
         _ ->
