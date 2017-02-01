@@ -19,3 +19,6 @@ port setRailVizFilter : Maybe (List TripId) -> Cmd msg
 
 
 port setTimeOffset : Float -> Cmd msg
+
+
+port setSimulationTime : (Float -> msg) -> Sub msg

@@ -684,6 +684,7 @@ subscriptions model =
         , Port.setRoutingResponses SetRoutingResponses
         , Port.showStationDetails ShowStationDetails
         , Port.showTripDetails SelectTripId
+        , Port.setSimulationTime SetSimulationTime
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
 

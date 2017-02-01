@@ -313,7 +313,7 @@ simulationTimeOverlay locale model =
             Date.fromTime model.time
     in
         div
-            [ class "sim-time-overlay" ]
+            [ class "sim-time-overlay", id "sim-time-overlay" ]
             [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
 
 
