@@ -336,19 +336,7 @@ update msg model =
             closeSelectedConnection model
 
         ConnectionDetailsGoBack ->
-            case model.selectedTripIdx of
-                Just _ ->
-                    case model.selectedConnectionIdx of
-                        Just connIdx ->
-                            update (NavigateTo (ConnectionDetails connIdx))
-                                { model | selectedTripIdx = Nothing }
-
-                        Nothing ->
-                            update (NavigateTo Connections)
-                                { model | selectedTripIdx = Nothing }
-
-                Nothing ->
-                    update (NavigateTo Connections) model
+            model ! [ Navigation.back 1 ]
 
         PrepareSelectTrip tripIdx ->
             selectConnectionTrip model tripIdx
@@ -535,7 +523,7 @@ update msg model =
                     ! [ cmds_, Cmd.map StationEventsUpdate c ]
 
         StationEventsGoBack ->
-            update (NavigateTo Connections) model
+            model ! [ Navigation.back 1 ]
 
         ShowStationDetails id ->
             update (NavigateTo (StationEvents id)) model
@@ -727,6 +715,24 @@ overlayView model =
 
                 Just stationEvents ->
                     stationView model.locale stationEvents
+
+        subOverlayContent =
+            case model.stationEvents of
+                Nothing ->
+                    case model.connectionDetails of
+                        Nothing ->
+                            Nothing
+
+                        Just c ->
+                            Just (detailsView model.locale (getCurrentDate model) c)
+
+                Just stationEvents ->
+                    Just (stationView model.locale stationEvents)
+
+        subOverlay =
+            subOverlayContent
+                |> Maybe.map (\c -> div [ class "sub-overlay" ] [ div [ id "sub-overlay-content" ] c ])
+                |> Maybe.withDefault (div [ class "sub-overlay hidden" ] [ div [ id "sub-overlay-content" ] [] ])
     in
         div
             [ classList
@@ -736,7 +742,8 @@ overlayView model =
             ]
             [ div [ class "overlay" ]
                 [ div [ id "overlay-content" ]
-                    content
+                    (searchView model)
+                , subOverlay
                 ]
             , div [ class "overlay-toggle", onClick ToggleOverlay ]
                 [ i [ class "icon" ] [ text "arrow_drop_down" ] ]
