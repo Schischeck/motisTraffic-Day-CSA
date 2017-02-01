@@ -528,7 +528,10 @@ update msg model =
                 ( m, c ) =
                     StationEvents.init model_.apiEndpoint stationId (getCurrentDate model_)
             in
-                { model_ | stationEvents = Just m }
+                { model_
+                    | stationEvents = Just m
+                    , overlayVisible = True
+                }
                     ! [ cmds_, Cmd.map StationEventsUpdate c ]
 
         StationEventsGoBack ->
@@ -663,6 +666,7 @@ loadTripById model tripId =
                     | selectedConnectionIdx = Nothing
                     , selectedTripIdx = Nothing
                     , stationEvents = Nothing
+                    , overlayVisible = True
                 }
     in
         model_ ! [ sendTripRequest model.apiEndpoint tripId ]
