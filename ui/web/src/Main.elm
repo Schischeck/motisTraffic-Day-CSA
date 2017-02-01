@@ -22,6 +22,7 @@ import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
+import Util.Core exposing ((=>))
 import Localization.Base exposing (..)
 import Localization.De exposing (..)
 import Localization.En exposing (..)
@@ -84,6 +85,7 @@ type alias Model =
     , connectionListScrollPos : Float
     , currentTime : Date
     , timeOffset : Float
+    , overlayVisible : Bool
     }
 
 
@@ -133,6 +135,7 @@ init flags initialLocation =
             , connectionListScrollPos = 0
             , currentTime = Date.fromTime flags.currentTime
             , timeOffset = 0
+            , overlayVisible = True
             }
 
         ( model, cmds ) =
@@ -194,6 +197,7 @@ type Msg
     | SelectStation String
     | StationEventsGoBack
     | ShowStationDetails String
+    | ToggleOverlay
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -533,6 +537,9 @@ update msg model =
         ShowStationDetails id ->
             update (NavigateTo (StationEvents id)) model
 
+        ToggleOverlay ->
+            { model | overlayVisible = not model.overlayVisible } ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -717,11 +724,18 @@ overlayView model =
                 Just stationEvents ->
                     stationView model.locale stationEvents
     in
-        div [ class "overlay-container" ]
-            [ div [ class "overlay" ] <|
+        div
+            [ classList
+                [ "overlay-container" => True
+                , "hidden" => not model.overlayVisible
+                ]
+            ]
+            [ div [ class "overlay" ]
                 [ div [ id "overlay-content" ]
                     content
                 ]
+            , div [ class "overlay-toggle", onClick ToggleOverlay ]
+                [ i [ class "icon" ] [ text "arrow_drop_down" ] ]
             ]
 
 
