@@ -10,10 +10,18 @@
 
 .overlay-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   height: 100%;
   padding: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: all .4s ease;
+}
+
+.overlay-container.hidden {
+  left: -570px;
 }
 
 .overlay {
@@ -21,6 +29,7 @@
   background-color: white;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
   border-radius: 3px;
+  border-top-right-radius: 0;
   transition: all .4s ease;
   width: 550px;
   flex: 0 0 auto;
@@ -28,10 +37,38 @@
   height: 100%;
 }
 
+.overlay-container.hidden .overlay {
+  box-shadow: unset;
+}
+
 #overlay-content {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.overlay-toggle {
+  z-index: 10;
+  order: 2;
+  width: 20px;
+  height: 45px;
+  background: #fff;
+  color: #777;
+  box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-toggle i {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  transform: rotate(90deg);
+}
+
+.overlay-container.hidden .overlay-toggle i {
+  transform: rotate(270deg);
 }
 
 .map-container {
@@ -128,7 +165,6 @@
   bottom: 15px;
   right: 0px;
   padding: 0 5px;
-  pointer-events: none;
   font-size: 14px;
   background: rgba(255, 255, 255, 0.7);
 }

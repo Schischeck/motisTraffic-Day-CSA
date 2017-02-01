@@ -53,7 +53,7 @@ RailViz.Trains = (function() {
 
   var trains = [];
   var routes = [];
-  var useCategoryColor = false;
+  var useCategoryColor = true;
   var positionBuffer = null;
   var progressBuffer = null;
   var colorBuffer = null;

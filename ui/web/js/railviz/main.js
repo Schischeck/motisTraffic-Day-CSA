@@ -171,6 +171,7 @@ RailViz.Main = (function() {
     debounce: debounce,
     mapUpdate: mapUpdate,
     setTimeOffset: setTimeOffset,
+    getTimeOffset: function() { return timeOffset; },
     setFilter: setFilter
   };
 

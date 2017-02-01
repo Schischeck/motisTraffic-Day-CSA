@@ -60,7 +60,7 @@ init remoteAddress =
     , mouseY = 0
     , hoveredTrain = Nothing
     , hoveredStation = Nothing
-    , trainColors = DelayColors
+    , trainColors = ClassColors
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
@@ -313,7 +313,7 @@ simulationTimeOverlay locale model =
             Date.fromTime model.time
     in
         div
-            [ class "sim-time-overlay" ]
+            [ class "sim-time-overlay", id "sim-time-overlay" ]
             [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
 
 
@@ -345,17 +345,6 @@ trainColorPickerView locale model =
         , div []
             [ input
                 [ type_ "radio"
-                , id "train-color-picker-delay"
-                , name "train-color-picker"
-                , checked (model.trainColors == DelayColors)
-                , onClick (SetTrainColors DelayColors)
-                ]
-                []
-            , label [ for "train-color-picker-delay" ] [ text locale.t.railViz.delayColors ]
-            ]
-        , div []
-            [ input
-                [ type_ "radio"
                 , id "train-color-picker-class"
                 , name "train-color-picker"
                 , checked (model.trainColors == ClassColors)
@@ -363,5 +352,16 @@ trainColorPickerView locale model =
                 ]
                 []
             , label [ for "train-color-picker-class" ] [ text locale.t.railViz.classColors ]
+            ]
+        , div []
+            [ input
+                [ type_ "radio"
+                , id "train-color-picker-delay"
+                , name "train-color-picker"
+                , checked (model.trainColors == DelayColors)
+                , onClick (SetTrainColors DelayColors)
+                ]
+                []
+            , label [ for "train-color-picker-delay" ] [ text locale.t.railViz.delayColors ]
             ]
         ]
