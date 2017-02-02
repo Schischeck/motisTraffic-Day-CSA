@@ -11,7 +11,7 @@ RailViz.Routes = (function() {
         
         void main() {
             vec4 base = u_perspective * a_pos;
-            vec2 offset = u_width * a_normal / u_resolution;
+            vec2 offset = u_width * a_normal / vec2(u_resolution.x, -u_resolution.y);
 
             gl_Position = base + vec4(offset, 0.0, 0.0);
         }
@@ -21,7 +21,7 @@ RailViz.Routes = (function() {
         precision mediump float;
         
         void main() {
-            gl_FragColor = vec4(0.4, 0.4, 0.4, 1.0);
+            gl_FragColor = vec4(0.4, 0.4, 0.4, 0.8);
         }
     `;
 
@@ -90,7 +90,8 @@ RailViz.Routes = (function() {
 
     gl.uniform2f(u_resolution, gl.canvas.width, gl.canvas.height);
     gl.uniformMatrix4fv(u_perspective, false, perspective);
-    gl.uniform1f(u_width, 1.0 + 8.0 * (performance.now() % 4000) / 4000);
+    // gl.uniform1f(u_width, 1.0 + 8.0 * (performance.now() % 4000) / 4000);
+    gl.uniform1f(u_width, 4.0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
     gl.drawElements(
