@@ -11,7 +11,7 @@ RailViz.Routes = (function() {
         
         void main() {
             vec4 base = u_perspective * a_pos;
-            vec2 offset = u_width * a_normal / vec2(u_resolution.x, -u_resolution.y);
+            vec2 offset = u_width * a_normal / u_resolution;
 
             gl_Position = base + vec4(offset, 0.0, 0.0);
         }
@@ -21,7 +21,7 @@ RailViz.Routes = (function() {
         precision mediump float;
         
         void main() {
-            gl_FragColor = vec4(0.4, 0.4, 0.4, 0.8);
+            gl_FragColor = vec4(0.4, 0.4, 0.4, 1.0);
         }
     `;
 
@@ -88,10 +88,10 @@ RailViz.Routes = (function() {
     gl.enableVertexAttribArray(a_normal);
     gl.vertexAttribPointer(a_normal, 2, gl.FLOAT, false, 16, 8);
 
-    gl.uniform2f(u_resolution, gl.canvas.width, gl.canvas.height);
+    // -height because y axis is flipped in webgl (-1 is at the bottom)
+    gl.uniform2f(u_resolution, gl.canvas.width, -gl.canvas.height);
     gl.uniformMatrix4fv(u_perspective, false, perspective);
-    // gl.uniform1f(u_width, 1.0 + 8.0 * (performance.now() % 4000) / 4000);
-    gl.uniform1f(u_width, 4.0);
+    gl.uniform1f(u_width, zoom > 8 ? 4.0 : 2.0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
     gl.drawElements(
@@ -137,11 +137,11 @@ RailViz.Routes = (function() {
     let vertexIndex = 0;
     let elementIndex = 0;
 
-    console.log(
-        'createMesh:', 'vertexCount =', vertexCount, 'triangleCount =',
-        triangleCount, 'elementCount =', elementCount, 'elementArrayType =',
-        (elementArrayType == gl.UNSIGNED_INT ? 'UNSIGNED_INT' :
-                                               'UNSIGNED_SHORT'));
+    // console.log(
+    //     'createMesh:', 'vertexCount =', vertexCount, 'triangleCount =',
+    //     triangleCount, 'elementCount =', elementCount, 'elementArrayType =',
+    //     (elementArrayType == gl.UNSIGNED_INT ? 'UNSIGNED_INT' :
+    //                                            'UNSIGNED_SHORT'));
 
     // Each segment is an independent line
     for (let routeIdx = 0; routeIdx < routes.length; routeIdx++) {
