@@ -85,6 +85,7 @@ RailViz.Main = (function() {
       filteredData = data;
       if (filteredTripIds) {
         RailViz.Render.setData(data);
+        RailViz.Render.colorRouteSegments();
       }
     } else {
       fullData = data;

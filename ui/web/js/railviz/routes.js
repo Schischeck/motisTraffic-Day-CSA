@@ -4,30 +4,44 @@ RailViz.Routes = (function() {
   const vertexShader = `
         attribute vec4 a_pos;
         attribute vec2 a_normal;
+        attribute vec4 a_color;
+        attribute float a_flags;
         
         uniform vec2 u_resolution;
         uniform mat4 u_perspective;
         uniform float u_width;
+
+        varying vec4 v_color;
+
+        const vec4 defaultColor = vec4(0.4, 0.4, 0.4, 1.0);
         
         void main() {
             vec4 base = u_perspective * a_pos;
             vec2 offset = u_width * a_normal / u_resolution;
 
             gl_Position = base + vec4(offset, 0.0, 0.0);
+            if (a_flags > 127.0) {
+              v_color = a_color;
+            } else {
+              v_color = defaultColor;
+            }
         }
     `;
 
   const fragmentShader = `
         precision mediump float;
+
+        varying vec4 v_color;
         
         void main() {
-            gl_FragColor = vec4(0.4, 0.4, 0.4, 1.0);
+            gl_FragColor = v_color;
         }
     `;
 
   var routes = [];
   var vertexCount = 0;
   var mesh;
+  var coloredSegments;
   var buffer = null;
   var elementArrayBuffer = null;
   var bufferValid = false;
@@ -35,13 +49,18 @@ RailViz.Routes = (function() {
   var program;
   var a_pos;
   var a_normal;
+  var a_color;
+  var a_flags;
   var u_resolution;
   var u_perspective;
   var u_width;
 
+  const VERTEX_SIZE = 5;  // in 32-bit floats
+
   function init(newRoutes, newVertexCount) {
     routes = newRoutes || [];
     mesh = null;
+    coloredSegments = null;
     vertexCount = newVertexCount || 0;
     buffer = buffer || null;
     bufferValid = false;
@@ -58,6 +77,8 @@ RailViz.Routes = (function() {
 
     a_pos = gl.getAttribLocation(program, 'a_pos');
     a_normal = gl.getAttribLocation(program, 'a_normal');
+    a_color = gl.getAttribLocation(program, 'a_color');
+    a_flags = gl.getAttribLocation(program, 'a_flags');
     u_resolution = gl.getUniformLocation(program, 'u_resolution');
     u_perspective = gl.getUniformLocation(program, 'u_perspective');
     u_width = gl.getUniformLocation(program, 'u_width');
@@ -76,6 +97,9 @@ RailViz.Routes = (function() {
 
     if (!mesh) {
       mesh = createMesh(gl, routes, vertexCount);
+      if (coloredSegments) {
+        coloredSegments.forEach(args => colorSegment.apply(this, args));
+      }
     }
 
     if (!bufferValid) {
@@ -84,9 +108,13 @@ RailViz.Routes = (function() {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(a_pos);
-    gl.vertexAttribPointer(a_pos, 2, gl.FLOAT, false, 16, 0);
+    gl.vertexAttribPointer(a_pos, 2, gl.FLOAT, false, 20, 0);
     gl.enableVertexAttribArray(a_normal);
-    gl.vertexAttribPointer(a_normal, 2, gl.FLOAT, false, 16, 8);
+    gl.vertexAttribPointer(a_normal, 2, gl.FLOAT, false, 20, 8);
+    gl.enableVertexAttribArray(a_color);
+    gl.vertexAttribPointer(a_color, 3, gl.UNSIGNED_BYTE, true, 20, 16);
+    gl.enableVertexAttribArray(a_flags);
+    gl.vertexAttribPointer(a_flags, 1, gl.UNSIGNED_BYTE, false, 20, 19);
 
     // -height because y axis is flipped in webgl (-1 is at the bottom)
     gl.uniform2f(u_resolution, gl.canvas.width, -gl.canvas.height);
@@ -97,6 +125,8 @@ RailViz.Routes = (function() {
     gl.drawElements(
         gl.TRIANGLES, mesh.elementArray.length, mesh.elementArrayType, 0);
 
+    gl.disableVertexAttribArray(a_flags);
+    gl.disableVertexAttribArray(a_color);
     gl.disableVertexAttribArray(a_normal);
     gl.disableVertexAttribArray(a_pos);
   }
@@ -125,8 +155,8 @@ RailViz.Routes = (function() {
     const triangleCount = vertexCount - 2;
     const elementCount = triangleCount * 3;  // 3 vertices per triangle
 
-    const VERTEX_SIZE = 4;
     const vertexArray = new Float32Array(vertexCount * VERTEX_SIZE);
+    const byteView = new Uint8Array(vertexArray.buffer);
     const uintExt = gl.getExtension('OES_element_index_uint');
     const elementArrayType =
         (elementCount > 65535 && uintExt) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
@@ -137,17 +167,12 @@ RailViz.Routes = (function() {
     let vertexIndex = 0;
     let elementIndex = 0;
 
-    // console.log(
-    //     'createMesh:', 'vertexCount =', vertexCount, 'triangleCount =',
-    //     triangleCount, 'elementCount =', elementCount, 'elementArrayType =',
-    //     (elementArrayType == gl.UNSIGNED_INT ? 'UNSIGNED_INT' :
-    //                                            'UNSIGNED_SHORT'));
-
     // Each segment is an independent line
     for (let routeIdx = 0; routeIdx < routes.length; routeIdx++) {
       const segments = routes[routeIdx].segments;
       for (let segIdx = 0; segIdx < segments.length; segIdx++) {
-        const coords = segments[segIdx].coordinates.coordinates;
+        const segment = segments[segIdx];
+        const coords = segment.coordinates.coordinates;
         const pointCount = coords.length / 2;
         const subsegmentCount = pointCount - 1;
         const firstVertexIndex = vertexIndex;
@@ -205,19 +230,30 @@ RailViz.Routes = (function() {
           }
 
           const x = coords[i * 2], y = coords[i * 2 + 1];
+          let colorBase = vertexIndex * 4 + 16;
 
           vertexArray[vertexIndex] = x;
           vertexArray[vertexIndex + 1] = y;
           vertexArray[vertexIndex + 2] = nx * miterLen;
           vertexArray[vertexIndex + 3] = ny * miterLen;
+          byteView[colorBase] = Math.random() * 256 | 0;
+          byteView[colorBase + 1] = Math.random() * 256 | 0;
+          byteView[colorBase + 2] = Math.random() * 256 | 0;
           vertexIndex += VERTEX_SIZE;
+          colorBase += 20;
 
           vertexArray[vertexIndex] = x;
           vertexArray[vertexIndex + 1] = y;
           vertexArray[vertexIndex + 2] = nx * -miterLen;
           vertexArray[vertexIndex + 3] = ny * -miterLen;
+          byteView[colorBase] = Math.random() * 256 | 0;
+          byteView[colorBase + 1] = Math.random() * 256 | 0;
+          byteView[colorBase + 2] = Math.random() * 256 | 0;
           vertexIndex += VERTEX_SIZE;
         }
+
+        segment.firstVertexIndex = firstVertexIndex;
+        segment.lastVertexIndex = vertexIndex - VERTEX_SIZE;
 
         for (let i = 0; i < subsegmentCount; i++) {
           const base = firstVertexIndex / VERTEX_SIZE + i * 2;
@@ -240,5 +276,26 @@ RailViz.Routes = (function() {
     };
   }
 
-  return { init: init, setup: setup, render: render }
+  function colorSegment(routeIdx, segmentIdx, color) {
+    if (!mesh) {
+      coloredSegments = coloredSegments || [];
+      coloredSegments.push([].slice.call(arguments));
+      return;
+    }
+    const segment = routes[routeIdx].segments[segmentIdx];
+    const byteView = new Uint8Array(mesh.vertexArray.buffer);
+    for (let vertexIndex = segment.firstVertexIndex;
+         vertexIndex <= segment.lastVertexIndex; vertexIndex += VERTEX_SIZE) {
+      const colorBase = vertexIndex * 4 + 16;
+      byteView[colorBase] = color[0];
+      byteView[colorBase + 1] = color[1];
+      byteView[colorBase + 2] = color[2];
+      byteView[colorBase + 3] = (byteView[colorBase + 3] | 128);
+    }
+    bufferValid = false;
+  }
+
+  return {
+    init: init, setup: setup, render: render, colorSegment: colorSegment
+  }
 })();

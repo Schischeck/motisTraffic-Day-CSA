@@ -42,6 +42,14 @@ RailViz.Render = (function() {
     RailViz.Trains.init(data.trains, data.routes);
   }
 
+  function colorRouteSegments() {
+    const categoryColors = RailViz.Trains.categoryColors;
+    data.trains.forEach(
+        train => RailViz.Routes.colorSegment(
+            train.route_index, train.segment_index,
+            categoryColors[train.clasz]));
+  }
+
   function setMapInfo(newMapInfo) { mapInfo = newMapInfo; }
 
   function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
@@ -203,7 +211,7 @@ RailViz.Render = (function() {
     setMapInfo: setMapInfo,
     setTimeOffset: setTimeOffset,
     render: render,
-    getCanvas: function() { return canvas; }
+    colorRouteSegments: colorRouteSegments
   };
 
 })();

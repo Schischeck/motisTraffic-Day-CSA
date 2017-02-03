@@ -42,6 +42,7 @@ RailViz.Preprocessing = (function() {
   function preprocessTrain(train, data) {
     train.route_index = train.route_index || 0;
     train.segment_index = train.segment_index || 0;
+    train.clasz = train.clasz || 0;
     train.trip.forEach(trip => {trip.train_nr = trip.train_nr || 0});
     const route = data.routes[train.route_index];
     const segment = route.segments[train.segment_index];

@@ -105,7 +105,7 @@ var MapOverlays = {
   setOverlays: function(map, specs) {
     this.clearOverlays();
     this._overlays = specs.map(this._createOverlay);
-    this._overlays.forEach(function(overlay) { overlay.addTo(map); });
+    // this._overlays.forEach(function(overlay) { overlay.addTo(map); });
 
     var bounds = L.latLngBounds([]);
     this._overlays.forEach(function(overlay) {
@@ -117,7 +117,7 @@ var MapOverlays = {
   },
 
   clearOverlays: function() {
-    this._overlays.forEach(function(overlay) { overlay.remove(); });
+    // this._overlays.forEach(function(overlay) { overlay.remove(); });
     this._overlays = [];
   },
 
