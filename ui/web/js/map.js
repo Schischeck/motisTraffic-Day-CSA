@@ -198,10 +198,15 @@ function simulationTimePopup(port) {
       'Set simulation time (ISO 8601/Unix timestamp):',
       currentSimTime.toISOString());
   if (result != null) {
-    var date = new Date(result);
-    var time = date.getTime();
+    var time = parseInt(result);
     if (time) {
-      port.send(date.getTime());
+      time = time * 1000;
+    } else {
+      var date = new Date(result);
+      time = date.getTime();
+    }
+    if (time) {
+      port.send(time);
     } else {
       port.send(Date.now());
     }
