@@ -84,6 +84,8 @@ type alias MapFlyLocation =
 type alias RVConnectionFilter =
     { trains : List RVConnectionTrain
     , walks : List RVConnectionWalk
+    , interchangeStations : List String
+    , intermediateStations : List String
     }
 
 

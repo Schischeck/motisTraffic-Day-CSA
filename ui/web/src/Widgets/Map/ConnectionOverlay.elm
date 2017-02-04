@@ -11,8 +11,9 @@ import Data.Connection.Types exposing (..)
 import Localization.Base exposing (..)
 import Util.DateFormat exposing (..)
 import Widgets.Helpers.ConnectionUtil exposing (..)
-import Util.List exposing ((!!))
+import Util.List exposing ((!!), last, dropEnd)
 import List.Extra
+import Maybe.Extra exposing (maybeToList)
 import Date exposing (Date)
 
 
@@ -47,9 +48,34 @@ showOverlay locale journey =
 
 buildConnectionFilter : Journey -> RVConnectionFilter
 buildConnectionFilter journey =
-    { trains = List.map buildRVTrain journey.trains
-    , walks = List.map buildRVWalk journey.walks
-    }
+    let
+        interchangeStops =
+            List.concatMap
+                (\train ->
+                    (maybeToList (List.head train.stops) ++ (maybeToList (last train.stops)))
+                )
+                journey.trains
+
+        walkStops =
+            List.concatMap (\walk -> [ walk.from, walk.to ]) journey.walks
+
+        interchangeStations =
+            List.map (.station >> .id) (interchangeStops ++ walkStops)
+                |> List.Extra.unique
+
+        intermediateStops =
+            List.concatMap (\train -> dropEnd 1 (List.drop 1 train.stops)) journey.trains
+
+        intermediateStations =
+            List.map (.station >> .id) (intermediateStops)
+                |> List.Extra.unique
+                |> List.filter (\station -> not (List.member station interchangeStations))
+    in
+        { trains = List.map buildRVTrain journey.trains
+        , walks = List.map buildRVWalk journey.walks
+        , interchangeStations = interchangeStations
+        , intermediateStations = intermediateStations
+        }
 
 
 buildRVTrain : Train -> RVConnectionTrain

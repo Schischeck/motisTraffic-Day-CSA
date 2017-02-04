@@ -58,6 +58,7 @@ RailViz.Render = (function() {
     filter.trains.forEach(
         train => train.sections.forEach(
             section => highlightSection(train, section)));
+    filter.interchangeStations.forEach(RailViz.Stations.highlightStation);
   }
 
   function highlightSection(train, section) {

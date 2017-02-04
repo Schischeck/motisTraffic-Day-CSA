@@ -39,6 +39,7 @@ RailViz.Routes = (function() {
                 width *= 1.5;
               } else {
                 width *= 0.5;
+                v_color.a *= 0.9;
               }
             }
             vec2 offset = width * a_normal / u_resolution;
