@@ -8,6 +8,7 @@ RailViz.Main = (function() {
   var timeOffset = 0;
   var trainUpdateTimeoutId, tripsUpdateTimeoutId;
   var filteredTripIds;
+  var connectionFilter = null;
   var fullData, filteredData;
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
@@ -34,13 +35,20 @@ RailViz.Main = (function() {
     debouncedSendTrainsRequest();
   }
 
-  function setFilter(tripIds) {
+  function setTripFilter(tripIds) {
     filteredTripIds = tripIds;
     if (filteredTripIds) {
       sendTripsRequest();
     } else {
       filteredData = null;
       showFullData();
+    }
+  }
+
+  function setConnectionFilter(filter) {
+    connectionFilter = filter;
+    if (filteredTripIds) {
+      RailViz.Render.setConnectionFilter(connectionFilter);
     }
   }
 
@@ -105,6 +113,7 @@ RailViz.Main = (function() {
     RailViz.Render.setData(filteredData);
     RailViz.Render.colorRouteSegments();
     RailViz.Render.setMinZoom(FILTERED_MIN_ZOOM);
+    RailViz.Render.setConnectionFilter(connectionFilter);
   }
 
   function handleMouseEvent(eventType, x, y, pickedTrain, pickedStation) {
@@ -185,7 +194,8 @@ RailViz.Main = (function() {
     mapUpdate: mapUpdate,
     setTimeOffset: setTimeOffset,
     getTimeOffset: function() { return timeOffset; },
-    setFilter: setFilter
+    setTripFilter: setTripFilter,
+    setConnectionFilter: setConnectionFilter
   };
 
 })();

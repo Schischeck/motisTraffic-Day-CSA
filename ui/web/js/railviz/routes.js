@@ -10,21 +10,40 @@ RailViz.Routes = (function() {
         uniform vec2 u_resolution;
         uniform mat4 u_perspective;
         uniform float u_width;
+        uniform bool u_useHighlighting;
 
         varying vec4 v_color;
 
         const vec4 defaultColor = vec4(0.4, 0.4, 0.4, 1.0);
         
         void main() {
-            vec4 base = u_perspective * a_pos;
-            vec2 offset = u_width * a_normal / u_resolution;
+            float flags = a_flags;
 
-            gl_Position = base + vec4(offset, 0.0, 0.0);
-            if (a_flags > 127.0) {
+            if (flags >= 128.0) {
               v_color = a_color;
+              flags -= 128.0;
             } else {
               v_color = defaultColor;
             }
+
+            bool highlighted = false;
+            if (flags >= 64.0) {
+              highlighted = true;
+              // flags -= 64.0;
+            }
+
+            vec4 base = u_perspective * a_pos;
+            float width = u_width;
+            if (u_useHighlighting) {
+              if (highlighted) {
+                width *= 1.5;
+              } else {
+                width *= 0.5;
+              }
+            }
+            vec2 offset = width * a_normal / u_resolution;
+
+            gl_Position = base + vec4(offset, 0.0, 0.0);
         }
     `;
 
@@ -42,6 +61,8 @@ RailViz.Routes = (function() {
   var vertexCount = 0;
   var mesh;
   var coloredSegments;
+  var highlightedSegments;
+  var useHighlighting;
   var buffer = null;
   var elementArrayBuffer = null;
   var bufferValid = false;
@@ -54,6 +75,7 @@ RailViz.Routes = (function() {
   var u_resolution;
   var u_perspective;
   var u_width;
+  var u_useHighlighting;
 
   const VERTEX_SIZE = 5;  // in 32-bit floats
 
@@ -61,6 +83,8 @@ RailViz.Routes = (function() {
     routes = newRoutes || [];
     mesh = null;
     coloredSegments = null;
+    highlightedSegments = null;
+    useHighlighting = false;
     vertexCount = newVertexCount || 0;
     buffer = buffer || null;
     bufferValid = false;
@@ -82,6 +106,7 @@ RailViz.Routes = (function() {
     u_resolution = gl.getUniformLocation(program, 'u_resolution');
     u_perspective = gl.getUniformLocation(program, 'u_perspective');
     u_width = gl.getUniformLocation(program, 'u_width');
+    u_useHighlighting = gl.getUniformLocation(program, 'u_useHighlighting');
 
     buffer = gl.createBuffer();
     elementArrayBuffer = gl.createBuffer();
@@ -99,6 +124,9 @@ RailViz.Routes = (function() {
       mesh = createMesh(gl, routes, vertexCount);
       if (coloredSegments) {
         coloredSegments.forEach(args => colorSegment.apply(this, args));
+      }
+      if (highlightedSegments) {
+        highlightedSegments.forEach(args => highlightSegment.apply(this, args));
       }
     }
 
@@ -120,6 +148,7 @@ RailViz.Routes = (function() {
     gl.uniform2f(u_resolution, gl.canvas.width, -gl.canvas.height);
     gl.uniformMatrix4fv(u_perspective, false, perspective);
     gl.uniform1f(u_width, zoom > 8 ? 4.0 : 2.0);
+    gl.uniform1i(u_useHighlighting, useHighlighting);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
     gl.drawElements(
@@ -295,7 +324,25 @@ RailViz.Routes = (function() {
     bufferValid = false;
   }
 
+  function highlightSegment(routeIdx, segmentIdx) {
+    if (!mesh) {
+      highlightedSegments = highlightedSegments || [];
+      highlightedSegments.push([].slice.call(arguments));
+      return;
+    }
+    const segment = routes[routeIdx].segments[segmentIdx];
+    const byteView = new Uint8Array(mesh.vertexArray.buffer);
+    for (let vertexIndex = segment.firstVertexIndex;
+         vertexIndex <= segment.lastVertexIndex; vertexIndex += VERTEX_SIZE) {
+      const flagOffset = vertexIndex * 4 + 16 + 3;
+      byteView[flagOffset] = (byteView[flagOffset] | 64);
+    }
+    bufferValid = false;
+    useHighlighting = true;
+  }
+
   return {
-    init: init, setup: setup, render: render, colorSegment: colorSegment
+    init: init, setup: setup, render: render, colorSegment: colorSegment,
+        highlightSegment: highlightSegment
   }
 })();

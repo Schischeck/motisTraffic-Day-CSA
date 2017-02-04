@@ -1,6 +1,7 @@
 port module Widgets.Map.Port exposing (..)
 
 import Time exposing (Time)
+import Data.Connection.Types exposing (TripId)
 
 
 type alias MapInfo =
@@ -80,6 +81,32 @@ type alias MapFlyLocation =
     }
 
 
+type alias RVConnectionFilter =
+    { trains : List RVConnectionTrain
+    , walks : List RVConnectionWalk
+    }
+
+
+type alias RVConnectionTrain =
+    { sections : List RVConnectionSection
+    , trip : Maybe TripId
+    }
+
+
+type alias RVConnectionSection =
+    { departureStation : String
+    , arrivalStation : String
+    , scheduledDepartureTime : Time
+    , scheduledArrivalTime : Time
+    }
+
+
+type alias RVConnectionWalk =
+    { departureStation : String
+    , arrivalStation : String
+    }
+
+
 port mapInit : String -> Cmd msg
 
 
@@ -99,3 +126,6 @@ port mapFlyTo : MapFlyLocation -> Cmd msg
 
 
 port mapUseTrainClassColors : Bool -> Cmd msg
+
+
+port mapSetConnectionFilter : RVConnectionFilter -> Cmd msg

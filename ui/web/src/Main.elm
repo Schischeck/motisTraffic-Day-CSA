@@ -986,7 +986,7 @@ showFullTripConnection model tripId connection =
         { model_
             | connectionDetails = Just (ConnectionDetails.init True tripJourney)
         }
-            ! [ MapConnectionOverlay.showOverlay model.locale journey
+            ! [ MapConnectionOverlay.showOverlay model.locale tripJourney
               , Task.attempt noop <| Scroll.toTop "overlay-content"
               , Task.attempt noop <| Scroll.toTop "connection-journey"
               , cmds

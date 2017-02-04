@@ -12,6 +12,8 @@ import Localization.Base exposing (..)
 import Util.DateFormat exposing (..)
 import Widgets.Helpers.ConnectionUtil exposing (..)
 import Util.List exposing ((!!))
+import List.Extra
+import Date exposing (Date)
 
 
 hideOverlay : Cmd msg
@@ -31,13 +33,64 @@ showOverlay locale journey =
         stops =
             stopCircles journey.connection.stops
     in
-        mapSetOverlays
-            { mapId = mapId
-            , overlays =
-                trainLines
-                    ++ walkLines
-                    ++ stops
-            }
+        Cmd.batch
+            [ mapSetOverlays
+                { mapId = mapId
+                , overlays =
+                    trainLines
+                        ++ walkLines
+                        ++ stops
+                }
+            , mapSetConnectionFilter (buildConnectionFilter journey)
+            ]
+
+
+buildConnectionFilter : Journey -> RVConnectionFilter
+buildConnectionFilter journey =
+    { trains = List.map buildRVTrain journey.trains
+    , walks = List.map buildRVWalk journey.walks
+    }
+
+
+buildRVTrain : Train -> RVConnectionTrain
+buildRVTrain train =
+    let
+        trainSections =
+            List.Extra.groupsOfWithStep 2 1 train.stops
+
+        buildSection stops =
+            case stops of
+                [ dep, arr ] ->
+                    Just (buildRVSection dep arr)
+
+                _ ->
+                    Debug.log ("buildRVTrain: Invalid section list: " ++ toString train) Nothing
+    in
+        { sections = List.filterMap buildSection trainSections
+        , trip = train.trip
+        }
+
+
+buildRVSection : Stop -> Stop -> RVConnectionSection
+buildRVSection dep arr =
+    let
+        toTime maybeDate =
+            maybeDate
+                |> Maybe.map Date.toTime
+                |> Maybe.withDefault 0
+    in
+        { departureStation = dep.station.id
+        , arrivalStation = arr.station.id
+        , scheduledDepartureTime = toTime dep.departure.schedule_time
+        , scheduledArrivalTime = toTime arr.arrival.schedule_time
+        }
+
+
+buildRVWalk : JourneyWalk -> RVConnectionWalk
+buildRVWalk walk =
+    { departureStation = walk.from.station.id
+    , arrivalStation = walk.to.station.id
+    }
 
 
 trainPolyline : Train -> MapOverlay

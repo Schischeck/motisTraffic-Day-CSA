@@ -177,7 +177,8 @@ function initPorts(app, apiEndpoint) {
     MapOverlays.clearOverlays();
   });
 
-  app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
+  app.ports.setRailVizFilter.subscribe(RailViz.Main.setTripFilter);
+  app.ports.mapSetConnectionFilter.subscribe(RailViz.Main.setConnectionFilter);
   app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
 
   app.ports.mapFlyTo.subscribe(function(opt) {

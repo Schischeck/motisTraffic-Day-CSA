@@ -51,6 +51,29 @@ RailViz.Render = (function() {
             categoryColors[train.clasz]));
   }
 
+  function setConnectionFilter(filter) {
+    if (!filter) {
+      return;
+    }
+    filter.trains.forEach(
+        train => train.sections.forEach(
+            section => highlightSection(train, section)));
+  }
+
+  function highlightSection(train, section) {
+    const matchingTrains = data.trains.filter(
+        t => t.sched_d_time == section.scheduledDepartureTime / 1000 &&
+            t.sched_a_time == section.scheduledArrivalTime / 1000 &&
+            data.routes[t.route_index]
+                    .segments[t.segment_index]
+                    .from_station_id == section.departureStation &&
+            data.routes[t.route_index]
+                    .segments[t.segment_index]
+                    .to_station_id == section.arrivalStation);
+    matchingTrains.forEach(
+        t => RailViz.Routes.highlightSegment(t.route_index, t.segment_index));
+  }
+
   function setMapInfo(newMapInfo) { mapInfo = newMapInfo; }
 
   function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
@@ -215,7 +238,8 @@ RailViz.Render = (function() {
     setTimeOffset: setTimeOffset,
     render: render,
     colorRouteSegments: colorRouteSegments,
-    setMinZoom: setMinZoom
+    setMinZoom: setMinZoom,
+    setConnectionFilter: setConnectionFilter
   };
 
 })();
