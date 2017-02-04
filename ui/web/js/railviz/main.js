@@ -14,6 +14,8 @@ RailViz.Main = (function() {
 
   var debouncedSendTrainsRequest = debounce(sendTrainsRequest, 200);
 
+  const FILTERED_MIN_ZOOM = 14;
+
   function init(canvas, endpoint, ports) {
     apiEndpoint = endpoint;
     elmPorts = ports;
@@ -38,7 +40,7 @@ RailViz.Main = (function() {
       sendTripsRequest();
     } else {
       filteredData = null;
-      RailViz.Render.setData(fullData);
+      showFullData();
     }
   }
 
@@ -84,15 +86,25 @@ RailViz.Main = (function() {
     if (onlyFilteredTrips) {
       filteredData = data;
       if (filteredTripIds) {
-        RailViz.Render.setData(data);
-        RailViz.Render.colorRouteSegments();
+        showFilteredData();
       }
     } else {
       fullData = data;
       if (!filteredTripIds) {
-        RailViz.Render.setData(data);
+        showFullData();
       }
     }
+  }
+
+  function showFullData() {
+    RailViz.Render.setData(fullData);
+    RailViz.Render.setMinZoom(0);
+  }
+
+  function showFilteredData() {
+    RailViz.Render.setData(filteredData);
+    RailViz.Render.colorRouteSegments();
+    RailViz.Render.setMinZoom(FILTERED_MIN_ZOOM);
   }
 
   function handleMouseEvent(eventType, x, y, pickedTrain, pickedStation) {

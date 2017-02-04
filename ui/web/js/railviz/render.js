@@ -11,6 +11,7 @@ RailViz.Render = (function() {
   var rafRequest;
   var offscreen = {};
   var mouseHandler;
+  var minZoom = 0;
   const pixelRatio = window.devicePixelRatio;
 
   function init(c, mouseEventHandler) {
@@ -54,6 +55,8 @@ RailViz.Render = (function() {
 
   function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
 
+  function setMinZoom(newMinZoom) { minZoom = newMinZoom; }
+
   function setup() {
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) {
@@ -83,7 +86,7 @@ RailViz.Render = (function() {
       -(mapInfo.pixelBounds.west / mapInfo.scale),
       -(mapInfo.pixelBounds.north / mapInfo.scale), 0
     ]);
-    var zoom = mapInfo.zoom * pixelRatio;
+    var zoom = Math.max(minZoom, mapInfo.zoom) * pixelRatio;
 
     var time = timeOffset + (Date.now() / 1000);
 
@@ -211,7 +214,8 @@ RailViz.Render = (function() {
     setMapInfo: setMapInfo,
     setTimeOffset: setTimeOffset,
     render: render,
-    colorRouteSegments: colorRouteSegments
+    colorRouteSegments: colorRouteSegments,
+    setMinZoom: setMinZoom
   };
 
 })();
