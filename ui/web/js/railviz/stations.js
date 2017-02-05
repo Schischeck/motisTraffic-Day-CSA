@@ -11,20 +11,32 @@ RailViz.Stations = (function() {
         uniform bool u_highlightStations;
         
         varying vec4 v_pickColor;
+        varying float v_alpha;
         
         void main() {
             float flags = a_flags;
             gl_Position = u_perspective * vec4(a_pos, 0.0, 1.0);
             float size = u_zoom - 4.0;
+            float alpha = 1.0;
+
             if (u_highlightStations) {
+              alpha = 0.5;
               if (flags >= 128.0) {
                 size = u_zoom - 2.0;
+                alpha = 1.0;
+                flags -= 128.0;
               } else {
                 size = u_zoom - 8.0;
               }
+
+              if (flags >= 64.0) {
+                alpha = 1.0;
+              }
             }
+
             gl_PointSize = size;
             v_pickColor = a_pickColor;
+            v_alpha = alpha;
         }
     `;
 
@@ -35,6 +47,7 @@ RailViz.Stations = (function() {
         uniform sampler2D u_texture;
         
         varying vec4 v_pickColor;
+        varying float v_alpha;
 
         const vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
         
@@ -44,12 +57,15 @@ RailViz.Stations = (function() {
                 gl_FragColor = tex.a == 0.0 ? transparent : v_pickColor;
             } else {
                 gl_FragColor = tex;
+                gl_FragColor.a *= v_alpha;
             }
         }
     `;
 
   var stations = [];
-  var highlightedStations;
+  var interchangeStations;
+  var intermediateStations;
+  var useHighlights;
   var buffer = null;
   var bufferValid = false;
   var texture = null;
@@ -67,7 +83,9 @@ RailViz.Stations = (function() {
 
   function init(newStations) {
     stations = newStations || [];
-    highlightedStations = null;
+    interchangeStations = [];
+    intermediateStations = [];
+    useHighlights = false;
     buffer = buffer || null;
     bufferValid = false;
   }
@@ -116,7 +134,7 @@ RailViz.Stations = (function() {
     gl.uniformMatrix4fv(u_perspective, false, perspective);
     gl.uniform1f(u_zoom, zoom);
     gl.uniform1i(u_offscreen, isOffscreen);
-    gl.uniform1i(u_highlightStations, highlightedStations != null);
+    gl.uniform1i(u_highlightStations, useHighlights);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -132,7 +150,6 @@ RailViz.Stations = (function() {
   function fillBuffer(gl) {
     var data = new Float32Array(stations.length * 3);
     var byteView = new Uint8Array(data.buffer);
-    const useHighlights = highlightedStations != null;
     for (var i = 0; i < stations.length; i++) {
       const station = stations[i];
       const posBase = i * 3;
@@ -143,8 +160,15 @@ RailViz.Stations = (function() {
       byteView[colorBase] = pickColor[0];
       byteView[colorBase + 1] = pickColor[1];
       byteView[colorBase + 2] = pickColor[2];
-      if (useHighlights && highlightedStations.indexOf(station.id) != -1) {
-        byteView[colorBase + 3] = 128;
+      if (useHighlights) {
+        let flags = 0;
+        if (interchangeStations.indexOf(station.id) != -1) {
+          flags = flags | 128;
+        }
+        if (intermediateStations.indexOf(station.id) != -1) {
+          flags = flags | 64;
+        }
+        byteView[colorBase + 3] = flags;
       }
     }
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -162,15 +186,22 @@ RailViz.Stations = (function() {
     return null;
   }
 
-  function highlightStation(stationId) {
-    highlightedStations = highlightedStations || [];
-    highlightedStations.push(stationId);
+  function highlightInterchangeStation(stationId) {
+    interchangeStations.push(stationId);
+    useHighlights = true;
+    bufferValid = false;
+  }
+
+  function highlightIntermediateStation(stationId) {
+    intermediateStations.push(stationId);
+    useHighlights = true;
     bufferValid = false;
   }
 
   return {
     init: init, setup: setup, render: render,
         getPickedStationIndex: getPickedStationIndex,
-        highlightStation: highlightStation
+        highlightInterchangeStation: highlightInterchangeStation,
+        highlightIntermediateStation: highlightIntermediateStation
   }
 })();
