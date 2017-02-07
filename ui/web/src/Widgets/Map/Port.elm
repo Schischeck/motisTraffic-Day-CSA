@@ -29,30 +29,6 @@ type alias MapGeoBounds =
     }
 
 
-type alias MapOverlays =
-    { mapId : String
-    , overlays : List MapOverlay
-    }
-
-
-type alias MapOverlay =
-    { shape : String
-    , latlngs : List ( Float, Float )
-    , options : MapOverlayOptions
-    , tooltip : Maybe String
-    }
-
-
-type alias MapOverlayOptions =
-    { color : String
-    , fill : Bool
-    , fillColor : Maybe String
-    , radius : Maybe Int
-    , weight : Maybe Int
-    , fillOpacity : Maybe Float
-    }
-
-
 type alias MapTooltip =
     { mouseX : Int
     , mouseY : Int
@@ -126,12 +102,6 @@ port mapInit : String -> Cmd msg
 
 
 port mapUpdate : (MapInfo -> msg) -> Sub msg
-
-
-port mapSetOverlays : MapOverlays -> Cmd msg
-
-
-port mapClearOverlays : String -> Cmd msg
 
 
 port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
