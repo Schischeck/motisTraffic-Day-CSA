@@ -47,7 +47,7 @@ void foreach_path_category(std::set<int> const& motis_categories, Fun&& fun) {
   for (auto const& category : motis_categories) {
     if (category < 6) {
       railway_cat.push_back(category);
-    } else if (category == 8) {
+    } else if (category == 8 || category == 7) {
       bus_cat.push_back(category);
     } else if (category == 6) {
       subway_cat.push_back(category);
