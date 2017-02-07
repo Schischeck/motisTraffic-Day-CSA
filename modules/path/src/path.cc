@@ -17,6 +17,7 @@
 
 #include "motis/path/db/kv_database.h"
 #include "motis/path/lookup_index.h"
+#include "motis/path/constants.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -57,18 +58,25 @@ path::~path() = default;
 void path::init(registry& r) {
   db_ = load_db(database_path_);
 
-  if (auto buf = db_->try_get("__index")) {
+  if (auto buf = db_->try_get(kIndexKey)) {
     lookup_ = std::make_unique<lookup_index>(*buf);
   } else {
     LOG(warn) << "pathdb not found!";
     lookup_ = std::make_unique<lookup_index>();
   }
 
+  r.register_op("/path/boxes", [this](msg_ptr const&) { return boxes(); });
+
   r.register_op("/path/station_seq",
                 [this](msg_ptr const& m) { return station_seq_path(m); });
   r.register_op("/path/id_train",
                 [this](msg_ptr const& m) { return id_train_path(m); });
 }
+
+msg_ptr path::boxes() const {
+  auto const boxes = db_->get(kBoxesKey);
+  return make_msg(boxes.data(), boxes.size());
+};
 
 msg_ptr path::station_seq_path(msg_ptr const& msg) const {
   auto req = motis_content(PathStationSeqRequest, msg);
