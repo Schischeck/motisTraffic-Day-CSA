@@ -95,8 +95,8 @@ buildRVSection dep arr =
                 |> Maybe.map Date.toTime
                 |> Maybe.withDefault 0
     in
-        { departureStation = buildRVStation dep.station
-        , arrivalStation = buildRVStation arr.station
+        { departureStation = dep.station
+        , arrivalStation = arr.station
         , scheduledDepartureTime = toTime dep.departure.schedule_time
         , scheduledArrivalTime = toTime arr.arrival.schedule_time
         }
@@ -104,14 +104,6 @@ buildRVSection dep arr =
 
 buildRVWalk : JourneyWalk -> RVConnectionWalk
 buildRVWalk walk =
-    { departureStation = buildRVStation walk.from.station
-    , arrivalStation = buildRVStation walk.to.station
-    }
-
-
-buildRVStation : Station -> RVConnectionStation
-buildRVStation station =
-    { id = station.id
-    , lat = station.pos.lat
-    , lng = station.pos.lng
+    { departureStation = walk.from.station
+    , arrivalStation = walk.to.station
     }

@@ -1,7 +1,7 @@
 port module Widgets.Map.Port exposing (..)
 
 import Time exposing (Time)
-import Data.Connection.Types exposing (TripId)
+import Data.Connection.Types exposing (TripId, Station, Position)
 
 
 type alias MapInfo =
@@ -78,23 +78,16 @@ type alias RVConnectionTrain =
 
 
 type alias RVConnectionSection =
-    { departureStation : RVConnectionStation
-    , arrivalStation : RVConnectionStation
+    { departureStation : Station
+    , arrivalStation : Station
     , scheduledDepartureTime : Time
     , scheduledArrivalTime : Time
     }
 
 
 type alias RVConnectionWalk =
-    { departureStation : RVConnectionStation
-    , arrivalStation : RVConnectionStation
-    }
-
-
-type alias RVConnectionStation =
-    { id : String
-    , lat : Float
-    , lng : Float
+    { departureStation : Station
+    , arrivalStation : Station
     }
 
 

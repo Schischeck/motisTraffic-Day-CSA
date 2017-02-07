@@ -63,6 +63,17 @@ RailViz.Render = (function() {
     if (filter.walks && filter.walks.length > 0) {
       data.footpaths = filter.walks;
       RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
+      let additionalStations = false;
+      data.footpaths.forEach(footpath => {
+        const addedFrom = addAdditionalStation(footpath.departureStation);
+        const addedTo = addAdditionalStation(footpath.arrivalStation);
+        if (addedFrom || addedTo) {
+          additionalStations = true;
+        }
+      });
+      if (additionalStations) {
+        RailViz.Stations.init(data.stations);
+      }
     }
     filter.trains.forEach(
         train => train.sections.forEach(
@@ -71,6 +82,15 @@ RailViz.Render = (function() {
         RailViz.Stations.highlightInterchangeStation);
     filter.intermediateStations.forEach(
         RailViz.Stations.highlightIntermediateStation);
+  }
+
+  function addAdditionalStation(station) {
+    const existingStation = data.stations.some(s => s.id == station.id);
+    if (!existingStation) {
+      data.stations.push(station);
+      return true;
+    }
+    return false;
   }
 
   function highlightSection(train, section) {

@@ -66,13 +66,16 @@ RailViz.Preprocessing = (function() {
   }
 
   function prepareWalk(walk) {
+    preprocessStation(walk.departureStation);
+    preprocessStation(walk.arrivalStation);
     walk.from_station_id = walk.departureStation.id;
     walk.to_station_id = walk.arrivalStation.id;
-    const fromWC =
-        geoToWorldCoords(walk.departureStation.lat, walk.departureStation.lng);
-    const toWC =
-        geoToWorldCoords(walk.arrivalStation.lat, walk.arrivalStation.lng);
-    walk.coordinates = {coordinates: [fromWC.x, fromWC.y, toWC.x, toWC.y]};
+    walk.coordinates = {
+      coordinates: [
+        walk.departureStation.pos.x, walk.departureStation.pos.y,
+        walk.arrivalStation.pos.x, walk.arrivalStation.pos.y
+      ]
+    };
   }
 
   const initialResolution = 2 * Math.PI * 6378137 / 256;
