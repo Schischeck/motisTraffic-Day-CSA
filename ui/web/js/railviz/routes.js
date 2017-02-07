@@ -122,7 +122,7 @@ RailViz.Routes = (function() {
     gl.useProgram(program);
 
     if (!mesh) {
-      mesh = createMesh(gl, routes, vertexCount);
+      mesh = createMesh(gl);
       if (coloredSegments) {
         coloredSegments.forEach(args => colorSegment.apply(this, args));
       }
@@ -171,7 +171,7 @@ RailViz.Routes = (function() {
     bufferValid = true;
   }
 
-  function createMesh(gl, routes, vertexCount) {
+  function createMesh(gl) {
     if (vertexCount == 0) {
       return {
         vertexArray: new Float32Array(0),
@@ -260,25 +260,17 @@ RailViz.Routes = (function() {
           }
 
           const x = coords[i * 2], y = coords[i * 2 + 1];
-          let colorBase = vertexIndex * 4 + 16;
 
           vertexArray[vertexIndex] = x;
           vertexArray[vertexIndex + 1] = y;
           vertexArray[vertexIndex + 2] = nx * miterLen;
           vertexArray[vertexIndex + 3] = ny * miterLen;
-          byteView[colorBase] = Math.random() * 256 | 0;
-          byteView[colorBase + 1] = Math.random() * 256 | 0;
-          byteView[colorBase + 2] = Math.random() * 256 | 0;
           vertexIndex += VERTEX_SIZE;
-          colorBase += 20;
 
           vertexArray[vertexIndex] = x;
           vertexArray[vertexIndex + 1] = y;
           vertexArray[vertexIndex + 2] = nx * -miterLen;
           vertexArray[vertexIndex + 3] = ny * -miterLen;
-          byteView[colorBase] = Math.random() * 256 | 0;
-          byteView[colorBase + 1] = Math.random() * 256 | 0;
-          byteView[colorBase + 2] = Math.random() * 256 | 0;
           vertexIndex += VERTEX_SIZE;
         }
 
