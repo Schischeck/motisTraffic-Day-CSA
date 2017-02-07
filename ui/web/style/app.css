@@ -59,6 +59,7 @@
   padding: 10px 10px;
   transition: all .2s ease;
   pointer-events: auto;
+  z-index: 20;
 }
 
 .sub-overlay.hidden {

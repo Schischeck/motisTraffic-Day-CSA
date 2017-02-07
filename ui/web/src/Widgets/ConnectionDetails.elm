@@ -30,6 +30,7 @@ import Localization.Base exposing (..)
 type alias State =
     { journey : Journey
     , expanded : List Bool
+    , inSubOverlay : Bool
     }
 
 
@@ -42,10 +43,11 @@ type Config msg
         }
 
 
-init : Bool -> Journey -> State
-init expanded journey =
+init : Bool -> Bool -> Journey -> State
+init expanded inSubOverlay journey =
     { journey = journey
     , expanded = List.repeat (List.length journey.trains) expanded
+    , inSubOverlay = inSubOverlay
     }
 
 
@@ -83,7 +85,7 @@ getJourney state =
 
 
 view : Config msg -> Localization -> Date -> State -> Html msg
-view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime { journey, expanded } =
+view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime { journey, expanded, inSubOverlay } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -114,6 +116,12 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
 
         transportsView =
             leadingWalkView ++ trainsView ++ trailingWalkView
+
+        cjId =
+            if inSubOverlay then
+                "sub-connection-journey"
+            else
+                "connection-journey"
     in
         div
             [ classList
@@ -122,7 +130,7 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
                 ]
             ]
             [ connectionInfoView goBackMsg locale journey.connection
-            , div [ class "connection-journey", id "connection-journey" ]
+            , div [ class "connection-journey", id cjId ]
                 transportsView
             ]
 

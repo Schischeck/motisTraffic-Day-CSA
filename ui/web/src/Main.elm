@@ -77,7 +77,6 @@ type alias Model =
     , tripDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
     , selectedConnectionIdx : Maybe Int
-    , selectedTripIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
     , apiEndpoint : String
@@ -128,7 +127,6 @@ init flags initialLocation =
             , tripDetails = Nothing
             , stationEvents = Nothing
             , selectedConnectionIdx = Nothing
-            , selectedTripIdx = Nothing
             , scheduleInfo = Nothing
             , locale = locale
             , apiEndpoint = remoteAddress
@@ -369,13 +367,7 @@ update msg model =
             loadTripById model tripId
 
         SelectTripId tripId ->
-            update (NavigateTo (tripDetailsRoute tripId))
-                { model
-                    | connectionDetails = Nothing
-                    , selectedConnectionIdx = Nothing
-                    , selectedTripIdx = Nothing
-                    , stationEvents = Nothing
-                }
+            update (NavigateTo (tripDetailsRoute tripId)) model
 
         TripToConnectionError tripId err ->
             -- TODO
@@ -535,7 +527,7 @@ update msg model =
         SelectStation stationId ->
             let
                 ( model_, cmds_ ) =
-                    closeSelectedConnection model
+                    closeSubOverlay model
 
                 ( m, c ) =
                     StationEvents.init model_.apiEndpoint stationId (getCurrentDate model_)
@@ -646,10 +638,7 @@ selectConnectionTrip model tripIdx =
     in
         case trip of
             Just tripId ->
-                update (NavigateTo (tripDetailsRoute tripId))
-                    { model
-                        | selectedTripIdx = Just tripIdx
-                    }
+                update (NavigateTo (tripDetailsRoute tripId)) model
 
             Nothing ->
                 model ! []
@@ -657,31 +646,11 @@ selectConnectionTrip model tripIdx =
 
 loadTripById : Model -> TripId -> ( Model, Cmd Msg )
 loadTripById model tripId =
-    let
-        selectedJourney =
-            model.selectedConnectionIdx
-                |> Maybe.andThen (Connections.getJourney model.connections)
-
-        selectedTrip =
-            Maybe.map2 (\j i -> j.trains !! i) selectedJourney model.selectedTripIdx
-                |> Maybe.Extra.join
-                |> Maybe.andThen .trip
-
-        isConnectionTrip =
-            Maybe.Extra.unwrap False (\t -> t == tripId) selectedTrip
-
-        model_ =
-            if isConnectionTrip then
-                model
-            else
-                { model
-                    | selectedConnectionIdx = Nothing
-                    , selectedTripIdx = Nothing
-                    , stationEvents = Nothing
-                    , overlayVisible = True
-                }
-    in
-        model_ ! [ sendTripRequest model.apiEndpoint tripId ]
+    { model
+        | stationEvents = Nothing
+        , overlayVisible = True
+    }
+        ! [ sendTripRequest model.apiEndpoint tripId ]
 
 
 getCurrentTime : Model -> Time
@@ -980,11 +949,10 @@ selectConnection model idx =
                 in
                     { model_
                         | connectionDetails =
-                            Maybe.map (ConnectionDetails.init False) journey
+                            Maybe.map (ConnectionDetails.init False False) journey
                         , tripDetails = Nothing
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
-                        , selectedTripIdx = Nothing
                         , stationEvents = Nothing
                     }
                         ! [ MapConnectionDetails.setConnectionFilter j
@@ -1003,13 +971,27 @@ closeSelectedConnection model =
     in
         { model_
             | connectionDetails = Nothing
+            , tripDetails = Nothing
             , selectedConnectionIdx = Nothing
-            , selectedTripIdx = Nothing
             , stationEvents = Nothing
         }
             ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
               , cmds
               ]
+
+
+closeSubOverlay : Model -> ( Model, Cmd Msg )
+closeSubOverlay model =
+    let
+        ( model_, cmds ) =
+            setRailVizFilter model Nothing
+    in
+        ( { model_
+            | tripDetails = Nothing
+            , stationEvents = Nothing
+          }
+        , cmds
+        )
 
 
 showFullTripConnection : Model -> TripId -> Connection -> ( Model, Cmd Msg )
@@ -1025,11 +1007,11 @@ showFullTripConnection model tripId connection =
             setRailVizFilter model (Just [ tripId ])
     in
         { model_
-            | tripDetails = Just (ConnectionDetails.init True tripJourney)
+            | tripDetails = Just (ConnectionDetails.init True True tripJourney)
         }
             ! [ MapConnectionDetails.setConnectionFilter tripJourney
-              , Task.attempt noop <| Scroll.toTop "overlay-content"
-              , Task.attempt noop <| Scroll.toTop "connection-journey"
+              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
+              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
               , cmds
               ]
 
