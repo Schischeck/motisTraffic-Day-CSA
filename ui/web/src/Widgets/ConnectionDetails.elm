@@ -129,14 +129,14 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
                 , "trip-view" => journey.isSingleCompleteTrip
                 ]
             ]
-            [ connectionInfoView goBackMsg locale journey.connection
+            [ connectionInfoView goBackMsg locale inSubOverlay journey.connection
             , div [ class "connection-journey", id cjId ]
                 transportsView
             ]
 
 
-connectionInfoView : msg -> Localization -> Connection -> Html msg
-connectionInfoView goBackMsg { t, dateConfig } connection =
+connectionInfoView : msg -> Localization -> Bool -> Connection -> Html msg
+connectionInfoView goBackMsg { t, dateConfig } inSubOverlay connection =
     let
         depTime =
             departureTime connection |> Maybe.withDefault (Date.fromTime 0)
@@ -152,6 +152,14 @@ connectionInfoView goBackMsg { t, dateConfig } connection =
 
         dateText =
             formatDate dateConfig depTime
+
+        actions =
+            if inSubOverlay then
+                []
+            else
+                [ i [ class "icon" ] [ text "save" ]
+                , i [ class "icon" ] [ text "share" ]
+                ]
     in
         div [ class "connection-info" ]
             [ div [ class "header" ]
@@ -185,9 +193,7 @@ connectionInfoView goBackMsg { t, dateConfig } connection =
                         ]
                     ]
                 , div [ class "actions" ]
-                    [ i [ class "icon" ] [ text "save" ]
-                    , i [ class "icon" ] [ text "share" ]
-                    ]
+                    actions
                 ]
             ]
 

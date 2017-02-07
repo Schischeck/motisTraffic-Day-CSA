@@ -200,6 +200,7 @@ type Msg
     | StationEventsGoBack
     | ShowStationDetails String
     | ToggleOverlay
+    | CloseSubOverlay
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -547,6 +548,24 @@ update msg model =
         ToggleOverlay ->
             { model | overlayVisible = not model.overlayVisible } ! []
 
+        CloseSubOverlay ->
+            let
+                ( model1, cmds1 ) =
+                    closeSubOverlay model
+
+                route =
+                    case model1.selectedConnectionIdx of
+                        Nothing ->
+                            Connections
+
+                        Just idx ->
+                            ConnectionDetails idx
+
+                ( model2, cmds2 ) =
+                    update (NavigateTo route) model1
+            in
+                model2 ! [ cmds1, cmds2 ]
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -719,7 +738,14 @@ overlayView model =
 
         subOverlay =
             subOverlayContent
-                |> Maybe.map (\c -> div [ class "sub-overlay" ] [ div [ id "sub-overlay-content" ] c ])
+                |> Maybe.map
+                    (\c ->
+                        div [ class "sub-overlay" ]
+                            [ div [ id "sub-overlay-content" ] c
+                            , div [ id "sub-overlay-close", onClick CloseSubOverlay ]
+                                [ i [ class "icon" ] [ text "close" ] ]
+                            ]
+                    )
                 |> Maybe.withDefault (div [ class "sub-overlay hidden" ] [ div [ id "sub-overlay-content" ] [] ])
     in
         div
