@@ -74,6 +74,7 @@ type alias Model =
     , map : RailViz.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
+    , tripDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
     , selectedConnectionIdx : Maybe Int
     , selectedTripIdx : Maybe Int
@@ -124,6 +125,7 @@ init flags initialLocation =
             , map = mapModel
             , connections = Connections.init remoteAddress
             , connectionDetails = Nothing
+            , tripDetails = Nothing
             , stationEvents = Nothing
             , selectedConnectionIdx = Nothing
             , selectedTripIdx = Nothing
@@ -175,7 +177,9 @@ type Msg
     | SelectConnection Int
     | StoreConnectionListScrollPos Msg Float
     | ConnectionDetailsUpdate ConnectionDetails.Msg
+    | TripDetailsUpdate ConnectionDetails.Msg
     | ConnectionDetailsGoBack
+    | TripDetailsGoBack
     | CloseConnectionDetails
     | PrepareSelectTrip Int
     | LoadTrip TripId
@@ -332,10 +336,30 @@ update msg model =
                 { model | connectionDetails = m }
                     ! [ Cmd.map ConnectionDetailsUpdate c ]
 
+        TripDetailsUpdate msg_ ->
+            let
+                ( m, c ) =
+                    case model.tripDetails of
+                        Just state ->
+                            let
+                                ( m_, c_ ) =
+                                    ConnectionDetails.update msg_ state
+                            in
+                                ( Just m_, c_ )
+
+                        Nothing ->
+                            Nothing ! []
+            in
+                { model | tripDetails = m }
+                    ! [ Cmd.map TripDetailsUpdate c ]
+
         CloseConnectionDetails ->
             closeSelectedConnection model
 
         ConnectionDetailsGoBack ->
+            update (NavigateTo Connections) model
+
+        TripDetailsGoBack ->
             model ! [ Navigation.back 1 ]
 
         PrepareSelectTrip tripIdx ->
@@ -703,28 +727,23 @@ view model =
 overlayView : Model -> Html Msg
 overlayView model =
     let
-        content =
-            case model.stationEvents of
+        mainOverlayContent =
+            case model.connectionDetails of
                 Nothing ->
-                    case model.connectionDetails of
-                        Nothing ->
-                            searchView model
+                    searchView model
 
-                        Just c ->
-                            detailsView model.locale (getCurrentDate model) c
-
-                Just stationEvents ->
-                    stationView model.locale stationEvents
+                Just c ->
+                    connectionDetailsView model.locale (getCurrentDate model) c
 
         subOverlayContent =
             case model.stationEvents of
                 Nothing ->
-                    case model.connectionDetails of
+                    case model.tripDetails of
                         Nothing ->
                             Nothing
 
                         Just c ->
-                            Just (detailsView model.locale (getCurrentDate model) c)
+                            Just (tripDetailsView model.locale (getCurrentDate model) c)
 
                 Just stationEvents ->
                     Just (stationView model.locale stationEvents)
@@ -742,7 +761,7 @@ overlayView model =
             ]
             [ div [ class "overlay" ]
                 [ div [ id "overlay-content" ]
-                    (searchView model)
+                    mainOverlayContent
                 , subOverlay
                 ]
             , div [ class "overlay-toggle", onClick ToggleOverlay ]
@@ -833,18 +852,33 @@ connectionConfig =
         }
 
 
-detailsView : Localization -> Date -> ConnectionDetails.State -> List (Html Msg)
-detailsView locale currentTime state =
-    [ ConnectionDetails.view detailsConfig locale currentTime state ]
+connectionDetailsView : Localization -> Date -> ConnectionDetails.State -> List (Html Msg)
+connectionDetailsView locale currentTime state =
+    [ ConnectionDetails.view connectionDetailsConfig locale currentTime state ]
 
 
-detailsConfig : ConnectionDetails.Config Msg
-detailsConfig =
+connectionDetailsConfig : ConnectionDetails.Config Msg
+connectionDetailsConfig =
     ConnectionDetails.Config
         { internalMsg = ConnectionDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
         , selectStationMsg = PrepareSelectStation
         , goBackMsg = ConnectionDetailsGoBack
+        }
+
+
+tripDetailsView : Localization -> Date -> ConnectionDetails.State -> List (Html Msg)
+tripDetailsView locale currentTime state =
+    [ ConnectionDetails.view tripDetailsConfig locale currentTime state ]
+
+
+tripDetailsConfig : ConnectionDetails.Config Msg
+tripDetailsConfig =
+    ConnectionDetails.Config
+        { internalMsg = TripDetailsUpdate
+        , selectTripMsg = PrepareSelectTrip
+        , selectStationMsg = PrepareSelectStation
+        , goBackMsg = TripDetailsGoBack
         }
 
 
@@ -947,6 +981,7 @@ selectConnection model idx =
                     { model_
                         | connectionDetails =
                             Maybe.map (ConnectionDetails.init False) journey
+                        , tripDetails = Nothing
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
                         , selectedTripIdx = Nothing
@@ -990,7 +1025,7 @@ showFullTripConnection model tripId connection =
             setRailVizFilter model (Just [ tripId ])
     in
         { model_
-            | connectionDetails = Just (ConnectionDetails.init True tripJourney)
+            | tripDetails = Just (ConnectionDetails.init True tripJourney)
         }
             ! [ MapConnectionDetails.setConnectionFilter tripJourney
               , Task.attempt noop <| Scroll.toTop "overlay-content"

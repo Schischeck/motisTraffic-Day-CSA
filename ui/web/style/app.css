@@ -58,6 +58,7 @@
   height: 100%;
   padding: 10px 10px;
   transition: all .2s ease;
+  pointer-events: auto;
 }
 
 .sub-overlay.hidden {
