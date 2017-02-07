@@ -10,6 +10,7 @@ RailViz.Main = (function() {
   var filteredTripIds;
   var connectionFilter = null;
   var fullData, filteredData;
+  var showingFilteredData = false;
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
 
@@ -46,8 +47,9 @@ RailViz.Main = (function() {
   }
 
   function setConnectionFilter(filter) {
+    filter.walks.forEach(RailViz.Preprocessing.prepareWalk);
     connectionFilter = filter;
-    if (filteredTripIds) {
+    if (showingFilteredData) {
       RailViz.Render.setConnectionFilter(connectionFilter);
     }
   }
@@ -105,15 +107,17 @@ RailViz.Main = (function() {
   }
 
   function showFullData() {
+    showingFilteredData = false;
     RailViz.Render.setData(fullData);
     RailViz.Render.setMinZoom(0);
   }
 
   function showFilteredData() {
+    showingFilteredData = true;
     RailViz.Render.setData(filteredData);
-    RailViz.Render.colorRouteSegments();
     RailViz.Render.setMinZoom(FILTERED_MIN_ZOOM);
     RailViz.Render.setConnectionFilter(connectionFilter);
+    RailViz.Render.colorRouteSegments();
   }
 
   function handleMouseEvent(eventType, x, y, pickedTrain, pickedStation) {

@@ -35,11 +35,16 @@ RailViz.Render = (function() {
   }
 
   function setData(newData) {
-    data =
-        newData || {stations: [], routes: [], trains: [], routeVertexCount: 0};
+    data = newData || {
+      stations: [],
+      routes: [],
+      trains: [],
+      routeVertexCount: 0,
+      footpaths: []
+    };
 
     RailViz.Stations.init(data.stations);
-    RailViz.Routes.init(data.routes, data.routeVertexCount);
+    RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
     RailViz.Trains.init(data.trains, data.routes);
   }
 
@@ -54,6 +59,10 @@ RailViz.Render = (function() {
   function setConnectionFilter(filter) {
     if (!filter) {
       return;
+    }
+    if (filter.walks && filter.walks.length > 0) {
+      data.footpaths = filter.walks;
+      RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
     }
     filter.trains.forEach(
         train => train.sections.forEach(

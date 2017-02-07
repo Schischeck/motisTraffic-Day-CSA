@@ -65,6 +65,16 @@ RailViz.Preprocessing = (function() {
     }
   }
 
+  function prepareWalk(walk) {
+    walk.from_station_id = walk.departureStation.id;
+    walk.to_station_id = walk.arrivalStation.id;
+    const fromWC =
+        geoToWorldCoords(walk.departureStation.lat, walk.departureStation.lng);
+    const toWC =
+        geoToWorldCoords(walk.arrivalStation.lat, walk.arrivalStation.lng);
+    walk.coordinates = {coordinates: [fromWC.x, fromWC.y, toWC.x, toWC.y]};
+  }
+
   const initialResolution = 2 * Math.PI * 6378137 / 256;
   const originShift = Math.PI * 6378137;
 
@@ -79,6 +89,11 @@ RailViz.Preprocessing = (function() {
     return {x: x, y: y};
   }
 
-  return {preprocess: preprocess};
+  return {
+    preprocess: preprocess,
+    convertPolyline: convertPolyline,
+    geoToWorldCoords: geoToWorldCoords,
+    prepareWalk: prepareWalk
+  };
 
 })();
