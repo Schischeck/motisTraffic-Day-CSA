@@ -33,6 +33,9 @@ showOverlay locale journey =
 
         stops =
             stopCircles journey.connection.stops
+
+        ( connectionFilter, bounds ) =
+            buildConnectionFilter journey
     in
         Cmd.batch
             [ mapSetOverlays
@@ -42,11 +45,12 @@ showOverlay locale journey =
                         ++ walkLines
                         ++ stops
                 }
-            , mapSetConnectionFilter (buildConnectionFilter journey)
+            , mapSetConnectionFilter connectionFilter
+            , mapFitBounds bounds
             ]
 
 
-buildConnectionFilter : Journey -> RVConnectionFilter
+buildConnectionFilter : Journey -> ( RVConnectionFilter, MapFitBounds )
 buildConnectionFilter journey =
     let
         interchangeStops =
@@ -70,12 +74,22 @@ buildConnectionFilter journey =
             List.map (.station >> .id) (intermediateStops)
                 |> List.Extra.unique
                 |> List.filter (\station -> not (List.member station interchangeStations))
+
+        bounds =
+            (interchangeStops ++ intermediateStops ++ walkStops)
+                |> List.map (.station >> .pos)
+                |> List.map (\pos -> [ pos.lat, pos.lng ])
+                |> List.Extra.unique
     in
-        { trains = List.map buildRVTrain journey.trains
-        , walks = List.map buildRVWalk journey.walks
-        , interchangeStations = interchangeStations
-        , intermediateStations = intermediateStations
-        }
+        ( { trains = List.map buildRVTrain journey.trains
+          , walks = List.map buildRVWalk journey.walks
+          , interchangeStations = interchangeStations
+          , intermediateStations = intermediateStations
+          }
+        , { mapId = mapId
+          , coords = bounds
+          }
+        )
 
 
 buildRVTrain : Train -> RVConnectionTrain
@@ -105,8 +119,8 @@ buildRVSection dep arr =
                 |> Maybe.map Date.toTime
                 |> Maybe.withDefault 0
     in
-        { departureStation = dep.station.id
-        , arrivalStation = arr.station.id
+        { departureStation = buildRVStation dep.station
+        , arrivalStation = buildRVStation arr.station
         , scheduledDepartureTime = toTime dep.departure.schedule_time
         , scheduledArrivalTime = toTime arr.arrival.schedule_time
         }
@@ -114,8 +128,16 @@ buildRVSection dep arr =
 
 buildRVWalk : JourneyWalk -> RVConnectionWalk
 buildRVWalk walk =
-    { departureStation = walk.from.station.id
-    , arrivalStation = walk.to.station.id
+    { departureStation = buildRVStation walk.from.station
+    , arrivalStation = buildRVStation walk.to.station
+    }
+
+
+buildRVStation : Station -> RVConnectionStation
+buildRVStation station =
+    { id = station.id
+    , lat = station.pos.lat
+    , lng = station.pos.lng
     }
 
 

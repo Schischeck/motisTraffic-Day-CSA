@@ -107,13 +107,13 @@ var MapOverlays = {
     this._overlays = specs.map(this._createOverlay);
     // this._overlays.forEach(function(overlay) { overlay.addTo(map); });
 
-    var bounds = L.latLngBounds([]);
-    this._overlays.forEach(function(overlay) {
-      if (overlay.getBounds) {
-        bounds.extend(overlay.getBounds());
-      }
-    });
-    map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
+    // var bounds = L.latLngBounds([]);
+    // this._overlays.forEach(function(overlay) {
+    //   if (overlay.getBounds) {
+    //     bounds.extend(overlay.getBounds());
+    //   }
+    // });
+    // map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
   },
 
   clearOverlays: function() {
@@ -187,6 +187,14 @@ function initPorts(app, apiEndpoint) {
         L.latLngBounds([L.latLng(opt.lat, opt.lng)]),
         {paddingTopLeft: [600, 0], maxZoom: 16});
   });
+
+  app.ports.mapFitBounds.subscribe(function(opt) {
+    var map = window.elmMaps[opt.mapId];
+    var bounds = L.latLngBounds(opt.coords);
+    map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
+  });
+
+
 
   app.ports.mapUseTrainClassColors.subscribe(
       RailViz.Trains.setUseCategoryColor);

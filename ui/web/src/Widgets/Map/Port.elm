@@ -81,6 +81,12 @@ type alias MapFlyLocation =
     }
 
 
+type alias MapFitBounds =
+    { mapId : String
+    , coords : List (List Float)
+    }
+
+
 type alias RVConnectionFilter =
     { trains : List RVConnectionTrain
     , walks : List RVConnectionWalk
@@ -96,16 +102,23 @@ type alias RVConnectionTrain =
 
 
 type alias RVConnectionSection =
-    { departureStation : String
-    , arrivalStation : String
+    { departureStation : RVConnectionStation
+    , arrivalStation : RVConnectionStation
     , scheduledDepartureTime : Time
     , scheduledArrivalTime : Time
     }
 
 
 type alias RVConnectionWalk =
-    { departureStation : String
-    , arrivalStation : String
+    { departureStation : RVConnectionStation
+    , arrivalStation : RVConnectionStation
+    }
+
+
+type alias RVConnectionStation =
+    { id : String
+    , lat : Float
+    , lng : Float
     }
 
 
@@ -125,6 +138,9 @@ port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
 
 
 port mapFlyTo : MapFlyLocation -> Cmd msg
+
+
+port mapFitBounds : MapFitBounds -> Cmd msg
 
 
 port mapUseTrainClassColors : Bool -> Cmd msg

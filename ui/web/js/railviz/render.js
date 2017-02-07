@@ -70,10 +70,10 @@ RailViz.Render = (function() {
             t.sched_a_time == section.scheduledArrivalTime / 1000 &&
             data.routes[t.route_index]
                     .segments[t.segment_index]
-                    .from_station_id == section.departureStation &&
+                    .from_station_id == section.departureStation.id &&
             data.routes[t.route_index]
                     .segments[t.segment_index]
-                    .to_station_id == section.arrivalStation);
+                    .to_station_id == section.arrivalStation.id);
     matchingTrains.forEach(
         t => RailViz.Routes.highlightSegment(t.route_index, t.segment_index));
   }
