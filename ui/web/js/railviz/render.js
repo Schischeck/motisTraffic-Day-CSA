@@ -11,6 +11,7 @@ RailViz.Render = (function() {
   var rafRequest;
   var offscreen = {};
   var mouseHandler;
+  var minZoom = 0;
   const pixelRatio = window.devicePixelRatio;
 
   function init(c, mouseEventHandler) {
@@ -34,16 +35,83 @@ RailViz.Render = (function() {
   }
 
   function setData(newData) {
-    data = newData || {stations: [], routes: [], trains: []};
+    data = newData || {
+      stations: [],
+      routes: [],
+      trains: [],
+      routeVertexCount: 0,
+      footpaths: []
+    };
 
     RailViz.Stations.init(data.stations);
-    RailViz.Routes.init(data.routes);
+    RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
     RailViz.Trains.init(data.trains, data.routes);
+  }
+
+  function colorRouteSegments() {
+    const categoryColors = RailViz.Trains.categoryColors;
+    data.trains.forEach(
+        train => RailViz.Routes.colorSegment(
+            train.route_index, train.segment_index,
+            categoryColors[train.clasz]));
+  }
+
+  function setConnectionFilter(filter) {
+    if (!filter) {
+      return;
+    }
+    if (filter.walks && filter.walks.length > 0) {
+      data.footpaths = filter.walks;
+      RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
+      let additionalStations = false;
+      data.footpaths.forEach(footpath => {
+        const addedFrom = addAdditionalStation(footpath.departureStation);
+        const addedTo = addAdditionalStation(footpath.arrivalStation);
+        if (addedFrom || addedTo) {
+          additionalStations = true;
+        }
+      });
+      if (additionalStations) {
+        RailViz.Stations.init(data.stations);
+      }
+    }
+    filter.trains.forEach(
+        train => train.sections.forEach(
+            section => highlightSection(train, section)));
+    filter.interchangeStations.forEach(
+        RailViz.Stations.highlightInterchangeStation);
+    filter.intermediateStations.forEach(
+        RailViz.Stations.highlightIntermediateStation);
+  }
+
+  function addAdditionalStation(station) {
+    const existingStation = data.stations.some(s => s.id == station.id);
+    if (!existingStation) {
+      data.stations.push(station);
+      return true;
+    }
+    return false;
+  }
+
+  function highlightSection(train, section) {
+    const matchingTrains = data.trains.filter(
+        t => t.sched_d_time == section.scheduledDepartureTime / 1000 &&
+            t.sched_a_time == section.scheduledArrivalTime / 1000 &&
+            data.routes[t.route_index]
+                    .segments[t.segment_index]
+                    .from_station_id == section.departureStation.id &&
+            data.routes[t.route_index]
+                    .segments[t.segment_index]
+                    .to_station_id == section.arrivalStation.id);
+    matchingTrains.forEach(
+        t => RailViz.Routes.highlightSegment(t.route_index, t.segment_index));
   }
 
   function setMapInfo(newMapInfo) { mapInfo = newMapInfo; }
 
   function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
+
+  function setMinZoom(newMinZoom) { minZoom = newMinZoom; }
 
   function setup() {
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -74,7 +142,7 @@ RailViz.Render = (function() {
       -(mapInfo.pixelBounds.west / mapInfo.scale),
       -(mapInfo.pixelBounds.north / mapInfo.scale), 0
     ]);
-    var zoom = mapInfo.zoom * pixelRatio;
+    var zoom = Math.max(minZoom, mapInfo.zoom) * pixelRatio;
 
     var time = timeOffset + (Date.now() / 1000);
 
@@ -94,7 +162,7 @@ RailViz.Render = (function() {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
 
-      RailViz.Routes.render(gl, perspective, isOffscreen);
+      RailViz.Routes.render(gl, perspective, zoom, isOffscreen);
       RailViz.Stations.render(gl, perspective, zoom, isOffscreen);
       RailViz.Trains.render(gl, perspective, zoom, isOffscreen);
     }
@@ -202,7 +270,9 @@ RailViz.Render = (function() {
     setMapInfo: setMapInfo,
     setTimeOffset: setTimeOffset,
     render: render,
-    getCanvas: function() { return canvas; }
+    colorRouteSegments: colorRouteSegments,
+    setMinZoom: setMinZoom,
+    setConnectionFilter: setConnectionFilter
   };
 
 })();

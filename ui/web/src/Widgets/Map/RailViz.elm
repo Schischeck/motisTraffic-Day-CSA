@@ -68,15 +68,6 @@ init remoteAddress =
 
 
 
--- TODO!
-
-
-filteredZoomMin : number
-filteredZoomMin =
-    13
-
-
-
 -- UPDATE
 
 

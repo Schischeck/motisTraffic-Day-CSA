@@ -5,7 +5,7 @@ import Widgets.TagList as TagList
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Widgets.Map.RailViz as RailViz
-import Widgets.Map.ConnectionOverlay as MapConnectionOverlay
+import Widgets.Map.ConnectionDetails as MapConnectionDetails
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Widgets.StationEvents as StationEvents
@@ -952,7 +952,7 @@ selectConnection model idx =
                         , selectedTripIdx = Nothing
                         , stationEvents = Nothing
                     }
-                        ! [ MapConnectionOverlay.showOverlay model.locale j
+                        ! [ MapConnectionDetails.setConnectionFilter j
                           , cmds
                           ]
 
@@ -973,7 +973,6 @@ closeSelectedConnection model =
             , stationEvents = Nothing
         }
             ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
-              , MapConnectionOverlay.hideOverlay
               , cmds
               ]
 
@@ -993,7 +992,7 @@ showFullTripConnection model tripId connection =
         { model_
             | connectionDetails = Just (ConnectionDetails.init True tripJourney)
         }
-            ! [ MapConnectionOverlay.showOverlay model.locale journey
+            ! [ MapConnectionDetails.setConnectionFilter tripJourney
               , Task.attempt noop <| Scroll.toTop "overlay-content"
               , Task.attempt noop <| Scroll.toTop "connection-journey"
               , cmds
