@@ -8,11 +8,15 @@ RailViz.Main = (function() {
   var timeOffset = 0;
   var trainUpdateTimeoutId, tripsUpdateTimeoutId;
   var filteredTripIds;
+  var connectionFilter = null;
   var fullData, filteredData;
+  var showingFilteredData = false;
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
 
   var debouncedSendTrainsRequest = debounce(sendTrainsRequest, 200);
+
+  const FILTERED_MIN_ZOOM = 14;
 
   function init(canvas, endpoint, ports) {
     apiEndpoint = endpoint;
@@ -32,13 +36,21 @@ RailViz.Main = (function() {
     debouncedSendTrainsRequest();
   }
 
-  function setFilter(tripIds) {
+  function setTripFilter(tripIds) {
     filteredTripIds = tripIds;
     if (filteredTripIds) {
       sendTripsRequest();
     } else {
       filteredData = null;
-      RailViz.Render.setData(fullData);
+      showFullData();
+    }
+  }
+
+  function setConnectionFilter(filter) {
+    filter.walks.forEach(RailViz.Preprocessing.prepareWalk);
+    connectionFilter = filter;
+    if (showingFilteredData) {
+      RailViz.Render.setConnectionFilter(connectionFilter);
     }
   }
 
@@ -84,14 +96,28 @@ RailViz.Main = (function() {
     if (onlyFilteredTrips) {
       filteredData = data;
       if (filteredTripIds) {
-        RailViz.Render.setData(data);
+        showFilteredData();
       }
     } else {
       fullData = data;
       if (!filteredTripIds) {
-        RailViz.Render.setData(data);
+        showFullData();
       }
     }
+  }
+
+  function showFullData() {
+    showingFilteredData = false;
+    RailViz.Render.setData(fullData);
+    RailViz.Render.setMinZoom(0);
+  }
+
+  function showFilteredData() {
+    showingFilteredData = true;
+    RailViz.Render.setData(filteredData);
+    RailViz.Render.setMinZoom(FILTERED_MIN_ZOOM);
+    RailViz.Render.setConnectionFilter(connectionFilter);
+    RailViz.Render.colorRouteSegments();
   }
 
   function handleMouseEvent(eventType, x, y, pickedTrain, pickedStation) {
@@ -172,7 +198,8 @@ RailViz.Main = (function() {
     mapUpdate: mapUpdate,
     setTimeOffset: setTimeOffset,
     getTimeOffset: function() { return timeOffset; },
-    setFilter: setFilter
+    setTripFilter: setTripFilter,
+    setConnectionFilter: setConnectionFilter
   };
 
 })();

@@ -84,6 +84,13 @@ RailViz.Trains = (function() {
 
   const PICKING_BASE = 0;
 
+  const categoryColors = [
+    [0x9c, 0x27, 0xb0], [0xe9, 0x1e, 0x63], [0x1a, 0x23, 0x7e],
+    [0xf4, 0x43, 0x36], [0xf4, 0x43, 0x36], [0x4c, 0xaf, 0x50],
+    [0x3f, 0x51, 0xb5], [0xff, 0x98, 0x00], [0xff, 0x98, 0x00],
+    [0x9e, 0x9e, 0x9e]
+  ];
+
   function init(newTrains, newRoutes) {
     trains = newTrains || [];
     routes = newRoutes || [];
@@ -164,7 +171,7 @@ RailViz.Trains = (function() {
     }
   }
 
-  function render(gl, perspective, zoom, isOffscreen) {
+  function render(gl, perspective, zoom, pixelRatio, isOffscreen) {
     var trainCount = isFiltered ? filteredIndices.length : trains.length;
     if (trainCount == 0) {
       return;
@@ -191,7 +198,7 @@ RailViz.Trains = (function() {
     gl.vertexAttribPointer(a_pickColor, 3, gl.UNSIGNED_BYTE, true, 12, 8);
 
     gl.uniformMatrix4fv(u_perspective, false, perspective);
-    gl.uniform1f(u_zoom, zoom);
+    gl.uniform1f(u_zoom, zoom * pixelRatio);
     gl.uniform1i(u_offscreen, isOffscreen);
     gl.uniform1i(u_useCategoryColor, useCategoryColor);
 
@@ -329,7 +336,7 @@ RailViz.Trains = (function() {
       setDelayColor(train, data, base);
 
       // a_categoryColor
-      const categoryColor = categoryColors[train.clasz || 0];
+      const categoryColor = categoryColors[train.clasz];
       data[base + 4] = categoryColor[0];
       data[base + 5] = categoryColor[1];
       data[base + 6] = categoryColor[2];
@@ -343,13 +350,6 @@ RailViz.Trains = (function() {
     gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
     colorBufferInitialized = true;
   }
-
-  const categoryColors = [
-    [0x9c, 0x27, 0xb0], [0xe9, 0x1e, 0x63], [0x1a, 0x23, 0x7e],
-    [0xf4, 0x43, 0x36], [0xf4, 0x43, 0x36], [0x4c, 0xaf, 0x50],
-    [0x3f, 0x51, 0xb5], [0xff, 0x98, 0x00], [0xff, 0x98, 0x00],
-    [0x9e, 0x9e, 0x9e]
-  ];
 
   const colDelay3Min = [69, 209, 74];
   const colDelay5Min = [255, 237, 0];
@@ -407,6 +407,6 @@ RailViz.Trains = (function() {
     init: init, setup: setup, render: render, preRender: preRender,
         setFilteredIndices: setFilteredIndices,
         getPickedTrainIndex: getPickedTrainIndex,
-        setUseCategoryColor: setUseCategoryColor
+        setUseCategoryColor: setUseCategoryColor, categoryColors: categoryColors
   }
 })();

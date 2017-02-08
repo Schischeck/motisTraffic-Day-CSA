@@ -99,43 +99,6 @@ var CanvasOverlay = L.Layer.extend({
 
 });
 
-var MapOverlays = {
-  _overlays: [],
-
-  setOverlays: function(map, specs) {
-    this.clearOverlays();
-    this._overlays = specs.map(this._createOverlay);
-    this._overlays.forEach(function(overlay) { overlay.addTo(map); });
-
-    var bounds = L.latLngBounds([]);
-    this._overlays.forEach(function(overlay) {
-      if (overlay.getBounds) {
-        bounds.extend(overlay.getBounds());
-      }
-    });
-    map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
-  },
-
-  clearOverlays: function() {
-    this._overlays.forEach(function(overlay) { overlay.remove(); });
-    this._overlays = [];
-  },
-
-  _createOverlay: function(spec) {
-    var ov;
-    if (spec.shape == 'polyline') {
-      ov = L.polyline(spec.latlngs, spec.options);
-    } else if (spec.shape == 'circleMarker') {
-      ov = L.circleMarker(spec.latlngs[0], spec.options);
-    }
-    if (spec.tooltip) {
-      ov = ov.bindTooltip(spec.tooltip, {sticky: true});
-    }
-    return ov;
-  },
-
-};
-
 function initPorts(app, apiEndpoint) {
   app.ports.mapInit.subscribe(function(id) {
     var map = L.map('map', {zoomControl: false}).setView([49.8728, 8.6512], 14);
@@ -168,16 +131,8 @@ function initPorts(app, apiEndpoint) {
     }
   });
 
-  app.ports.mapSetOverlays.subscribe(function(m) {
-    var map = window.elmMaps[m.mapId];
-    MapOverlays.setOverlays(map, m.overlays);
-  });
-
-  app.ports.mapClearOverlays.subscribe(function(id) {
-    MapOverlays.clearOverlays();
-  });
-
-  app.ports.setRailVizFilter.subscribe(RailViz.Main.setFilter);
+  app.ports.setRailVizFilter.subscribe(RailViz.Main.setTripFilter);
+  app.ports.mapSetConnectionFilter.subscribe(RailViz.Main.setConnectionFilter);
   app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
 
   app.ports.mapFlyTo.subscribe(function(opt) {
@@ -185,6 +140,12 @@ function initPorts(app, apiEndpoint) {
     map.flyToBounds(
         L.latLngBounds([L.latLng(opt.lat, opt.lng)]),
         {paddingTopLeft: [600, 0], maxZoom: 16});
+  });
+
+  app.ports.mapFitBounds.subscribe(function(opt) {
+    var map = window.elmMaps[opt.mapId];
+    var bounds = L.latLngBounds(opt.coords);
+    map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
   });
 
   app.ports.mapUseTrainClassColors.subscribe(
@@ -197,11 +158,20 @@ function simulationTimePopup(port) {
   var result = prompt(
       'Set simulation time (ISO 8601/Unix timestamp):',
       currentSimTime.toISOString());
+  var filterInt = function(value) {
+    if (/^(\-|\+)?([0-9]+|Infinity)$/.test(value)) return Number(value);
+    return NaN;
+  };
   if (result != null) {
-    var date = new Date(result);
-    var time = date.getTime();
+    var time = filterInt(result);
     if (time) {
-      port.send(date.getTime());
+      time = time * 1000;
+    } else {
+      var date = new Date(result);
+      time = date.getTime();
+    }
+    if (time) {
+      port.send(time);
     } else {
       port.send(Date.now());
     }

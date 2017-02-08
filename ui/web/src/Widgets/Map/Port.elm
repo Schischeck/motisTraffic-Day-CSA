@@ -1,6 +1,7 @@
 port module Widgets.Map.Port exposing (..)
 
 import Time exposing (Time)
+import Data.Connection.Types exposing (TripId, Station, Position)
 
 
 type alias MapInfo =
@@ -25,30 +26,6 @@ type alias MapGeoBounds =
     , west : Float
     , south : Float
     , east : Float
-    }
-
-
-type alias MapOverlays =
-    { mapId : String
-    , overlays : List MapOverlay
-    }
-
-
-type alias MapOverlay =
-    { shape : String
-    , latlngs : List ( Float, Float )
-    , options : MapOverlayOptions
-    , tooltip : Maybe String
-    }
-
-
-type alias MapOverlayOptions =
-    { color : String
-    , fill : Bool
-    , fillColor : Maybe String
-    , radius : Maybe Int
-    , weight : Maybe Int
-    , fillOpacity : Maybe Float
     }
 
 
@@ -80,16 +57,44 @@ type alias MapFlyLocation =
     }
 
 
+type alias MapFitBounds =
+    { mapId : String
+    , coords : List (List Float)
+    }
+
+
+type alias RVConnectionFilter =
+    { trains : List RVConnectionTrain
+    , walks : List RVConnectionWalk
+    , interchangeStations : List String
+    , intermediateStations : List String
+    }
+
+
+type alias RVConnectionTrain =
+    { sections : List RVConnectionSection
+    , trip : Maybe TripId
+    }
+
+
+type alias RVConnectionSection =
+    { departureStation : Station
+    , arrivalStation : Station
+    , scheduledDepartureTime : Time
+    , scheduledArrivalTime : Time
+    }
+
+
+type alias RVConnectionWalk =
+    { departureStation : Station
+    , arrivalStation : Station
+    }
+
+
 port mapInit : String -> Cmd msg
 
 
 port mapUpdate : (MapInfo -> msg) -> Sub msg
-
-
-port mapSetOverlays : MapOverlays -> Cmd msg
-
-
-port mapClearOverlays : String -> Cmd msg
 
 
 port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
@@ -98,4 +103,10 @@ port mapSetTooltip : (MapTooltip -> msg) -> Sub msg
 port mapFlyTo : MapFlyLocation -> Cmd msg
 
 
+port mapFitBounds : MapFitBounds -> Cmd msg
+
+
 port mapUseTrainClassColors : Bool -> Cmd msg
+
+
+port mapSetConnectionFilter : RVConnectionFilter -> Cmd msg

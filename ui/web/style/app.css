@@ -18,6 +18,7 @@
   top: 0;
   left: 0;
   transition: all .4s ease;
+  pointer-events: none;
 }
 
 .overlay-container.hidden {
@@ -35,6 +36,7 @@
   flex: 0 0 auto;
   order: 1;
   height: 100%;
+  position: relative;
 }
 
 .overlay-container.hidden .overlay {
@@ -45,6 +47,44 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  pointer-events: auto;
+}
+
+.sub-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 10px 10px;
+  transition: all .2s ease;
+  pointer-events: auto;
+  z-index: 20;
+}
+
+.sub-overlay.hidden {
+  left: -570px;
+}
+
+#sub-overlay-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.23), 0 -2px 6px rgba(0, 0, 0, 0.23);
+}
+
+#sub-overlay-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  cursor: pointer;
+  color: #4971E7;
+}
+
+#sub-overlay-close i {
+  cursor: pointer;
 }
 
 .overlay-toggle {
@@ -59,6 +99,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
 }
 
 .overlay-toggle i {

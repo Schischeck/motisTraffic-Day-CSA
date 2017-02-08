@@ -30,6 +30,7 @@ import Localization.Base exposing (..)
 type alias State =
     { journey : Journey
     , expanded : List Bool
+    , inSubOverlay : Bool
     }
 
 
@@ -42,10 +43,11 @@ type Config msg
         }
 
 
-init : Bool -> Journey -> State
-init expanded journey =
+init : Bool -> Bool -> Journey -> State
+init expanded inSubOverlay journey =
     { journey = journey
     , expanded = List.repeat (List.length journey.trains) expanded
+    , inSubOverlay = inSubOverlay
     }
 
 
@@ -83,7 +85,7 @@ getJourney state =
 
 
 view : Config msg -> Localization -> Date -> State -> Html msg
-view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime { journey, expanded } =
+view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime { journey, expanded, inSubOverlay } =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -114,6 +116,12 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
 
         transportsView =
             leadingWalkView ++ trainsView ++ trailingWalkView
+
+        cjId =
+            if inSubOverlay then
+                "sub-connection-journey"
+            else
+                "connection-journey"
     in
         div
             [ classList
@@ -121,14 +129,14 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
                 , "trip-view" => journey.isSingleCompleteTrip
                 ]
             ]
-            [ connectionInfoView goBackMsg locale journey.connection
-            , div [ class "connection-journey", id "connection-journey" ]
+            [ connectionInfoView goBackMsg locale inSubOverlay journey.connection
+            , div [ class "connection-journey", id cjId ]
                 transportsView
             ]
 
 
-connectionInfoView : msg -> Localization -> Connection -> Html msg
-connectionInfoView goBackMsg { t, dateConfig } connection =
+connectionInfoView : msg -> Localization -> Bool -> Connection -> Html msg
+connectionInfoView goBackMsg { t, dateConfig } inSubOverlay connection =
     let
         depTime =
             departureTime connection |> Maybe.withDefault (Date.fromTime 0)
@@ -144,6 +152,14 @@ connectionInfoView goBackMsg { t, dateConfig } connection =
 
         dateText =
             formatDate dateConfig depTime
+
+        actions =
+            if inSubOverlay then
+                []
+            else
+                [ i [ class "icon" ] [ text "save" ]
+                , i [ class "icon" ] [ text "share" ]
+                ]
     in
         div [ class "connection-info" ]
             [ div [ class "header" ]
@@ -177,9 +193,7 @@ connectionInfoView goBackMsg { t, dateConfig } connection =
                         ]
                     ]
                 , div [ class "actions" ]
-                    [ i [ class "icon" ] [ text "save" ]
-                    , i [ class "icon" ] [ text "share" ]
-                    ]
+                    actions
                 ]
             ]
 
