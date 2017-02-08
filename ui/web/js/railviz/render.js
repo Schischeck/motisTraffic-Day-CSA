@@ -225,6 +225,11 @@ RailViz.Render = (function() {
       return null;
     }
 
+    if (x < 0 || y < 0 || x >= gl.drawingBufferWidth ||
+        y >= gl.drawingBufferHeight) {
+      return null;
+    }
+
     var pixels = new Uint8Array(4);
     gl.bindFramebuffer(gl.FRAMEBUFFER, offscreen.framebuffer);
     gl.readPixels(
