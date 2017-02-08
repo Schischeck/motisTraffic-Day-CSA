@@ -12,7 +12,7 @@ RailViz.Render = (function() {
   var offscreen = {};
   var mouseHandler;
   var minZoom = 0;
-  const pixelRatio = window.devicePixelRatio;
+  let pixelRatio = window.devicePixelRatio;
 
   function init(c, mouseEventHandler) {
     setData(null);
@@ -118,6 +118,12 @@ RailViz.Render = (function() {
     if (!gl) {
       console.log('Could not initialize WebGL!');
       return;
+    }
+
+    const hasAA = gl.getContextAttributes().antialias;
+    const aaSamples = gl.getParameter(gl.SAMPLES);
+    if (!hasAA || aaSamples == 0) {
+      pixelRatio = Math.max(2, pixelRatio);
     }
 
     offscreen = {};
