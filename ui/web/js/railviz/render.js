@@ -142,7 +142,7 @@ RailViz.Render = (function() {
       -(mapInfo.pixelBounds.west / mapInfo.scale),
       -(mapInfo.pixelBounds.north / mapInfo.scale), 0
     ]);
-    var zoom = Math.max(minZoom, mapInfo.zoom) * pixelRatio;
+    var zoom = Math.max(minZoom, mapInfo.zoom);
 
     var time = timeOffset + (Date.now() / 1000);
 
@@ -162,9 +162,9 @@ RailViz.Render = (function() {
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT);
 
-      RailViz.Routes.render(gl, perspective, zoom, isOffscreen);
-      RailViz.Stations.render(gl, perspective, zoom, isOffscreen);
-      RailViz.Trains.render(gl, perspective, zoom, isOffscreen);
+      RailViz.Routes.render(gl, perspective, zoom, pixelRatio, isOffscreen);
+      RailViz.Stations.render(gl, perspective, zoom, pixelRatio, isOffscreen);
+      RailViz.Trains.render(gl, perspective, zoom, pixelRatio, isOffscreen);
     }
 
     rafRequest = requestAnimationFrame(render);
