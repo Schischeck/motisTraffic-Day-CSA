@@ -101,6 +101,16 @@ void write_json_value(rapidjson::Value const& v,
       writer.EndObject();
       break;
     }
+
+    case rapidjson::kArrayType: {
+      writer.StartArray();
+      for (auto i = 0u; i < v.Size(); ++i) {
+        write_json_value(v[i], writer);
+      }
+      writer.EndArray();
+      break;
+    }
+
     default: v.Accept(writer);
   }
 }
