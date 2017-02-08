@@ -28,5 +28,6 @@ target_link_libraries(motis-bikesharing
   ${Boost_SYSTEM_LIBRARY}
   motis-module
   pugixml
+  geo
   rocksdb
 )

@@ -81,7 +81,7 @@ struct http_server::impl {
   void handle_post(srv::route_request const& req, srv::callback& cb) {
     if (has_header(req, "Content-Type", "application/json")) {
       return receiver_.on_msg(
-          make_msg(req.content),
+          make_msg(req.content, true),
           ios_.wrap(std::bind(&impl::on_response, this, cb, p::_1, p::_2)));
     } else {
       message_creator fbb;
