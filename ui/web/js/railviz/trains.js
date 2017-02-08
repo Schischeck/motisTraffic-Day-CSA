@@ -171,7 +171,7 @@ RailViz.Trains = (function() {
     }
   }
 
-  function render(gl, perspective, zoom, isOffscreen) {
+  function render(gl, perspective, zoom, pixelRatio, isOffscreen) {
     var trainCount = isFiltered ? filteredIndices.length : trains.length;
     if (trainCount == 0) {
       return;
@@ -198,7 +198,7 @@ RailViz.Trains = (function() {
     gl.vertexAttribPointer(a_pickColor, 3, gl.UNSIGNED_BYTE, true, 12, 8);
 
     gl.uniformMatrix4fv(u_perspective, false, perspective);
-    gl.uniform1f(u_zoom, zoom);
+    gl.uniform1f(u_zoom, zoom * pixelRatio);
     gl.uniform1i(u_offscreen, isOffscreen);
     gl.uniform1i(u_useCategoryColor, useCategoryColor);
 

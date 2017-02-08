@@ -8,6 +8,7 @@ RailViz.Stations = (function() {
         
         uniform mat4 u_perspective;
         uniform float u_zoom;
+        uniform float u_pixelRatio;
         uniform bool u_highlightStations;
         
         varying vec4 v_pickColor;
@@ -34,7 +35,7 @@ RailViz.Stations = (function() {
               }
             }
 
-            gl_PointSize = size;
+            gl_PointSize = size * u_pixelRatio;
             v_pickColor = a_pickColor;
             v_alpha = alpha;
         }
@@ -75,6 +76,7 @@ RailViz.Stations = (function() {
   var a_flags;
   var u_perspective;
   var u_zoom;
+  var u_pixelRatio;
   var u_offscreen;
   var u_texture;
   var u_highlightStations;
@@ -103,6 +105,7 @@ RailViz.Stations = (function() {
     a_flags = gl.getAttribLocation(program, 'a_flags');
     u_perspective = gl.getUniformLocation(program, 'u_perspective');
     u_zoom = gl.getUniformLocation(program, 'u_zoom');
+    u_pixelRatio = gl.getUniformLocation(program, 'u_pixelRatio');
     u_offscreen = gl.getUniformLocation(program, 'u_offscreen');
     u_texture = gl.getUniformLocation(program, 'u_texture');
     u_highlightStations = gl.getUniformLocation(program, 'u_highlightStations');
@@ -113,7 +116,7 @@ RailViz.Stations = (function() {
     texture = WebGL.Util.createTextureFromImage(gl, 'img/railviz/station.png');
   }
 
-  function render(gl, perspective, zoom, isOffscreen) {
+  function render(gl, perspective, zoom, pixelRatio, isOffscreen) {
     if (stations.length == 0) {
       return;
     }
@@ -133,6 +136,7 @@ RailViz.Stations = (function() {
 
     gl.uniformMatrix4fv(u_perspective, false, perspective);
     gl.uniform1f(u_zoom, zoom);
+    gl.uniform1f(u_pixelRatio, pixelRatio);
     gl.uniform1i(u_offscreen, isOffscreen);
     gl.uniform1i(u_highlightStations, useHighlights);
 
