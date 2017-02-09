@@ -16,9 +16,10 @@ include "lookup/LookupMetaStationRequest.fbs";
 include "lookup/LookupMetaStationResponse.fbs";
 include "lookup/LookupIdTrainRequest.fbs";
 include "lookup/LookupIdTrainResponse.fbs";
-include "path/PathStationSeqRequest.fbs";
+include "path/PathBoxesResponse.fbs";
 include "path/PathIdTrainRequest.fbs";
 include "path/PathSeqResponse.fbs";
+include "path/PathStationSeqRequest.fbs";
 include "railviz/RailVizTrainsRequest.fbs";
 include "railviz/RailVizTrainsResponse.fbs";
 include "railviz/RailVizTripsRequest.fbs";
@@ -121,9 +122,10 @@ union MsgContent {
   motis.lookup.LookupBatchMetaStationResponse,
   motis.lookup.LookupIdTrainRequest,
   motis.lookup.LookupIdTrainResponse,
-  motis.path.PathStationSeqRequest,
+  motis.path.PathBoxesResponse,
   motis.path.PathIdTrainRequest,
   motis.path.PathSeqResponse,
+  motis.path.PathStationSeqRequest,
   motis.railviz.RailVizTrainsRequest,
   motis.railviz.RailVizTrainsResponse,
   motis.railviz.RailVizTripsRequest,
