@@ -5,8 +5,8 @@
 #include "geo/latlng.h"
 #include "geo/polygon.h"
 
-#include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_helper.h"
+#include "motis/core/common/hash_map.h"
 #include "motis/module/message.h"
 
 #include "motis/path/db/rocksdb.h"
