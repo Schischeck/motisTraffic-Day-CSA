@@ -56,7 +56,7 @@ struct osrm_strategy::impl {
     for (auto const& station : stations) {
       auto const nodes_with_dists =
           osrm_data_facade_->NearestPhantomNodesFromBigComponent(
-              make_coord(station.pos_), 3);
+              make_coord(station.pos_), 5);
 
       stations_to_nodes_[station.id_] =
           utl::to_vec(nodes_with_dists, [&](auto const& node_with_dist) {
