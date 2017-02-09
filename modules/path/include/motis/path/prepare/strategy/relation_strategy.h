@@ -100,7 +100,9 @@ struct relation_strategy : public routing_strategy {
         }
 
         auto const p = polylines_[f_ref.polyline_idx_];
-        return {this->strategy_id(), p.source_, 0};
+        auto const p_part =
+            geo::extract(p.polyline_, f_ref.point_idx_, t_ref.point_idx_);
+        return {this->strategy_id(), p.source_, geo::length(p_part) * 0.1};
       });
     })};
   }

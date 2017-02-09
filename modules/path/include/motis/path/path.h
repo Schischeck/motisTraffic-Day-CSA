@@ -19,6 +19,8 @@ struct path : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  motis::module::msg_ptr boxes() const;
+
   motis::module::msg_ptr station_seq_path(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr id_train_path(motis::module::msg_ptr const&) const;
 

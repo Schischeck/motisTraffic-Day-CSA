@@ -1,6 +1,11 @@
 #include "motis/path/prepare/db_builder.h"
 
+#include "utl/get_or_create.h"
 #include "utl/to_vec.h"
+
+#include "parser/util.h"
+
+#include "motis/path/constants.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -8,13 +13,34 @@ using namespace motis::module;
 namespace motis {
 namespace path {
 
-constexpr char kIndexKey[] = "__index";
-
-int db_builder::append(std::vector<std::string> const& station_ids,
-                       std::vector<uint32_t> const& classes,
-                       std::vector<std::vector<geo::latlng>> const& lines,
-                       std::vector<sequence_info> const& sequence_infos) {
+void db_builder::append(std::vector<std::string> const& station_ids,
+                        std::vector<uint32_t> const& classes,
+                        std::vector<std::vector<geo::latlng>> const& lines,
+                        std::vector<sequence_info> const& sequence_infos) {
   std::lock_guard<std::mutex> lock(m_);
+  verify(lines.size() + 1 == station_ids.size(), "db_builder: size mismatch");
+
+  for (auto i = 0u; i < lines.size(); ++i) {
+    auto key = (station_ids[i] < station_ids[i + 1])
+                   ? std::make_pair(station_ids[i], station_ids[i + 1])
+                   : std::make_pair(station_ids[i + 1], station_ids[i]);
+
+    auto& box = utl::get_or_create(boxes_, key, [] {
+      return std::pair<geo::latlng, geo::latlng>{
+          {-std::numeric_limits<double>::infinity(),
+           -std::numeric_limits<double>::infinity()},
+          {std::numeric_limits<double>::infinity(),
+           std::numeric_limits<double>::infinity()}};
+    });
+
+    for (auto const& pos : lines[i]) {
+      box.first.lat_ = std::max(box.first.lat_, pos.lat_);
+      box.first.lng_ = std::max(box.first.lng_, pos.lng_);
+
+      box.second.lat_ = std::min(box.second.lat_, pos.lat_);
+      box.second.lng_ = std::min(box.second.lng_, pos.lng_);
+    }
+  }
 
   message_creator b;
   auto const fbs_stations = utl::to_vec(
@@ -43,11 +69,15 @@ int db_builder::append(std::vector<std::string> const& station_ids,
 
   db_->put(std::to_string(index_), routing_sequence(std::move(b)).to_string());
   indices_.emplace_back(station_ids, classes, index_);
-  index_++;
-  return index_;
+  ++index_;
 }
 
 void db_builder::finish() {
+  finish_index();
+  finish_boxes();
+}
+
+void db_builder::finish_index() {
   message_creator b;
   std::vector<Offset<motis::path::PathIndex>> r;
   std::sort(begin(indices_), end(indices_));
@@ -65,6 +95,29 @@ void db_builder::finish() {
 
   b.Finish(CreatePathLookup(b, b.CreateVector(r)));
   db_->put(kIndexKey, routing_lookup(std::move(b)).to_string());
+}
+
+void db_builder::finish_boxes() {
+  message_creator mc;
+
+  mc.create_and_finish(
+      MsgContent_PathBoxesResponse,
+      CreatePathBoxesResponse(
+          mc, mc.CreateVector(utl::to_vec(
+                  boxes_,
+                  [&mc](auto const& pair) {
+                    auto ne = motis::Position{pair.second.first.lat_,
+                                              pair.second.first.lng_};
+                    auto sw = motis::Position{pair.second.second.lat_,
+                                              pair.second.second.lng_};
+
+                    return CreateBox(
+                        mc, mc.CreateSharedString(pair.first.first),
+                        mc.CreateSharedString(pair.first.second), &ne, &sw);
+                  })))
+          .Union());
+
+  db_->put(kBoxesKey, make_msg(mc)->to_string());
 }
 
 }  // namespace path
