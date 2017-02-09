@@ -53,10 +53,10 @@ inline void copy_trip_route(
   };
 
   for (auto const& e : route_edges(k)) {
-    auto const from = utl::get_or_create<node const*, node*>(
-        nodes, e->from_, [&] { return build_node(e->from_); });
-    auto const to = utl::get_or_create<node const*, node*>(
-        nodes, e->to_, [&] { return build_node(e->to_); });
+    auto const from = utl::get_or_create(nodes, e->from_,
+                                         [&] { return build_node(e->from_); });
+    auto const to =
+        utl::get_or_create(nodes, e->to_, [&] { return build_node(e->to_); });
 
     from->edges_.push_back(copy_edge(*e, from, to, k.lcon_idx_));
     edges[e] = trip::route_edge(&from->edges_.back());
