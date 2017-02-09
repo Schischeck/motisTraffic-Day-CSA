@@ -75,8 +75,8 @@ struct relation_strategy : public routing_strategy {
     auto const it = stations_to_refs_.find(station_id);
     verify(it != end(stations_to_refs_), "relations: unknown station!");
 
-    return utl::to_vec(it->second, [&](auto const& idx) -> node_ref {
-      return {strategy_id(), idx, node_refs_[idx].pos_};
+    return utl::to_vec(it->second, [&, this](auto const& idx) -> node_ref {
+      return {this->strategy_id(), idx, node_refs_[idx].pos_};
     });
   }
 
@@ -92,7 +92,7 @@ struct relation_strategy : public routing_strategy {
     return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
       auto const& f_ref = node_refs_[f.id_];
 
-      return utl::to_vec(to, [&](auto const& t) -> routing_result {
+      return utl::to_vec(to, [&, this](auto const& t) -> routing_result {
         auto const& t_ref = node_refs_[t.id_];
 
         if (f_ref.polyline_idx_ != t_ref.polyline_idx_) {
@@ -100,7 +100,7 @@ struct relation_strategy : public routing_strategy {
         }
 
         auto const p = polylines_[f_ref.polyline_idx_];
-        return {strategy_id(), p.source_, 0};
+        return {this->strategy_id(), p.source_, 0};
       });
     })};
   }

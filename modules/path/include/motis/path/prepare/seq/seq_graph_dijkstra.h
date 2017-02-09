@@ -65,8 +65,9 @@ struct seq_graph_dijkstra {
     }
 
     return *std::min_element(begin(graph_.goals_), end(graph_.goals_),
-                             [&](auto const& lhs, auto const& rhs) {
-                               return get_distance(lhs) < get_distance(rhs);
+                             [&, this](auto const& lhs, auto const& rhs) {
+                               return this->get_distance(lhs) <
+                                      this->get_distance(rhs);
                              });
   }
 

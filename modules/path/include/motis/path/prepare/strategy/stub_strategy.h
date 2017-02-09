@@ -41,12 +41,12 @@ struct stub_strategy : public routing_strategy {
     source_spec s{0, source_spec::category::UNKNOWN,
                   source_spec::type::STUB_ROUTE};
 
-    return routing_result_matrix{utl::to_vec(from, [&](auto const& f) {
+    return routing_result_matrix{utl::to_vec(from, [&, this](auto const& f) {
       return utl::to_vec(to, [&](auto const& t) -> routing_result {
         if (f == t) {
           return {};
         } else {
-          return {strategy_id(), s, distance(f.coords_, t.coords_) * 5};
+          return {this->strategy_id(), s, distance(f.coords_, t.coords_) * 5};
         }
       });
     })};

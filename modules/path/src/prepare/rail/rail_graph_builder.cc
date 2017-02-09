@@ -34,7 +34,7 @@ rail_graph build_rail_graph(std::vector<rail_way> const& rail_ways,
   rail_graph graph;
 
   hash_map<osm_idx_t, std::vector<station_idx_t>> nodes_to_stations;
-  nodes_to_stations.set_empty_key(std::numeric_limits<double>::max());
+  nodes_to_stations.set_empty_key(std::numeric_limits<osm_idx_t>::max());
   auto ways_to_stations = utl::repeat_n(
       std::vector<std::pair<offset_t, station_idx_t>>{}, rail_ways.size());
   {

@@ -39,7 +39,9 @@ struct seq_edge {
 
   double weight() const { return routing_.weight_; }
   size_t strategy_id() const { return routing_.strategy_id_; }
-  source_spec source_spec() const { return routing_.source_; }
+  struct source_spec source_spec() const {
+    return routing_.source_;
+  }
 
   seq_node* from_;
   seq_node* to_;

@@ -32,8 +32,8 @@ struct rail_strategy : public routing_strategy {
     auto const it = graph_.stations_to_nodes_.find(station_id);
     verify(it != end(graph_.stations_to_nodes_), "rail: unknown station!");
 
-    return utl::to_vec(it->second, [&](auto const& idx) {
-      return node_ref{strategy_id(), idx, graph_.nodes_[idx]->pos_};
+    return utl::to_vec(it->second, [&, this](auto const& idx) {
+      return node_ref{this->strategy_id(), idx, graph_.nodes_[idx]->pos_};
     });
   }
 
@@ -46,7 +46,7 @@ struct rail_strategy : public routing_strategy {
   routing_result_matrix find_routes(
       std::vector<node_ref> const& from,
       std::vector<node_ref> const& to) const override {
-    auto const path_to_result = [&](auto const& path) {
+    auto const path_to_result = [&, this](auto const& path) {
       if (path.empty()) {
         return routing_result{};
       }
@@ -57,7 +57,7 @@ struct rail_strategy : public routing_strategy {
       }
       source_spec s{0, source_spec::category::RAILWAY,
                     source_spec::type::RAIL_ROUTE};
-      return routing_result{strategy_id(), s, cost};
+      return routing_result{this->strategy_id(), s, cost};
     };
 
     auto const route = [&](auto const& from_ids, auto const& to_ids) {
