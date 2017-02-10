@@ -493,10 +493,10 @@ update msg model =
                     update (MapUpdate (RailViz.SetTimeOffset offset)) model1
 
                 ( model3, cmds2 ) =
-                    update (DateUpdate (Calendar.InitDate newDate)) model2
+                    update (DateUpdate (Calendar.InitDate True newDate)) model2
 
                 ( model4, cmds3 ) =
-                    update (TimeUpdate (TimeInput.InitDate newDate)) model3
+                    update (TimeUpdate (TimeInput.InitDate True newDate)) model3
             in
                 model4
                     ! [ cmds1

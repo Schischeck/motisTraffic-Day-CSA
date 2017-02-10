@@ -54,7 +54,7 @@ emptyModel dateConfig =
 
 type Msg
     = NoOp
-    | InitDate Date
+    | InitDate Bool Date
     | NewDate Date
     | DateInput String
     | PrevDay
@@ -85,16 +85,19 @@ update msg model =
             in
                 { updated | inputWidget = Input.update msg_ model.inputWidget }
 
-        InitDate d ->
+        InitDate force d ->
             let
                 d_ =
                     atNoon d
             in
-                { model
-                    | date = d_
-                    , inputStr = formatDate model.conf d_
-                    , today = d_
-                }
+                if force || (Date.toTime model.date) == 0 then
+                    { model
+                        | date = d_
+                        , inputStr = formatDate model.conf d_
+                        , today = d_
+                    }
+                else
+                    model
 
         NewDate d ->
             { model
@@ -260,7 +263,7 @@ type alias CalendarDay =
 
 getCurrentDate : Cmd Msg
 getCurrentDate =
-    Task.perform InitDate Date.now
+    Task.perform (InitDate False) Date.now
 
 
 daysInSixWeeks : Int

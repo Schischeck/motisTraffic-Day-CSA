@@ -26,8 +26,8 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( { date = dateFromFields 0 Date.Jan 0 0 0 0 0
-      , inputStr = formatDate (dateFromFields 0 Date.Jan 0 0 0 0 0)
+    ( { date = Date.fromTime 0
+      , inputStr = formatDate (Date.fromTime 0)
       , inputWidget = Input.init
       }
     , getCurrentDate
@@ -36,7 +36,7 @@ init =
 
 getCurrentDate : Cmd Msg
 getCurrentDate =
-    Task.perform InitDate Date.now
+    Task.perform (InitDate False) Date.now
 
 
 
@@ -45,7 +45,7 @@ getCurrentDate =
 
 type Msg
     = TimeInput String
-    | InitDate Date
+    | InitDate Bool Date
     | NoOp String
     | PrevHour
     | NextHour
@@ -63,8 +63,11 @@ update msg model =
                 Just date ->
                     { model | date = date, inputStr = s }
 
-        InitDate d ->
-            { model | date = d, inputStr = formatDate d }
+        InitDate force d ->
+            if force || (Date.toTime model.date) == 0 then
+                { model | date = d, inputStr = formatDate d }
+            else
+                model
 
         NoOp s ->
             model
