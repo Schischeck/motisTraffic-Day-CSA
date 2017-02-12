@@ -237,18 +237,17 @@ RailViz.Routes = (function() {
     let elementIndex = firstElementIndex;
 
     // calculate unit normals for each segment
-    const normals = new Array(subsegmentCount * 2);
+    const normals = new Array(subsegmentCount);
     for (let i = 0; i < subsegmentCount; i++) {
       const base = i * 2;
       const x0 = coords[base], y0 = coords[base + 1], x1 = coords[base + 2],
             y1 = coords[base + 3];
       // direction vector
-      const dx = x1 - x0;
-      const dy = y1 - y0;
-      // normalized direction vector
-      const dlen = Math.sqrt(dx * dx + dy * dy);
-      normals[base] = dlen != 0 ? -dy / dlen : 0;
-      normals[base + 1] = dlen != 0 ? dx / dlen : 0;
+      const direction = vec2.fromValues(x1 - x0, y1 - y0);
+      vec2.normalize(direction, direction);
+      // normal
+      vec2.set(direction, -direction[1], direction[0]);
+      normals[i] = direction;
     }
 
     const setFlags =
@@ -267,33 +266,26 @@ RailViz.Routes = (function() {
       const prevSubsegment = i - 1;
       const nextSubsegment = i;
 
-      let nx, ny;
+      let normal;
       let miterLen = 1.0;
 
       if (prevSubsegment == -1) {
         // first point of the polyline
-        nx = normals[nextSubsegment * 2];
-        ny = normals[nextSubsegment * 2 + 1];
-
+        normal = normals[nextSubsegment];
       } else if (nextSubsegment == subsegmentCount) {
         // last point of the polyline
-        nx = normals[prevSubsegment * 2];
-        ny = normals[prevSubsegment * 2 + 1];
+        normal = normals[prevSubsegment];
       } else {
-        const pnx = normals[prevSubsegment * 2],
-              pny = normals[prevSubsegment * 2 + 1],
-              nnx = normals[nextSubsegment * 2],
-              nny = normals[nextSubsegment * 2 + 1];
+        const pn = normals[prevSubsegment];
+        const nn = normals[nextSubsegment];
         // average normals
-        const anx = pnx + nnx, any = pny + nny;
-        const nlen = Math.sqrt(anx * anx + any * any);
-        if (nlen > 0) {
-          nx = nlen != 0 ? anx / nlen : 0;
-          ny = nlen != 0 ? any / nlen : 0;
-          miterLen = Math.max(0.5, Math.min(2.0, 1 / (nx * nnx + ny * nny)));
+        normal = vec2.create();
+        vec2.add(normal, pn, nn);
+        if (vec2.length(normal) > 0) {
+          vec2.normalize(normal, normal);
+          miterLen = Math.min(2.0, 1 / vec2.dot(normal, nn));
         } else {
-          nx = pnx;
-          ny = pny;
+          vec2.copy(normal, pn);
           miterLen = 1.0;
         }
       }
@@ -302,15 +294,15 @@ RailViz.Routes = (function() {
 
       vertexArray[vertexIndex] = x;
       vertexArray[vertexIndex + 1] = y;
-      vertexArray[vertexIndex + 2] = nx * miterLen;
-      vertexArray[vertexIndex + 3] = ny * miterLen;
+      vertexArray[vertexIndex + 2] = normal[0] * miterLen;
+      vertexArray[vertexIndex + 3] = normal[1] * miterLen;
       setFlags();
       vertexIndex += VERTEX_SIZE;
 
       vertexArray[vertexIndex] = x;
       vertexArray[vertexIndex + 1] = y;
-      vertexArray[vertexIndex + 2] = nx * -miterLen;
-      vertexArray[vertexIndex + 3] = ny * -miterLen;
+      vertexArray[vertexIndex + 2] = normal[0] * -miterLen;
+      vertexArray[vertexIndex + 3] = normal[1] * -miterLen;
       setFlags();
       vertexIndex += VERTEX_SIZE;
     }

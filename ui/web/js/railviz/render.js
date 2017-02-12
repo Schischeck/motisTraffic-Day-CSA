@@ -107,11 +107,17 @@ RailViz.Render = (function() {
         t => RailViz.Routes.highlightSegment(t.route_index, t.segment_index));
   }
 
-  function setMapInfo(newMapInfo) { mapInfo = newMapInfo; }
+  function setMapInfo(newMapInfo) {
+    mapInfo = newMapInfo;
+  }
 
-  function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
+  function setTimeOffset(newTimeOffset) {
+    timeOffset = newTimeOffset;
+  }
 
-  function setMinZoom(newMinZoom) { minZoom = newMinZoom; }
+  function setMinZoom(newMinZoom) {
+    minZoom = newMinZoom;
+  }
 
   function setup() {
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -140,14 +146,18 @@ RailViz.Render = (function() {
   function render(timestamp) {
     WebGL.Util.resizeCanvasToDisplaySize(canvas, pixelRatio);
 
-    var perspective = WebGL.Util.makeOrtho2D(
-        0, gl.canvas.clientWidth, gl.canvas.clientHeight, 0);
-    WebGL.Util.m4Scale(
-        perspective, [mapInfo.scale, mapInfo.scale, mapInfo.scale]);
-    WebGL.Util.m4Translate(perspective, [
+    var perspective = mat4.create();
+    mat4.ortho(
+        perspective, 0, gl.canvas.clientWidth, gl.canvas.clientHeight, 0, -1,
+        1);
+    mat4.scale(
+        perspective, perspective,
+        [mapInfo.scale, mapInfo.scale, mapInfo.scale]);
+    mat4.translate(perspective, perspective, [
       -(mapInfo.pixelBounds.west / mapInfo.scale),
       -(mapInfo.pixelBounds.north / mapInfo.scale), 0
     ]);
+
     var zoom = Math.max(minZoom, mapInfo.zoom);
 
     var time = timeOffset + (Date.now() / 1000);
