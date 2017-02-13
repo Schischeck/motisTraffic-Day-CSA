@@ -246,8 +246,8 @@ RailViz.Routes = (function() {
     const coords = segment.coordinates.coordinates;
     const pointCount = coords.length / 2;
     const subsegmentCount = pointCount - 1;
-    let vertexIndex = firstVertexIndex;
-    let elementIndex = firstElementIndex;
+    var vertexIndex = firstVertexIndex;
+    var elementIndex = firstElementIndex;
 
     // calculate unit normals for each segment
     const normals = new Array(subsegmentCount);
