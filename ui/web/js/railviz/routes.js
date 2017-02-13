@@ -346,8 +346,25 @@ RailViz.Routes = (function() {
       }
 
       if (split) {
+        const prevElementIndex = thisVertexIndex / VERTEX_SIZE;
+
+        // mid point for bevel join (the original point)
+        const midElementIndex = vertexIndex / VERTEX_SIZE;
+        vertexArray[vertexIndex] = x;
+        vertexArray[vertexIndex + 1] = y;
+        vertexArray[vertexIndex + 2] = 0;
+        vertexArray[vertexIndex + 3] = 0;
+        setFlags();
+        vertexIndex += VERTEX_SIZE;
+
+        const nextElementIndex = vertexIndex / VERTEX_SIZE;
         vec2.copy(normal, normals[nextSubsegment]);
         addVertices();
+
+        // bevel join
+        elementArray[elementIndex++] = prevElementIndex;
+        elementArray[elementIndex++] = midElementIndex;
+        elementArray[elementIndex++] = nextElementIndex;
       }
     }
 
