@@ -187,17 +187,19 @@ RailViz.Routes = (function() {
       };
     }
 
+    // miter joins only, no splits:
     // vertexCount = 2 * #pointsOnTheLine
     // triangleCount = (#pointsOnTheLine - 1) * 2 = vertexCount - 2
-    const triangleCount = vertexCount - 2;
+    // * 2 because splits / bevel joins may be necessary
+    const triangleCount = (vertexCount * 2) - 2;
     const elementCount = triangleCount * 3;  // 3 vertices per triangle
 
-    const vertexArray = new Float32Array(vertexCount * VERTEX_SIZE);
+    let vertexArray = new Float32Array(vertexCount * 2 * VERTEX_SIZE);
     const byteView = new Uint8Array(vertexArray.buffer);
     const uintExt = gl.getExtension('OES_element_index_uint');
     const elementArrayType =
         (elementCount > 65535 && uintExt) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
-    const elementArray = elementArrayType == gl.UNSIGNED_INT ?
+    let elementArray = elementArrayType == gl.UNSIGNED_INT ?
         new Uint32Array(elementCount) :
         new Uint16Array(elementCount);
 
@@ -219,6 +221,17 @@ RailViz.Routes = (function() {
       vertexIndex = r.nextVertexIndex;
       elementIndex = r.nextElementIndex;
     });
+
+    // set correct array sizes
+    const vertexSize = vertexIndex;
+    const elementSize = elementIndex;
+
+    if (vertexSize < vertexArray.length) {
+      vertexArray = vertexArray.subarray(0, vertexSize);
+    }
+    if (elementSize < elementArray.length) {
+      elementArray = elementArray.subarray(0, elementSize);
+    }
 
     return {
       vertexArray: vertexArray,
@@ -268,6 +281,7 @@ RailViz.Routes = (function() {
 
       let normal;
       let miterLen = 1.0;
+      let split = false;
 
       if (prevSubsegment == -1) {
         // first point of the polyline
@@ -283,8 +297,14 @@ RailViz.Routes = (function() {
         vec2.add(normal, pn, nn);
         if (vec2.length(normal) > 0) {
           vec2.normalize(normal, normal);
-          miterLen = Math.min(2.0, 1 / vec2.dot(normal, nn));
+          miterLen = 1 / vec2.dot(normal, nn);
+          if (miterLen > 2.0) {
+            split = true;
+          }
         } else {
+          split = true;
+        }
+        if (split) {
           vec2.copy(normal, pn);
           miterLen = 1.0;
         }
@@ -292,35 +312,47 @@ RailViz.Routes = (function() {
 
       const x = coords[i * 2], y = coords[i * 2 + 1];
 
-      vertexArray[vertexIndex] = x;
-      vertexArray[vertexIndex + 1] = y;
-      vertexArray[vertexIndex + 2] = normal[0] * miterLen;
-      vertexArray[vertexIndex + 3] = normal[1] * miterLen;
-      setFlags();
-      vertexIndex += VERTEX_SIZE;
+      const thisVertexIndex = vertexIndex;
 
-      vertexArray[vertexIndex] = x;
-      vertexArray[vertexIndex + 1] = y;
-      vertexArray[vertexIndex + 2] = normal[0] * -miterLen;
-      vertexArray[vertexIndex + 3] = normal[1] * -miterLen;
-      setFlags();
-      vertexIndex += VERTEX_SIZE;
+      const addVertices = function() {
+        vertexArray[vertexIndex] = x;
+        vertexArray[vertexIndex + 1] = y;
+        vertexArray[vertexIndex + 2] = normal[0] * miterLen;
+        vertexArray[vertexIndex + 3] = normal[1] * miterLen;
+        setFlags();
+        vertexIndex += VERTEX_SIZE;
+
+        vertexArray[vertexIndex] = x;
+        vertexArray[vertexIndex + 1] = y;
+        vertexArray[vertexIndex + 2] = normal[0] * -miterLen;
+        vertexArray[vertexIndex + 3] = normal[1] * -miterLen;
+        setFlags();
+        vertexIndex += VERTEX_SIZE;
+      };
+
+      addVertices();
+
+      if (i != 0) {
+        const thisElementIndex = thisVertexIndex / VERTEX_SIZE;
+        const prevElementIndex = thisElementIndex - 2;
+        // 1st triangle
+        elementArray[elementIndex++] = prevElementIndex;
+        elementArray[elementIndex++] = prevElementIndex + 1;
+        elementArray[elementIndex++] = thisElementIndex + 1;
+        // 2nd triangle
+        elementArray[elementIndex++] = prevElementIndex;
+        elementArray[elementIndex++] = thisElementIndex + 1;
+        elementArray[elementIndex++] = thisElementIndex;
+      }
+
+      if (split) {
+        vec2.copy(normal, normals[nextSubsegment]);
+        addVertices();
+      }
     }
 
     segment.firstVertexIndex = firstVertexIndex;
     segment.lastVertexIndex = vertexIndex - VERTEX_SIZE;
-
-    for (let i = 0; i < subsegmentCount; i++) {
-      const base = firstVertexIndex / VERTEX_SIZE + i * 2;
-      // 1st triangle
-      elementArray[elementIndex++] = base;
-      elementArray[elementIndex++] = base + 1;
-      elementArray[elementIndex++] = base + 3;
-      // 2nd triangle
-      elementArray[elementIndex++] = base;
-      elementArray[elementIndex++] = base + 3;
-      elementArray[elementIndex++] = base + 2;
-    }
 
     return {nextVertexIndex: vertexIndex, nextElementIndex: elementIndex};
   }
