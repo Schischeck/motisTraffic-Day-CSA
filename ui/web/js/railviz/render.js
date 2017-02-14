@@ -62,6 +62,7 @@ RailViz.Render = (function() {
     }
     if (filter.walks && filter.walks.length > 0) {
       data.footpaths = filter.walks;
+      data.footpaths.forEach(adjustFootpathCoords);
       RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
       let additionalStations = false;
       data.footpaths.forEach(footpath => {
@@ -91,6 +92,29 @@ RailViz.Render = (function() {
       return true;
     }
     return false;
+  }
+
+  function adjustFootpathCoords(footpath) {
+    const from_station_id = footpath.from_station_id;
+    const to_station_id = footpath.to_station_id;
+    const startSegments = data.routes.reduce(
+        (acc, r) => acc.concat(
+            r.segments.filter(seg => seg.to_station_id == from_station_id)),
+        []);
+    if (startSegments.length == 1) {
+      const fromCoords = startSegments[0].coordinates.coordinates;
+      footpath.coordinates.coordinates[0] = fromCoords[fromCoords.length - 2];
+      footpath.coordinates.coordinates[1] = fromCoords[fromCoords.length - 1];
+    }
+    const endSegments = data.routes.reduce(
+        (acc, r) => acc.concat(
+            r.segments.filter(seg => seg.from_station_id == to_station_id)),
+        []);
+    if (endSegments.length == 1) {
+      const toCoords = endSegments[0].coordinates.coordinates;
+      footpath.coordinates.coordinates[2] = toCoords[0];
+      footpath.coordinates.coordinates[3] = toCoords[1];
+    }
   }
 
   function highlightSection(train, section) {
