@@ -22,7 +22,7 @@
 }
 
 .overlay-container.hidden {
-  left: -570px;
+  left: -590px;
 }
 
 .overlay {
@@ -32,7 +32,7 @@
   border-radius: 3px;
   border-top-right-radius: 0;
   transition: all .4s ease;
-  width: 550px;
+  width: 570px;
   flex: 0 0 auto;
   order: 1;
   height: 100%;
@@ -63,7 +63,7 @@
 }
 
 .sub-overlay.hidden {
-  left: -570px;
+  left: -590px;
 }
 
 #sub-overlay-content {
