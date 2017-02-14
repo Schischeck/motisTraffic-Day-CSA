@@ -7,6 +7,7 @@ module Widgets.Map.RailViz
         , update
         , subscriptions
         , mapId
+        , flyTo
         )
 
 import Widgets.Map.Port as Port exposing (..)
@@ -21,6 +22,7 @@ import Maybe.Extra exposing (isJust, isNothing)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (formatTime, formatDateTimeWithSeconds)
 import Localization.Base exposing (..)
+import Data.Connection.Types exposing (Station)
 
 
 -- MODEL
@@ -115,6 +117,15 @@ update msg model =
         SetTrainColors colors ->
             { model | trainColors = colors }
                 ! [ mapUseTrainClassColors (colors == ClassColors) ]
+
+
+flyTo : Station -> Cmd msg
+flyTo station =
+    mapFlyTo
+        { mapId = mapId
+        , lat = station.pos.lat
+        , lng = station.pos.lng
+        }
 
 
 

@@ -1,7 +1,7 @@
 module Widgets.Typeahead
     exposing
         ( Model
-        , Msg
+        , Msg(..)
         , init
         , update
         , view
@@ -14,11 +14,12 @@ import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on
 import Html.Lazy exposing (..)
 import String
 import Dict exposing (..)
+import Task
 import Json.Decode as Decode
 import Widgets.Input as Input
 import Util.View exposing (onStopAll)
 import Util.List exposing ((!!))
-import Util.Api as Api
+import Util.Api as Api exposing (ApiError(..))
 import Debounce
 import Data.Connection.Types exposing (Station)
 import Data.StationGuesser.Request exposing (encodeRequest)
@@ -56,6 +57,7 @@ type Msg
     | InputUpdate Input.Msg
     | Deb (Debounce.Msg Msg)
     | RequestSuggestions
+    | ItemSelected
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,7 +77,9 @@ update msg model =
                 | visible = False
                 , input = getStationName model model.selected
             }
-                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
+                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions
+                  , Task.perform identity (Task.succeed ItemSelected)
+                  ]
 
         ClickElement i ->
             { model
@@ -83,7 +87,9 @@ update msg model =
                 , selected = 0
                 , input = getStationName model i
             }
-                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
+                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions
+                  , Task.perform identity (Task.succeed ItemSelected)
+                  ]
 
         SelectionUp ->
             { model | selected = (model.selected - 1) % List.length model.suggestions } ! []
@@ -119,6 +125,9 @@ update msg model =
                     else
                         Cmd.none
                   ]
+
+        ItemSelected ->
+            model ! []
 
 
 getStationName : Model -> Int -> String

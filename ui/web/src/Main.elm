@@ -575,10 +575,23 @@ update msg model =
 
         StationSearchUpdate msg_ ->
             let
-                ( m, c ) =
+                ( m, c1 ) =
                     Typeahead.update msg_ model.stationSearch
+
+                c2 =
+                    case msg_ of
+                        Typeahead.ItemSelected ->
+                            case Typeahead.getSelectedStation m of
+                                Just station ->
+                                    Navigation.newUrl (toUrl (StationEvents station.id))
+
+                                Nothing ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
             in
-                { model | stationSearch = m } ! [ Cmd.map StationSearchUpdate c ]
+                { model | stationSearch = m } ! [ Cmd.map StationSearchUpdate c1, c2 ]
 
 
 buildRoutingRequest : Model -> RoutingRequest
