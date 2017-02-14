@@ -1,13 +1,19 @@
 var CanvasOverlay = L.Layer.extend({
-  initialize: function() { L.setOptions(this, {}); },
+  initialize: function() {
+    L.setOptions(this, {});
+  },
 
   onAdd: function(map) {
     map._panes.overlayPane.appendChild(this._el);
 
-    setTimeout(function() { this._updateSize(); }.bind(this), 100);
+    setTimeout(function() {
+      this._updateSize();
+    }.bind(this), 100);
   },
 
-  onRemove: function(map) { map.getPanes().overlayPane.removeChild(this._el); },
+  onRemove: function(map) {
+    map.getPanes().overlayPane.removeChild(this._el);
+  },
 
   getEvents: function() {
     var events = {
@@ -26,13 +32,17 @@ var CanvasOverlay = L.Layer.extend({
     return events;
   },
 
-  _animateZoom: function(e) { this._updateTransform(e.center, e.zoom); },
+  _animateZoom: function(e) {
+    this._updateTransform(e.center, e.zoom);
+  },
 
   _zoom: function() {
     this._updateTransform(this._map.getCenter(), this._map.getZoom());
   },
 
-  _zoomEnd: function() { this._update(); },
+  _zoomEnd: function() {
+    this._update();
+  },
 
   _updateTransform: function(center, zoom) {
     var scale = this._map.getZoomScale(zoom),

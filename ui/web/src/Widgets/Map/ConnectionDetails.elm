@@ -44,7 +44,6 @@ buildConnectionFilter journey =
 
         intermediateStops =
             List.concatMap (\train -> dropEnd 1 (List.drop 1 train.stops)) journey.trains
-                |> List.filter (\s -> s.enter || s.exit)
 
         intermediateStations =
             List.map (.station >> .id) (intermediateStops)
