@@ -231,14 +231,14 @@ update msg model =
                 ( m, c ) =
                     Typeahead.update msg_ model.fromLocation
             in
-                checkRoutingRequest ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
+                checkTypeaheadUpdate msg_ ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
 
         ToLocationUpdate msg_ ->
             let
                 ( m, c ) =
                     Typeahead.update msg_ model.toLocation
             in
-                checkRoutingRequest ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
+                checkTypeaheadUpdate msg_ ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
 
         FromTransportsUpdate msg_ ->
             ( { model | fromTransports = TagList.update msg_ model.fromTransports }, Cmd.none )
@@ -654,6 +654,24 @@ checkRoutingRequest ( model, cmds ) =
             model ! [ cmds, Debounce.debounceCmd debounceCfg <| SearchConnections ]
         else
             ( model, cmds )
+
+
+checkTypeaheadUpdate : Typeahead.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+checkTypeaheadUpdate msg ( model, cmds ) =
+    let
+        model_ =
+            case msg of
+                Typeahead.SuggestionsError err ->
+                    let
+                        ( m, _ ) =
+                            Connections.update (Connections.SetError err) model.connections
+                    in
+                        { model | connections = m }
+
+                _ ->
+                    model
+    in
+        checkRoutingRequest ( model_, cmds )
 
 
 debounceCfg : Debounce.Config Model Msg

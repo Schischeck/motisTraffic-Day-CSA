@@ -127,6 +127,7 @@ type Msg
     | ResetNew
     | JTGUpdate Int JourneyTransportGraph.Msg
     | SetRoutingResponses (List ( String, RoutingResponse ))
+    | SetError ApiError
 
 
 type ExtendIntervalType
@@ -214,7 +215,7 @@ update msg model =
 
         ReceiveError action request msg_ ->
             if belongsToCurrentSearch model request then
-                (handleRequestError model action request msg_) ! []
+                (handleRequestError model action msg_) ! []
             else
                 model ! []
 
@@ -261,6 +262,9 @@ update msg model =
                         |> Maybe.withDefault model.journeyTransportGraphs
             }
                 ! []
+
+        SetError err ->
+            (handleRequestError model ReplaceResults err) ! []
 
 
 extendSearchInterval :
@@ -496,10 +500,9 @@ sortJourneys journeys =
 handleRequestError :
     Model
     -> SearchAction
-    -> RoutingRequest
     -> ApiError
     -> Model
-handleRequestError model action request msg =
+handleRequestError model action msg =
     let
         newModel =
             case action of

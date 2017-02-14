@@ -47,6 +47,7 @@ type alias Model =
 type Msg
     = NoOp
     | ReceiveSuggestions (List Station)
+    | SuggestionsError ApiError
     | InputChange String
     | EnterSelection
     | ClickElement Int
@@ -134,6 +135,9 @@ update msg model =
                   ]
 
         ItemSelected ->
+            model ! []
+
+        SuggestionsError _ ->
             model ! []
 
 
@@ -278,6 +282,6 @@ requestSuggestions remoteAddress input =
     Api.sendRequest
         remoteAddress
         decodeStationGuesserResponse
-        (\_ -> NoOp)
+        SuggestionsError
         ReceiveSuggestions
         (encodeRequest 6 input)
