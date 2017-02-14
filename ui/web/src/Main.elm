@@ -86,6 +86,7 @@ type alias Model =
     , currentTime : Date
     , timeOffset : Float
     , overlayVisible : Bool
+    , stationSearch : Typeahead.Model
     }
 
 
@@ -113,6 +114,9 @@ init flags initialLocation =
         ( toLocationModel, toLocationCmd ) =
             Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
 
+        ( stationSearchModel, stationSearchCmd ) =
+            Typeahead.init remoteAddress ""
+
         initialModel =
             { fromLocation = fromLocationModel
             , toLocation = toLocationModel
@@ -136,6 +140,7 @@ init flags initialLocation =
             , currentTime = Date.fromTime flags.currentTime
             , timeOffset = 0
             , overlayVisible = True
+            , stationSearch = stationSearchModel
             }
 
         ( model, cmds ) =
@@ -147,6 +152,7 @@ init flags initialLocation =
               , Cmd.map MapUpdate mapCmd
               , Cmd.map FromLocationUpdate fromLocationCmd
               , Cmd.map ToLocationUpdate toLocationCmd
+              , Cmd.map StationSearchUpdate stationSearchCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
               , cmds
@@ -201,6 +207,7 @@ type Msg
     | ShowStationDetails String
     | ToggleOverlay
     | CloseSubOverlay
+    | StationSearchUpdate Typeahead.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -566,6 +573,13 @@ update msg model =
             in
                 model2 ! [ cmds1, cmds2 ]
 
+        StationSearchUpdate msg_ ->
+            let
+                ( m, c ) =
+                    Typeahead.update msg_ model.stationSearch
+            in
+                { model | stationSearch = m } ! [ Cmd.map StationSearchUpdate c ]
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -709,6 +723,7 @@ view model =
     div [ class "app" ] <|
         [ Html.map MapUpdate (RailViz.view model.locale model.map)
         , lazy overlayView model
+        , lazy stationSearchView model
         ]
 
 
@@ -836,6 +851,19 @@ swapLocationsView model =
                 []
             , i [ class "icon" ] [ text "swap_vert" ]
             ]
+        ]
+
+
+stationSearchView : Model -> Html Msg
+stationSearchView model =
+    div
+        [ id "station-search"
+        , classList
+            [ "overlay-hidden" => not model.overlayVisible
+            ]
+        ]
+        [ Html.map StationSearchUpdate <|
+            Typeahead.view 10 "" (Just "place") model.stationSearch
         ]
 
 
