@@ -298,7 +298,7 @@ RailViz.Routes = (function() {
         if (vec2.length(normal) > 0) {
           vec2.normalize(normal, normal);
           miterLen = 1 / vec2.dot(normal, nn);
-          if (miterLen > 2.0) {
+          if (miterLen > 2.0 || miterLen < 0.5) {
             split = true;
           }
         } else {
