@@ -2,7 +2,7 @@ module Widgets.Input exposing (..)
 
 import Html exposing (Html, Attribute, div, input, i, text)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onFocus, onBlur)
+import Html.Events exposing (onFocus, onBlur, onClick)
 
 
 -- MODEL
@@ -24,6 +24,7 @@ init =
 type Msg
     = Focus
     | Blur
+    | Click
 
 
 update : Msg -> Model -> Model
@@ -34,6 +35,9 @@ update msg model =
 
         Blur ->
             False
+
+        Click ->
+            model
 
 
 
@@ -84,6 +88,7 @@ view makeMsg attributes label inputWidget icon model =
                 (class "gb-input"
                     :: onBlur (makeMsg Blur)
                     :: onFocus (makeMsg Focus)
+                    :: onClick (makeMsg Click)
                     :: attributes
                 )
                 []

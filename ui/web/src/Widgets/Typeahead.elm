@@ -70,7 +70,11 @@ update msg model =
             { model | suggestions = suggestions } ! []
 
         InputChange str ->
-            { model | input = str } ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
+            { model
+                | input = str
+                , visible = True
+            }
+                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
 
         EnterSelection ->
             { model
@@ -108,6 +112,9 @@ update msg model =
                 updated =
                     case msg_ of
                         Input.Focus ->
+                            { model | visible = True }
+
+                        Input.Click ->
                             { model | visible = True }
 
                         Input.Blur ->
