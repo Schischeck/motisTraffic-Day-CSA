@@ -1205,12 +1205,32 @@
   color: white;
 }
 
+.station-events .station-event {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.station-events .station-event .event-time {
+  flex: 0 0 70px;
+}
+
+.station-events .station-event .event-train {
+  margin-top: -7px;
+  flex: 0 0 130px;
+}
+
 .station-events .event-train span {
   cursor: pointer;
 }
 
-.station-events .station-event {
-  margin-top: 10px;
+.station-events .station-event .event-direction {
+  flex: 2 2 auto;
+}
+
+.station-events .station-event .event-track {
+  flex: 1 1 auto;
+  text-align: right;
 }
 
 .station-events .divider:first-of-type {
@@ -1232,8 +1252,4 @@
 
 .station-events .train-box {
   cursor: pointer;
-}
-
-.station-events .event-train {
-  margin-top: -7px;
 }

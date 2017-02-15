@@ -491,17 +491,17 @@ eventView (Config { selectTripMsg }) locale event =
             else
                 locale.t.station.trackAbbr ++ " " ++ event.event.track
     in
-        div [ class "pure-g station-event" ]
-            [ div [ class "pure-u-4-24 event-time" ]
+        div [ class "station-event" ]
+            [ div [ class "event-time" ]
                 [ text (formatTime scheduleTime)
                 , text " "
                 , delay event.event
                 ]
-            , div [ class "pure-u-6-24 event-train" ]
+            , div [ class "event-train" ]
                 [ span clickAttr [ trainColumn ] ]
-            , div [ class "pure-u-11-24 event-direction" ]
+            , div [ class "event-direction" ]
                 [ text direction ]
-            , div [ class "pure-u-3-24 event-track" ]
+            , div [ class "event-track" ]
                 [ text track ]
             ]
 
