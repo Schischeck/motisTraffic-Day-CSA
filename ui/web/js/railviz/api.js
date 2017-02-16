@@ -30,7 +30,11 @@ RailViz.API = (function() {
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
       if (xhr.readyState == XMLHttpRequest.DONE) {
-        var response = xhr.responseText && JSON.parse(xhr.responseText);
+        var response = xhr.responseText;
+        try {
+          response = JSON.parse(xhr.responseText);
+        } catch (ex) {
+        }
         if (xhr.status == 200) {
           onSuccess(response);
         } else {
