@@ -388,10 +388,13 @@ update msg model =
         TripToConnectionResponse tripId connection ->
             showFullTripConnection model tripId connection
 
-        ScheduleInfoError _ ->
+        ScheduleInfoError err ->
             let
+                ( connections_, _ ) =
+                    Connections.update (Connections.SetError err) model.connections
+
                 ( newConnections, c ) =
-                    Connections.update (Connections.UpdateScheduleInfo Nothing) model.connections
+                    Connections.update (Connections.UpdateScheduleInfo Nothing) connections_
 
                 newDate =
                     Calendar.update (Calendar.SetValidRange Nothing) model.date
