@@ -8,6 +8,7 @@ module Util.Api
         , AccessErrorInfo(..)
         , MotisErrorDetail
         , sendRequest
+        , decodeErrorResponse
         )
 
 import Json.Encode as Encode

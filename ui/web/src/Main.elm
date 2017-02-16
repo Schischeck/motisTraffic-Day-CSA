@@ -38,6 +38,7 @@ import Routes exposing (..)
 import Debounce
 import Maybe.Extra exposing (isJust, orElse)
 import Port
+import Json.Encode
 import Json.Decode as Decode
 import Date exposing (Date)
 import Time exposing (Time)
@@ -208,6 +209,7 @@ type Msg
     | ToggleOverlay
     | CloseSubOverlay
     | StationSearchUpdate Typeahead.Msg
+    | HandleRailVizError Json.Encode.Value
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -596,6 +598,21 @@ update msg model =
             in
                 { model | stationSearch = m } ! [ Cmd.map StationSearchUpdate c1, c2 ]
 
+        HandleRailVizError json ->
+            let
+                apiError =
+                    case Decode.decodeValue Api.decodeErrorResponse json of
+                        Ok value ->
+                            MotisError value
+
+                        Err msg ->
+                            HttpError 500
+
+                _ =
+                    Debug.log "HandleRailVizError" ( json, apiError )
+            in
+                model ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -744,6 +761,7 @@ subscriptions model =
         , Port.showStationDetails ShowStationDetails
         , Port.showTripDetails SelectTripId
         , Port.setSimulationTime SetSimulationTime
+        , Port.handleRailVizError HandleRailVizError
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
 
