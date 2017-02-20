@@ -134,7 +134,7 @@ RailViz.Trains = (function() {
     texture = WebGL.Util.createTextureFromCanvas(
         gl,
         RailViz.Textures.createCircle(
-            26, [255, 255, 255, 255], [160, 160, 160, 255], 6));
+            [255, 255, 255, 255], [160, 160, 160, 255], 6));
 
     positionBufferInitialized = false;
     progressBufferInitialized = false;

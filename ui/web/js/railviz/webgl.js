@@ -68,14 +68,23 @@ WebGL.Util = (function() {
     return texture;
   }
 
-  function createTextureFromCanvas(gl, cv) {
+  function createTextureFromCanvas(gl, draw) {
     var texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.generateMipmap(gl.TEXTURE_2D);
+    var level = 0;
+    var size = 64;
+    while (size >= 1) {
+      const cv = draw(size);
+      gl.texImage2D(
+          gl.TEXTURE_2D, level, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+      size = size / 2;
+      level++;
+    }
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(
+        gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
     return texture;
