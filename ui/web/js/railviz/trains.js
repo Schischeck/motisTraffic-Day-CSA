@@ -103,7 +103,9 @@ RailViz.Trains = (function() {
     filteredIndices = null;
   }
 
-  function setUseCategoryColor(useCategory) { useCategoryColor = useCategory; }
+  function setUseCategoryColor(useCategory) {
+    useCategoryColor = useCategory;
+  }
 
   function setup(gl) {
     const vshader = WebGL.Util.createShader(gl, gl.VERTEX_SHADER, vertexShader);
@@ -128,7 +130,11 @@ RailViz.Trains = (function() {
     positionBuffer = gl.createBuffer();
     progressBuffer = gl.createBuffer();
     colorBuffer = gl.createBuffer();
-    texture = WebGL.Util.createTextureFromImage(gl, 'img/railviz/train.png');
+
+    texture = WebGL.Util.createTextureFromCanvas(
+        gl,
+        RailViz.Textures.createCircle(
+            26, [255, 255, 255, 255], [160, 160, 160, 255], 6));
 
     positionBufferInitialized = false;
     progressBufferInitialized = false;
