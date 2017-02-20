@@ -9,7 +9,7 @@ RailViz.Textures = (function() {
       var cv = document.createElement('canvas');
       cv.width = size;
       cv.height = size;
-      var ct2d = cv.getContext('2d');
+      var ct2d = cv.getContext('2d', {alpha: true});
       ct2d.beginPath();
       ct2d.arc(
           rad + borderThickness, rad + borderThickness, rad, 0, 2 * Math.PI,
