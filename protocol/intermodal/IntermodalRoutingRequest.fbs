@@ -83,6 +83,7 @@ table ModeWrapper {
 //       "mode_type": "Foot",
 //       "mode": { "max_duration": 900 }
 //     }],
+//     "destination_type": "InputPosition",
 //     "destination": { "lat": 50.1095955, "lng": 8.6692976},
 //     "destination_modes":  [{
 //       "mode_type": "Foot",
