@@ -14,6 +14,7 @@ struct railviz : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  motis::module::msg_ptr get_trip_guesses(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr get_trains(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr get_trips(motis::module::msg_ptr const&) const;
   motis::module::msg_ptr get_station(motis::module::msg_ptr const&) const;

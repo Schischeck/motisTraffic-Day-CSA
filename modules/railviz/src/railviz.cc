@@ -56,6 +56,8 @@ hash_map<std::pair<int, int>, geo::box> bounding_boxes(schedule const& s) {
 
 void railviz::init(motis::module::registry& reg) {
   namespace p = std::placeholders;
+  reg.register_op("/railviz/get_trip_guesses",
+                  std::bind(&railviz::get_trip_guesses, this, p::_1));
   reg.register_op("/railviz/get_station",
                   std::bind(&railviz::get_station, this, p::_1));
   reg.register_op("/railviz/get_trains",
@@ -69,8 +71,47 @@ void railviz::init(motis::module::registry& reg) {
   });
 }
 
-motis::module::msg_ptr railviz::get_station(
-    motis::module::msg_ptr const& msg) const {
+msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
+  auto const req = motis_content(RailVizTripGuessRequest, msg);
+
+  auto const& sched = get_schedule();
+  auto const t = unix_to_motistime(sched, req->time());
+
+  primary_trip_id primary_id(0, req->train_num(), 0);
+  auto it =
+      std::lower_bound(begin(sched.trips_), end(sched.trips_),
+                       std::make_pair(primary_id, static_cast<trip*>(nullptr)));
+
+  message_creator fbb;
+  std::vector<trip const*> trips;
+
+  while (it != end(sched.trips_) && it->first.train_nr_ == req->train_num()) {
+    trips.emplace_back(it->second);
+
+    auto const interesting_size =
+        std::min(req->guess_count(), static_cast<unsigned>(trips.size()));
+    std::nth_element(begin(trips), std::next(begin(trips), interesting_size),
+                     end(trips), [&](trip const* a, trip const* b) {
+                       return std::abs(a->id_.primary_.time_ - t) <
+                              std::abs(b->id_.primary_.time_ - t);
+                     });
+    trips.resize(interesting_size);
+
+    ++it;
+  }
+
+  fbb.create_and_finish(
+      MsgContent_RailVizTripGuessResponse,
+      CreateRailVizTripGuessResponse(
+          fbb,
+          fbb.CreateVector(utl::to_vec(
+              trips, [&](trip const* trp) { return to_fbs(sched, fbb, trp); })))
+          .Union());
+
+  return make_msg(fbb);
+}
+
+msg_ptr railviz::get_station(msg_ptr const& msg) const {
   auto const req = motis_content(RailVizStationRequest, msg);
 
   auto const& sched = get_schedule();
