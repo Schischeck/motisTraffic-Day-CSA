@@ -45,4 +45,5 @@
     <string name="departure_short_colon">Ab:</string>
     <string name="nach">Nach:</string>
     <string name="from">Von:</string>
+    <string name="favorites">Favoriten</string>
 </resources>
