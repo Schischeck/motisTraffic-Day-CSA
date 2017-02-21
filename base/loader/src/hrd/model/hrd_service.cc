@@ -8,6 +8,7 @@
 #include "parser/util.h"
 
 #include "motis/core/common/date_time_util.h"
+#include "motis/core/common/logging.h"
 #include "motis/loader/hrd/model/range.h"
 #include "motis/loader/util.h"
 
@@ -153,10 +154,10 @@ hrd_service::hrd_service(specification const& spec)
   verify_service();
 }
 
-void hrd_service::verify_service() const {
+void hrd_service::verify_service() {
   int section_index = 0;
   verify(stops_.size() >= 2, "service with less than 2 stops");
-  for (auto const& section : sections_) {
+  for (auto& section : sections_) {
     verify(section.traffic_days_.size() == 1,
            "section %d invalid: %lu multiple traffic days", section_index,
            section.traffic_days_.size());
@@ -165,9 +166,16 @@ void hrd_service::verify_service() const {
            section.line_information_.size());
     verify(section.category_.size() == 1, "section %d invalid: %lu categories",
            section_index, section.category_.size());
-    verify(section.directions_.size() <= 1,
-           "section %d invalid: %lu direction information", section_index,
-           section.directions_.size());
+    try {
+      verify(section.directions_.size() <= 1,
+             "section %d invalid: %lu direction information", section_index,
+             section.directions_.size());
+    } catch (std::runtime_error const&) {
+      LOG(logging::error) << origin_.filename_ << ":"
+                          << origin_.line_number_from_
+                          << ": quick fixing direction info";
+      section.directions_.resize(1);
+    }
     ++section_index;
   }
 }

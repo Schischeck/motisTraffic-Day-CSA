@@ -71,7 +71,7 @@ struct hrd_service {
 
   explicit hrd_service(specification const& spec);
 
-  void verify_service() const;
+  void verify_service();
 
   std::vector<std::pair<int, uint64_t>> get_ids() const {
     std::vector<std::pair<int, uint64_t>> ids;

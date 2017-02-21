@@ -22,7 +22,7 @@
 }
 
 .overlay-container.hidden {
-  left: -570px;
+  left: -590px;
 }
 
 .overlay {
@@ -32,7 +32,7 @@
   border-radius: 3px;
   border-top-right-radius: 0;
   transition: all .4s ease;
-  width: 550px;
+  width: 570px;
   flex: 0 0 auto;
   order: 1;
   height: 100%;
@@ -63,7 +63,7 @@
 }
 
 .sub-overlay.hidden {
-  left: -570px;
+  left: -590px;
 }
 
 #sub-overlay-content {
@@ -217,6 +217,46 @@
   padding: 0 5px 5px 5px;
   font-size: 14px;
   background: rgba(255, 255, 255, 0.7);
+}
+
+#station-search {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  width: 300px;
+  padding: 5px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  opacity: 0.9;
+  border: 1px solid #DDDDDD;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, .16);
+  transition: all .4s ease;
+}
+
+#station-search .label {
+  display: none;
+}
+
+#station-search .gb-input-group {
+  margin-bottom: 0;
+  border-radius: 2px;
+}
+
+#station-search .paper {
+  margin-top: -2px;
+}
+
+#station-search .proposals li {
+  width: 265px;
+}
+
+@media (max-width: 970px) {
+  #station-search {
+    opacity: 0;
+  }
+  #station-search.overlay-hidden {
+    opacity: 0.9;
+  }
 }
 
 #search,
@@ -1099,6 +1139,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  z-index: 0;
 }
 
 .station-events .header {
@@ -1164,12 +1205,32 @@
   color: white;
 }
 
+.station-events .station-event {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.station-events .station-event .event-time {
+  flex: 0 0 70px;
+}
+
+.station-events .station-event .event-train {
+  margin-top: -7px;
+  flex: 0 0 130px;
+}
+
 .station-events .event-train span {
   cursor: pointer;
 }
 
-.station-events .station-event {
-  margin-top: 10px;
+.station-events .station-event .event-direction {
+  flex: 2 2 auto;
+}
+
+.station-events .station-event .event-track {
+  flex: 1 1 auto;
+  text-align: right;
 }
 
 .station-events .divider:first-of-type {
@@ -1187,4 +1248,8 @@
 
 .station-events .main-error {
   text-align: center;
+}
+
+.station-events .train-box {
+  cursor: pointer;
 }

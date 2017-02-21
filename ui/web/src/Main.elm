@@ -86,6 +86,7 @@ type alias Model =
     , currentTime : Date
     , timeOffset : Float
     , overlayVisible : Bool
+    , stationSearch : Typeahead.Model
     }
 
 
@@ -113,6 +114,9 @@ init flags initialLocation =
         ( toLocationModel, toLocationCmd ) =
             Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
 
+        ( stationSearchModel, stationSearchCmd ) =
+            Typeahead.init remoteAddress ""
+
         initialModel =
             { fromLocation = fromLocationModel
             , toLocation = toLocationModel
@@ -136,6 +140,7 @@ init flags initialLocation =
             , currentTime = Date.fromTime flags.currentTime
             , timeOffset = 0
             , overlayVisible = True
+            , stationSearch = stationSearchModel
             }
 
         ( model, cmds ) =
@@ -147,6 +152,7 @@ init flags initialLocation =
               , Cmd.map MapUpdate mapCmd
               , Cmd.map FromLocationUpdate fromLocationCmd
               , Cmd.map ToLocationUpdate toLocationCmd
+              , Cmd.map StationSearchUpdate stationSearchCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
               , cmds
@@ -201,6 +207,7 @@ type Msg
     | ShowStationDetails String
     | ToggleOverlay
     | CloseSubOverlay
+    | StationSearchUpdate Typeahead.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -224,14 +231,14 @@ update msg model =
                 ( m, c ) =
                     Typeahead.update msg_ model.fromLocation
             in
-                checkRoutingRequest ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
+                checkTypeaheadUpdate msg_ ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
 
         ToLocationUpdate msg_ ->
             let
                 ( m, c ) =
                     Typeahead.update msg_ model.toLocation
             in
-                checkRoutingRequest ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
+                checkTypeaheadUpdate msg_ ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
 
         FromTransportsUpdate msg_ ->
             ( { model | fromTransports = TagList.update msg_ model.fromTransports }, Cmd.none )
@@ -381,10 +388,13 @@ update msg model =
         TripToConnectionResponse tripId connection ->
             showFullTripConnection model tripId connection
 
-        ScheduleInfoError _ ->
+        ScheduleInfoError err ->
             let
+                ( connections_, _ ) =
+                    Connections.update (Connections.SetError err) model.connections
+
                 ( newConnections, c ) =
-                    Connections.update (Connections.UpdateScheduleInfo Nothing) model.connections
+                    Connections.update (Connections.UpdateScheduleInfo Nothing) connections_
 
                 newDate =
                     Calendar.update (Calendar.SetValidRange Nothing) model.date
@@ -566,6 +576,26 @@ update msg model =
             in
                 model2 ! [ cmds1, cmds2 ]
 
+        StationSearchUpdate msg_ ->
+            let
+                ( m, c1 ) =
+                    Typeahead.update msg_ model.stationSearch
+
+                c2 =
+                    case msg_ of
+                        Typeahead.ItemSelected ->
+                            case Typeahead.getSelectedStation m of
+                                Just station ->
+                                    Navigation.newUrl (toUrl (StationEvents station.id))
+
+                                Nothing ->
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+                { model | stationSearch = m } ! [ Cmd.map StationSearchUpdate c1, c2 ]
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -627,6 +657,24 @@ checkRoutingRequest ( model, cmds ) =
             model ! [ cmds, Debounce.debounceCmd debounceCfg <| SearchConnections ]
         else
             ( model, cmds )
+
+
+checkTypeaheadUpdate : Typeahead.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+checkTypeaheadUpdate msg ( model, cmds ) =
+    let
+        model_ =
+            case msg of
+                Typeahead.SuggestionsError err ->
+                    let
+                        ( m, _ ) =
+                            Connections.update (Connections.SetError err) model.connections
+                    in
+                        { model | connections = m }
+
+                _ ->
+                    model
+    in
+        checkRoutingRequest ( model_, cmds )
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -709,6 +757,7 @@ view model =
     div [ class "app" ] <|
         [ Html.map MapUpdate (RailViz.view model.locale model.map)
         , lazy overlayView model
+        , lazy stationSearchView model
         ]
 
 
@@ -836,6 +885,19 @@ swapLocationsView model =
                 []
             , i [ class "icon" ] [ text "swap_vert" ]
             ]
+        ]
+
+
+stationSearchView : Model -> Html Msg
+stationSearchView model =
+    div
+        [ id "station-search"
+        , classList
+            [ "overlay-hidden" => not model.overlayVisible
+            ]
+        ]
+        [ Html.map StationSearchUpdate <|
+            Typeahead.view 10 "" (Just "place") model.stationSearch
         ]
 
 

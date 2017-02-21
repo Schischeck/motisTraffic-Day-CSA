@@ -62,6 +62,7 @@ RailViz.Render = (function() {
     }
     if (filter.walks && filter.walks.length > 0) {
       data.footpaths = filter.walks;
+      data.footpaths.forEach(adjustFootpathCoords);
       RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
       let additionalStations = false;
       data.footpaths.forEach(footpath => {
@@ -93,6 +94,29 @@ RailViz.Render = (function() {
     return false;
   }
 
+  function adjustFootpathCoords(footpath) {
+    const from_station_id = footpath.from_station_id;
+    const to_station_id = footpath.to_station_id;
+    const startSegments = data.routes.reduce(
+        (acc, r) => acc.concat(
+            r.segments.filter(seg => seg.to_station_id == from_station_id)),
+        []);
+    if (startSegments.length == 1) {
+      const fromCoords = startSegments[0].coordinates.coordinates;
+      footpath.coordinates.coordinates[0] = fromCoords[fromCoords.length - 2];
+      footpath.coordinates.coordinates[1] = fromCoords[fromCoords.length - 1];
+    }
+    const endSegments = data.routes.reduce(
+        (acc, r) => acc.concat(
+            r.segments.filter(seg => seg.from_station_id == to_station_id)),
+        []);
+    if (endSegments.length == 1) {
+      const toCoords = endSegments[0].coordinates.coordinates;
+      footpath.coordinates.coordinates[2] = toCoords[0];
+      footpath.coordinates.coordinates[3] = toCoords[1];
+    }
+  }
+
   function highlightSection(train, section) {
     const matchingTrains = data.trains.filter(
         t => t.sched_d_time == section.scheduledDepartureTime / 1000 &&
@@ -107,11 +131,17 @@ RailViz.Render = (function() {
         t => RailViz.Routes.highlightSegment(t.route_index, t.segment_index));
   }
 
-  function setMapInfo(newMapInfo) { mapInfo = newMapInfo; }
+  function setMapInfo(newMapInfo) {
+    mapInfo = newMapInfo;
+  }
 
-  function setTimeOffset(newTimeOffset) { timeOffset = newTimeOffset; }
+  function setTimeOffset(newTimeOffset) {
+    timeOffset = newTimeOffset;
+  }
 
-  function setMinZoom(newMinZoom) { minZoom = newMinZoom; }
+  function setMinZoom(newMinZoom) {
+    minZoom = newMinZoom;
+  }
 
   function setup() {
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -140,14 +170,18 @@ RailViz.Render = (function() {
   function render(timestamp) {
     WebGL.Util.resizeCanvasToDisplaySize(canvas, pixelRatio);
 
-    var perspective = WebGL.Util.makeOrtho2D(
-        0, gl.canvas.clientWidth, gl.canvas.clientHeight, 0);
-    WebGL.Util.m4Scale(
-        perspective, [mapInfo.scale, mapInfo.scale, mapInfo.scale]);
-    WebGL.Util.m4Translate(perspective, [
+    var perspective = mat4.create();
+    mat4.ortho(
+        perspective, 0, gl.canvas.clientWidth, gl.canvas.clientHeight, 0, -1,
+        1);
+    mat4.scale(
+        perspective, perspective,
+        [mapInfo.scale, mapInfo.scale, mapInfo.scale]);
+    mat4.translate(perspective, perspective, [
       -(mapInfo.pixelBounds.west / mapInfo.scale),
       -(mapInfo.pixelBounds.north / mapInfo.scale), 0
     ]);
+
     var zoom = Math.max(minZoom, mapInfo.zoom);
 
     var time = timeOffset + (Date.now() / 1000);

@@ -80,6 +80,9 @@ update msg model =
                         Input.Focus ->
                             { model | visible = True }
 
+                        Input.Click ->
+                            { model | visible = True }
+
                         Input.Blur ->
                             { model | visible = False }
             in

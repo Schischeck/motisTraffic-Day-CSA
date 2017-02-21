@@ -75,7 +75,9 @@ void for_each_service(loaded_file const& file,
       LOG(error) << "skipping bad service at " << e.filename_ << ":"
                  << e.line_number_;
     } catch (std::runtime_error const& e) {
-      LOG(error) << "skipping bad service: " << e.what();
+      LOG(error) << "skipping bad service at " << spec.filename_ << ":"
+                 << spec.line_number_from_ << "-" << spec.line_number_to_
+                 << ": " << e.what();
     }
   });
 }
