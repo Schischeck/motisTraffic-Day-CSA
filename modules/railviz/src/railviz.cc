@@ -4,6 +4,7 @@
 #include "utl/get_or_create.h"
 #include "utl/to_vec.h"
 
+#include "motis/core/common/hash_map.h"
 #include "motis/core/common/logging.h"
 
 #include "motis/core/access/bfs.h"
@@ -35,6 +36,24 @@ railviz::railviz() : module("RailViz", "railviz") {}
 
 railviz::~railviz() = default;
 
+hash_map<std::pair<int, int>, geo::box> bounding_boxes(schedule const& s) {
+  hash_map<std::pair<int, int>, geo::box> boxes;
+  boxes.set_empty_key(std::make_pair(0, 0));
+
+  try {
+    using path::PathBoxesResponse;
+    auto const res = motis_call(make_no_msg("/path/boxes"))->val();
+    for (auto const& box : *motis_content(PathBoxesResponse, res)->boxes()) {
+      auto const a = s.eva_to_station_.at(box->station_id_a()->str())->index_;
+      auto const b = s.eva_to_station_.at(box->station_id_b()->str())->index_;
+      boxes[{std::min(a, b), std::max(a, b)}] = geo::from_fbs(box);
+    }
+  } catch (...) {
+  }
+
+  return boxes;
+}
+
 void railviz::init(motis::module::registry& reg) {
   namespace p = std::placeholders;
   reg.register_op("/railviz/get_station",
@@ -43,8 +62,11 @@ void railviz::init(motis::module::registry& reg) {
                   std::bind(&railviz::get_trains, this, p::_1));
   reg.register_op("/railviz/get_trips",
                   std::bind(&railviz::get_trips, this, p::_1));
-  train_retriever_ =
-      std::make_unique<train_retriever>(synced_sched<RO>().sched());
+
+  reg.subscribe_void("/init", [this] {
+    auto const& s = synced_sched<RO>().sched();
+    train_retriever_ = std::make_unique<train_retriever>(s, bounding_boxes(s));
+  });
 }
 
 motis::module::msg_ptr railviz::get_station(

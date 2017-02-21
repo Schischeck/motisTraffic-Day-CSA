@@ -3,6 +3,8 @@
 #include <memory>
 #include <vector>
 
+#include "motis/core/common/hash_map.h"
+
 #include "motis/railviz/geo.h"
 
 namespace motis {
@@ -15,7 +17,8 @@ namespace railviz {
 
 struct edge_geo_index {
 public:
-  explicit edge_geo_index(int clasz, schedule const&);
+  edge_geo_index(int clasz, schedule const&,
+                 hash_map<std::pair<int, int>, geo::box> const&);
   virtual ~edge_geo_index();
 
   std::vector<edge const*> edges(geo::box area) const;

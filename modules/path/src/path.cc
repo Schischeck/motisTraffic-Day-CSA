@@ -15,9 +15,9 @@
 #include "motis/module/context/get_schedule.h"
 #include "motis/module/context/motis_call.h"
 
+#include "motis/path/constants.h"
 #include "motis/path/db/kv_database.h"
 #include "motis/path/lookup_index.h"
-#include "motis/path/constants.h"
 
 using namespace flatbuffers;
 using namespace motis::module;
@@ -66,7 +66,6 @@ void path::init(registry& r) {
   }
 
   r.register_op("/path/boxes", [this](msg_ptr const&) { return boxes(); });
-
   r.register_op("/path/station_seq",
                 [this](msg_ptr const& m) { return station_seq_path(m); });
   r.register_op("/path/id_train",

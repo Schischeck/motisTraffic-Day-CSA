@@ -9,6 +9,7 @@
 #include "boost/geometry/geometries/segment.hpp"
 #include "boost/geometry/index/rtree.hpp"
 
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/schedule.h"
 
 namespace bg = boost::geometry;
@@ -40,8 +41,19 @@ box bounding_box(spherical_point const c1, spherical_point const c2) {
 
 class edge_geo_index::impl {
 public:
-  impl(int clasz, schedule const& s) : clasz_(clasz), sched_(s) {
+  impl(int clasz, schedule const& s,
+       hash_map<std::pair<int, int>, geo::box> const& bounding_boxes)
+      : no_match_(0),
+        clasz_(clasz),
+        sched_(s),
+        bounding_boxes_(bounding_boxes) {
     init_rtree();
+
+    if (no_match_ != 0) {
+      LOG(logging::warn) << "clasz " << clasz
+                         << ": station pairs no bounding box: " << no_match_
+                         << "/" << station_pairs_.size();
+    }
   }
 
   std::vector<edge const*> edges(geo::box const b) const {
@@ -63,7 +75,9 @@ public:
 
 private:
   static std::pair<int, int> key(edge const& e) {
-    return {e.from_->get_station()->id_, e.to_->get_station()->id_};
+    auto const from = e.from_->get_station()->id_;
+    auto const to = e.to_->get_station()->id_;
+    return {std::min(from, to), std::max(from, to)};
   }
 
   void init_rtree() {
@@ -100,17 +114,19 @@ private:
         continue;
       }
 
-      entries.push_back(std::make_pair(
-          bounding_box(station_coords(e.from_), station_coords(e.to_)),
-          station_pairs_.size()));
+      entries.push_back(std::make_pair(get_bounding_box(station_pair),
+                                       station_pairs_.size()));
       station_pairs_.push_back(station_pair);
     }
   }
 
-  void retrieve_edges(std::pair<int, int> const& station_pair,
+  void retrieve_edges(std::pair<int, int> const& stations,
                       std::vector<edge const*>& edges) const {
-    auto const from = sched_.station_nodes_[station_pair.first].get();
-    auto const to = sched_.station_nodes_[station_pair.second].get();
+    auto key = std::make_pair(std::min(stations.first, stations.second),
+                              std::max(stations.first, stations.second));
+
+    auto const from = sched_.station_nodes_[key.first].get();
+    auto const to = sched_.station_nodes_[key.second].get();
 
     for (auto const& route_node : from->get_route_nodes()) {
       for (auto const& e : route_node->edges_) {
@@ -123,29 +139,37 @@ private:
     }
   }
 
-  spherical_point station_coords(node const* n) {
-    auto station_node = n->get_station();
-    assert(station_node != nullptr);
-
-    auto station_id = station_node->id_;
-    assert(station_id < sched_.stations_.size());
-
-    auto const& station = *sched_.stations_[station_id];
+  spherical_point station_coords(unsigned station_idx) {
+    auto const& station = *sched_.stations_[station_idx];
     return spherical_point(station.length_, station.width_);
+  }
+
+  box get_bounding_box(std::pair<int, int> const& stations) {
+    auto const it = bounding_boxes_.find(stations);
+    no_match_ += (it == end(bounding_boxes_) ? 1 : 0);
+    return it == end(bounding_boxes_)
+               ? bounding_box(station_coords(stations.first),
+                              station_coords(stations.second))
+               : bounding_box(to_point(it->second.first),
+                              to_point(it->second.second));
   }
 
   inline bool is_relevant(edge const& e) const {
     return !e.empty() && e.m_.route_edge_.conns_[0].full_con_->clasz_ == clasz_;
   }
 
+  int no_match_;
   int clasz_;
   schedule const& sched_;
   std::vector<std::pair<int, int>> station_pairs_;
+  hash_map<std::pair<int, int>, geo::box> const& bounding_boxes_;
   rtree rtree_;
 };
 
-edge_geo_index::edge_geo_index(int clasz, schedule const& s)
-    : impl_(new impl(clasz, s)) {}
+edge_geo_index::edge_geo_index(
+    int clasz, schedule const& s,
+    hash_map<std::pair<int, int>, geo::box> const& bounding_boxes)
+    : impl_(new impl(clasz, s, bounding_boxes)) {}
 
 edge_geo_index::~edge_geo_index() = default;
 
