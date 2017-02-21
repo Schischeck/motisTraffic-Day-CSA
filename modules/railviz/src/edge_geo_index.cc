@@ -122,19 +122,21 @@ private:
 
   void retrieve_edges(std::pair<int, int> const& stations,
                       std::vector<edge const*>& edges) const {
-    auto key = std::make_pair(std::min(stations.first, stations.second),
-                              std::max(stations.first, stations.second));
+    auto const dir1 = std::make_pair(stations.second, stations.first);
+    auto const dir2 = std::make_pair(stations.first, stations.second);
 
-    auto const from = sched_.station_nodes_[key.first].get();
-    auto const to = sched_.station_nodes_[key.second].get();
+    for (auto const& d : {dir1, dir2}) {
+      auto const from = sched_.station_nodes_[d.first].get();
+      auto const to = sched_.station_nodes_[d.second].get();
 
-    for (auto const& route_node : from->get_route_nodes()) {
-      for (auto const& e : route_node->edges_) {
-        if (!is_relevant(e) || e.to_->get_station() != to) {
-          continue;
+      for (auto const& route_node : from->get_route_nodes()) {
+        for (auto const& e : route_node->edges_) {
+          if (!is_relevant(e) || e.to_->get_station() != to) {
+            continue;
+          }
+
+          edges.push_back(&e);
         }
-
-        edges.push_back(&e);
       }
     }
   }
