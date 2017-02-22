@@ -1,7 +1,7 @@
 namespace motis.railviz;
 
 table RailVizTripGuessRequest {
-  train_num:int;
+  train_num:uint;
   time:ulong;
   guess_count:uint;
 }

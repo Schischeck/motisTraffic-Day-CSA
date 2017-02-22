@@ -77,14 +77,12 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
   auto const& sched = get_schedule();
   auto const t = unix_to_motistime(sched, req->time());
 
-  primary_trip_id primary_id(0, req->train_num(), 0);
   auto it =
       std::lower_bound(begin(sched.trips_), end(sched.trips_),
-                       std::make_pair(primary_id, static_cast<trip*>(nullptr)));
+                       std::make_pair(primary_trip_id{0u, req->train_num(), 0u},
+                                      static_cast<trip*>(nullptr)));
 
-  message_creator fbb;
   std::vector<trip const*> trips;
-
   while (it != end(sched.trips_) && it->first.train_nr_ == req->train_num()) {
     trips.emplace_back(it->second);
 
@@ -100,6 +98,7 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
     ++it;
   }
 
+  message_creator fbb;
   fbb.create_and_finish(
       MsgContent_RailVizTripGuessResponse,
       CreateRailVizTripGuessResponse(
