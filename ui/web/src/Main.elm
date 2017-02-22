@@ -72,7 +72,7 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
-    , map : RailViz.Model
+    , railViz : RailViz.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
     , tripDetails : Maybe ConnectionDetails.State
@@ -126,7 +126,7 @@ init flags initialLocation =
             , date = dateModel
             , time = timeModel
             , searchDirection = Forward
-            , map = mapModel
+            , railViz = mapModel
             , connections = Connections.init remoteAddress
             , connectionDetails = Nothing
             , tripDetails = Nothing
@@ -224,9 +224,9 @@ update msg model =
         MapUpdate msg_ ->
             let
                 ( m, c ) =
-                    RailViz.update msg_ model.map
+                    RailViz.update msg_ model.railViz
             in
-                ( { model | map = m }, Cmd.map MapUpdate c )
+                ( { model | railViz = m }, Cmd.map MapUpdate c )
 
         FromLocationUpdate msg_ ->
             let
@@ -616,19 +616,15 @@ update msg model =
                                             TimeoutError
 
                                         _ ->
-                                            HttpError 1001
+                                            DecodeError errType
 
                                 Err msg_ ->
-                                    let
-                                        _ =
-                                            Debug.log "HandleRailVizError Decode Error:" ( json, msg_ )
-                                    in
-                                        HttpError 1000
+                                    DecodeError msg_
 
-                _ =
-                    Debug.log "HandleRailVizError" ( json, apiError )
+                ( railVizModel, _ ) =
+                    RailViz.update (RailViz.SetApiError (Just apiError)) model.railViz
             in
-                model ! []
+                { model | railViz = railVizModel } ! []
 
 
 buildRoutingRequest : Model -> RoutingRequest
@@ -773,7 +769,7 @@ subscriptions model =
     Sub.batch
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
-        , Sub.map MapUpdate (RailViz.subscriptions model.map)
+        , Sub.map MapUpdate (RailViz.subscriptions model.railViz)
         , Port.setRoutingResponses SetRoutingResponses
         , Port.showStationDetails ShowStationDetails
         , Port.showTripDetails SelectTripId
@@ -790,7 +786,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ Html.map MapUpdate (RailViz.view model.locale model.map)
+        [ Html.map MapUpdate (RailViz.view model.locale model.railViz)
         , lazy overlayView model
         , lazy stationSearchView model
         ]
