@@ -1,0 +1,12 @@
+include "base/Position.fbs";
+
+namespace motis.address;
+
+table Address {
+  pos:Position;
+  name:string;
+}
+
+table AddressResponse {
+  guesses:[Address];
+}

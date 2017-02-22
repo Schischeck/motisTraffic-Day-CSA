@@ -10,9 +10,6 @@
 [submodule "external_lib/flatbuffers"]
 	path = external_lib/flatbuffers
 	url = git@git.motis-project.de:lib/flatbuffers.git
-[submodule "external_lib/guess"]
-	path = external_lib/guess
-	url = git@git.motis-project.de:lib/guess.git
 [submodule "external_lib/parser"]
 	path = external_lib/parser
 	url = git@git.motis-project.de:lib/parser.git
@@ -52,9 +49,6 @@
 [submodule "external_lib/osmium"]
 	path = external_lib/osmium
 	url = git@git.motis-project.de:lib/osmium.git
-[submodule "external_lib/expat"]
-	path = external_lib/expat
-	url = git@git.motis-project.de:lib/expat.git
 [submodule "external_lib/rocksdb"]
 	path = external_lib/rocksdb
 	url = git@git.motis-project.de:lib/rocksdb-flat.git
@@ -67,3 +61,6 @@
 [submodule "external_lib/rapidjson"]
 	path = external_lib/rapidjson
 	url = git@git.motis-project.de:lib/rapidjson.git
+[submodule "external_lib/address-typeahead"]
+	path = external_lib/address-typeahead
+	url = git@git.motis-project.de:arne.link/address-typeahead.git

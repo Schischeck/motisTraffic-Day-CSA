@@ -1,0 +1,6 @@
+namespace motis.address;
+
+table AddressRequest {
+  guess_count:ushort=8;
+  input:string;
+}

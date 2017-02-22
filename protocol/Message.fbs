@@ -1,3 +1,5 @@
+include "address/AddressRequest.fbs";
+include "address/AddressResponse.fbs";
 include "bikesharing/BikesharingGeoTerminalsRequest.fbs";
 include "bikesharing/BikesharingGeoTerminalsResponse.fbs";
 include "bikesharing/BikesharingRequest.fbs";
@@ -102,6 +104,8 @@ union MsgContent {
   motis.HTTPRequest,
   motis.HTTPResponse,
   motis.TripId,
+  motis.address.AddressRequest,
+  motis.address.AddressResponse,
   motis.bikesharing.BikesharingRequest,
   motis.bikesharing.BikesharingResponse,
   motis.bikesharing.BikesharingGeoTerminalsRequest,
