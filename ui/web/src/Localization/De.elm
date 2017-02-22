@@ -37,14 +37,6 @@ deTranslations =
                     ++ " möglich"
         , loading = "Verbindungen suchen..."
         , noResults = "Keine Verbindungen gefunden"
-        , errors =
-            { journeyDateNotInSchedule = "Zeitraum nicht im Fahrplan"
-            , internalError = \msg -> "Interner Fehler (" ++ msg ++ ")"
-            , timeout = "Zeitüberschreitung"
-            , network = "Netzwerkfehler"
-            , http = \code -> "HTTP-Fehler " ++ (toString code)
-            , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
-            }
         , extendBefore = "Früher"
         , extendAfter = "Später"
         , interchanges =
@@ -88,5 +80,13 @@ deTranslations =
         { trainColors = "Zugfarben"
         , delayColors = "Verspätung"
         , classColors = "Kategorie"
+        }
+    , errors =
+        { journeyDateNotInSchedule = "Zeitraum nicht im Fahrplan"
+        , internalError = \msg -> "Interner Fehler (" ++ msg ++ ")"
+        , timeout = "Zeitüberschreitung"
+        , network = "Netzwerkfehler"
+        , http = \code -> "HTTP-Fehler " ++ (toString code)
+        , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
         }
     }

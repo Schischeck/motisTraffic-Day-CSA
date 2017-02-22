@@ -29,14 +29,6 @@ type alias Translations =
         , scheduleRange : Date -> Date -> String
         , loading : String
         , noResults : String
-        , errors :
-            { journeyDateNotInSchedule : String
-            , internalError : String -> String
-            , timeout : String
-            , network : String
-            , http : Int -> String
-            , decode : String -> String
-            }
         , extendBefore : String
         , extendAfter : String
         , interchanges : Int -> String
@@ -60,5 +52,13 @@ type alias Translations =
         { trainColors : String
         , delayColors : String
         , classColors : String
+        }
+    , errors :
+        { journeyDateNotInSchedule : String
+        , internalError : String -> String
+        , timeout : String
+        , network : String
+        , http : Int -> String
+        , decode : String -> String
         }
     }

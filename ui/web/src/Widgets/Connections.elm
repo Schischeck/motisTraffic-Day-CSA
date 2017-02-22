@@ -26,6 +26,7 @@ import Data.Routing.Request as RoutingRequest exposing (encodeRequest)
 import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.Helpers.ConnectionUtil exposing (..)
+import Widgets.Helpers.ApiErrorUtil exposing (errorText)
 import Widgets.JourneyTransportGraph as JourneyTransportGraph
 import Widgets.LoadingSpinner as LoadingSpinner
 import Widgets.DateHeaders exposing (..)
@@ -33,15 +34,7 @@ import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.Date exposing (isSameDay, unixTime)
 import Util.List exposing ((!!))
-import Util.Api as Api
-    exposing
-        ( ApiError(..)
-        , MotisErrorInfo(..)
-        , ModuleErrorInfo(..)
-        , RoutingErrorInfo(..)
-        , AccessErrorInfo(..)
-        , MotisErrorDetail
-        )
+import Util.Api as Api exposing (ApiError)
 import Localization.Base exposing (..)
 import List.Extra exposing (updateAt)
 
@@ -701,39 +694,12 @@ errorView : String -> Localization -> Model -> ApiError -> Html msg
 errorView divClass locale model err =
     let
         errorMsg =
-            case err of
-                MotisError err_ ->
-                    motisErrorMsg locale err_
-
-                TimeoutError ->
-                    locale.t.connections.errors.timeout
-
-                NetworkError ->
-                    locale.t.connections.errors.network
-
-                HttpError status ->
-                    locale.t.connections.errors.http status
-
-                DecodeError msg ->
-                    locale.t.connections.errors.decode msg
+            errorText locale err
     in
         div [ class divClass ]
             [ div [] [ text errorMsg ]
             , scheduleRangeView locale model
             ]
-
-
-motisErrorMsg : Localization -> MotisErrorInfo -> String
-motisErrorMsg { t } err =
-    case err of
-        RoutingError JourneyDateNotInSchedule ->
-            t.connections.errors.journeyDateNotInSchedule
-
-        AccessError AccessTimestampNotInSchedule ->
-            t.connections.errors.journeyDateNotInSchedule
-
-        _ ->
-            t.connections.errors.internalError (toString err)
 
 
 extendIntervalButton :
