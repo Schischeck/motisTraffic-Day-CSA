@@ -31,7 +31,7 @@ RailViz.Trains = (function() {
             v_color = u_useCategoryColor ? a_categoryColor : a_delayColor;
             v_pickColor = a_pickColor;
 
-                        float c = cos(a_angle);
+            float c = cos(a_angle);
             float s = sin(a_angle);
 
             v_texTransform = mat3(
@@ -147,10 +147,6 @@ RailViz.Trains = (function() {
     progressBuffer = gl.createBuffer();
     colorBuffer = gl.createBuffer();
 
-    // texture = WebGL.Util.createTextureFromCanvas(
-    //     gl,
-    //     RailViz.Textures.createCircle(
-    //         [255, 255, 255, 1.0], [160, 160, 160, 1.0], 6));
     texture =
         WebGL.Util.createTextureFromCanvas(gl, RailViz.Textures.createTrain());
 
@@ -266,8 +262,6 @@ RailViz.Trains = (function() {
     }
     positionBufferUpdated = true;
   }
-
-  const xAxis = vec2.fromValues(1, 0);
 
   function updatePositionBuffer(trainIndex) {
     const train = trains[trainIndex];
