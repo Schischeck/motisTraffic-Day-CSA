@@ -28,20 +28,24 @@ RailViz.API = (function() {
 
   function sendRequest(apiEndpoint, requestData, onSuccess, onFail) {
     var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState == XMLHttpRequest.DONE) {
-        var response = xhr.responseText;
-        try {
-          response = JSON.parse(xhr.responseText);
-        } catch (ex) {
-        }
-        if (xhr.status == 200) {
-          onSuccess(response);
-        } else {
-          onFail(response);
-        }
+    xhr.addEventListener('load', function() {
+      var response = xhr.responseText;
+      try {
+        response = JSON.parse(xhr.responseText);
+      } catch (ex) {
       }
-    };
+      if (xhr.status == 200) {
+        onSuccess(response);
+      } else {
+        onFail(response);
+      }
+    });
+    xhr.addEventListener('error', function() {
+      onFail('NetworkError');
+    });
+    xhr.addEventListener('timeout', function() {
+      onFail('TimeoutError');
+    })
     xhr.open('POST', apiEndpoint);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(requestData));
@@ -52,5 +56,4 @@ RailViz.API = (function() {
     makeTripsRequest: makeTripsRequest,
     sendRequest: sendRequest,
   };
-
 })();

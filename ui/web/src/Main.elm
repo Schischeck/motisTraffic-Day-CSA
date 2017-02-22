@@ -606,7 +606,24 @@ update msg model =
                             MotisError value
 
                         Err msg ->
-                            HttpError 500
+                            case Decode.decodeValue Decode.string json of
+                                Ok errType ->
+                                    case errType of
+                                        "NetworkError" ->
+                                            NetworkError
+
+                                        "TimeoutError" ->
+                                            TimeoutError
+
+                                        _ ->
+                                            HttpError 1001
+
+                                Err msg_ ->
+                                    let
+                                        _ =
+                                            Debug.log "HandleRailVizError Decode Error:" ( json, msg_ )
+                                    in
+                                        HttpError 1000
 
                 _ =
                     Debug.log "HandleRailVizError" ( json, apiError )
