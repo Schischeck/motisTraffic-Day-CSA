@@ -74,7 +74,7 @@ WebGL.Util = (function() {
     // gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
     var level = 0;
-    var size = 64;
+    var size = 256;
     while (size >= 1) {
       const cv = draw(size);
       gl.texImage2D(
