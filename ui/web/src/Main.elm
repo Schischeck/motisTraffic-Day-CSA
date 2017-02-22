@@ -210,6 +210,7 @@ type Msg
     | CloseSubOverlay
     | StationSearchUpdate Typeahead.Msg
     | HandleRailVizError Json.Encode.Value
+    | ClearRailVizError
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -626,6 +627,13 @@ update msg model =
             in
                 { model | railViz = railVizModel } ! []
 
+        ClearRailVizError ->
+            let
+                ( railVizModel, _ ) =
+                    RailViz.update (RailViz.SetApiError Nothing) model.railViz
+            in
+                { model | railViz = railVizModel } ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -775,6 +783,7 @@ subscriptions model =
         , Port.showTripDetails SelectTripId
         , Port.setSimulationTime SetSimulationTime
         , Port.handleRailVizError HandleRailVizError
+        , Port.clearRailVizError (always ClearRailVizError)
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
 

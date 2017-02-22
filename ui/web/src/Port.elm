@@ -26,3 +26,6 @@ port setSimulationTime : (Float -> msg) -> Sub msg
 
 
 port handleRailVizError : (Json.Encode.Value -> msg) -> Sub msg
+
+
+port clearRailVizError : (() -> msg) -> Sub msg

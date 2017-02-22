@@ -106,6 +106,7 @@ RailViz.Main = (function() {
         showFullData();
       }
     }
+    elmPorts.clearRailVizError.send(null);
   }
 
   function showFullData() {
