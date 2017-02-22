@@ -95,3 +95,14 @@ type alias TripInfo =
     { id : TripId
     , transport : TransportInfo
     }
+
+
+type alias RailVizTripGuessRequest =
+    { trainNum : Int
+    , time : Int
+    , guessCount : Int
+    }
+
+
+type alias RailVizTripGuessResponse =
+    { trips : List TripId }

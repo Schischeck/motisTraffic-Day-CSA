@@ -11,6 +11,7 @@ import Data.RailViz.Types
         , RailVizTripsRequest
         , RailVizStationRequest
         , RailVizStationDirection(..)
+        , RailVizTripGuessRequest
         )
 import Data.Lookup.Request exposing (encodeTripId)
 
@@ -108,3 +109,21 @@ initialStationRequest stationId date =
         , direction = BOTH
         , byScheduleTime = True
         }
+
+
+encodeTripGuessRequest : RailVizTripGuessRequest -> Encode.Value
+encodeTripGuessRequest req =
+    Encode.object
+        [ "destination"
+            => Encode.object
+                [ "type" => Encode.string "Module"
+                , "target" => Encode.string "/railviz/get_trip_guesses"
+                ]
+        , "content_type" => Encode.string "RailVizTripGuessRequest"
+        , "content"
+            => Encode.object
+                [ "train_num" => Encode.int req.trainNum
+                , "time" => Encode.int req.time
+                , "guess_count" => Encode.int req.guessCount
+                ]
+        ]
