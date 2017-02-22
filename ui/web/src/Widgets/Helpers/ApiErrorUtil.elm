@@ -32,5 +32,8 @@ motisErrorMsg { t } err =
         AccessError AccessTimestampNotInSchedule ->
             t.errors.journeyDateNotInSchedule
 
+        ModuleError TargetNotFound ->
+            t.errors.moduleNotFound
+
         _ ->
             t.errors.internalError (toString err)

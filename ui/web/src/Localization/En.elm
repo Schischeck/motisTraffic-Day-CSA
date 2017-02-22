@@ -88,5 +88,6 @@ enTranslations =
         , network = "Network error"
         , http = \code -> "HTTP error " ++ (toString code)
         , decode = \msg -> "Invalid response (" ++ msg ++ ")"
+        , moduleNotFound = "Module not found"
         }
     }

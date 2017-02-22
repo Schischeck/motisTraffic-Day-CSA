@@ -392,7 +392,7 @@ apiErrorOverlay : Localization -> ApiError -> Html Msg
 apiErrorOverlay locale err =
     let
         errorMsg =
-            errorText locale err
+            "RailViz: " ++ (errorText locale err)
     in
         div [ class "railviz-error-overlay", id "railviz-error-overlay" ]
             [ i [ class "icon" ] [ text "error_outline" ]

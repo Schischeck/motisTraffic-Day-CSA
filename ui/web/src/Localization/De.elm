@@ -88,5 +88,6 @@ deTranslations =
         , network = "Netzwerkfehler"
         , http = \code -> "HTTP-Fehler " ++ (toString code)
         , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
+        , moduleNotFound = "Modul nicht geladen"
         }
     }

@@ -60,5 +60,6 @@ type alias Translations =
         , network : String
         , http : Int -> String
         , decode : String -> String
+        , moduleNotFound : String
         }
     }
