@@ -1,6 +1,7 @@
 port module Port exposing (..)
 
 import Data.Connection.Types exposing (TripId)
+import Json.Encode
 
 
 -- see also: Widgets.Map.Port
@@ -22,3 +23,9 @@ port setTimeOffset : Float -> Cmd msg
 
 
 port setSimulationTime : (Float -> msg) -> Sub msg
+
+
+port handleRailVizError : (Json.Encode.Value -> msg) -> Sub msg
+
+
+port clearRailVizError : (() -> msg) -> Sub msg

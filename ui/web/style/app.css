@@ -219,6 +219,25 @@
   background: rgba(255, 255, 255, 0.7);
 }
 
+#railviz-error-overlay {
+  position: absolute;
+  top: 90px;
+  right: 10px;
+  padding: 10px;
+  font-size: 14px;
+  line-height: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #DDDDDD;
+  border-radius: 4px;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, .16);
+}
+
+#railviz-error-overlay i {
+  padding-right: 5px;
+  vertical-align: middle;
+  color: #A30009;
+}
+
 #station-search {
   position: absolute;
   top: 10px;

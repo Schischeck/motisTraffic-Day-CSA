@@ -38,6 +38,7 @@ import Routes exposing (..)
 import Debounce
 import Maybe.Extra exposing (isJust, orElse)
 import Port
+import Json.Encode
 import Json.Decode as Decode
 import Date exposing (Date)
 import Time exposing (Time)
@@ -71,7 +72,7 @@ type alias Model =
     , date : Calendar.Model
     , time : TimeInput.Model
     , searchDirection : SearchDirection
-    , map : RailViz.Model
+    , railViz : RailViz.Model
     , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
     , tripDetails : Maybe ConnectionDetails.State
@@ -125,7 +126,7 @@ init flags initialLocation =
             , date = dateModel
             , time = timeModel
             , searchDirection = Forward
-            , map = mapModel
+            , railViz = mapModel
             , connections = Connections.init remoteAddress
             , connectionDetails = Nothing
             , tripDetails = Nothing
@@ -208,6 +209,8 @@ type Msg
     | ToggleOverlay
     | CloseSubOverlay
     | StationSearchUpdate Typeahead.Msg
+    | HandleRailVizError Json.Encode.Value
+    | ClearRailVizError
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -222,9 +225,9 @@ update msg model =
         MapUpdate msg_ ->
             let
                 ( m, c ) =
-                    RailViz.update msg_ model.map
+                    RailViz.update msg_ model.railViz
             in
-                ( { model | map = m }, Cmd.map MapUpdate c )
+                ( { model | railViz = m }, Cmd.map MapUpdate c )
 
         FromLocationUpdate msg_ ->
             let
@@ -596,6 +599,41 @@ update msg model =
             in
                 { model | stationSearch = m } ! [ Cmd.map StationSearchUpdate c1, c2 ]
 
+        HandleRailVizError json ->
+            let
+                apiError =
+                    case Decode.decodeValue Api.decodeErrorResponse json of
+                        Ok value ->
+                            MotisError value
+
+                        Err msg ->
+                            case Decode.decodeValue Decode.string json of
+                                Ok errType ->
+                                    case errType of
+                                        "NetworkError" ->
+                                            NetworkError
+
+                                        "TimeoutError" ->
+                                            TimeoutError
+
+                                        _ ->
+                                            DecodeError errType
+
+                                Err msg_ ->
+                                    DecodeError msg_
+
+                ( railVizModel, _ ) =
+                    RailViz.update (RailViz.SetApiError (Just apiError)) model.railViz
+            in
+                { model | railViz = railVizModel } ! []
+
+        ClearRailVizError ->
+            let
+                ( railVizModel, _ ) =
+                    RailViz.update (RailViz.SetApiError Nothing) model.railViz
+            in
+                { model | railViz = railVizModel } ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -739,11 +777,13 @@ subscriptions model =
     Sub.batch
         [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
         , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
-        , Sub.map MapUpdate (RailViz.subscriptions model.map)
+        , Sub.map MapUpdate (RailViz.subscriptions model.railViz)
         , Port.setRoutingResponses SetRoutingResponses
         , Port.showStationDetails ShowStationDetails
         , Port.showTripDetails SelectTripId
         , Port.setSimulationTime SetSimulationTime
+        , Port.handleRailVizError HandleRailVizError
+        , Port.clearRailVizError (always ClearRailVizError)
         , Time.every (2 * Time.second) UpdateCurrentTime
         ]
 
@@ -755,7 +795,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div [ class "app" ] <|
-        [ Html.map MapUpdate (RailViz.view model.locale model.map)
+        [ Html.map MapUpdate (RailViz.view model.locale model.railViz)
         , lazy overlayView model
         , lazy stationSearchView model
         ]

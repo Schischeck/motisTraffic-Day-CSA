@@ -68,11 +68,35 @@ WebGL.Util = (function() {
     return texture;
   }
 
+  function createTextureFromCanvas(gl, draw) {
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    // gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+    var level = 0;
+    var size = 256;
+    while (size >= 1) {
+      const cv = draw(size);
+      gl.texImage2D(
+          gl.TEXTURE_2D, level, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+      size = size / 2;
+      level++;
+    }
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(
+        gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    return texture;
+  }
+
   return {
     createShader: createShader,
     createProgram: createProgram,
     resizeCanvasToDisplaySize: resizeCanvasToDisplaySize,
-    createTextureFromImage: createTextureFromImage
+    createTextureFromImage: createTextureFromImage,
+    createTextureFromCanvas: createTextureFromCanvas
   };
 
 })();

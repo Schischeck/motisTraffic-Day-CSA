@@ -2,6 +2,7 @@ module Data.RailViz.Decode
     exposing
         ( decodeRailVizTrainsResponse
         , decodeRailVizStationResponse
+        , decodeRailVizTripGuessResponse
         )
 
 import Data.RailViz.Types exposing (..)
@@ -118,3 +119,14 @@ decodeEventType =
                     fail ("Not valid pattern for decoder to EventType. Pattern: " ++ (toString string))
     in
         string |> JD.andThen decodeToType
+
+
+decodeRailVizTripGuessResponse : JD.Decoder RailVizTripGuessResponse
+decodeRailVizTripGuessResponse =
+    at [ "content" ] decodeRailVizTripGuessResponseContent
+
+
+decodeRailVizTripGuessResponseContent : JD.Decoder RailVizTripGuessResponse
+decodeRailVizTripGuessResponseContent =
+    decode RailVizTripGuessResponse
+        |> required "trips" (list decodeTripId)
