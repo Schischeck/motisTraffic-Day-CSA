@@ -113,7 +113,10 @@ RailViz.Stations = (function() {
     buffer = gl.createBuffer();
     bufferValid = false;
 
-    texture = WebGL.Util.createTextureFromImage(gl, 'img/railviz/station.png');
+    texture = WebGL.Util.createTextureFromCanvas(
+        gl,
+        RailViz.Textures.createCircle(
+            [255, 255, 255, 1.0], [0, 0, 0, 1.0], 10));
   }
 
   function render(gl, perspective, zoom, pixelRatio, isOffscreen) {

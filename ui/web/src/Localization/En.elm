@@ -37,14 +37,6 @@ enTranslations =
                     ++ " möglich"
         , loading = "Searching..."
         , noResults = "No connections found"
-        , errors =
-            { journeyDateNotInSchedule = "Date not in schedule"
-            , internalError = \msg -> "Internal error (" ++ msg ++ ")"
-            , timeout = "Timeout"
-            , network = "Network error"
-            , http = \code -> "HTTP error " ++ (toString code)
-            , decode = \msg -> "Invalid response (" ++ msg ++ ")"
-            }
         , extendBefore = "Earlier"
         , extendAfter = "Later"
         , interchanges =
@@ -88,5 +80,14 @@ enTranslations =
         { trainColors = "Train colors"
         , delayColors = "Delay"
         , classColors = "Category"
+        }
+    , errors =
+        { journeyDateNotInSchedule = "Date not in schedule"
+        , internalError = \msg -> "Internal error (" ++ msg ++ ")"
+        , timeout = "Timeout"
+        , network = "Network error"
+        , http = \code -> "HTTP error " ++ (toString code)
+        , decode = \msg -> "Invalid response (" ++ msg ++ ")"
+        , moduleNotFound = "Module not found"
         }
     }

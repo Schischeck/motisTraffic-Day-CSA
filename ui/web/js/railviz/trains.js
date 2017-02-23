@@ -4,6 +4,7 @@ RailViz.Trains = (function() {
   const vertexShader = `
         attribute vec4 a_startPos;
         attribute vec4 a_endPos;
+        attribute float a_angle;
         attribute float a_progress;
         attribute vec4 a_delayColor;
         attribute vec4 a_categoryColor;
@@ -15,6 +16,7 @@ RailViz.Trains = (function() {
         
         varying vec4 v_color;
         varying vec4 v_pickColor;
+        varying mat3 v_texTransform;
 
         void main() {
             if (a_progress < 0.0) {
@@ -24,9 +26,19 @@ RailViz.Trains = (function() {
                 vec4 endPrj = u_perspective * a_endPos;
                 gl_Position = mix(startPrj, endPrj, a_progress);
             }
-            gl_PointSize = u_zoom;
+
+            gl_PointSize = u_zoom * 4.0;
             v_color = u_useCategoryColor ? a_categoryColor : a_delayColor;
             v_pickColor = a_pickColor;
+
+            float c = cos(a_angle);
+            float s = sin(a_angle);
+
+            v_texTransform = mat3(
+              c, s, 0,
+              -s, c, 0,
+              -0.5 * c + 0.5 * s + 0.5, -0.5 * s - 0.5 * c + 0.5, 1
+            );
         }
     `;
 
@@ -38,11 +50,13 @@ RailViz.Trains = (function() {
         
         varying vec4 v_color;
         varying vec4 v_pickColor;
+        varying mat3 v_texTransform;
 
         const vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
         
         void main() {
-            vec4 tex = texture2D(u_texture, gl_PointCoord);
+            vec2 rotated = (v_texTransform * vec3(gl_PointCoord, 1.0)).xy;
+            vec4 tex = texture2D(u_texture, rotated);
             if (u_offscreen) {
                 gl_FragColor = tex.a == 0.0 ? transparent : v_pickColor;
             } else {
@@ -72,6 +86,7 @@ RailViz.Trains = (function() {
   var program;
   var a_startPos;
   var a_endPos;
+  var a_angle;
   var a_progress;
   var a_delayColor;
   var a_categoryColor;
@@ -103,7 +118,9 @@ RailViz.Trains = (function() {
     filteredIndices = null;
   }
 
-  function setUseCategoryColor(useCategory) { useCategoryColor = useCategory; }
+  function setUseCategoryColor(useCategory) {
+    useCategoryColor = useCategory;
+  }
 
   function setup(gl) {
     const vshader = WebGL.Util.createShader(gl, gl.VERTEX_SHADER, vertexShader);
@@ -115,6 +132,7 @@ RailViz.Trains = (function() {
 
     a_startPos = gl.getAttribLocation(program, 'a_startPos');
     a_endPos = gl.getAttribLocation(program, 'a_endPos');
+    a_angle = gl.getAttribLocation(program, 'a_angle');
     a_progress = gl.getAttribLocation(program, 'a_progress');
     a_delayColor = gl.getAttribLocation(program, 'a_delayColor');
     a_categoryColor = gl.getAttribLocation(program, 'a_categoryColor');
@@ -128,7 +146,9 @@ RailViz.Trains = (function() {
     positionBuffer = gl.createBuffer();
     progressBuffer = gl.createBuffer();
     colorBuffer = gl.createBuffer();
-    texture = WebGL.Util.createTextureFromImage(gl, 'img/railviz/train.png');
+
+    texture =
+        WebGL.Util.createTextureFromCanvas(gl, RailViz.Textures.createTrain());
 
     positionBufferInitialized = false;
     progressBufferInitialized = false;
@@ -181,9 +201,11 @@ RailViz.Trains = (function() {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.enableVertexAttribArray(a_startPos);
-    gl.vertexAttribPointer(a_startPos, 2, gl.FLOAT, false, 16, 0);
+    gl.vertexAttribPointer(a_startPos, 2, gl.FLOAT, false, 20, 0);
     gl.enableVertexAttribArray(a_endPos);
-    gl.vertexAttribPointer(a_endPos, 2, gl.FLOAT, false, 16, 8);
+    gl.vertexAttribPointer(a_endPos, 2, gl.FLOAT, false, 20, 8);
+    gl.enableVertexAttribArray(a_angle);
+    gl.vertexAttribPointer(a_angle, 1, gl.FLOAT, false, 20, 16);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, progressBuffer);
     gl.enableVertexAttribArray(a_progress);
@@ -217,6 +239,7 @@ RailViz.Trains = (function() {
     gl.disableVertexAttribArray(a_pickColor);
     gl.disableVertexAttribArray(a_categoryColor);
     gl.disableVertexAttribArray(a_delayColor);
+    gl.disableVertexAttribArray(a_angle);
     gl.disableVertexAttribArray(a_endPos);
     gl.disableVertexAttribArray(a_startPos);
   }
@@ -233,7 +256,7 @@ RailViz.Trains = (function() {
   }
 
   function fillPositionBuffer() {
-    positionData = new Float32Array(trains.length * 4);
+    positionData = new Float32Array(trains.length * 5);
     for (var i = 0; i < trains.length; i++) {
       updatePositionBuffer(i);
     }
@@ -243,18 +266,24 @@ RailViz.Trains = (function() {
   function updatePositionBuffer(trainIndex) {
     const train = trains[trainIndex];
     const subSegmentIndex = train.currentSubSegmentIndex;
-    const base = trainIndex * 4;
+    const base = trainIndex * 5;
     if (subSegmentIndex != null) {
       const segment = routes[train.route_index].segments[train.segment_index];
       const polyline = segment.coordinates.coordinates;
       const polyOffset = subSegmentIndex * 2;
 
+      const x0 = polyline[polyOffset], y0 = polyline[polyOffset + 1],
+            x1 = polyline[polyOffset + 2], y1 = polyline[polyOffset + 3];
+      const angle = -Math.atan2(y1 - y0, x1 - x0);
+
       // a_startPos
-      positionData[base] = polyline[polyOffset];
-      positionData[base + 1] = polyline[polyOffset + 1];
+      positionData[base] = x0;
+      positionData[base + 1] = y0;
       // a_endPos
-      positionData[base + 2] = polyline[polyOffset + 2];
-      positionData[base + 3] = polyline[polyOffset + 3];
+      positionData[base + 2] = x1;
+      positionData[base + 3] = y1;
+      // a_angle
+      positionData[base + 4] = angle;
     } else {
       // a_startPos
       positionData[base] = -100;
@@ -262,6 +291,8 @@ RailViz.Trains = (function() {
       // a_endPos
       positionData[base + 2] = -100;
       positionData[base + 3] = -100;
+      // a_angle
+      positionData[base + 4] = 0;
     }
     positionBufferUpdated = true;
   }

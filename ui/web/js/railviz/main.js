@@ -73,8 +73,9 @@ RailViz.Main = (function() {
     trainUpdateTimeoutId = setTimeout(debouncedSendTrainsRequest, 90000);
     RailViz.API.sendRequest(
         apiEndpoint, makeTrainsRequest(),
-        response => dataReceived(response, false),
-        response => { console.log('api error:', response); });
+        response => dataReceived(response, false), response => {
+          elmPorts.handleRailVizError.send(response);
+        });
   }
 
   function sendTripsRequest() {
@@ -85,8 +86,9 @@ RailViz.Main = (function() {
       tripsUpdateTimeoutId = setTimeout(sendTripsRequest, 90000);
       RailViz.API.sendRequest(
           apiEndpoint, makeTripsRequest(),
-          response => dataReceived(response, true),
-          response => { console.log('api error:', response); });
+          response => dataReceived(response, true), response => {
+            elmPorts.handleRailVizError.send(response);
+          });
     }
   }
 
@@ -104,6 +106,7 @@ RailViz.Main = (function() {
         showFullData();
       }
     }
+    elmPorts.clearRailVizError.send(null);
   }
 
   function showFullData() {
@@ -197,7 +200,9 @@ RailViz.Main = (function() {
     debounce: debounce,
     mapUpdate: mapUpdate,
     setTimeOffset: setTimeOffset,
-    getTimeOffset: function() { return timeOffset; },
+    getTimeOffset: function() {
+      return timeOffset;
+    },
     setTripFilter: setTripFilter,
     setConnectionFilter: setConnectionFilter
   };

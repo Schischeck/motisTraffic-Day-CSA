@@ -1,6 +1,6 @@
 module Widgets.Map.RailViz
     exposing
-        ( Msg(SetTimeOffset)
+        ( Msg(SetTimeOffset, SetApiError)
         , Model
         , init
         , view
@@ -11,7 +11,7 @@ module Widgets.Map.RailViz
         )
 
 import Widgets.Map.Port as Port exposing (..)
-import Html exposing (Html, Attribute, div, text, span, input, label)
+import Html exposing (Html, Attribute, div, text, span, input, label, i)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Time exposing (Time)
@@ -23,6 +23,8 @@ import Util.Core exposing ((=>))
 import Util.DateFormat exposing (formatTime, formatDateTimeWithSeconds)
 import Localization.Base exposing (..)
 import Data.Connection.Types exposing (Station)
+import Util.Api as Api exposing (ApiError)
+import Widgets.Helpers.ApiErrorUtil exposing (errorText)
 
 
 -- MODEL
@@ -43,6 +45,7 @@ type alias Model =
     , hoveredTrain : Maybe RVTrain
     , hoveredStation : Maybe String
     , trainColors : TrainColors
+    , apiError : Maybe ApiError
     }
 
 
@@ -63,6 +66,7 @@ init remoteAddress =
     , hoveredTrain = Nothing
     , hoveredStation = Nothing
     , trainColors = ClassColors
+    , apiError = Nothing
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
@@ -79,6 +83,7 @@ type Msg
     | SetTimeOffset Float
     | SetTooltip MapTooltip
     | SetTrainColors TrainColors
+    | SetApiError (Maybe ApiError)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -117,6 +122,9 @@ update msg model =
         SetTrainColors colors ->
             { model | trainColors = colors }
                 ! [ mapUseTrainClassColors (colors == ClassColors) ]
+
+        SetApiError err ->
+            { model | apiError = err } ! []
 
 
 flyTo : Station -> Cmd msg
@@ -167,6 +175,7 @@ view locale model =
             , railVizTooltip model
             , simulationTimeOverlay locale model
             , trainColorPickerView locale model
+            , errorOverlay locale model
             ]
         ]
 
@@ -367,3 +376,25 @@ trainColorPickerView locale model =
             , label [ for "train-color-picker-delay" ] [ text locale.t.railViz.delayColors ]
             ]
         ]
+
+
+errorOverlay : Localization -> Model -> Html Msg
+errorOverlay locale model =
+    case model.apiError of
+        Just err ->
+            apiErrorOverlay locale err
+
+        Nothing ->
+            text ""
+
+
+apiErrorOverlay : Localization -> ApiError -> Html Msg
+apiErrorOverlay locale err =
+    let
+        errorMsg =
+            "RailViz: " ++ (errorText locale err)
+    in
+        div [ class "railviz-error-overlay", id "railviz-error-overlay" ]
+            [ i [ class "icon" ] [ text "error_outline" ]
+            , text errorMsg
+            ]

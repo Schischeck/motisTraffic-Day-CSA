@@ -21,14 +21,7 @@ import Data.RailViz.Request as StationRequest exposing (encodeStationRequest, in
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.List exposing (last)
-import Util.Api as Api
-    exposing
-        ( ApiError(..)
-        , MotisErrorInfo(..)
-        , ModuleErrorInfo(..)
-        , AccessErrorInfo(..)
-        , MotisErrorDetail
-        )
+import Util.Api as Api exposing (ApiError)
 import Localization.Base exposing (..)
 import Widgets.LoadingSpinner as LoadingSpinner
 import Widgets.Helpers.ConnectionUtil
@@ -37,6 +30,7 @@ import Widgets.Helpers.ConnectionUtil
         , trainBox
         , TransportViewMode(..)
         )
+import Widgets.Helpers.ApiErrorUtil exposing (errorText)
 import Widgets.DateHeaders exposing (..)
 import Maybe.Extra exposing (isJust)
 import Random exposing (maxInt)
@@ -589,35 +583,11 @@ errorView : String -> Localization -> Model -> ApiError -> Html msg
 errorView divClass locale model err =
     let
         errorMsg =
-            case err of
-                MotisError err_ ->
-                    motisErrorMsg locale err_
-
-                TimeoutError ->
-                    locale.t.connections.errors.timeout
-
-                NetworkError ->
-                    locale.t.connections.errors.network
-
-                HttpError status ->
-                    locale.t.connections.errors.http status
-
-                DecodeError msg ->
-                    locale.t.connections.errors.decode msg
+            errorText locale err
     in
         div [ class divClass ]
             [ div [] [ text errorMsg ]
             ]
-
-
-motisErrorMsg : Localization -> MotisErrorInfo -> String
-motisErrorMsg { t } err =
-    case err of
-        AccessError AccessTimestampNotInSchedule ->
-            t.connections.errors.journeyDateNotInSchedule
-
-        _ ->
-            t.connections.errors.internalError (toString err)
 
 
 getEvents : Model -> List RailVizEvent
