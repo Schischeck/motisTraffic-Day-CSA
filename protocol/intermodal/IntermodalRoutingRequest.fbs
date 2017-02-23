@@ -77,7 +77,7 @@ table ModeWrapper {
 //     "start_type": "IntermodalOntripStart",
 //     "start": {
 //       "position": { "lat": 49.8780915, "lng": 8.6546392},
-//       "departure_time": 1468998000
+//       "departure_time": 1476095400
 //     },
 //     "start_modes": [{
 //       "mode_type": "Foot",
