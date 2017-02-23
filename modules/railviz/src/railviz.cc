@@ -82,6 +82,11 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
                        std::make_pair(primary_trip_id{0u, req->train_num(), 0u},
                                       static_cast<trip*>(nullptr)));
 
+  auto const cmp = [&](trip const* a, trip const* b) {
+    return std::abs(a->id_.primary_.time_ - t) <
+           std::abs(b->id_.primary_.time_ - t);
+  };
+
   std::vector<trip const*> trips;
   while (it != end(sched.trips_) && it->first.train_nr_ == req->train_num()) {
     trips.emplace_back(it->second);
@@ -89,14 +94,13 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
     auto const interesting_size =
         std::min(req->guess_count(), static_cast<unsigned>(trips.size()));
     std::nth_element(begin(trips), std::next(begin(trips), interesting_size),
-                     end(trips), [&](trip const* a, trip const* b) {
-                       return std::abs(a->id_.primary_.time_ - t) <
-                              std::abs(b->id_.primary_.time_ - t);
-                     });
+                     end(trips), cmp);
     trips.resize(interesting_size);
 
     ++it;
   }
+
+  std::sort(begin(trips), end(trips), cmp);
 
   message_creator fbb;
   fbb.create_and_finish(
@@ -133,6 +137,10 @@ msg_ptr railviz::get_station(msg_ptr const& msg) const {
            (req->direction() == Direction_EARLIER && ev.t_ >= t);
   };
 
+  auto const cmp = [&](ev_info const& a, ev_info const& b) {
+    return std::abs(a.t_ - t) < std::abs(b.t_ - t);
+  };
+
   // get top $event_count events
   // matching the direction (earlier/later)
   std::vector<ev_info> events;
@@ -147,11 +155,11 @@ msg_ptr railviz::get_station(msg_ptr const& msg) const {
     auto const interesting_size =
         std::min(req->event_count(), static_cast<unsigned>(events.size()));
     std::nth_element(begin(events), std::next(begin(events), interesting_size),
-                     end(events), [&](ev_info const& a, ev_info const& b) {
-                       return std::abs(a.t_ - t) < std::abs(b.t_ - t);
-                     });
+                     end(events), cmp);
     events.resize(interesting_size);
   };
+
+  std::sort(begin(events), end(events), cmp);
 
   // collect departure events (only in allowed)
   for (auto const& se : station->edges_) {

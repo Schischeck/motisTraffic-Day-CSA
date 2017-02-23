@@ -17,7 +17,7 @@ namespace motis {
 struct primary_trip_id {
   primary_trip_id() = default;
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
-      : train_nr_(train_nr), station_id_(station_id), time_(time) {}
+      : station_id_(station_id), time_(time), train_nr_(train_nr) {}
 
   friend bool operator<(primary_trip_id const& lhs,
                         primary_trip_id const& rhs) {
@@ -34,9 +34,9 @@ struct primary_trip_id {
   motis::time get_time() const { return static_cast<motis::time>(time_); }
   uint32_t get_train_nr() const { return static_cast<uint32_t>(train_nr_); }
 
-  uint64_t train_nr_ : 17;
   uint64_t station_id_ : 31;
   uint64_t time_ : 16;
+  uint64_t train_nr_ : 17;
 };
 
 struct secondary_trip_id {
