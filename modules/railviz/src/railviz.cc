@@ -4,6 +4,8 @@
 #include "utl/get_or_create.h"
 #include "utl/to_vec.h"
 
+#include "parser/util.h"
+
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/logging.h"
 
@@ -15,6 +17,7 @@
 
 #include "motis/core/conv/station_conv.h"
 #include "motis/core/conv/timestamp_reason_conv.h"
+#include "motis/core/conv/transport_conv.h"
 #include "motis/core/conv/trip_conv.h"
 
 #include "motis/module/context/get_schedule.h"
@@ -48,7 +51,8 @@ hash_map<std::pair<int, int>, geo::box> bounding_boxes(schedule const& s) {
       auto const b = s.eva_to_station_.at(box->station_id_b()->str())->index_;
       boxes[{std::min(a, b), std::max(a, b)}] = geo::from_fbs(box);
     }
-  } catch (...) {
+  } catch (std::system_error const& e) {
+    LOG(logging::warn) << "bounding box request failed: " << e.what();
   }
 
   return boxes;
@@ -102,15 +106,41 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
 
   std::sort(begin(trips), end(trips), cmp);
 
+  auto const get_first_dep_ci = [&](trip const* trp) {
+    auto const& lcon =
+        trp->edges_->front()->m_.route_edge_.conns_[trp->lcon_idx_];
+    auto const& merged = *sched.merged_trips_[lcon.trips_];
+    auto const it = std::find(begin(merged), end(merged), trp);
+    verify(it != end(merged), "trip not found in trip");
+    auto const merged_ci_idx = std::distance(begin(merged), it);
+
+    auto i = 0u;
+    for (auto ci = lcon.full_con_->con_info_; ci != nullptr;
+         ci = ci->merged_with_) {
+      if (i == merged_ci_idx) {
+        return ci;
+      }
+      ++i;
+    }
+
+    verify(false, "merged with ci not found");
+  };
+
   message_creator fbb;
   fbb.create_and_finish(
       MsgContent_RailVizTripGuessResponse,
       CreateRailVizTripGuessResponse(
-          fbb,
-          fbb.CreateVector(utl::to_vec(
-              trips, [&](trip const* trp) { return to_fbs(sched, fbb, trp); })))
+          fbb, fbb.CreateVector(utl::to_vec(
+                   trips,
+                   [&](trip const* trp) {
+                     return CreateTrip(
+                         fbb, to_fbs(fbb, *sched.stations_.at(
+                                              trp->id_.primary_.station_id_)),
+                         CreateTripInfo(
+                             fbb, to_fbs(sched, fbb, trp),
+                             to_fbs(sched, fbb, get_first_dep_ci(trp), trp)));
+                   })))
           .Union());
-
   return make_msg(fbb);
 }
 
@@ -204,30 +234,13 @@ msg_ptr railviz::get_station(msg_ptr const& msg) const {
   auto const get_trips = [&](ev_key const& k) {
     std::vector<Offset<TripInfo>> trips;
 
-    auto const range = Range{0, 0};
     auto const& merged_trips = *sched.merged_trips_[k.lcon()->trips_];
-
     auto merged_trips_idx = 0u;
     for (auto ci = k.lcon()->full_con_->con_info_; ci != nullptr;
          ci = ci->merged_with_, ++merged_trips_idx) {
       auto const& trp = merged_trips.at(merged_trips_idx);
-      auto const& cat_name = sched.categories_.at(ci->family_)->name_;
-      auto const clasz_it = sched.classes_.find(cat_name);
-      auto const clasz = clasz_it == end(sched.classes_) ? 9 : clasz_it->second;
-
-      trips.push_back(CreateTripInfo(
-          fbb, to_fbs(sched, fbb, trp),
-          CreateTransport(
-              fbb, &range, fbb.CreateString(cat_name), ci->family_, clasz,
-              output_train_nr(ci->train_nr_, ci->original_train_nr_),
-              fbb.CreateString(ci->line_identifier_),
-              fbb.CreateString(get_service_name(sched, ci)),
-              fbb.CreateString(ci->provider_ ? ci->provider_->full_name_ : ""),
-              fbb.CreateString(
-                  ci->dir_ ? *ci->dir_
-                           : sched.stations_
-                                 .at(trp->id_.secondary_.target_station_id_)
-                                 ->name_))));
+      trips.push_back(CreateTripInfo(fbb, to_fbs(sched, fbb, trp),
+                                     to_fbs(sched, fbb, ci, trp)));
     }
 
     return fbb.CreateVector(trips);

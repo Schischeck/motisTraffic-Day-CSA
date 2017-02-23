@@ -1,7 +1,0 @@
-include "base/TripId.fbs";
-
-namespace motis.railviz;
-
-table RailVizTripGuessResponse {
-  trips: [TripId];
-}

@@ -28,7 +28,7 @@ include "railviz/RailVizTripsRequest.fbs";
 include "railviz/RailVizStationRequest.fbs";
 include "railviz/RailVizStationResponse.fbs";
 include "railviz/RailVizTripGuessRequest.fbs";
-include "railviz/RaizVizTripGuessResponse.fbs";
+include "railviz/RailVizTripGuessResponse.fbs";
 include "osrm/OSRMOneToManyRequest.fbs";
 include "osrm/OSRMOneToManyResponse.fbs";
 include "osrm/OSRMViaRouteRequest.fbs";
@@ -104,8 +104,6 @@ union MsgContent {
   motis.HTTPRequest,
   motis.HTTPResponse,
   motis.TripId,
-  motis.address.AddressRequest,
-  motis.address.AddressResponse,
   motis.bikesharing.BikesharingRequest,
   motis.bikesharing.BikesharingResponse,
   motis.bikesharing.BikesharingGeoTerminalsRequest,
@@ -137,8 +135,6 @@ union MsgContent {
   motis.railviz.RailVizTripsRequest,
   motis.railviz.RailVizStationRequest,
   motis.railviz.RailVizStationResponse,
-  motis.railviz.RailVizTripGuessRequest,
-  motis.railviz.RailVizTripGuessResponse,
   motis.osrm.OSRMOneToManyRequest,
   motis.osrm.OSRMOneToManyResponse,
   motis.osrm.OSRMViaRouteRequest,
@@ -152,7 +148,11 @@ union MsgContent {
   motis.ris.RISForwardTimeRequest,
   motis.routing.RoutingRequest,
   motis.routing.RoutingResponse,
-  motis.rt.RtUpdate
+  motis.rt.RtUpdate,
+  motis.railviz.RailVizTripGuessRequest,
+  motis.railviz.RailVizTripGuessResponse,
+  motis.address.AddressRequest,
+  motis.address.AddressResponse,
 }
 
 // Destination Examples:

@@ -1,14 +1,8 @@
-include "base/TripId.fbs";
-include "base/Connection.fbs";
 include "base/Station.fbs";
 include "base/EventType.fbs";
+include "base/TripInfo.fbs";
 
 namespace motis.railviz;
-
-table TripInfo {
-  id: motis.TripId;
-  transport: motis.Transport;
-}
 
 table Event {
   trips: [TripInfo];
