@@ -9,6 +9,7 @@ import Widgets.Map.ConnectionDetails as MapConnectionDetails
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Widgets.StationEvents as StationEvents
+import Widgets.TripSearch as TripSearch
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
@@ -77,6 +78,7 @@ type alias Model =
     , connectionDetails : Maybe ConnectionDetails.State
     , tripDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
+    , tripSearch : TripSearch.Model
     , subView : Maybe SubView
     , selectedConnectionIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
@@ -95,6 +97,7 @@ type alias Model =
 type SubView
     = TripDetailsView
     | StationEventsView
+    | TripSearchView
 
 
 init : ProgramFlags -> Location -> ( Model, Cmd Msg )
@@ -124,6 +127,9 @@ init flags initialLocation =
         ( stationSearchModel, stationSearchCmd ) =
             Typeahead.init remoteAddress ""
 
+        ( tripSearchModel, tripSearchCmd ) =
+            TripSearch.init remoteAddress locale
+
         initialModel =
             { fromLocation = fromLocationModel
             , toLocation = toLocationModel
@@ -137,6 +143,7 @@ init flags initialLocation =
             , connectionDetails = Nothing
             , tripDetails = Nothing
             , stationEvents = Nothing
+            , tripSearch = tripSearchModel
             , subView = Nothing
             , selectedConnectionIdx = Nothing
             , scheduleInfo = Nothing
@@ -161,6 +168,7 @@ init flags initialLocation =
               , Cmd.map FromLocationUpdate fromLocationCmd
               , Cmd.map ToLocationUpdate toLocationCmd
               , Cmd.map StationSearchUpdate stationSearchCmd
+              , Cmd.map TripSearchUpdate tripSearchCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
               , cmds
@@ -218,6 +226,8 @@ type Msg
     | StationSearchUpdate Typeahead.Msg
     | HandleRailVizError Json.Encode.Value
     | ClearRailVizError
+    | TripSearchUpdate TripSearch.Msg
+    | ShowTripSearch
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -423,11 +433,15 @@ update msg model =
 
                 newDate =
                     Calendar.update (Calendar.SetValidRange (Just ( si.begin, si.end ))) model.date
+
+                ( newTripSearch, _ ) =
+                    TripSearch.update (TripSearch.UpdateScheduleInfo si) model.tripSearch
             in
                 ( { model
                     | scheduleInfo = Just si
                     , connections = m
                     , date = newDate
+                    , tripSearch = newTripSearch
                   }
                 , Cmd.map ConnectionsUpdate c
                 )
@@ -642,6 +656,21 @@ update msg model =
             in
                 { model | railViz = railVizModel } ! []
 
+        TripSearchUpdate msg_ ->
+            let
+                ( m, c ) =
+                    TripSearch.update msg_ model.tripSearch
+            in
+                { model | tripSearch = m }
+                    ! [ Cmd.map TripSearchUpdate c ]
+
+        ShowTripSearch ->
+            { model
+                | subView = Just TripSearchView
+                , overlayVisible = True
+            }
+                ! []
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -828,6 +857,9 @@ overlayView model =
                 Just StationEventsView ->
                     Maybe.map (stationView model.locale) model.stationEvents
 
+                Just TripSearchView ->
+                    Just (tripSearchView model.locale model.tripSearch)
+
                 Nothing ->
                     Nothing
 
@@ -999,6 +1031,19 @@ stationConfig =
         }
 
 
+tripSearchView : Localization -> TripSearch.Model -> List (Html Msg)
+tripSearchView locale model =
+    [ TripSearch.view tripSearchConfig locale model ]
+
+
+tripSearchConfig : TripSearch.Config Msg
+tripSearchConfig =
+    TripSearch.Config
+        { internalMsg = TripSearchUpdate
+        , selectTripMsg = SelectTripId
+        }
+
+
 
 -- REQUESTS
 
@@ -1061,6 +1106,9 @@ routeToMsg route =
 
         SimulationTime time ->
             SetSimulationTime (Date.toTime time)
+
+        TripSearchRoute ->
+            ShowTripSearch
 
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )
