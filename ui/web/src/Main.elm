@@ -77,6 +77,7 @@ type alias Model =
     , connectionDetails : Maybe ConnectionDetails.State
     , tripDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
+    , subView : Maybe SubView
     , selectedConnectionIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
@@ -89,6 +90,11 @@ type alias Model =
     , overlayVisible : Bool
     , stationSearch : Typeahead.Model
     }
+
+
+type SubView
+    = TripDetailsView
+    | StationEventsView
 
 
 init : ProgramFlags -> Location -> ( Model, Cmd Msg )
@@ -131,6 +137,7 @@ init flags initialLocation =
             , connectionDetails = Nothing
             , tripDetails = Nothing
             , stationEvents = Nothing
+            , subView = Nothing
             , selectedConnectionIdx = Nothing
             , scheduleInfo = Nothing
             , locale = locale
@@ -548,6 +555,7 @@ update msg model =
             in
                 { model_
                     | stationEvents = Just m
+                    , subView = Just StationEventsView
                     , overlayVisible = True
                 }
                     ! [ cmds_, Cmd.map StationEventsUpdate c ]
@@ -813,17 +821,15 @@ overlayView model =
                     connectionDetailsView model.locale (getCurrentDate model) c
 
         subOverlayContent =
-            case model.stationEvents of
+            case model.subView of
+                Just TripDetailsView ->
+                    Maybe.map (tripDetailsView model.locale (getCurrentDate model)) model.tripDetails
+
+                Just StationEventsView ->
+                    Maybe.map (stationView model.locale) model.stationEvents
+
                 Nothing ->
-                    case model.tripDetails of
-                        Nothing ->
-                            Nothing
-
-                        Just c ->
-                            Just (tripDetailsView model.locale (getCurrentDate model) c)
-
-                Just stationEvents ->
-                    Just (stationView model.locale stationEvents)
+                    Nothing
 
         subOverlay =
             subOverlayContent
@@ -1078,10 +1084,11 @@ selectConnection model idx =
                     { model_
                         | connectionDetails =
                             Maybe.map (ConnectionDetails.init False False) journey
-                        , tripDetails = Nothing
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
+                        , tripDetails = Nothing
                         , stationEvents = Nothing
+                        , subView = Nothing
                     }
                         ! [ MapConnectionDetails.setConnectionFilter j
                           , cmds
@@ -1099,9 +1106,10 @@ closeSelectedConnection model =
     in
         { model_
             | connectionDetails = Nothing
-            , tripDetails = Nothing
             , selectedConnectionIdx = Nothing
+            , tripDetails = Nothing
             , stationEvents = Nothing
+            , subView = Nothing
         }
             ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
               , cmds
@@ -1117,6 +1125,7 @@ closeSubOverlay model =
         ( { model_
             | tripDetails = Nothing
             , stationEvents = Nothing
+            , subView = Nothing
           }
         , cmds
         )
@@ -1136,6 +1145,7 @@ showFullTripConnection model tripId connection =
     in
         { model_
             | tripDetails = Just (ConnectionDetails.init True True tripJourney)
+            , subView = Just TripDetailsView
         }
             ! [ MapConnectionDetails.setConnectionFilter tripJourney
               , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
