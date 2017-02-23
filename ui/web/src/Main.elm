@@ -9,6 +9,7 @@ import Widgets.Map.ConnectionDetails as MapConnectionDetails
 import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Widgets.StationEvents as StationEvents
+import Widgets.TripSearch as TripSearch
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
@@ -77,6 +78,8 @@ type alias Model =
     , connectionDetails : Maybe ConnectionDetails.State
     , tripDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
+    , tripSearch : TripSearch.Model
+    , subView : Maybe SubView
     , selectedConnectionIdx : Maybe Int
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
@@ -89,6 +92,12 @@ type alias Model =
     , overlayVisible : Bool
     , stationSearch : Typeahead.Model
     }
+
+
+type SubView
+    = TripDetailsView
+    | StationEventsView
+    | TripSearchView
 
 
 init : ProgramFlags -> Location -> ( Model, Cmd Msg )
@@ -118,6 +127,9 @@ init flags initialLocation =
         ( stationSearchModel, stationSearchCmd ) =
             Typeahead.init remoteAddress ""
 
+        ( tripSearchModel, tripSearchCmd ) =
+            TripSearch.init remoteAddress locale
+
         initialModel =
             { fromLocation = fromLocationModel
             , toLocation = toLocationModel
@@ -131,6 +143,8 @@ init flags initialLocation =
             , connectionDetails = Nothing
             , tripDetails = Nothing
             , stationEvents = Nothing
+            , tripSearch = tripSearchModel
+            , subView = Nothing
             , selectedConnectionIdx = Nothing
             , scheduleInfo = Nothing
             , locale = locale
@@ -154,6 +168,7 @@ init flags initialLocation =
               , Cmd.map FromLocationUpdate fromLocationCmd
               , Cmd.map ToLocationUpdate toLocationCmd
               , Cmd.map StationSearchUpdate stationSearchCmd
+              , Cmd.map TripSearchUpdate tripSearchCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
               , cmds
@@ -211,6 +226,8 @@ type Msg
     | StationSearchUpdate Typeahead.Msg
     | HandleRailVizError Json.Encode.Value
     | ClearRailVizError
+    | TripSearchUpdate TripSearch.Msg
+    | ShowTripSearch
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -416,11 +433,15 @@ update msg model =
 
                 newDate =
                     Calendar.update (Calendar.SetValidRange (Just ( si.begin, si.end ))) model.date
+
+                ( newTripSearch, _ ) =
+                    TripSearch.update (TripSearch.UpdateScheduleInfo si) model.tripSearch
             in
                 ( { model
                     | scheduleInfo = Just si
                     , connections = m
                     , date = newDate
+                    , tripSearch = newTripSearch
                   }
                 , Cmd.map ConnectionsUpdate c
                 )
@@ -548,6 +569,7 @@ update msg model =
             in
                 { model_
                     | stationEvents = Just m
+                    , subView = Just StationEventsView
                     , overlayVisible = True
                 }
                     ! [ cmds_, Cmd.map StationEventsUpdate c ]
@@ -633,6 +655,21 @@ update msg model =
                     RailViz.update (RailViz.SetApiError Nothing) model.railViz
             in
                 { model | railViz = railVizModel } ! []
+
+        TripSearchUpdate msg_ ->
+            let
+                ( m, c ) =
+                    TripSearch.update msg_ model.tripSearch
+            in
+                { model | tripSearch = m }
+                    ! [ Cmd.map TripSearchUpdate c ]
+
+        ShowTripSearch ->
+            { model
+                | subView = Just TripSearchView
+                , overlayVisible = True
+            }
+                ! []
 
 
 buildRoutingRequest : Model -> RoutingRequest
@@ -813,17 +850,18 @@ overlayView model =
                     connectionDetailsView model.locale (getCurrentDate model) c
 
         subOverlayContent =
-            case model.stationEvents of
+            case model.subView of
+                Just TripDetailsView ->
+                    Maybe.map (tripDetailsView model.locale (getCurrentDate model)) model.tripDetails
+
+                Just StationEventsView ->
+                    Maybe.map (stationView model.locale) model.stationEvents
+
+                Just TripSearchView ->
+                    Just (tripSearchView model.locale model.tripSearch)
+
                 Nothing ->
-                    case model.tripDetails of
-                        Nothing ->
-                            Nothing
-
-                        Just c ->
-                            Just (tripDetailsView model.locale (getCurrentDate model) c)
-
-                Just stationEvents ->
-                    Just (stationView model.locale stationEvents)
+                    Nothing
 
         subOverlay =
             subOverlayContent
@@ -993,6 +1031,19 @@ stationConfig =
         }
 
 
+tripSearchView : Localization -> TripSearch.Model -> List (Html Msg)
+tripSearchView locale model =
+    [ TripSearch.view tripSearchConfig locale model ]
+
+
+tripSearchConfig : TripSearch.Config Msg
+tripSearchConfig =
+    TripSearch.Config
+        { internalMsg = TripSearchUpdate
+        , selectTripMsg = SelectTripId
+        }
+
+
 
 -- REQUESTS
 
@@ -1056,6 +1107,9 @@ routeToMsg route =
         SimulationTime time ->
             SetSimulationTime (Date.toTime time)
 
+        TripSearchRoute ->
+            ShowTripSearch
+
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )
 selectConnection model idx =
@@ -1078,10 +1132,11 @@ selectConnection model idx =
                     { model_
                         | connectionDetails =
                             Maybe.map (ConnectionDetails.init False False) journey
-                        , tripDetails = Nothing
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
+                        , tripDetails = Nothing
                         , stationEvents = Nothing
+                        , subView = Nothing
                     }
                         ! [ MapConnectionDetails.setConnectionFilter j
                           , cmds
@@ -1099,9 +1154,10 @@ closeSelectedConnection model =
     in
         { model_
             | connectionDetails = Nothing
-            , tripDetails = Nothing
             , selectedConnectionIdx = Nothing
+            , tripDetails = Nothing
             , stationEvents = Nothing
+            , subView = Nothing
         }
             ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
               , cmds
@@ -1117,6 +1173,7 @@ closeSubOverlay model =
         ( { model_
             | tripDetails = Nothing
             , stationEvents = Nothing
+            , subView = Nothing
           }
         , cmds
         )
@@ -1136,6 +1193,7 @@ showFullTripConnection model tripId connection =
     in
         { model_
             | tripDetails = Just (ConnectionDetails.init True True tripJourney)
+            , subView = Just TripDetailsView
         }
             ! [ MapConnectionDetails.setConnectionFilter tripJourney
               , Task.attempt noop <| Scroll.toTop "sub-overlay-content"

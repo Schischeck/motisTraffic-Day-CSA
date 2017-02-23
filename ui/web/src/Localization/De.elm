@@ -23,6 +23,7 @@ deTranslations =
         , destinationTransports = "Verkehrsmittel am Ziel"
         , departure = "Abfahrt"
         , arrival = "Ankunft"
+        , trainNr = "Zugnummer"
         }
     , connections =
         { timeHeader = "Zeit"
@@ -68,6 +69,8 @@ deTranslations =
         , tripWalk = \duration -> "Fußweg (" ++ duration ++ ")"
         , provider = "Betreiber"
         , walk = "Fußweg"
+        , trainNr = "Zugnummer"
+        , lineId = "Linie"
         }
     , station =
         { direction = "Richtung"
@@ -89,5 +92,8 @@ deTranslations =
         , http = \code -> "HTTP-Fehler " ++ (toString code)
         , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
         , moduleNotFound = "Modul nicht geladen"
+        }
+    , trips =
+        { noResults = "Keine passenden Züge gefunden"
         }
     }

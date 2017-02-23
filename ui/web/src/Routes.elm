@@ -19,6 +19,7 @@ type Route
     | TripDetails String Int Int String Int String
     | StationEvents String
     | SimulationTime Date
+    | TripSearchRoute
 
 
 urlParser : Parser (Route -> a) a
@@ -29,6 +30,7 @@ urlParser =
         , map TripDetails (s "trip" </> string </> int </> int </> string </> int </> encodedString)
         , map StationEvents (s "station" </> string)
         , map SimulationTime (s "time" </> date)
+        , map TripSearchRoute (s "trips")
         ]
 
 
@@ -88,6 +90,9 @@ toUrl route =
 
         SimulationTime time ->
             "#/time/" ++ dateToUrl time
+
+        TripSearchRoute ->
+            "#/trips/"
 
 
 tripDetailsRoute : TripId -> Route

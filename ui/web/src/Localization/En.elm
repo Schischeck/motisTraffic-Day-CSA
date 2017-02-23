@@ -23,6 +23,7 @@ enTranslations =
         , destinationTransports = "Transports at the destination"
         , departure = "Departure"
         , arrival = "Arrival"
+        , trainNr = "Train Number"
         }
     , connections =
         { timeHeader = "Time"
@@ -68,6 +69,8 @@ enTranslations =
         , tripWalk = \duration -> "Walk (" ++ duration ++ ")"
         , provider = "Provider"
         , walk = "Walk"
+        , trainNr = "Train number"
+        , lineId = "Line"
         }
     , station =
         { direction = "Direction"
@@ -89,5 +92,8 @@ enTranslations =
         , http = \code -> "HTTP error " ++ (toString code)
         , decode = \msg -> "Invalid response (" ++ msg ++ ")"
         , moduleNotFound = "Module not found"
+        }
+    , trips =
+        { noResults = "No matching trains found"
         }
     }

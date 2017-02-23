@@ -21,6 +21,7 @@ type alias Translations =
         , destinationTransports : String
         , departure : String
         , arrival : String
+        , trainNr : String
         }
     , connections :
         { timeHeader : String
@@ -40,6 +41,8 @@ type alias Translations =
         , tripWalk : String -> String
         , provider : String
         , walk : String
+        , trainNr : String
+        , lineId : String
         }
     , station :
         { direction : String
@@ -61,5 +64,8 @@ type alias Translations =
         , http : Int -> String
         , decode : String -> String
         , moduleNotFound : String
+        }
+    , trips :
+        { noResults : String
         }
     }
