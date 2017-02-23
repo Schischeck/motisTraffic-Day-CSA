@@ -41,6 +41,8 @@ type alias Translations =
         , tripWalk : String -> String
         , provider : String
         , walk : String
+        , trainNr : String
+        , lineId : String
         }
     , station :
         { direction : String

@@ -114,15 +114,37 @@ trainBox viewMode locale t =
                     ""
 
         providerTooltip =
-            locale.t.connections.provider ++ ": " ++ t.provider
+            if not (String.isEmpty t.provider) then
+                Just (locale.t.connections.provider ++ ": " ++ t.provider)
+            else
+                Nothing
+
+        trainNr =
+            Maybe.withDefault 0 t.train_nr
+
+        trainNrTooltip =
+            if trainNr /= 0 && not (String.contains (toString trainNr) name) then
+                Just (locale.t.connections.trainNr ++ ": " ++ (toString trainNr))
+            else
+                Nothing
+
+        lineIdTooltip =
+            if not (String.isEmpty t.line_id) && not (String.contains t.line_id name) then
+                Just (locale.t.connections.lineId ++ ": " ++ t.line_id)
+            else
+                Nothing
+
+        tooltipText =
+            List.filterMap identity [ providerTooltip, trainNrTooltip, lineIdTooltip ]
+                |> String.join "\n"
     in
         div
             [ classList
                 [ "train-box" => True
                 , ("train-class-" ++ (toString t.class)) => True
-                , "with-tooltip" => not (String.isEmpty t.provider)
+                , "with-tooltip" => not (String.isEmpty tooltipText)
                 ]
-            , attribute "data-tooltip" providerTooltip
+            , attribute "data-tooltip" tooltipText
             ]
             [ icon
             , if String.isEmpty name then

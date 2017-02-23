@@ -69,6 +69,8 @@ enTranslations =
         , tripWalk = \duration -> "Walk (" ++ duration ++ ")"
         , provider = "Provider"
         , walk = "Walk"
+        , trainNr = "Train number"
+        , lineId = "Line"
         }
     , station =
         { direction = "Direction"

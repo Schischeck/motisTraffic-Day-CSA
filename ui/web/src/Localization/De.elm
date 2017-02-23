@@ -69,6 +69,8 @@ deTranslations =
         , tripWalk = \duration -> "Fußweg (" ++ duration ++ ")"
         , provider = "Betreiber"
         , walk = "Fußweg"
+        , trainNr = "Zugnummer"
+        , lineId = "Linie"
         }
     , station =
         { direction = "Richtung"
