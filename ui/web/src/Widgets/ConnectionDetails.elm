@@ -38,7 +38,7 @@ type Config msg
     = Config
         { internalMsg : Msg -> msg
         , selectTripMsg : Int -> msg
-        , selectStationMsg : Station -> msg
+        , selectStationMsg : Station -> Maybe Date -> msg
         , goBackMsg : msg
         }
 
@@ -204,7 +204,7 @@ type StopViewType
 
 
 stopView :
-    (Station -> msg)
+    (Station -> Maybe Date -> msg)
     -> StopViewType
     -> EventType
     -> Localization
@@ -276,7 +276,7 @@ stopView selectStationMsg stopViewType eventType locale currentTime progress sto
                 ++ [ div [ class "time" ] timeCell
                    , div [ class "delay" ] delayCell
                    , div [ class "station" ]
-                        [ span [ onClick (selectStationMsg stop.station) ]
+                        [ span [ onClick (selectStationMsg stop.station event.time) ]
                             [ text stop.station.name ]
                         ]
                    , trackCell
@@ -378,7 +378,7 @@ trainDetail :
     Bool
     -> (Msg -> msg)
     -> (Int -> msg)
-    -> (Station -> msg)
+    -> (Station -> Maybe Date -> msg)
     -> Localization
     -> Date
     -> ( Train, InterchangeInfo )
@@ -575,7 +575,7 @@ trainDetail isTripView internalMsg selectTripMsg selectStationMsg locale current
 
 
 intermediateStopsWithProgress :
-    (Station -> msg)
+    (Station -> Maybe Date -> msg)
     -> StopViewType
     -> Localization
     -> Date
@@ -610,7 +610,7 @@ intermediateStopsWithProgress selectStationMsg intermediateStopViewType locale c
                 intermediateStops
 
 
-walkDetail : (Station -> msg) -> Localization -> Date -> JourneyWalk -> Html msg
+walkDetail : (Station -> Maybe Date -> msg) -> Localization -> Date -> JourneyWalk -> Html msg
 walkDetail selectStationMsg locale currentTime walk =
     let
         durationStr =

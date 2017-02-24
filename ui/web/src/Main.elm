@@ -218,8 +218,8 @@ type Msg
     | SetSimulationTime Time
     | SetTimeOffset Time Time
     | StationEventsUpdate StationEvents.Msg
-    | PrepareSelectStation Station
-    | SelectStation String
+    | PrepareSelectStation Station (Maybe Date)
+    | SelectStation String (Maybe Date)
     | StationEventsGoBack
     | ShowStationDetails String
     | ToggleOverlay
@@ -568,16 +568,24 @@ update msg model =
                 { model | stationEvents = m }
                     ! [ Cmd.map StationEventsUpdate c ]
 
-        PrepareSelectStation station ->
-            update (NavigateTo (StationEvents station.id)) model
+        PrepareSelectStation station maybeDate ->
+            case maybeDate of
+                Just date ->
+                    update (NavigateTo (StationEventsAt station.id date)) model
 
-        SelectStation stationId ->
+                Nothing ->
+                    update (NavigateTo (StationEvents station.id)) model
+
+        SelectStation stationId maybeDate ->
             let
                 ( model_, cmds_ ) =
                     closeSubOverlay model
 
+                date =
+                    Maybe.withDefault (getCurrentDate model_) maybeDate
+
                 ( m, c ) =
-                    StationEvents.init model_.apiEndpoint stationId (getCurrentDate model_)
+                    StationEvents.init model_.apiEndpoint stationId date
             in
                 { model_
                     | stationEvents = Just m
@@ -1114,7 +1122,10 @@ routeToMsg route =
                 }
 
         StationEvents stationId ->
-            SelectStation stationId
+            SelectStation stationId Nothing
+
+        StationEventsAt stationId date ->
+            SelectStation stationId (Just date)
 
         SimulationTime time ->
             SetSimulationTime (Date.toTime time)

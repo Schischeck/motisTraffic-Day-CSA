@@ -10,6 +10,7 @@ module Routes
 import UrlParser exposing (Parser, (</>), s, int, string, map, oneOf, parseHash, top, custom)
 import Date exposing (Date)
 import Data.Connection.Types exposing (TripId)
+import Util.Date exposing (unixTime)
 import Http
 
 
@@ -18,6 +19,7 @@ type Route
     | ConnectionDetails Int
     | TripDetails String Int Int String Int String
     | StationEvents String
+    | StationEventsAt String Date
     | SimulationTime Date
     | TripSearchRoute
 
@@ -29,6 +31,7 @@ urlParser =
         , map ConnectionDetails (s "connection" </> int)
         , map TripDetails (s "trip" </> string </> int </> int </> string </> int </> encodedString)
         , map StationEvents (s "station" </> string)
+        , map StationEventsAt (s "station" </> string </> date)
         , map SimulationTime (s "time" </> date)
         , map TripSearchRoute (s "trips")
         ]
@@ -87,6 +90,9 @@ toUrl route =
 
         StationEvents stationId ->
             "#/station/" ++ stationId
+
+        StationEventsAt stationId date ->
+            "#/station/" ++ stationId ++ "/" ++ toString (unixTime date)
 
         SimulationTime time ->
             "#/time/" ++ dateToUrl time
