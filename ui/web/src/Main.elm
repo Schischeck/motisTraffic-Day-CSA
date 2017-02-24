@@ -24,6 +24,7 @@ import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime)
 import Util.Core exposing ((=>))
+import Date.Extra.Compare
 import Localization.Base exposing (..)
 import Localization.De exposing (..)
 import Localization.En exposing (..)
@@ -428,7 +429,7 @@ update msg model =
 
         ScheduleInfoResponse si ->
             let
-                ( m, c ) =
+                ( connections_, connCmd ) =
                     Connections.update (Connections.UpdateScheduleInfo (Just si)) model.connections
 
                 newDate =
@@ -436,15 +437,28 @@ update msg model =
 
                 ( newTripSearch, _ ) =
                     TripSearch.update (TripSearch.UpdateScheduleInfo si) model.tripSearch
+
+                model1 =
+                    { model
+                        | scheduleInfo = Just si
+                        , connections = connections_
+                        , date = newDate
+                        , tripSearch = newTripSearch
+                    }
+
+                currentDate =
+                    getCurrentDate model1
+
+                currentTimeInSchedule =
+                    Date.Extra.Compare.is3 Date.Extra.Compare.BetweenOpen currentDate si.begin si.end
+
+                ( model2, cmd1 ) =
+                    if currentTimeInSchedule then
+                        ( model1, Cmd.none )
+                    else
+                        update (SetSimulationTime (Date.toTime (combineDateTime si.begin currentDate))) model1
             in
-                ( { model
-                    | scheduleInfo = Just si
-                    , connections = m
-                    , date = newDate
-                    , tripSearch = newTripSearch
-                  }
-                , Cmd.map ConnectionsUpdate c
-                )
+                model2 ! [ Cmd.map ConnectionsUpdate connCmd, cmd1 ]
 
         Deb a ->
             Debounce.update debounceCfg a model
