@@ -502,9 +502,7 @@ update msg model =
 
         SetSimulationTime simulationTime ->
             model
-                ! [ Task.perform (SetTimeOffset simulationTime) Time.now
-                  , Navigation.newUrl (toUrl Connections)
-                  ]
+                ! [ Task.perform (SetTimeOffset simulationTime) Time.now ]
 
         SetTimeOffset simulationTime currentTime ->
             let
