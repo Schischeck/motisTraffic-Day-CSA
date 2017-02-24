@@ -11,6 +11,7 @@ RailViz.Main = (function() {
   var connectionFilter = null;
   var fullData, filteredData;
   var showingFilteredData = false;
+  var dragEndTime = null;
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
 
@@ -124,7 +125,11 @@ RailViz.Main = (function() {
   }
 
   function handleMouseEvent(eventType, x, y, pickedTrain, pickedStation) {
-    if (eventType == 'mousedown') {
+    if (eventType == 'mouseup') {
+      if (dragEndTime != null && (Date.now() - dragEndTime < 100)) {
+        // ignore mouse up events immediately after drag end
+        return;
+      }
       if (pickedTrain) {
         if (pickedTrain.trip && pickedTrain.trip.length > 0) {
           elmPorts.showTripDetails.send(pickedTrain.trip[0]);
@@ -139,6 +144,10 @@ RailViz.Main = (function() {
         setTooltip(-1, -1, null, null);
       }
     }
+  }
+
+  function dragEnd() {
+    dragEndTime = Date.now();
   }
 
   function setTooltip(x, y, pickedTrain, pickedStation) {
@@ -204,7 +213,8 @@ RailViz.Main = (function() {
       return timeOffset;
     },
     setTripFilter: setTripFilter,
-    setConnectionFilter: setConnectionFilter
+    setConnectionFilter: setConnectionFilter,
+    dragEnd: dragEnd
   };
 
 })();

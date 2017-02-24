@@ -17,7 +17,7 @@ var CanvasOverlay = L.Layer.extend({
 
   getEvents: function() {
     var events = {
-      dragend: this._updatePosition,
+      dragend: this._dragEnd,
       move: this._updatePosition,
       moveend: this._updatePosition,
       resize: this._updateSize,
@@ -42,6 +42,11 @@ var CanvasOverlay = L.Layer.extend({
 
   _zoomEnd: function() {
     this._update();
+  },
+
+  _dragEnd: function() {
+    RailViz.Main.dragEnd();
+    this._updatePosition();
   },
 
   _updateTransform: function(center, zoom) {
