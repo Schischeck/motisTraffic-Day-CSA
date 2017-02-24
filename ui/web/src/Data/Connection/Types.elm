@@ -153,6 +153,7 @@ transportsForRange connection from to =
                     Nothing
     in
         List.filterMap checkMove connection.transports
+            |> List.sortBy (\t -> -(t.range.to - t.range.from))
 
 
 tripIdForTransport : Connection -> TransportInfo -> Maybe TripId
