@@ -1,0 +1,5 @@
+namespace motis.address;
+
+table AddressRequest {
+  input:string;
+}

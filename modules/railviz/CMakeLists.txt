@@ -12,5 +12,3 @@ target_link_libraries(motis-railviz
   motis-core
 )
 set_target_properties(motis-railviz PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
-
-include_directories(eval/include)
