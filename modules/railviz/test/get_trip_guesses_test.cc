@@ -30,5 +30,5 @@ TEST_F(railviz_get_trip_guesses_test, simple_result_ok) {
   auto const res_msg = call(get_trip_guesses(1, unix_time(1200)));
   auto const res = motis_content(RailVizTripGuessResponse, res_msg);
   EXPECT_EQ(1, res->trips()->size());
-  EXPECT_EQ(1, res->trips()->Get(0)->train_nr());
+  EXPECT_EQ(1, res->trips()->Get(0)->trip_info()->id()->train_nr());
 }
