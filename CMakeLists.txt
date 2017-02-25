@@ -97,7 +97,7 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 ################################
 # Contained Dependencies
 ################################
-include_directories(SYSTEM external_lib/address-typeahead/external_lib/expat/include)
+include_directories(SYSTEM external_lib/address-typeahead/external_lib/leveldb/include)
 include_directories(SYSTEM external_lib/flatbuffers/include)
 include_directories(SYSTEM external_lib/googletest/googletest/include)
 include_directories(SYSTEM external_lib/osmium/include)

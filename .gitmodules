@@ -63,4 +63,4 @@
 	url = git@git.motis-project.de:lib/rapidjson.git
 [submodule "external_lib/address-typeahead"]
 	path = external_lib/address-typeahead
-	url = git@git.motis-project.de:arne.link/address-typeahead.git
+	url = git@git.motis-project.de:lib/address-typeahead.git

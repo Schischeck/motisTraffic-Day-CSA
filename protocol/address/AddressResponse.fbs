@@ -5,6 +5,8 @@ namespace motis.address;
 table Address {
   pos:Position;
   name:string;
+  type:string;
+  regions:[string];
 }
 
 table AddressResponse {

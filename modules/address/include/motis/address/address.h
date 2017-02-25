@@ -12,6 +12,8 @@ struct address : public motis::module::module {
   void init(motis::module::registry&) override;
 
 private:
+  std::string db_path_;
+
   struct impl;
   std::unique_ptr<impl> impl_;
 };
