@@ -13,7 +13,7 @@ namespace motis {
 namespace address {
 
 struct address::impl {
-  impl(std::string const& path) : typeahead_(path) {}
+  explicit impl(std::string const& path) : typeahead_(path) {}
 
   msg_ptr get_guesses(msg_ptr const& msg) {
     message_creator fbb;
