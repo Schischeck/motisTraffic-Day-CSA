@@ -13,9 +13,6 @@
 [submodule "external_lib/parser"]
 	path = external_lib/parser
 	url = git@git.motis-project.de:lib/parser.git
-[submodule "external_lib/googletest"]
-	path = external_lib/googletest
-	url = git@git.motis-project.de:lib/googletest.git
 [submodule "external_lib/sparsehash"]
 	path = external_lib/sparsehash
 	url = git@git.motis-project.de:lib/sparsehash.git
