@@ -12,6 +12,8 @@ RailViz.Main = (function() {
   var fullData, filteredData;
   var showingFilteredData = false;
   var dragEndTime = null;
+  var lastTrainsRequest = null;
+  var lastTripsRequest = null;
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
 
@@ -72,9 +74,11 @@ RailViz.Main = (function() {
       clearTimeout(trainUpdateTimeoutId);
     }
     trainUpdateTimeoutId = setTimeout(debouncedSendTrainsRequest, 90000);
-    RailViz.API.sendRequest(
+    lastTrainsRequest = RailViz.API.sendRequest(
         apiEndpoint, makeTrainsRequest(),
-        response => dataReceived(response, false), response => {
+        (response, callId, duration) =>
+            dataReceived(response, false, callId, duration),
+        response => {
           elmPorts.handleRailVizError.send(response);
         });
   }
@@ -85,16 +89,23 @@ RailViz.Main = (function() {
     }
     if (filteredTripIds) {
       tripsUpdateTimeoutId = setTimeout(sendTripsRequest, 90000);
-      RailViz.API.sendRequest(
+      lastTripsRequest = RailViz.API.sendRequest(
           apiEndpoint, makeTripsRequest(),
-          response => dataReceived(response, true), response => {
+          (response, callId, duration) =>
+              dataReceived(response, true, callId, duration),
+          response => {
             elmPorts.handleRailVizError.send(response);
           });
     }
   }
 
-  function dataReceived(response, onlyFilteredTrips) {
+  function dataReceived(response, onlyFilteredTrips, callId, duration) {
     var data = response.content;
+    const lastRequest =
+        onlyFilteredTrips ? lastTripsRequest : lastTrainsRequest;
+    if (callId != lastRequest) {
+      return;
+    }
     RailViz.Preprocessing.preprocess(data);
     if (onlyFilteredTrips) {
       filteredData = data;

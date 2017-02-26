@@ -2,6 +2,8 @@ var RailViz = RailViz || {};
 
 RailViz.API = (function() {
 
+  var lastCallId = 0;
+
   function makeTrainsRequest(
       zoom_level, corner1, corner2, startTime, endTime, maxTrains) {
     return {
@@ -28,6 +30,8 @@ RailViz.API = (function() {
 
   function sendRequest(apiEndpoint, requestData, onSuccess, onFail) {
     var xhr = new XMLHttpRequest();
+    const callId = ++lastCallId;
+    const startTime = performance.now();
     xhr.addEventListener('load', function() {
       var response = xhr.responseText;
       try {
@@ -35,20 +39,21 @@ RailViz.API = (function() {
       } catch (ex) {
       }
       if (xhr.status == 200) {
-        onSuccess(response);
+        onSuccess(response, callId, performance.now() - startTime);
       } else {
-        onFail(response);
+        onFail(response, callId, performance.now() - startTime);
       }
     });
     xhr.addEventListener('error', function() {
-      onFail('NetworkError');
+      onFail('NetworkError', callId, performance.now() - startTime);
     });
     xhr.addEventListener('timeout', function() {
-      onFail('TimeoutError');
+      onFail('TimeoutError', callId, performance.now() - startTime);
     })
     xhr.open('POST', apiEndpoint);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(requestData));
+    return callId;
   }
 
   return {
