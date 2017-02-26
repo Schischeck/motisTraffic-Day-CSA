@@ -15,7 +15,7 @@ import Html.Lazy exposing (..)
 import Date exposing (Date)
 import Time exposing (Time)
 import Data.Connection.Types exposing (TripId)
-import Data.RailViz.Types exposing (RailVizTripGuessRequest, RailVizTripGuessResponse)
+import Data.RailViz.Types exposing (RailVizTripGuessRequest, RailVizTripGuessResponse, Trip, TripInfo)
 import Data.RailViz.Decode exposing (decodeRailVizTripGuessResponse)
 import Data.RailViz.Request as Request exposing (encodeTripGuessRequest)
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
@@ -46,7 +46,7 @@ type alias Model =
     , errorMessage : Maybe ApiError
     , currentRequest : Maybe RailVizTripGuessRequest
     , debounce : Debounce.State
-    , trips : Maybe (List TripId)
+    , trips : Maybe (List Trip)
     }
 
 
@@ -322,11 +322,11 @@ tripsView config locale model =
             text ""
 
 
-tripView : Config msg -> Localization -> TripId -> Html msg
+tripView : Config msg -> Localization -> Trip -> Html msg
 tripView (Config { internalMsg, selectTripMsg }) locale trip =
     div
         [ class "trip"
-        , onClick (selectTripMsg trip)
+        , onClick (selectTripMsg trip.tripInfo.id)
         ]
         [ text (toString trip) ]
 

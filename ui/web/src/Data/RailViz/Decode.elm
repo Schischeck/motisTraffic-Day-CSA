@@ -104,6 +104,13 @@ decodeTripInfo =
         |> required "transport" decodeTransportInfo
 
 
+decodeTrip : JD.Decoder Trip
+decodeTrip =
+    decode Trip
+        |> required "first_station" decodeStation
+        |> required "trip_info" decodeTripInfo
+
+
 decodeEventType : JD.Decoder EventType
 decodeEventType =
     let
@@ -129,4 +136,4 @@ decodeRailVizTripGuessResponse =
 decodeRailVizTripGuessResponseContent : JD.Decoder RailVizTripGuessResponse
 decodeRailVizTripGuessResponseContent =
     decode RailVizTripGuessResponse
-        |> required "trips" (list decodeTripId)
+        |> required "trips" (list decodeTrip)

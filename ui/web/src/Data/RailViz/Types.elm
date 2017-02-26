@@ -97,6 +97,12 @@ type alias TripInfo =
     }
 
 
+type alias Trip =
+    { firstStation : Station
+    , tripInfo : TripInfo
+    }
+
+
 type alias RailVizTripGuessRequest =
     { trainNum : Int
     , time : Int
@@ -105,4 +111,4 @@ type alias RailVizTripGuessRequest =
 
 
 type alias RailVizTripGuessResponse =
-    { trips : List TripId }
+    { trips : List Trip }
