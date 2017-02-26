@@ -1276,10 +1276,6 @@
   flex: 0 0 130px;
 }
 
-.station-events .event-train span {
-  cursor: pointer;
-}
-
 .station-events .station-event .event-direction {
   flex: 2 2 auto;
 }
@@ -1338,4 +1334,28 @@
   flex-direction: column;
   height: 100%;
   min-height: 200px;
+}
+
+.trip-search .trip {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.trip-search .trip .trip-time {
+  flex: 0 0 70px;
+}
+
+.trip-search .trip .trip-train {
+  margin-top: -7px;
+  flex: 0 0 130px;
+}
+
+.trip-search .train-box {
+  cursor: pointer;
+}
+
+.trip-search .trip .trip-first-station {
+  flex: 2 2 auto;
+  cursor: pointer;
 }

@@ -1080,6 +1080,7 @@ tripSearchConfig =
     TripSearch.Config
         { internalMsg = TripSearchUpdate
         , selectTripMsg = SelectTripId
+        , selectStationMsg = PrepareSelectStation
         }
 
 

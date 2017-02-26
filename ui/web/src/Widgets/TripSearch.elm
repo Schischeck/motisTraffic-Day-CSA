@@ -14,7 +14,7 @@ import Html.Events exposing (onInput, onClick, on)
 import Html.Lazy exposing (..)
 import Date exposing (Date)
 import Time exposing (Time)
-import Data.Connection.Types exposing (TripId)
+import Data.Connection.Types exposing (TripId, Station)
 import Data.RailViz.Types exposing (RailVizTripGuessRequest, RailVizTripGuessResponse, Trip, TripInfo)
 import Data.RailViz.Decode exposing (decodeRailVizTripGuessResponse)
 import Data.RailViz.Request as Request exposing (encodeTripGuessRequest)
@@ -27,6 +27,12 @@ import Localization.Base exposing (..)
 import Maybe.Extra exposing (isJust)
 import Widgets.LoadingSpinner as LoadingSpinner
 import Widgets.Helpers.ApiErrorUtil exposing (errorText)
+import Widgets.Helpers.ConnectionUtil
+    exposing
+        ( delay
+        , trainBox
+        , TransportViewMode(..)
+        )
 import Widgets.Input as Input
 import Widgets.TimeInput as TimeInput
 import Widgets.Calendar as Calendar
@@ -54,6 +60,7 @@ type Config msg
     = Config
         { internalMsg : Msg -> msg
         , selectTripMsg : TripId -> msg
+        , selectStationMsg : Station -> Maybe Date -> msg
         }
 
 
@@ -108,12 +115,17 @@ update msg model =
             model ! []
 
         ReceiveResponse request response ->
-            { model | trips = Just response.trips } ! []
+            { model
+                | trips = Just response.trips
+                , loading = False
+            }
+                ! []
 
         ReceiveError request err ->
             { model
                 | trips = Nothing
                 , errorMessage = Just err
+                , loading = False
             }
                 ! []
 
@@ -155,6 +167,7 @@ update msg model =
             in
                 { model
                     | currentRequest = Just request
+                    , loading = True
                 }
                     ! [ sendRequest model.remoteAddress request ]
 
@@ -203,13 +216,10 @@ buildRequest model =
 
         time =
             unixTime (combineDateTime model.date.date model.time.date)
-
-        guessCount =
-            10
     in
         { trainNum = trainNr
         , time = time
-        , guessCount = guessCount
+        , guessCount = 20
         }
 
 
@@ -323,12 +333,28 @@ tripsView config locale model =
 
 
 tripView : Config msg -> Localization -> Trip -> Html msg
-tripView (Config { internalMsg, selectTripMsg }) locale trip =
-    div
-        [ class "trip"
-        , onClick (selectTripMsg trip.tripInfo.id)
-        ]
-        [ text (toString trip) ]
+tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale trip =
+    let
+        departureTime =
+            Date.fromTime (toFloat trip.tripInfo.id.time * 1000)
+
+        transport =
+            trip.tripInfo.transport
+    in
+        div [ class "trip" ]
+            [ div [ class "trip-train" ]
+                [ span
+                    [ onClick (selectTripMsg trip.tripInfo.id) ]
+                    [ trainBox LongName locale transport ]
+                ]
+            , div [ class "trip-time" ]
+                [ text (formatTime departureTime) ]
+            , div [ class "trip-first-station" ]
+                [ span
+                    [ onClick (selectStationMsg trip.firstStation (Just departureTime)) ]
+                    [ text trip.firstStation.name ]
+                ]
+            ]
 
 
 errorView : String -> Localization -> Model -> ApiError -> Html msg
