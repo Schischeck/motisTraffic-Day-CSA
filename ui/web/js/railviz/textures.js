@@ -31,6 +31,7 @@ RailViz.Textures = (function() {
       const padding = (size - (size / 2)) / 2 + border;
       const innerSize = size - (2 * padding);
       const mid = size / 2;
+      const rad = innerSize / 3.5;
       var cv = document.createElement('canvas');
       cv.width = size;
       cv.height = size;
@@ -38,11 +39,15 @@ RailViz.Textures = (function() {
 
       ctx.beginPath();
 
-      ctx.moveTo(padding, mid - (innerSize / 4));
-      ctx.lineTo(mid, mid - (innerSize / 4));
-      ctx.lineTo(size - padding, mid);
-      ctx.lineTo(mid, mid + (innerSize / 4));
-      ctx.lineTo(padding, mid + (innerSize / 4));
+      ctx.arc(padding + rad, mid, rad, 1 / 2 * Math.PI, 3 / 2 * Math.PI, false);
+
+      ctx.bezierCurveTo(
+          padding + rad + rad, mid - rad, size - padding, mid, size - padding,
+          mid);
+      ctx.bezierCurveTo(
+          size - padding, mid, padding + rad + rad, mid + rad, padding + rad,
+          mid + rad);
+
       ctx.closePath();
 
       ctx.fillStyle = 'rgba(255, 255, 255, 1.0)';
