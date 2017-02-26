@@ -686,11 +686,14 @@ update msg model =
                     ! [ Cmd.map TripSearchUpdate c ]
 
         ShowTripSearch ->
-            { model
-                | subView = Just TripSearchView
-                , overlayVisible = True
-            }
-                ! []
+            let
+                model_ =
+                    { model
+                        | subView = Just TripSearchView
+                        , overlayVisible = True
+                    }
+            in
+                setRailVizFilter model_ Nothing
 
         ToggleTripSearch ->
             case model.subView of
