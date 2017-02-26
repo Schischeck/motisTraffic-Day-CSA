@@ -229,6 +229,7 @@ type Msg
     | ClearRailVizError
     | TripSearchUpdate TripSearch.Msg
     | ShowTripSearch
+    | ToggleTripSearch
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -691,6 +692,14 @@ update msg model =
             }
                 ! []
 
+        ToggleTripSearch ->
+            case model.subView of
+                Just TripSearchView ->
+                    update (NavigateTo Connections) model
+
+                _ ->
+                    update (NavigateTo TripSearchRoute) model
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -906,8 +915,18 @@ overlayView model =
                     mainOverlayContent
                 , subOverlay
                 ]
-            , div [ class "overlay-toggle", onClick ToggleOverlay ]
-                [ i [ class "icon" ] [ text "arrow_drop_down" ] ]
+            , div [ class "overlay-tabs" ]
+                [ div [ class "overlay-toggle", onClick ToggleOverlay ]
+                    [ i [ class "icon" ] [ text "arrow_drop_down" ] ]
+                , div
+                    [ classList
+                        [ "trip-search-toggle" => True
+                        , "enabled" => (model.subView == Just TripSearchView)
+                        ]
+                    , onClick ToggleTripSearch
+                    ]
+                    [ i [ class "icon" ] [ text "train" ] ]
+                ]
             ]
 
 

@@ -87,10 +87,16 @@
   cursor: pointer;
 }
 
-.overlay-toggle {
+.overlay-tabs {
   z-index: 10;
   order: 2;
-  width: 20px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.overlay-toggle {
+  width: 30px;
   height: 45px;
   background: #fff;
   color: #777;
@@ -99,7 +105,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: auto;
 }
 
 .overlay-toggle i {
@@ -110,6 +115,34 @@
 
 .overlay-container.hidden .overlay-toggle i {
   transform: rotate(270deg);
+}
+
+.trip-search-toggle {
+  width: 30px;
+  height: 40px;
+  margin-top: 10px;
+  background: #fff;
+  color: #777;
+  box-shadow: 3px 3px 2px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: all 0.2 ease;
+}
+
+.trip-search-toggle.enabled {
+  background: #6d8dec;
+  color: #fff;
+}
+
+.trip-search-toggle i {
+  cursor: pointer;
+}
+
+.overlay-container.hidden .trip-search-toggle {
+  opacity: 0;
 }
 
 .map-container {
