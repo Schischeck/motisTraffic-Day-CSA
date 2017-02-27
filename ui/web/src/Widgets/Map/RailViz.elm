@@ -25,6 +25,7 @@ import Localization.Base exposing (..)
 import Data.Connection.Types exposing (Station, Position)
 import Util.Api as Api exposing (ApiError)
 import Widgets.Helpers.ApiErrorUtil exposing (errorText)
+import Widgets.LoadingSpinner as LoadingSpinner
 
 
 -- MODEL
@@ -173,8 +174,10 @@ view locale model =
                     []
                 ]
             , railVizTooltip model
-            , simulationTimeOverlay locale model
-            , trainColorPickerView locale model
+            , div [ class "map-bottom-overlay" ]
+                [ trainColorPickerView locale model
+                , simulationTimeOverlay locale model
+                ]
             , errorOverlay locale model
             ]
         ]
@@ -325,7 +328,11 @@ simulationTimeOverlay locale model =
     in
         div
             [ class "sim-time-overlay", id "sim-time-overlay" ]
-            [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
+            [ div [ id "railviz-loading-spinner" ] [ LoadingSpinner.view ]
+            , div [ class "permalink" ]
+                [ i [ class "icon" ] [ text "link" ] ]
+            , div [ class "time" ] [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
+            ]
 
 
 delayView : Bool -> Int -> Html Msg

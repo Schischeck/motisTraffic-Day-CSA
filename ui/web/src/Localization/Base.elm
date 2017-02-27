@@ -68,4 +68,6 @@ type alias Translations =
     , trips :
         { noResults : String
         }
+    , misc :
+        { permalink : String }
     }

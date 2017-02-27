@@ -96,4 +96,6 @@ deTranslations =
     , trips =
         { noResults = "Keine passenden Züge gefunden"
         }
+    , misc =
+        { permalink = "Permalink" }
     }

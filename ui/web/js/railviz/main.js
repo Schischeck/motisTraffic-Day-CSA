@@ -81,6 +81,13 @@ RailViz.Main = (function() {
     RailViz.Render.setTargetFps(targetFps);
   }
 
+  function toggleLoadingSpinner(visible) {
+    const spinner = document.getElementById('railviz-loading-spinner');
+    if (spinner) {
+      spinner.className = visible ? 'visible' : '';
+    }
+  }
+
   function makeTrainsRequest() {
     var bounds = mapInfo.railVizBounds;
     return RailViz.API.makeTrainsRequest(
@@ -98,13 +105,12 @@ RailViz.Main = (function() {
       clearTimeout(trainUpdateTimeoutId);
     }
     trainUpdateTimeoutId = setTimeout(debouncedSendTrainsRequest, 90000);
+    toggleLoadingSpinner(true);
     lastTrainsRequest = RailViz.API.sendRequest(
         apiEndpoint, makeTrainsRequest(),
         (response, callId, duration) =>
             dataReceived(response, false, callId, duration),
-        response => {
-          elmPorts.handleRailVizError.send(response);
-        });
+        handleApiError);
   }
 
   function sendTripsRequest() {
@@ -113,14 +119,18 @@ RailViz.Main = (function() {
     }
     if (filteredTripIds) {
       tripsUpdateTimeoutId = setTimeout(sendTripsRequest, 90000);
+      toggleLoadingSpinner(true);
       lastTripsRequest = RailViz.API.sendRequest(
           apiEndpoint, makeTripsRequest(),
           (response, callId, duration) =>
               dataReceived(response, true, callId, duration),
-          response => {
-            elmPorts.handleRailVizError.send(response);
-          });
+          handleApiError);
     }
+  }
+
+  function handleApiError(response) {
+    toggleLoadingSpinner(false);
+    elmPorts.handleRailVizError.send(response);
   }
 
   function dataReceived(response, onlyFilteredTrips, callId, duration) {
@@ -130,6 +140,7 @@ RailViz.Main = (function() {
     if (callId != lastRequest) {
       return;
     }
+    toggleLoadingSpinner(false);
     RailViz.Preprocessing.preprocess(data);
     if (onlyFilteredTrips) {
       filteredData = data;

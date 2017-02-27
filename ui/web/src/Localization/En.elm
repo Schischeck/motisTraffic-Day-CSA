@@ -96,4 +96,6 @@ enTranslations =
     , trips =
         { noResults = "No matching trains found"
         }
+    , misc =
+        { permalink = "Permalink" }
     }
