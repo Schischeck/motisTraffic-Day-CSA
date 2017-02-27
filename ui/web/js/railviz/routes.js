@@ -197,8 +197,9 @@ RailViz.Routes = (function() {
     let vertexArray = new Float32Array(vertexCount * 2 * VERTEX_SIZE);
     const byteView = new Uint8Array(vertexArray.buffer);
     const uintExt = gl.getExtension('OES_element_index_uint');
-    const elementArrayType =
-        (elementCount > 65535 && uintExt) ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
+    const elementArrayType = (/*elementCount > 65535 &&*/ uintExt) ?
+        gl.UNSIGNED_INT :
+        gl.UNSIGNED_SHORT;
     let elementArray = elementArrayType == gl.UNSIGNED_INT ?
         new Uint32Array(elementCount) :
         new Uint16Array(elementCount);

@@ -230,6 +230,7 @@ type Msg
     | TripSearchUpdate TripSearch.Msg
     | ShowTripSearch
     | ToggleTripSearch
+    | HandleRailVizPermalink Float Float Float Date
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -544,11 +545,15 @@ update msg model =
 
                 ( model4, cmds3 ) =
                     update (TimeUpdate (TimeInput.InitDate True newDate)) model3
+
+                ( model5, cmds4 ) =
+                    update (TripSearchUpdate (TripSearch.SetTime newDate)) model4
             in
-                model4
+                model5
                     ! [ cmds1
                       , cmds2
                       , cmds3
+                      , cmds4
                       , Port.setTimeOffset offset
                       ]
 
@@ -630,9 +635,12 @@ update msg model =
                 c2 =
                     case msg_ of
                         Typeahead.ItemSelected ->
-                            case Typeahead.getSelectedStation m of
-                                Just station ->
+                            case Typeahead.getSelectedSuggestion m of
+                                Just (Typeahead.StationSuggestion station) ->
                                     Navigation.newUrl (toUrl (StationEvents station.id))
+
+                                Just (Typeahead.AddressSuggestion address) ->
+                                    RailViz.flyTo address.pos Nothing
 
                                 Nothing ->
                                     Cmd.none
@@ -703,6 +711,22 @@ update msg model =
                 _ ->
                     update (NavigateTo TripSearchRoute) model
 
+        HandleRailVizPermalink lat lng zoom date ->
+            let
+                model1 =
+                    { model | overlayVisible = False }
+
+                ( model2, cmd1 ) =
+                    update (SetSimulationTime (Date.toTime date)) model1
+
+                pos =
+                    { lat = lat, lng = lng }
+
+                cmd2 =
+                    RailViz.flyTo pos (Just zoom)
+            in
+                model2 ! [ cmd1, cmd2 ]
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -771,7 +795,7 @@ checkTypeaheadUpdate msg ( model, cmds ) =
     let
         model_ =
             case msg of
-                Typeahead.SuggestionsError err ->
+                Typeahead.StationSuggestionsError err ->
                     let
                         ( m, _ ) =
                             Connections.update (Connections.SetError err) model.connections
@@ -1155,6 +1179,9 @@ routeToMsg route =
 
         TripSearchRoute ->
             ShowTripSearch
+
+        RailVizPermalink lat lng zoom date ->
+            HandleRailVizPermalink lat lng zoom date
 
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )

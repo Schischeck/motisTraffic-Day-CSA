@@ -7,12 +7,14 @@ RailViz.Render = (function() {
   var timeOffset = 0;
   var canvas;
   var gl;
-  var startTime;
   var rafRequest;
   var offscreen = {};
   var mouseHandler;
   var minZoom = 0;
   let pixelRatio = window.devicePixelRatio;
+  var lastFrame;
+  var targetFrameTime = null;
+  var forceDraw = true;
 
   function init(c, mouseEventHandler) {
     setData(null);
@@ -46,6 +48,7 @@ RailViz.Render = (function() {
     RailViz.Stations.init(data.stations);
     RailViz.Routes.init(data.routes, data.routeVertexCount, data.footpaths);
     RailViz.Trains.init(data.trains, data.routes);
+    forceDraw = true;
   }
 
   function colorRouteSegments() {
@@ -54,6 +57,7 @@ RailViz.Render = (function() {
         train => RailViz.Routes.colorSegment(
             train.route_index, train.segment_index,
             categoryColors[train.clasz]));
+    forceDraw = true;
   }
 
   function setConnectionFilter(filter) {
@@ -83,12 +87,14 @@ RailViz.Render = (function() {
         RailViz.Stations.highlightInterchangeStation);
     filter.intermediateStations.forEach(
         RailViz.Stations.highlightIntermediateStation);
+    forceDraw = true;
   }
 
   function addAdditionalStation(station) {
     const existingStation = data.stations.some(s => s.id == station.id);
     if (!existingStation) {
       data.stations.push(station);
+      forceDraw = true;
       return true;
     }
     return false;
@@ -115,6 +121,7 @@ RailViz.Render = (function() {
       footpath.coordinates.coordinates[2] = toCoords[0];
       footpath.coordinates.coordinates[3] = toCoords[1];
     }
+    forceDraw = true;
   }
 
   function highlightSection(train, section) {
@@ -129,18 +136,30 @@ RailViz.Render = (function() {
                     .to_station_id == section.arrivalStation.id);
     matchingTrains.forEach(
         t => RailViz.Routes.highlightSegment(t.route_index, t.segment_index));
+    forceDraw = true;
   }
 
   function setMapInfo(newMapInfo) {
     mapInfo = newMapInfo;
+    forceDraw = true;
   }
 
   function setTimeOffset(newTimeOffset) {
     timeOffset = newTimeOffset;
+    forceDraw = true;
   }
 
   function setMinZoom(newMinZoom) {
     minZoom = newMinZoom;
+    forceDraw = true;
+  }
+
+  function setTargetFps(targetFps) {
+    if (targetFps) {
+      targetFrameTime = 1000 / targetFps;
+    } else {
+      targetFrameTime = null;
+    }
   }
 
   function setup() {
@@ -162,13 +181,24 @@ RailViz.Render = (function() {
     RailViz.Routes.setup(gl);
     RailViz.Trains.setup(gl);
 
-    startTime = performance.now();
-
+    lastFrame = null;
+    forceDraw = true;
     rafRequest = requestAnimationFrame(render);
   }
 
   function render(timestamp) {
-    WebGL.Util.resizeCanvasToDisplaySize(canvas, pixelRatio);
+    const sizeChanged =
+        WebGL.Util.resizeCanvasToDisplaySize(canvas, pixelRatio);
+
+    if (targetFrameTime != null && lastFrame != null && !sizeChanged &&
+        !forceDraw) {
+      const frameTime = performance.now() - lastFrame;
+      if (frameTime < targetFrameTime) {
+        rafRequest = requestAnimationFrame(render);
+        return;
+      }
+    }
+    forceDraw = false;
 
     var perspective = mat4.create();
     mat4.ortho(
@@ -209,6 +239,7 @@ RailViz.Render = (function() {
       RailViz.Trains.render(gl, perspective, zoom, pixelRatio, isOffscreen);
     }
 
+    lastFrame = performance.now();
     rafRequest = requestAnimationFrame(render);
   }
 
@@ -319,7 +350,8 @@ RailViz.Render = (function() {
     render: render,
     colorRouteSegments: colorRouteSegments,
     setMinZoom: setMinZoom,
-    setConnectionFilter: setConnectionFilter
+    setConnectionFilter: setConnectionFilter,
+    setTargetFps: setTargetFps
   };
 
 })();

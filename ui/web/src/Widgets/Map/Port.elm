@@ -10,6 +10,7 @@ type alias MapInfo =
     , pixelBounds : MapPixelBounds
     , geoBounds : MapGeoBounds
     , railVizBounds : MapGeoBounds
+    , center : Position
     }
 
 
@@ -54,6 +55,7 @@ type alias MapFlyLocation =
     { mapId : String
     , lat : Float
     , lng : Float
+    , zoom : Maybe Float
     }
 
 

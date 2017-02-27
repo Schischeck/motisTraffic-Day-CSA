@@ -26,3 +26,9 @@ type alias RoutingRequest =
 type SearchDirection
     = Forward
     | Backward
+
+
+type alias Interval =
+    { begin : Int
+    , end : Int
+    }

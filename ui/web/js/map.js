@@ -66,6 +66,7 @@ var CanvasOverlay = L.Layer.extend({
     var pixelBounds = this._map.getPixelBounds().min;
     var geoBounds = this._map.getBounds();
     var size = this._map.getSize();
+    var center = this._map.getCenter();
     // var railVizBounds = L.latLngBounds(
     //     this._map.unproject(pixelBounds.subtract(size)),
     //     this._map.unproject(pixelBounds.add(size).add(size)));
@@ -92,7 +93,8 @@ var CanvasOverlay = L.Layer.extend({
         west: railVizBounds.getWest(),
         south: railVizBounds.getSouth(),
         east: railVizBounds.getEast()
-      }
+      },
+      center: {lat: center.lat, lng: center.lng}
     };
 
     app.ports.mapUpdate.send(mapInfo);
@@ -152,9 +154,13 @@ function initPorts(app, apiEndpoint) {
 
   app.ports.mapFlyTo.subscribe(function(opt) {
     var map = window.elmMaps[opt.mapId];
-    map.flyToBounds(
-        L.latLngBounds([L.latLng(opt.lat, opt.lng)]),
-        {paddingTopLeft: [600, 0], maxZoom: 16});
+    var center = L.latLng(opt.lat, opt.lng);
+    if (opt.zoom) {
+      map.flyTo(center, opt.zoom);
+    } else {
+      map.flyToBounds(
+          L.latLngBounds([center]), {paddingTopLeft: [600, 0], maxZoom: 16});
+    }
   });
 
   app.ports.mapFitBounds.subscribe(function(opt) {

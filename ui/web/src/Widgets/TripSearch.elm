@@ -340,6 +340,15 @@ tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale trip =
 
         transport =
             trip.tripInfo.transport
+
+        direction =
+            if not (String.isEmpty transport.direction) then
+                div [ class "direction" ]
+                    [ i [ class "icon" ] [ text "arrow_forward" ]
+                    , text transport.direction
+                    ]
+            else
+                text ""
     in
         div [ class "trip" ]
             [ div [ class "trip-train" ]
@@ -351,8 +360,11 @@ tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale trip =
                 [ text (formatTime departureTime) ]
             , div [ class "trip-first-station" ]
                 [ span
-                    [ onClick (selectStationMsg trip.firstStation (Just departureTime)) ]
+                    [ class "station"
+                    , onClick (selectStationMsg trip.firstStation (Just departureTime))
+                    ]
                     [ text trip.firstStation.name ]
+                , direction
                 ]
             ]
 

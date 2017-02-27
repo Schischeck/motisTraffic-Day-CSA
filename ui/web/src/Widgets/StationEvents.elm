@@ -145,6 +145,7 @@ update msg model =
                                         { mapId = mapId
                                         , lat = station.pos.lat
                                         , lng = station.pos.lng
+                                        , zoom = Nothing
                                         }
                                     ]
 
