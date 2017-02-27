@@ -272,6 +272,11 @@
 
 .sim-time-overlay .permalink {
   padding: 0 10px;
+  cursor: pointer;
+}
+
+.sim-time-overlay .permalink a {
+  color: #000;
 }
 
 .sim-time-overlay .permalink i {

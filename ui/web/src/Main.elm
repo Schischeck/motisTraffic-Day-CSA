@@ -230,6 +230,7 @@ type Msg
     | TripSearchUpdate TripSearch.Msg
     | ShowTripSearch
     | ToggleTripSearch
+    | HandleRailVizPermalink Float Float Float Date
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -639,7 +640,7 @@ update msg model =
                                     Navigation.newUrl (toUrl (StationEvents station.id))
 
                                 Just (Typeahead.AddressSuggestion address) ->
-                                    RailViz.flyTo address.pos
+                                    RailViz.flyTo address.pos Nothing
 
                                 Nothing ->
                                     Cmd.none
@@ -709,6 +710,22 @@ update msg model =
 
                 _ ->
                     update (NavigateTo TripSearchRoute) model
+
+        HandleRailVizPermalink lat lng zoom date ->
+            let
+                model1 =
+                    { model | overlayVisible = False }
+
+                ( model2, cmd1 ) =
+                    update (SetSimulationTime (Date.toTime date)) model1
+
+                pos =
+                    { lat = lat, lng = lng }
+
+                cmd2 =
+                    RailViz.flyTo pos (Just zoom)
+            in
+                model2 ! [ cmd1, cmd2 ]
 
 
 buildRoutingRequest : Model -> RoutingRequest
@@ -1162,6 +1179,9 @@ routeToMsg route =
 
         TripSearchRoute ->
             ShowTripSearch
+
+        RailVizPermalink lat lng zoom date ->
+            HandleRailVizPermalink lat lng zoom date
 
 
 selectConnection : Model -> Int -> ( Model, Cmd Msg )

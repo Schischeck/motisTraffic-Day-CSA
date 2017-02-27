@@ -11,7 +11,7 @@ module Widgets.Map.RailViz
         )
 
 import Widgets.Map.Port as Port exposing (..)
-import Html exposing (Html, Attribute, div, text, span, input, label, i)
+import Html exposing (Html, Attribute, div, text, span, input, label, i, a)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Time exposing (Time)
@@ -26,6 +26,7 @@ import Data.Connection.Types exposing (Station, Position)
 import Util.Api as Api exposing (ApiError)
 import Widgets.Helpers.ApiErrorUtil exposing (errorText)
 import Widgets.LoadingSpinner as LoadingSpinner
+import Routes exposing (Route(RailVizPermalink), toUrl)
 
 
 -- MODEL
@@ -58,6 +59,7 @@ init remoteAddress =
         , pixelBounds = { north = 0, west = 0, width = 0, height = 0 }
         , geoBounds = { north = 0, west = 0, south = 0, east = 0 }
         , railVizBounds = { north = 0, west = 0, south = 0, east = 0 }
+        , center = { lat = 0, lng = 0 }
         }
     , time = 0
     , systemTime = 0
@@ -128,12 +130,13 @@ update msg model =
             { model | apiError = err } ! []
 
 
-flyTo : Position -> Cmd msg
-flyTo pos =
+flyTo : Position -> Maybe Float -> Cmd msg
+flyTo pos zoom =
     mapFlyTo
         { mapId = mapId
         , lat = pos.lat
         , lng = pos.lng
+        , zoom = zoom
         }
 
 
@@ -325,13 +328,17 @@ simulationTimeOverlay locale model =
     let
         simDate =
             Date.fromTime model.time
+
+        permalink =
+            getPermalink model
     in
         div
-            [ class "sim-time-overlay", id "sim-time-overlay" ]
+            [ class "sim-time-overlay" ]
             [ div [ id "railviz-loading-spinner" ] [ LoadingSpinner.view ]
-            , div [ class "permalink" ]
-                [ i [ class "icon" ] [ text "link" ] ]
-            , div [ class "time" ] [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
+            , div [ class "permalink", title locale.t.misc.permalink ]
+                [ a [ href permalink ] [ i [ class "icon" ] [ text "link" ] ] ]
+            , div [ class "time", id "sim-time-overlay" ]
+                [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
             ]
 
 
@@ -405,3 +412,18 @@ apiErrorOverlay locale err =
             [ i [ class "icon" ] [ text "error_outline" ]
             , text errorMsg
             ]
+
+
+getPermalink : Model -> String
+getPermalink model =
+    let
+        simDate =
+            Date.fromTime model.time
+
+        pos =
+            model.mapInfo.center
+
+        zoom =
+            model.mapInfo.zoom
+    in
+        toUrl (RailVizPermalink pos.lat pos.lng zoom simDate)
