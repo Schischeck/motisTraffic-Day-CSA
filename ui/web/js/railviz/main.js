@@ -14,6 +14,7 @@ RailViz.Main = (function() {
   var dragEndTime = null;
   var lastTrainsRequest = null;
   var lastTripsRequest = null;
+  var useFpsLimiter = true;
 
   var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
 
@@ -30,6 +31,7 @@ RailViz.Main = (function() {
   function mapUpdate(newMapInfo) {
     mapInfo = newMapInfo;
     RailViz.Render.setMapInfo(mapInfo);
+    setupFpsLimiter();
     debouncedSendTrainsRequest();
   }
 
@@ -55,6 +57,28 @@ RailViz.Main = (function() {
     if (showingFilteredData) {
       RailViz.Render.setConnectionFilter(connectionFilter);
     }
+  }
+
+  function setUseFpsLimiter(enabled) {
+    useFpsLimiter = enabled;
+    setupFpsLimiter();
+  }
+
+  function setupFpsLimiter() {
+    let targetFps = null;
+    if (useFpsLimiter && mapInfo) {
+      const zoom = mapInfo.zoom;
+      if (zoom <= 10) {
+        targetFps = 2;
+      } else if (zoom <= 12) {
+        targetFps = 5;
+      } else if (zoom <= 14) {
+        targetFps = 10;
+      } else if (zoom <= 15) {
+        targetFps = 30;
+      }
+    }
+    RailViz.Render.setTargetFps(targetFps);
   }
 
   function makeTrainsRequest() {
@@ -225,7 +249,8 @@ RailViz.Main = (function() {
     },
     setTripFilter: setTripFilter,
     setConnectionFilter: setConnectionFilter,
-    dragEnd: dragEnd
+    dragEnd: dragEnd,
+    setUseFpsLimiter: setUseFpsLimiter
   };
 
 })();
