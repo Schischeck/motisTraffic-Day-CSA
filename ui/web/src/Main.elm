@@ -544,11 +544,15 @@ update msg model =
 
                 ( model4, cmds3 ) =
                     update (TimeUpdate (TimeInput.InitDate True newDate)) model3
+
+                ( model5, cmds4 ) =
+                    update (TripSearchUpdate (TripSearch.SetTime newDate)) model4
             in
-                model4
+                model5
                     ! [ cmds1
                       , cmds2
                       , cmds3
+                      , cmds4
                       , Port.setTimeOffset offset
                       ]
 
