@@ -5,8 +5,8 @@ import Json.Encode as Encode exposing (string, int)
 import Util.Core exposing ((=>))
 
 
-encodeAddressRequest : AddressRequest -> Encode.Value
-encodeAddressRequest req =
+encodeAddressRequest : String -> Encode.Value
+encodeAddressRequest input =
     Encode.object
         [ "destination"
             => Encode.object
@@ -16,5 +16,5 @@ encodeAddressRequest req =
         , "content_type" => Encode.string "AddressRequest"
         , "content"
             => Encode.object
-                [ "input" => Encode.string req.input ]
+                [ "input" => Encode.string input ]
         ]

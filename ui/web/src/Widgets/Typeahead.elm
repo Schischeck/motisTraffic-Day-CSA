@@ -2,13 +2,16 @@ module Widgets.Typeahead
     exposing
         ( Model
         , Msg(..)
+        , Suggestion(..)
         , init
         , update
         , view
         , getSelectedStation
+        , getSelectedAddress
+        , getSelectedSuggestion
         )
 
-import Html exposing (Html, div, ul, li, text)
+import Html exposing (Html, div, ul, li, text, i, span)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onMouseOver, onFocus, onClick, keyCode, on)
 import Html.Lazy exposing (..)
@@ -22,15 +25,20 @@ import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Debounce
 import Data.Connection.Types exposing (Station)
-import Data.StationGuesser.Request exposing (encodeRequest)
+import Data.StationGuesser.Request as StationGuesser
 import Data.StationGuesser.Decode exposing (decodeStationGuesserResponse)
+import Data.Address.Types exposing (..)
+import Data.Address.Request exposing (encodeAddressRequest)
+import Data.Address.Decode exposing (decodeAddressResponse)
 
 
 -- MODEL
 
 
 type alias Model =
-    { suggestions : List Station
+    { stationSuggestions : List Station
+    , addressSuggestions : List Address
+    , suggestions : List Suggestion
     , input : String
     , selected : Int
     , visible : Bool
@@ -40,14 +48,21 @@ type alias Model =
     }
 
 
+type Suggestion
+    = StationSuggestion Station
+    | AddressSuggestion Address
+
+
 
 -- UPDATE
 
 
 type Msg
     = NoOp
-    | ReceiveSuggestions (List Station)
-    | SuggestionsError ApiError
+    | StationSuggestionsResponse (List Station)
+    | StationSuggestionsError ApiError
+    | AddressSuggestionsResponse AddressResponse
+    | AddressSuggestionsError ApiError
     | InputChange String
     | EnterSelection
     | ClickElement Int
@@ -67,8 +82,21 @@ update msg model =
         NoOp ->
             model ! []
 
-        ReceiveSuggestions suggestions ->
-            { model | suggestions = suggestions } ! []
+        StationSuggestionsResponse suggestions ->
+            updateSuggestions { model | stationSuggestions = suggestions } ! []
+
+        StationSuggestionsError _ ->
+            updateSuggestions { model | stationSuggestions = [] } ! []
+
+        AddressSuggestionsResponse response ->
+            updateSuggestions { model | addressSuggestions = response.guesses } ! []
+
+        AddressSuggestionsError err ->
+            let
+                _ =
+                    Debug.log "AddressSuggestionsError" err
+            in
+                updateSuggestions { model | addressSuggestions = [] } ! []
 
         InputChange str ->
             { model
@@ -80,7 +108,7 @@ update msg model =
         EnterSelection ->
             { model
                 | visible = False
-                , input = getStationName model model.selected
+                , input = getEntryName model model.selected
             }
                 ! [ Debounce.debounceCmd debounceCfg RequestSuggestions
                   , Task.perform identity (Task.succeed ItemSelected)
@@ -90,7 +118,7 @@ update msg model =
             { model
                 | visible = False
                 , selected = 0
-                , input = getStationName model i
+                , input = getEntryName model i
             }
                 ! [ Debounce.debounceCmd debounceCfg RequestSuggestions
                   , Task.perform identity (Task.succeed ItemSelected)
@@ -137,27 +165,66 @@ update msg model =
         ItemSelected ->
             model ! []
 
-        SuggestionsError _ ->
-            model ! []
+
+updateSuggestions : Model -> Model
+updateSuggestions model =
+    let
+        stations =
+            List.map StationSuggestion model.stationSuggestions
+
+        addresses =
+            List.map AddressSuggestion model.addressSuggestions
+    in
+        { model | suggestions = stations ++ addresses }
 
 
-getStationName : Model -> Int -> String
-getStationName { suggestions } idx =
+getEntryName : Model -> Int -> String
+getEntryName { suggestions } idx =
     suggestions
         !! idx
-        |> Maybe.map .name
+        |> Maybe.map getSuggestionName
         |> Maybe.withDefault ""
 
 
-getSelectedStation : Model -> Maybe Station
-getSelectedStation model =
+getSuggestionName : Suggestion -> String
+getSuggestionName suggestion =
+    case suggestion of
+        StationSuggestion station ->
+            station.name
+
+        AddressSuggestion address ->
+            address.name ++ " (" ++ (String.join ", " address.regions) ++ ")"
+
+
+getSelectedSuggestion : Model -> Maybe Suggestion
+getSelectedSuggestion model =
     let
         input =
             model.input |> String.trim |> String.toLower
     in
         model.suggestions
-            |> List.filter (\station -> String.toLower station.name == input)
+            |> List.filter (\entry -> String.toLower (getSuggestionName entry) == input)
             |> List.head
+
+
+getSelectedStation : Model -> Maybe Station
+getSelectedStation model =
+    case (getSelectedSuggestion model) of
+        Just (StationSuggestion station) ->
+            Just station
+
+        _ ->
+            Nothing
+
+
+getSelectedAddress : Model -> Maybe Address
+getSelectedAddress model =
+    case (getSelectedSuggestion model) of
+        Just (AddressSuggestion address) ->
+            Just address
+
+        _ ->
+            Nothing
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -202,14 +269,28 @@ onKey fail msgs =
         on "keydown" (Decode.map tagger keyCode)
 
 
-proposalView : Int -> Int -> String -> Html Msg
-proposalView selected index str =
-    li
-        [ classList [ ( "selected", selected == index ) ]
-        , onClick (ClickElement index)
-        , onMouseOver (Select index)
-        ]
-        [ text str ]
+proposalView : Int -> Int -> Suggestion -> Html Msg
+proposalView selected index suggestion =
+    let
+        name =
+            getSuggestionName suggestion
+
+        icon =
+            case suggestion of
+                StationSuggestion _ ->
+                    "place"
+
+                AddressSuggestion _ ->
+                    "location_city"
+    in
+        li
+            [ classList [ ( "selected", selected == index ) ]
+            , onClick (ClickElement index)
+            , onMouseOver (Select index)
+            ]
+            [ i [ class "icon" ] [ text icon ]
+            , span [ title name ] [ text name ]
+            ]
 
 
 typeaheadView : ( Int, String, Maybe String ) -> Model -> Html Msg
@@ -240,7 +321,7 @@ typeaheadView ( tabIndex, label, icon ) model =
             , onStopAll "mousedown" NoOp
             ]
             [ ul [ class "proposals" ]
-                (List.indexedMap (proposalView model.selected) (List.map .name model.suggestions))
+                (List.indexedMap (proposalView model.selected) model.suggestions)
             ]
         ]
 
@@ -259,6 +340,8 @@ view tabIndex label icon model =
 init : String -> String -> ( Model, Cmd Msg )
 init remoteAddress initialValue =
     { suggestions = []
+    , stationSuggestions = []
+    , addressSuggestions = []
     , input = initialValue
     , selected = 0
     , visible = False
@@ -279,9 +362,27 @@ init remoteAddress initialValue =
 
 requestSuggestions : String -> String -> Cmd Msg
 requestSuggestions remoteAddress input =
+    Cmd.batch
+        [ requestStationSuggestions remoteAddress input
+        , requestAddressSuggestions remoteAddress input
+        ]
+
+
+requestStationSuggestions : String -> String -> Cmd Msg
+requestStationSuggestions remoteAddress input =
     Api.sendRequest
         remoteAddress
         decodeStationGuesserResponse
-        SuggestionsError
-        ReceiveSuggestions
-        (encodeRequest 6 input)
+        StationSuggestionsError
+        StationSuggestionsResponse
+        (StationGuesser.encodeRequest 6 input)
+
+
+requestAddressSuggestions : String -> String -> Cmd Msg
+requestAddressSuggestions remoteAddress input =
+    Api.sendRequest
+        remoteAddress
+        decodeAddressResponse
+        AddressSuggestionsError
+        AddressSuggestionsResponse
+        (encodeAddressRequest input)

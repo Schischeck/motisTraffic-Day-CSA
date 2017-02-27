@@ -7,8 +7,8 @@
 
 .proposals li {
   font-weight: 500;
-  margin: 10px;
-  padding: 16px;
+  margin: 5px;
+  padding: 5px;
   border-radius: 2px;
   display: block;
   width: 300px;
@@ -20,4 +20,10 @@
 
 .proposals li.selected {
   background-color: #e4eafb;
+}
+
+.proposals li i {
+  vertical-align: middle;
+  margin-right: 5px;
+  color: #777;
 }

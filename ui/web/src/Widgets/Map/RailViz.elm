@@ -22,7 +22,7 @@ import Maybe.Extra exposing (isJust, isNothing)
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (formatTime, formatDateTimeWithSeconds)
 import Localization.Base exposing (..)
-import Data.Connection.Types exposing (Station)
+import Data.Connection.Types exposing (Station, Position)
 import Util.Api as Api exposing (ApiError)
 import Widgets.Helpers.ApiErrorUtil exposing (errorText)
 
@@ -127,12 +127,12 @@ update msg model =
             { model | apiError = err } ! []
 
 
-flyTo : Station -> Cmd msg
-flyTo station =
+flyTo : Position -> Cmd msg
+flyTo pos =
     mapFlyTo
         { mapId = mapId
-        , lat = station.pos.lat
-        , lng = station.pos.lng
+        , lat = pos.lat
+        , lng = pos.lng
         }
 
 

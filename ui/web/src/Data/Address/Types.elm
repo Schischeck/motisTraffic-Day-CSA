@@ -3,11 +3,6 @@ module Data.Address.Types exposing (..)
 import Data.Connection.Types exposing (Position)
 
 
-type alias AddressRequest =
-    { input : String
-    }
-
-
 type alias AddressResponse =
     { guesses : List Address }
 

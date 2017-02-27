@@ -634,9 +634,12 @@ update msg model =
                 c2 =
                     case msg_ of
                         Typeahead.ItemSelected ->
-                            case Typeahead.getSelectedStation m of
-                                Just station ->
+                            case Typeahead.getSelectedSuggestion m of
+                                Just (Typeahead.StationSuggestion station) ->
                                     Navigation.newUrl (toUrl (StationEvents station.id))
+
+                                Just (Typeahead.AddressSuggestion address) ->
+                                    RailViz.flyTo address.pos
 
                                 Nothing ->
                                     Cmd.none
@@ -775,7 +778,7 @@ checkTypeaheadUpdate msg ( model, cmds ) =
     let
         model_ =
             case msg of
-                Typeahead.SuggestionsError err ->
+                Typeahead.StationSuggestionsError err ->
                     let
                         ( m, _ ) =
                             Connections.update (Connections.SetError err) model.connections
