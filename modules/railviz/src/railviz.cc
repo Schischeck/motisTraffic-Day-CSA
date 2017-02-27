@@ -189,8 +189,6 @@ msg_ptr railviz::get_station(msg_ptr const& msg) const {
     events.resize(interesting_size);
   };
 
-  std::sort(begin(events), end(events), cmp);
-
   // collect departure events (only in allowed)
   for (auto const& se : station->edges_) {
     if (se.type() == edge::INVALID_EDGE || !se.to_->is_route_node()) {
