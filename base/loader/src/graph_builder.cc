@@ -469,9 +469,18 @@ light_connection graph_builder::section_to_connection(
 
 void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
   for (auto const& footpath : *footpaths) {
+    auto const from_node_it = stations_.find(footpath->from());
+    auto const to_node_it = stations_.find(footpath->to());
+
+    verify(from_node_it != end(stations_),
+           "footpath from node not found %s [%s]",
+           footpath->from()->name()->c_str(), footpath->from()->id()->c_str());
+    verify(to_node_it != end(stations_), "footpath to node not found %s [%s]",
+           footpath->to()->name()->c_str(), footpath->to()->id()->c_str());
+
     auto duration = footpath->duration();
-    auto from_node = stations_[footpath->from()];
-    auto to_node = stations_[footpath->to()];
+    auto const from_node = from_node_it->second;
+    auto const to_node = to_node_it->second;
     auto const& from_station = *sched_.stations_.at(from_node->id_);
     auto const& to_station = *sched_.stations_.at(to_node->id_);
 

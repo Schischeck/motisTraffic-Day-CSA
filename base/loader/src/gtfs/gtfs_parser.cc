@@ -75,15 +75,16 @@ std::vector<std::string> gtfs_parser::missing_files(
 }
 
 void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
-  auto agencies = read_agencies(loaded_file(root / AGENCY_FILE));
-  auto stops = read_stops(loaded_file(root / STOPS_FILE));
-  auto routes = read_routes(loaded_file(root / ROUTES_FILE), agencies);
-  auto calendar = read_calendar(loaded_file(root / CALENDAR_FILE));
-  auto dates = read_calendar_date(loaded_file(root / CALENDAR_DATES_FILE));
-  auto services = traffic_days(calendar, dates);
-  auto trips = read_trips(loaded_file(root / TRIPS_FILE), routes, services);
-  auto transfers = read_transfers(loaded_file(root / TRANSFERS_FILE), stops);
-  read_stop_times(loaded_file(root / STOP_TIMES_FILE), trips, stops);
+  auto const load = [&](char const* file) { return loaded_file(root / file); };
+  auto const agencies = read_agencies(load(AGENCY_FILE));
+  auto const stops = read_stops(load(STOPS_FILE));
+  auto const routes = read_routes(load(ROUTES_FILE), agencies);
+  auto const calendar = read_calendar(load(CALENDAR_FILE));
+  auto const dates = read_calendar_date(load(CALENDAR_DATES_FILE));
+  auto const services = traffic_days(calendar, dates);
+  auto const transfers = read_transfers(load(TRANSFERS_FILE), stops);
+  auto trips = read_trips(load(TRIPS_FILE), routes, services);
+  read_stop_times(load(STOP_TIMES_FILE), trips, stops);
 
   std::map<int, Offset<Category>> fbs_categories;
   std::map<agency const*, Offset<Provider>> fbs_providers;
@@ -118,9 +119,10 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
                               [&]() { return fbb.CreateString(s); });
   };
 
-  Interval interval(to_unix_time(services.first_day_),
-                    to_unix_time(services.last_day_));
-  auto output_services = fbb.CreateVector(utl::to_vec(
+  auto const interval =
+      Interval{static_cast<uint64_t>(to_unix_time(services.first_day_)),
+               static_cast<uint64_t>(to_unix_time(services.last_day_))};
+  auto const output_services = fbb.CreateVector(utl::to_vec(
       begin(trips), end(trips),
       [&](std::pair<std::string const, std::unique_ptr<trip>> const& entry) {
         auto const& t = entry.second;
@@ -168,20 +170,22 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
                   return times;
                 })));
       }));
+
+  auto const footpaths = fbb.CreateVector(std::accumulate(
+      begin(transfers), end(transfers), std::vector<Offset<Footpath>>(),
+      [&](std::vector<Offset<Footpath>>& footpaths,
+          std::pair<stop_pair, transfer> const& t) {
+        if (t.second.type_ == transfer::TIMED_TRANSFER) {
+          footpaths.push_back(CreateFootpath(
+              fbb, get_or_create_stop(t.first.first),
+              get_or_create_stop(t.first.second), t.second.minutes_));
+        }
+        return footpaths;
+      }));
+
   fbb.Finish(CreateSchedule(
       fbb, output_services, fbb.CreateVector(values(fbs_stations)),
-      fbb.CreateVector(values(fbs_routes)), &interval,
-      fbb.CreateVector(std::accumulate(
-          begin(transfers), end(transfers), std::vector<Offset<Footpath>>(),
-          [&](std::vector<Offset<Footpath>>& footpaths,
-              std::pair<stop_pair, transfer> const& t) {
-            if (t.second.type_ == transfer::TIMED_TRANSFER) {
-              footpaths.push_back(CreateFootpath(
-                  fbb, get_or_create_stop(t.first.first),
-                  get_or_create_stop(t.first.second), t.second.minutes_));
-            }
-            return footpaths;
-          })),
+      fbb.CreateVector(values(fbs_routes)), &interval, footpaths,
       fbb.CreateVector(std::vector<Offset<RuleService>>())));
 }
 
