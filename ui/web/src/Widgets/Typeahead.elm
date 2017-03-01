@@ -19,6 +19,7 @@ import String
 import Dict exposing (..)
 import Task
 import Json.Decode as Decode
+import List.Extra
 import Widgets.Input as Input
 import Util.View exposing (onStopAll)
 import Util.List exposing ((!!))
@@ -89,7 +90,11 @@ update msg model =
             updateSuggestions { model | stationSuggestions = [] } ! []
 
         AddressSuggestionsResponse response ->
-            updateSuggestions { model | addressSuggestions = response.guesses } ! []
+            updateSuggestions
+                { model
+                    | addressSuggestions = (filterAddressSuggestions response.guesses)
+                }
+                ! []
 
         AddressSuggestionsError err ->
             let
@@ -193,7 +198,12 @@ getSuggestionName suggestion =
             station.name
 
         AddressSuggestion address ->
-            address.name ++ " (" ++ (String.join ", " address.regions) ++ ")"
+            getAddressStr address
+
+
+getAddressStr : Address -> String
+getAddressStr address =
+    address.name ++ " (" ++ (String.join ", " address.regions) ++ ")"
 
 
 getSelectedSuggestion : Model -> Maybe Suggestion
@@ -225,6 +235,12 @@ getSelectedAddress model =
 
         _ ->
             Nothing
+
+
+filterAddressSuggestions : List Address -> List Address
+filterAddressSuggestions suggestions =
+    suggestions
+        |> List.Extra.uniqueBy getAddressStr
 
 
 debounceCfg : Debounce.Config Model Msg
