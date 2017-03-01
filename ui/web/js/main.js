@@ -21,9 +21,16 @@ function initApp() {
     }
   }
 
-  window.app = Elm.Main.embed(
-      document.getElementById('app-container'),
-      {apiEndpoint: apiEndpoint, currentTime: Date.now()});
+  var simulationTime = null;
+  if (params['time']) {
+    simulationTime = parseTimestamp(params['time']);
+  }
+
+  window.app = Elm.Main.embed(document.getElementById('app-container'), {
+    apiEndpoint: apiEndpoint,
+    currentTime: Date.now(),
+    simulationTime: simulationTime
+  });
 
   window.elmMaps = {};
 
@@ -77,4 +84,22 @@ function getQueryParameters() {
     params[param[0]] = decodeURIComponent(param[1]);
   });
   return params;
+}
+
+function parseTimestamp(value) {
+  var filterInt = function(value) {
+    if (/^(\-|\+)?([0-9]+|Infinity)$/.test(value)) return Number(value);
+    return NaN;
+  };
+  if (value != null) {
+    var time = filterInt(value);
+    if (time) {
+      return time * 1000;
+    } else {
+      var date = new Date(value);
+      var time = date.getTime();
+      return (time && !isNaN(time)) ? time : null;
+    }
+  }
+  return null;
 }

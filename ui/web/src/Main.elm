@@ -49,6 +49,7 @@ import Time exposing (Time)
 type alias ProgramFlags =
     { apiEndpoint : String
     , currentTime : Time
+    , simulationTime : Maybe Time
     }
 
 
@@ -159,10 +160,18 @@ init flags initialLocation =
             , stationSearch = stationSearchModel
             }
 
-        ( model, cmds ) =
+        ( model1, cmd1 ) =
             update (locationToMsg initialLocation) initialModel
+
+        ( model2, cmd2 ) =
+            case flags.simulationTime of
+                Just time ->
+                    update (SetSimulationTime time) model1
+
+                Nothing ->
+                    ( model1, Cmd.none )
     in
-        model
+        model2
             ! [ Cmd.map DateUpdate dateCmd
               , Cmd.map TimeUpdate timeCmd
               , Cmd.map MapUpdate mapCmd
@@ -172,7 +181,8 @@ init flags initialLocation =
               , Cmd.map TripSearchUpdate tripSearchCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
-              , cmds
+              , cmd1
+              , cmd2
               ]
 
 

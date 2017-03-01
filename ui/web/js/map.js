@@ -179,22 +179,10 @@ function simulationTimePopup(port) {
   var result = prompt(
       'Set simulation time (ISO 8601/Unix timestamp):',
       currentSimTime.toISOString());
-  var filterInt = function(value) {
-    if (/^(\-|\+)?([0-9]+|Infinity)$/.test(value)) return Number(value);
-    return NaN;
-  };
-  if (result != null) {
-    var time = filterInt(result);
-    if (time) {
-      time = time * 1000;
-    } else {
-      var date = new Date(result);
-      time = date.getTime();
-    }
-    if (time) {
-      port.send(time);
-    } else {
-      port.send(Date.now());
-    }
+  var time = parseTimestamp(result);
+  if (time) {
+    port.send(time);
+  } else {
+    port.send(Date.now());
   }
 }
