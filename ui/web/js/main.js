@@ -26,10 +26,13 @@ function initApp() {
     simulationTime = parseTimestamp(params['time']);
   }
 
+  var language = params['lang'] || params['lng'] || 'de';
+
   window.app = Elm.Main.embed(document.getElementById('app-container'), {
     apiEndpoint: apiEndpoint,
     currentTime: Date.now(),
-    simulationTime: simulationTime
+    simulationTime: simulationTime,
+    language: language
   });
 
   window.elmMaps = {};

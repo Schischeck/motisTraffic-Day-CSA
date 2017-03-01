@@ -50,6 +50,7 @@ type alias ProgramFlags =
     { apiEndpoint : String
     , currentTime : Time
     , simulationTime : Maybe Time
+    , language : String
     }
 
 
@@ -106,7 +107,7 @@ init : ProgramFlags -> Location -> ( Model, Cmd Msg )
 init flags initialLocation =
     let
         locale =
-            deLocalization
+            getLocale flags.language
 
         remoteAddress =
             flags.apiEndpoint
@@ -869,6 +870,19 @@ getCurrentTime model =
 getCurrentDate : Model -> Date
 getCurrentDate model =
     Date.fromTime (getCurrentTime model)
+
+
+getLocale : String -> Localization
+getLocale language =
+    case String.toLower language of
+        "de" ->
+            deLocalization
+
+        "en" ->
+            enLocalization
+
+        _ ->
+            deLocalization
 
 
 

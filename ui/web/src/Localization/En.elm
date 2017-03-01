@@ -31,11 +31,10 @@ enTranslations =
         , transportsHeader = "Transports"
         , scheduleRange =
             \begin end ->
-                "Auskunft von "
+                "Possible dates: "
                     ++ (formatDate enDateConfig begin)
-                    ++ " bis "
+                    ++ " – "
                     ++ (formatDate enDateConfig end)
-                    ++ " möglich"
         , loading = "Searching..."
         , noResults = "No connections found"
         , extendBefore = "Earlier"
