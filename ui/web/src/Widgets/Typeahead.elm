@@ -9,6 +9,7 @@ module Widgets.Typeahead
         , getSelectedStation
         , getSelectedAddress
         , getSelectedSuggestion
+        , getSuggestionName
         )
 
 import Html exposing (Html, div, ul, li, text, i, span)
@@ -20,9 +21,10 @@ import Dict exposing (..)
 import Task
 import Json.Decode as Decode
 import List.Extra
+import Maybe.Extra
 import Widgets.Input as Input
 import Util.View exposing (onStopAll)
-import Util.List exposing ((!!))
+import Util.List exposing ((!!), last)
 import Util.Api as Api exposing (ApiError(..))
 import Debounce
 import Data.Connection.Types exposing (Station)
@@ -41,7 +43,8 @@ type alias Model =
     , addressSuggestions : List Address
     , suggestions : List Suggestion
     , input : String
-    , selected : Int
+    , hoverIndex : Int
+    , selectedSuggestion : Maybe Suggestion
     , visible : Bool
     , inputWidget : Input.Model
     , remoteAddress : String
@@ -52,6 +55,26 @@ type alias Model =
 type Suggestion
     = StationSuggestion Station
     | AddressSuggestion Address
+
+
+init : String -> String -> ( Model, Cmd Msg )
+init remoteAddress initialValue =
+    { suggestions = []
+    , stationSuggestions = []
+    , addressSuggestions = []
+    , input = initialValue
+    , hoverIndex = 0
+    , selectedSuggestion = Nothing
+    , visible = False
+    , inputWidget = Input.init
+    , remoteAddress = remoteAddress
+    , debounce = Debounce.init
+    }
+        ! (if String.isEmpty initialValue then
+            []
+           else
+            [ requestSuggestions remoteAddress initialValue ]
+          )
 
 
 
@@ -107,13 +130,15 @@ update msg model =
             { model
                 | input = str
                 , visible = True
+                , selectedSuggestion = getSuggestionByName model str
             }
                 ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
 
         EnterSelection ->
             { model
                 | visible = False
-                , input = getEntryName model model.selected
+                , input = getEntryName model model.hoverIndex
+                , selectedSuggestion = model.suggestions !! model.hoverIndex
             }
                 ! [ Debounce.debounceCmd debounceCfg RequestSuggestions
                   , Task.perform identity (Task.succeed ItemSelected)
@@ -122,24 +147,25 @@ update msg model =
         ClickElement i ->
             { model
                 | visible = False
-                , selected = 0
+                , hoverIndex = 0
                 , input = getEntryName model i
+                , selectedSuggestion = model.suggestions !! i
             }
                 ! [ Debounce.debounceCmd debounceCfg RequestSuggestions
                   , Task.perform identity (Task.succeed ItemSelected)
                   ]
 
         SelectionUp ->
-            { model | selected = (model.selected - 1) % List.length model.suggestions } ! []
+            { model | hoverIndex = (model.hoverIndex - 1) % List.length model.suggestions } ! []
 
         SelectionDown ->
-            { model | selected = (model.selected + 1) % List.length model.suggestions } ! []
+            { model | hoverIndex = (model.hoverIndex + 1) % List.length model.suggestions } ! []
 
         Select index ->
-            { model | selected = index } ! []
+            { model | hoverIndex = index } ! []
 
         Hide ->
-            { model | visible = False, selected = 0 } ! []
+            { model | visible = False, hoverIndex = 0 } ! []
 
         InputUpdate msg_ ->
             let
@@ -152,7 +178,7 @@ update msg model =
                             { model | visible = True }
 
                         Input.Blur ->
-                            { model | visible = False, selected = 0 }
+                            { model | visible = False, hoverIndex = 0 }
             in
                 { updated | inputWidget = Input.update msg_ model.inputWidget } ! []
 
@@ -179,8 +205,21 @@ updateSuggestions model =
 
         addresses =
             List.map AddressSuggestion model.addressSuggestions
+
+        model1 =
+            { model | suggestions = stations ++ addresses }
+
+        model2 =
+            case model1.selectedSuggestion of
+                Nothing ->
+                    { model1
+                        | selectedSuggestion = getSuggestionByName model1 model1.input
+                    }
+
+                Just _ ->
+                    model1
     in
-        { model | suggestions = stations ++ addresses }
+        model2
 
 
 getEntryName : Model -> Int -> String
@@ -203,18 +242,39 @@ getSuggestionName suggestion =
 
 getAddressStr : Address -> String
 getAddressStr address =
-    address.name ++ " (" ++ (String.join ", " (List.map .name address.regions)) ++ ")"
+    let
+        region =
+            getRegionStr address
+    in
+        if String.isEmpty region then
+            address.name
+        else
+            address.name ++ ", " ++ region
+
+
+getRegionStr : Address -> String
+getRegionStr address =
+    let
+        city =
+            address.regions
+                |> List.filter (\a -> a.adminLevel <= 8)
+                |> List.head
+                |> Maybe.map .name
+
+        country =
+            address.regions
+                |> List.filter (\a -> a.adminLevel == 2)
+                |> List.head
+                |> Maybe.map .name
+    in
+        [ city, country ]
+            |> Maybe.Extra.values
+            |> String.join ", "
 
 
 getSelectedSuggestion : Model -> Maybe Suggestion
 getSelectedSuggestion model =
-    let
-        input =
-            model.input |> String.trim |> String.toLower
-    in
-        model.suggestions
-            |> List.filter (\entry -> String.toLower (getSuggestionName entry) == input)
-            |> List.head
+    model.selectedSuggestion
 
 
 getSelectedStation : Model -> Maybe Station
@@ -241,6 +301,20 @@ filterAddressSuggestions : List Address -> List Address
 filterAddressSuggestions suggestions =
     suggestions
         |> List.Extra.uniqueBy getAddressStr
+
+
+getSuggestionByName : Model -> String -> Maybe Suggestion
+getSuggestionByName model rawInput =
+    let
+        input =
+            rawInput |> String.trim |> String.toLower
+
+        checkEntry entry =
+            (String.toLower (getSuggestionName entry)) == input
+    in
+        model.suggestions
+            |> List.filter checkEntry
+            |> List.head
 
 
 debounceCfg : Debounce.Config Model Msg
@@ -286,7 +360,7 @@ onKey fail msgs =
 
 
 proposalView : Int -> Int -> Suggestion -> Html Msg
-proposalView selected index suggestion =
+proposalView hoverIndex index suggestion =
     let
         name =
             getSuggestionName suggestion
@@ -300,7 +374,7 @@ proposalView selected index suggestion =
                     "location_city"
     in
         li
-            [ classList [ ( "selected", selected == index ) ]
+            [ classList [ ( "selected", hoverIndex == index ) ]
             , onClick (ClickElement index)
             , onMouseOver (Select index)
             ]
@@ -337,7 +411,7 @@ typeaheadView ( tabIndex, label, icon ) model =
             , onStopAll "mousedown" NoOp
             ]
             [ ul [ class "proposals" ]
-                (List.indexedMap (proposalView model.selected) model.suggestions)
+                (List.indexedMap (proposalView model.hoverIndex) model.suggestions)
             ]
         ]
 
@@ -350,29 +424,6 @@ view tabIndex label icon model =
 
 -- SUBSCRIPTIONS
 {- no subs atm -}
--- INIT
-
-
-init : String -> String -> ( Model, Cmd Msg )
-init remoteAddress initialValue =
-    { suggestions = []
-    , stationSuggestions = []
-    , addressSuggestions = []
-    , input = initialValue
-    , selected = 0
-    , visible = False
-    , inputWidget = Input.init
-    , remoteAddress = remoteAddress
-    , debounce = Debounce.init
-    }
-        ! (if String.isEmpty initialValue then
-            []
-           else
-            [ requestSuggestions remoteAddress initialValue ]
-          )
-
-
-
 -- REMOTE SUGGESTIONS
 
 
