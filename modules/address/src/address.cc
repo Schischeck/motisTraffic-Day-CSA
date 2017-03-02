@@ -29,8 +29,10 @@ struct address::impl {
                            fbb, &pos, fbb.CreateString(r.name),
                            fbb.CreateString(r.type),
                            fbb.CreateVector(utl::to_vec(
-                               r.regions, [&](std::string const& region) {
-                                 return fbb.CreateString(region);
+                               r.regions, [&](region const& region) {
+                                 return CreateRegion(
+                                     fbb, fbb.CreateString(region.name),
+                                     region.admin_level);
                                })));
                      })))
             .Union());
