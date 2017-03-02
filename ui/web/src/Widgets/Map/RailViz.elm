@@ -131,14 +131,14 @@ update msg model =
             { model | apiError = err } ! []
 
 
-flyTo : Position -> Maybe Float -> Cmd msg
-flyTo pos zoom =
+flyTo : Position -> Maybe Float -> Bool -> Cmd msg
+flyTo pos zoom animate =
     mapFlyTo
         { mapId = mapId
         , lat = pos.lat
         , lng = pos.lng
         , zoom = zoom
-        , animate = True
+        , animate = animate
         }
 
 

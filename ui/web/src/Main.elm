@@ -657,7 +657,7 @@ update msg model =
                                     Navigation.newUrl (toUrl (StationEvents station.id))
 
                                 Just (Typeahead.AddressSuggestion address) ->
-                                    RailViz.flyTo address.pos Nothing
+                                    RailViz.flyTo address.pos Nothing True
 
                                 Nothing ->
                                     Cmd.none
@@ -740,7 +740,7 @@ update msg model =
                     { lat = lat, lng = lng }
 
                 cmd2 =
-                    RailViz.flyTo pos (Just zoom)
+                    RailViz.flyTo pos (Just zoom) False
             in
                 model2 ! [ cmd1, cmd2 ]
 
