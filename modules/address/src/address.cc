@@ -25,11 +25,16 @@ struct address::impl {
                          motis_content(AddressRequest, msg)->input()->str()),
                      [&](typeahead::search_result const& r) {
                        auto const pos = Position{r.lat, r.lon};
+                       auto sorted_regions = r.regions;
+                       std::sort(begin(sorted_regions), end(sorted_regions),
+                                 [](region const& a, region const& b) {
+                                   return a.admin_level > b.admin_level;
+                                 });
                        return CreateAddress(
                            fbb, &pos, fbb.CreateString(r.name),
                            fbb.CreateString(r.type),
                            fbb.CreateVector(utl::to_vec(
-                               r.regions, [&](region const& region) {
+                               sorted_regions, [&](region const& region) {
                                  return CreateRegion(
                                      fbb, fbb.CreateString(region.name),
                                      region.admin_level);
