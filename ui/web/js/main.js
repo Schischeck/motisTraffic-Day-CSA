@@ -5,34 +5,39 @@ function initApp() {
   var defaultHost = window.location.hostname;
   var defaultPort = '8080';
   var apiEndpoint = 'http://' + defaultHost + ':' + defaultPort + '/';
-  if (params['motis']) {
-    var p = params['motis'];
-    if (/^[0-9]+$/.test(p)) {
-      apiEndpoint = 'http://' + defaultHost + ':' + p + '/';
-    } else if (!p.includes(':')) {
-      apiEndpoint = 'http://' + p + ':' + defaultPort + '/';
-    } else if (!p.startsWith('http:')) {
-      apiEndpoint = 'http://' + p;
+  var motisParam = params['motis'] || null;
+  if (motisParam) {
+    if (/^[0-9]+$/.test(motisParam)) {
+      apiEndpoint = 'http://' + defaultHost + ':' + motisParam + '/';
+    } else if (!motisParam.includes(':')) {
+      apiEndpoint = 'http://' + motisParam + ':' + defaultPort + '/';
+    } else if (!motisParam.startsWith('http:')) {
+      apiEndpoint = 'http://' + motisParam;
       if (!apiEndpoint.endsWith('/')) {
         apiEndpoint += '/';
       }
     } else {
-      apiEndpoint = p;
+      apiEndpoint = motisParam;
     }
   }
 
   var simulationTime = null;
-  if (params['time']) {
-    simulationTime = parseTimestamp(params['time']);
+  var timeParam = params['time'] || null;
+  if (timeParam) {
+    simulationTime = parseTimestamp(timeParam);
   }
 
-  var language = params['lang'] || params['lng'] || 'de';
+  var langParam = params['lang'] || null;
+  var language = langParam || 'de';
 
   window.app = Elm.Main.embed(document.getElementById('app-container'), {
     apiEndpoint: apiEndpoint,
     currentTime: Date.now(),
     simulationTime: simulationTime,
-    language: language
+    language: language,
+    motisParam: motisParam,
+    timeParam: timeParam,
+    langParam: langParam
   });
 
   window.elmMaps = {};
@@ -78,6 +83,13 @@ function handleDrop(element) {
   element.addEventListener('dragover', function(e) {
     e.preventDefault();
   });
+}
+
+function localStorageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (ex) {
+  }
 }
 
 function getQueryParameters() {

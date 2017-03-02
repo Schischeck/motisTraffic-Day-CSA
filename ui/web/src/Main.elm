@@ -22,7 +22,7 @@ import Data.Lookup.Request exposing (encodeTripToConnection)
 import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
-import Util.Date exposing (combineDateTime)
+import Util.Date exposing (combineDateTime, unixTime)
 import Util.Core exposing ((=>))
 import Date.Extra.Compare
 import Localization.Base exposing (..)
@@ -33,6 +33,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (..)
 import Dom.Scroll as Scroll
+import Http exposing (encodeUri)
 import Task
 import Navigation exposing (Location)
 import UrlParser
@@ -51,6 +52,9 @@ type alias ProgramFlags =
     , currentTime : Time
     , simulationTime : Maybe Time
     , language : String
+    , motisParam : Maybe String
+    , timeParam : Maybe String
+    , langParam : Maybe String
     }
 
 
@@ -94,6 +98,7 @@ type alias Model =
     , timeOffset : Float
     , overlayVisible : Bool
     , stationSearch : Typeahead.Model
+    , programFlags : ProgramFlags
     }
 
 
@@ -159,6 +164,7 @@ init flags initialLocation =
             , timeOffset = 0
             , overlayVisible = True
             , stationSearch = stationSearchModel
+            , programFlags = flags
             }
 
         ( model1, cmd1 ) =
@@ -911,11 +917,15 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "app" ] <|
-        [ Html.map MapUpdate (RailViz.view model.locale model.railViz)
-        , lazy overlayView model
-        , lazy stationSearchView model
-        ]
+    let
+        permalink =
+            getPermalink model
+    in
+        div [ class "app" ] <|
+            [ Html.map MapUpdate (RailViz.view model.locale permalink model.railViz)
+            , lazy overlayView model
+            , lazy stationSearchView model
+            ]
 
 
 overlayView : Model -> Html Msg
@@ -1135,6 +1145,86 @@ tripSearchConfig =
         }
 
 
+getPermalink : Model -> String
+getPermalink model =
+    let
+        date =
+            getCurrentDate model
+
+        urlBase =
+            getBaseUrl model.programFlags date
+    in
+        case model.subView of
+            Just TripDetailsView ->
+                case (Maybe.andThen ConnectionDetails.getTripId model.tripDetails) of
+                    Just tripId ->
+                        urlBase
+                            ++ toUrl
+                                (TripDetails
+                                    tripId.station_id
+                                    tripId.train_nr
+                                    tripId.time
+                                    tripId.target_station_id
+                                    tripId.target_time
+                                    tripId.line_id
+                                )
+
+                    Nothing ->
+                        urlBase
+
+            Just StationEventsView ->
+                case model.stationEvents of
+                    Just stationEvents ->
+                        toUrl
+                            (StationEventsAt
+                                (StationEvents.getStationId stationEvents)
+                                date
+                            )
+
+                    Nothing ->
+                        urlBase
+
+            Just TripSearchView ->
+                urlBase ++ (toUrl TripSearchRoute)
+
+            Nothing ->
+                RailViz.getMapPermalink model.railViz
+
+
+getBaseUrl : ProgramFlags -> Date -> String
+getBaseUrl flags date =
+    let
+        timestamp =
+            unixTime date
+
+        params1 =
+            [ "time" => (toString timestamp) ]
+
+        params2 =
+            case flags.langParam of
+                Just lang ->
+                    ("lang" => lang) :: params1
+
+                Nothing ->
+                    params1
+
+        params3 =
+            case flags.motisParam of
+                Just motis ->
+                    ("motis" => motis) :: params2
+
+                Nothing ->
+                    params2
+
+        urlBase =
+            params3
+                |> List.map (\( k, v ) -> (encodeUri k) ++ "=" ++ (encodeUri v))
+                |> String.join "&"
+                |> \s -> "?" ++ s
+    in
+        urlBase
+
+
 
 -- REQUESTS
 
@@ -1228,7 +1318,7 @@ selectConnection model idx =
                 in
                     { model_
                         | connectionDetails =
-                            Maybe.map (ConnectionDetails.init False False) journey
+                            Maybe.map (ConnectionDetails.init False False Nothing) journey
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
                         , tripDetails = Nothing
@@ -1289,7 +1379,7 @@ showFullTripConnection model tripId connection =
             setRailVizFilter model (Just [ tripId ])
     in
         { model_
-            | tripDetails = Just (ConnectionDetails.init True True tripJourney)
+            | tripDetails = Just (ConnectionDetails.init True True (Just tripId) tripJourney)
             , subView = Just TripDetailsView
         }
             ! [ MapConnectionDetails.setConnectionFilter tripJourney

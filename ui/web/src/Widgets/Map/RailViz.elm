@@ -164,8 +164,8 @@ mapId =
     "map"
 
 
-view : Localization -> Model -> Html Msg
-view locale model =
+view : Localization -> String -> Model -> Html Msg
+view locale permalink model =
     div [ class "map-container" ]
         [ div [ class "inner-map-container" ]
             [ div [ id mapId ]
@@ -181,7 +181,7 @@ view locale model =
             , railVizTooltip model
             , div [ class "map-bottom-overlay" ]
                 [ trainColorPickerView locale model
-                , simulationTimeOverlay locale model
+                , simulationTimeOverlay locale permalink model
                 ]
             , errorOverlay locale model
             ]
@@ -325,14 +325,11 @@ railVizStationTooltip model stationName =
             [ div [ class "station-name" ] [ text stationName ] ]
 
 
-simulationTimeOverlay : Localization -> Model -> Html Msg
-simulationTimeOverlay locale model =
+simulationTimeOverlay : Localization -> String -> Model -> Html Msg
+simulationTimeOverlay locale permalink model =
     let
         simDate =
             Date.fromTime model.time
-
-        permalink =
-            getMapPermalink model
     in
         div
             [ class "sim-time-overlay" ]

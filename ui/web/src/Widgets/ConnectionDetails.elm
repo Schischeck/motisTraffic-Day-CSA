@@ -7,6 +7,7 @@ module Widgets.ConnectionDetails
         , init
         , update
         , getJourney
+        , getTripId
         )
 
 import Html exposing (Html, div, ul, li, text, span, i)
@@ -31,6 +32,7 @@ type alias State =
     { journey : Journey
     , expanded : List Bool
     , inSubOverlay : Bool
+    , tripId : Maybe TripId
     }
 
 
@@ -43,11 +45,12 @@ type Config msg
         }
 
 
-init : Bool -> Bool -> Journey -> State
-init expanded inSubOverlay journey =
+init : Bool -> Bool -> Maybe TripId -> Journey -> State
+init expanded inSubOverlay tripId journey =
     { journey = journey
     , expanded = List.repeat (List.length journey.trains) expanded
     , inSubOverlay = inSubOverlay
+    , tripId = tripId
     }
 
 
@@ -78,6 +81,11 @@ toggle list idx =
 getJourney : State -> Journey
 getJourney state =
     state.journey
+
+
+getTripId : State -> Maybe TripId
+getTripId state =
+    state.tripId
 
 
 

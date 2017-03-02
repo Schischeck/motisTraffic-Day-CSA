@@ -6,6 +6,7 @@ module Widgets.StationEvents
         , init
         , update
         , view
+        , getStationId
         )
 
 import Html exposing (Html, div, ul, li, text, span, i, a, input, label)
@@ -339,6 +340,11 @@ extendInterval direction model =
                     | time = model.maxTime
                     , direction = LATER
                 }
+
+
+getStationId : Model -> String
+getStationId model =
+    model.stationId
 
 
 
