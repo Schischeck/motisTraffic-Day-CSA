@@ -31,4 +31,11 @@ decodeAddress =
         |> required "pos" decodePosition
         |> required "name" string
         |> required "type" string
-        |> required "regions" (list string)
+        |> required "regions" (list decodeRegion)
+
+
+decodeRegion : Decoder Region
+decodeRegion =
+    decode Region
+        |> required "name" string
+        |> required "admin_level" int

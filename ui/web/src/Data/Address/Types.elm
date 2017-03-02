@@ -11,5 +11,11 @@ type alias Address =
     { pos : Position
     , name : String
     , type_ : String
-    , regions : List String
+    , regions : List Region
+    }
+
+
+type alias Region =
+    { name : String
+    , adminLevel : Int
     }

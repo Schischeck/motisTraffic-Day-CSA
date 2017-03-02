@@ -203,7 +203,7 @@ getSuggestionName suggestion =
 
 getAddressStr : Address -> String
 getAddressStr address =
-    address.name ++ " (" ++ (String.join ", " address.regions) ++ ")"
+    address.name ++ " (" ++ (String.join ", " (List.map .name address.regions)) ++ ")"
 
 
 getSelectedSuggestion : Model -> Maybe Suggestion
