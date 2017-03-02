@@ -13,6 +13,7 @@
   display: block;
   width: 300px;
   overflow: hidden;
+  color: #777;
   text-overflow: ellipsis;
   font-size: 110%;
   cursor: pointer;
@@ -26,4 +27,16 @@
   vertical-align: middle;
   margin-right: 5px;
   color: #777;
+  cursor: pointer;
+}
+
+.proposals .station,
+.proposals .address-name {
+  color: #000;
+}
+
+.proposals .address-region {
+  margin-left: 5px;
+  color: #777;
+  font-size: 75%;
 }

@@ -362,25 +362,50 @@ onKey fail msgs =
 proposalView : Int -> Int -> Suggestion -> Html Msg
 proposalView hoverIndex index suggestion =
     let
-        name =
+        fullName =
             getSuggestionName suggestion
 
-        icon =
+        content =
             case suggestion of
-                StationSuggestion _ ->
-                    "place"
+                StationSuggestion station ->
+                    stationView station
 
-                AddressSuggestion _ ->
-                    "location_city"
+                AddressSuggestion address ->
+                    addressView address
     in
         li
             [ classList [ ( "selected", hoverIndex == index ) ]
             , onClick (ClickElement index)
             , onMouseOver (Select index)
+            , title fullName
             ]
-            [ i [ class "icon" ] [ text icon ]
-            , span [ title name ] [ text name ]
-            ]
+            content
+
+
+stationView : Station -> List (Html Msg)
+stationView station =
+    let
+        name =
+            station.name
+    in
+        [ i [ class "icon" ] [ text "place" ]
+        , span [ class "station" ] [ text name ]
+        ]
+
+
+addressView : Address -> List (Html Msg)
+addressView address =
+    let
+        name =
+            address.name
+
+        region =
+            getRegionStr address
+    in
+        [ i [ class "icon" ] [ text "location_city" ]
+        , span [ class "address-name" ] [ text name ]
+        , span [ class "address-region" ] [ text region ]
+        ]
 
 
 typeaheadView : ( Int, String, Maybe String ) -> Model -> Html Msg
