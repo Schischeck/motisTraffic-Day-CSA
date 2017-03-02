@@ -155,11 +155,12 @@ function initPorts(app, apiEndpoint) {
   app.ports.mapFlyTo.subscribe(function(opt) {
     var map = window.elmMaps[opt.mapId];
     var center = L.latLng(opt.lat, opt.lng);
+    var options = {animate: opt.animate};
     if (opt.zoom) {
-      map.flyTo(center, opt.zoom);
+      map.flyTo(center, opt.zoom, options);
     } else {
-      map.flyToBounds(
-          L.latLngBounds([center]), {paddingTopLeft: [600, 0], maxZoom: 16});
+      Object.assign(options, {paddingTopLeft: [600, 0], maxZoom: 16});
+      map.flyToBounds(L.latLngBounds([center]), options);
     }
   });
 

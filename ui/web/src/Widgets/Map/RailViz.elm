@@ -8,6 +8,7 @@ module Widgets.Map.RailViz
         , subscriptions
         , mapId
         , flyTo
+        , getMapPermalink
         )
 
 import Widgets.Map.Port as Port exposing (..)
@@ -137,6 +138,7 @@ flyTo pos zoom =
         , lat = pos.lat
         , lng = pos.lng
         , zoom = zoom
+        , animate = True
         }
 
 
@@ -330,7 +332,7 @@ simulationTimeOverlay locale model =
             Date.fromTime model.time
 
         permalink =
-            getPermalink model
+            getMapPermalink model
     in
         div
             [ class "sim-time-overlay" ]
@@ -414,8 +416,8 @@ apiErrorOverlay locale err =
             ]
 
 
-getPermalink : Model -> String
-getPermalink model =
+getMapPermalink : Model -> String
+getMapPermalink model =
     let
         simDate =
             Date.fromTime model.time

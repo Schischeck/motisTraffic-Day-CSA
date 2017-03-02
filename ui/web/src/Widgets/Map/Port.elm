@@ -56,6 +56,7 @@ type alias MapFlyLocation =
     , lat : Float
     , lng : Float
     , zoom : Maybe Float
+    , animate : Bool
     }
 
 

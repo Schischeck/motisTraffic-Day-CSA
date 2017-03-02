@@ -146,6 +146,7 @@ update msg model =
                                         , lat = station.pos.lat
                                         , lng = station.pos.lng
                                         , zoom = Nothing
+                                        , animate = True
                                         }
                                     ]
 
