@@ -388,7 +388,7 @@ stationView station =
         name =
             station.name
     in
-        [ i [ class "icon" ] [ text "place" ]
+        [ i [ class "icon" ] [ text "train" ]
         , span [ class "station" ] [ text name ]
         ]
 
@@ -402,7 +402,7 @@ addressView address =
         region =
             getRegionStr address
     in
-        [ i [ class "icon" ] [ text "location_city" ]
+        [ i [ class "icon" ] [ text "place" ]
         , span [ class "address-name" ] [ text name ]
         , span [ class "address-region" ] [ text region ]
         ]
