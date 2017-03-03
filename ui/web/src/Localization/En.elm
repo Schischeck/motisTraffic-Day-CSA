@@ -82,6 +82,7 @@ enTranslations =
         { trainColors = "Train colors"
         , delayColors = "Delay"
         , classColors = "Category"
+        , simActive = "Simulation mode active"
         }
     , errors =
         { journeyDateNotInSchedule = "Date not in schedule"

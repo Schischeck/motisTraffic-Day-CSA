@@ -55,6 +55,7 @@ type alias Translations =
         { trainColors : String
         , delayColors : String
         , classColors : String
+        , simActive : String
         }
     , errors :
         { journeyDateNotInSchedule : String

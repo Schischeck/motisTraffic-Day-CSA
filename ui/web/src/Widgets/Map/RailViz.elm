@@ -330,12 +330,23 @@ simulationTimeOverlay locale permalink model =
     let
         simDate =
             Date.fromTime model.time
+
+        simActive =
+            model.timeOffset /= 0
+
+        simIcon =
+            if simActive then
+                div [ class "sim-icon", title locale.t.railViz.simActive ]
+                    [ i [ class "icon" ] [ text "warning" ] ]
+            else
+                text ""
     in
         div
             [ class "sim-time-overlay" ]
             [ div [ id "railviz-loading-spinner" ] [ LoadingSpinner.view ]
             , div [ class "permalink", title locale.t.misc.permalink ]
                 [ a [ href permalink ] [ i [ class "icon" ] [ text "link" ] ] ]
+            , simIcon
             , div [ class "time", id "sim-time-overlay" ]
                 [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
             ]

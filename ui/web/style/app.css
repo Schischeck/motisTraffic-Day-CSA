@@ -284,6 +284,13 @@
   cursor: pointer;
 }
 
+.sim-time-overlay .sim-icon i {
+  color: #999;
+  font-size: 20px;
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
 .train-color-picker-overlay {
   padding: 0 5px 5px 5px;
   font-size: 14px;

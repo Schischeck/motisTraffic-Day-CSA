@@ -83,6 +83,7 @@ deTranslations =
         { trainColors = "Zugfarben"
         , delayColors = "Verspätung"
         , classColors = "Kategorie"
+        , simActive = "Simulationsmodus aktiv"
         }
     , errors =
         { journeyDateNotInSchedule = "Zeitraum nicht im Fahrplan"
