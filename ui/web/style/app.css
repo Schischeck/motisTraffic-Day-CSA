@@ -1161,18 +1161,29 @@
   margin-bottom: 10px;
 }
 
+.connection-info .connection-times {
+  display: flex;
+}
+
 .connection-info .connection-times>div {
   display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .connection-info .connection-times .times {
   font-weight: 700;
   text-align: right;
   padding-right: 10px;
+  flex: 0 0 auto;
 }
 
-.connection-info .connection-times .locations {
+.connection-info .connection-times .locations div {
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .connection-info .summary {
