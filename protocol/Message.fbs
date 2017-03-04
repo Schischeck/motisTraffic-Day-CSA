@@ -7,7 +7,6 @@ include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
 include "intermodal/IntermodalRoutingRequest.fbs";
-include "intermodal/IntermodalRoutingResponse.fbs";
 include "lookup/LookupGeoStationIdRequest.fbs";
 include "lookup/LookupGeoStationRequest.fbs";
 include "lookup/LookupGeoStationResponse.fbs";
@@ -96,7 +95,7 @@ table ApiDescription {
 }
 
 union MsgContent {
-  motis.ApiDescription,
+  motis.ApiDescription = 1,
   motis.Connection,
   motis.MotisNoMessage,
   motis.MotisError,
@@ -104,15 +103,14 @@ union MsgContent {
   motis.HTTPRequest,
   motis.HTTPResponse,
   motis.TripId,
-  motis.bikesharing.BikesharingRequest,
+  motis.bikesharing.BikesharingRequest = 100,
   motis.bikesharing.BikesharingResponse,
   motis.bikesharing.BikesharingGeoTerminalsRequest,
   motis.bikesharing.BikesharingGeoTerminalsResponse,
-  motis.guesser.StationGuesserRequest,
+  motis.guesser.StationGuesserRequest = 200,
   motis.guesser.StationGuesserResponse,
-  motis.intermodal.IntermodalRoutingRequest,
-  motis.intermodal.IntermodalRoutingResponse,
-  motis.lookup.LookupGeoStationIdRequest,
+  motis.intermodal.IntermodalRoutingRequest = 300,
+  motis.lookup.LookupGeoStationIdRequest = 400,
   motis.lookup.LookupGeoStationRequest,
   motis.lookup.LookupGeoStationResponse,
   motis.lookup.LookupBatchGeoStationRequest,
@@ -126,33 +124,33 @@ union MsgContent {
   motis.lookup.LookupBatchMetaStationResponse,
   motis.lookup.LookupIdTrainRequest,
   motis.lookup.LookupIdTrainResponse,
-  motis.path.PathBoxesResponse,
+  motis.path.PathBoxesResponse = 500,
   motis.path.PathIdTrainRequest,
   motis.path.PathSeqResponse,
   motis.path.PathStationSeqRequest,
-  motis.railviz.RailVizTrainsRequest,
+  motis.railviz.RailVizTrainsRequest = 600,
   motis.railviz.RailVizTrainsResponse,
   motis.railviz.RailVizTripsRequest,
   motis.railviz.RailVizStationRequest,
   motis.railviz.RailVizStationResponse,
-  motis.osrm.OSRMOneToManyRequest,
+  motis.osrm.OSRMOneToManyRequest = 700,
   motis.osrm.OSRMOneToManyResponse,
   motis.osrm.OSRMViaRouteRequest,
   motis.osrm.OSRMViaRouteResponse,
   motis.osrm.OSRMSmoothViaRouteRequest,
   motis.osrm.OSRMSmoothViaRouteResponse,
-  motis.reliability.ReliableRoutingRequest,
+  motis.reliability.ReliableRoutingRequest = 800,
   motis.reliability.ReliableRoutingResponse,
   motis.reliability.ReliabilityRatingResponse,
-  motis.ris.RISBatch,
+  motis.ris.RISBatch = 900,
   motis.ris.RISForwardTimeRequest,
-  motis.routing.RoutingRequest,
+  motis.routing.RoutingRequest = 1000,
   motis.routing.RoutingResponse,
-  motis.rt.RtUpdate,
-  motis.railviz.RailVizTripGuessRequest,
+  motis.rt.RtUpdate = 1100,
+  motis.railviz.RailVizTripGuessRequest = 1200,
   motis.railviz.RailVizTripGuessResponse,
-  motis.address.AddressRequest,
-  motis.address.AddressResponse,
+  motis.address.AddressRequest = 1300,
+  motis.address.AddressResponse
 }
 
 // Destination Examples:

@@ -1,7 +1,0 @@
-include "base/Connection.fbs";
-
-namespace motis.intermodal;
-
-table IntermodalRoutingResponse {
-  connections:[motis.Connection];
-}
