@@ -476,12 +476,16 @@ update msg model =
                 ( newTripSearch, _ ) =
                     TripSearch.update (TripSearch.UpdateScheduleInfo si) model.tripSearch
 
+                ( newSimTimePicker, _ ) =
+                    SimTimePicker.update (SimTimePicker.UpdateScheduleInfo si) model.simTimePicker
+
                 model1 =
                     { model
                         | scheduleInfo = Just si
                         , connections = connections_
                         , date = newDate
                         , tripSearch = newTripSearch
+                        , simTimePicker = newSimTimePicker
                     }
 
                 currentDate =

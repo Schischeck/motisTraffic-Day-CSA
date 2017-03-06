@@ -1,6 +1,14 @@
 module Widgets.SimTimePicker
     exposing
-        ( Msg(SetLocale, Show, Hide, Toggle, SetSimulationTime, DisableSimMode)
+        ( Msg
+            ( SetLocale
+            , Show
+            , Hide
+            , Toggle
+            , SetSimulationTime
+            , DisableSimMode
+            , UpdateScheduleInfo
+            )
         , Model
         , init
         , view
@@ -21,6 +29,7 @@ import Localization.Base exposing (..)
 import Widgets.TimeInput as TimeInput
 import Widgets.Calendar as Calendar
 import Debounce
+import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 
 
 -- MODEL
@@ -72,6 +81,7 @@ type Msg
     | SetSimulationTime
     | ToggleSimMode
     | DisableSimMode
+    | UpdateScheduleInfo ScheduleInfo
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -140,6 +150,13 @@ update msg model =
                         Task.perform identity (Task.succeed DisableSimMode)
             in
                 handleTimeUpdate (model_ ! [ cmd ])
+
+        UpdateScheduleInfo si ->
+            let
+                newDateInput =
+                    Calendar.update (Calendar.SetValidRange (Just ( si.begin, si.end ))) model.dateInput
+            in
+                { model | dateInput = newDateInput } ! []
 
 
 handleTimeUpdate : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
