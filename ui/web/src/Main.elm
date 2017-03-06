@@ -123,7 +123,7 @@ init flags initialLocation =
             Calendar.init locale.dateConfig
 
         ( timeModel, timeCmd ) =
-            TimeInput.init
+            TimeInput.init False
 
         ( mapModel, mapCmd ) =
             RailViz.init remoteAddress

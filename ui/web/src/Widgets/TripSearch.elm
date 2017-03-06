@@ -71,7 +71,7 @@ init remoteAddress locale =
             Calendar.init locale.dateConfig
 
         ( timeModel, timeCmd ) =
-            TimeInput.init
+            TimeInput.init False
     in
         { loading = False
         , remoteAddress = remoteAddress

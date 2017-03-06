@@ -43,7 +43,7 @@ init locale =
             Calendar.init locale.dateConfig
 
         ( timeModel, timeCmd ) =
-            TimeInput.init
+            TimeInput.init True
     in
         { dateInput = dateModel
         , timeInput = timeModel

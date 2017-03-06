@@ -22,14 +22,16 @@ type alias Model =
     { date : Date
     , inputStr : String
     , inputWidget : Input.Model
+    , withSeconds : Bool
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Bool -> ( Model, Cmd Msg )
+init withSeconds =
     ( { date = Date.fromTime 0
-      , inputStr = formatDate (Date.fromTime 0)
+      , inputStr = formatDate withSeconds (Date.fromTime 0)
       , inputWidget = Input.init
+      , withSeconds = withSeconds
       }
     , getCurrentDate
     )
@@ -66,10 +68,14 @@ update msg model =
 
         InitDate force d ->
             if force || (Date.toTime model.date) == 0 then
-                { model
-                    | date = (fieldToDateClamp (Second 0) d)
-                    , inputStr = formatDate d
-                }
+                let
+                    date =
+                        fieldToDateClamp (Second 0) d
+                in
+                    { model
+                        | date = date
+                        , inputStr = formatDate model.withSeconds date
+                    }
             else
                 model
 
@@ -81,14 +87,14 @@ update msg model =
                 newDate =
                     Duration.add Duration.Hour -1 model.date
             in
-                { model | date = newDate, inputStr = formatDate newDate }
+                { model | date = newDate, inputStr = formatDate model.withSeconds newDate }
 
         NextHour ->
             let
                 newDate =
                     Duration.add Duration.Hour 1 model.date
             in
-                { model | date = newDate, inputStr = formatDate newDate }
+                { model | date = newDate, inputStr = formatDate model.withSeconds newDate }
 
         InputUpdate msg_ ->
             { model | inputWidget = Input.update msg_ model.inputWidget }
@@ -102,20 +108,41 @@ parseInput str =
 
         minuteStr =
             intNthToken 1 ":" str
+
+        secondStr =
+            intNthToken 2 ":" str
+                |> Maybe.withDefault 0
+                |> Just
     in
-        Maybe.map2 toDate hourStr minuteStr
+        Maybe.map3 toDate hourStr minuteStr secondStr
 
 
-toDate : Int -> Int -> Date
-toDate h m =
-    dateFromFields 0 Date.Jan 0 h m 0 0
+toDate : Int -> Int -> Int -> Date
+toDate h m s =
+    dateFromFields 0 Date.Jan 0 h m s 0
 
 
-formatDate : Date -> String
-formatDate d =
-    (toString (Date.hour d) |> String.padLeft 2 '0')
-        ++ ":"
-        ++ (toString (Date.minute d) |> String.padLeft 2 '0')
+formatDate : Bool -> Date -> String
+formatDate withSeconds d =
+    let
+        h =
+            twoDigits (Date.hour d)
+
+        m =
+            twoDigits (Date.minute d)
+
+        s =
+            twoDigits (Date.second d)
+    in
+        if withSeconds then
+            h ++ ":" ++ m ++ ":" ++ s
+        else
+            h ++ ":" ++ m
+
+
+twoDigits : Int -> String
+twoDigits =
+    toString >> String.padLeft 2 '0'
 
 
 
