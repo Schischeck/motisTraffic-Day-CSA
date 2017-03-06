@@ -1411,6 +1411,9 @@
 
 .station-events .station-event .event-direction {
   flex: 2 2 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .station-events .station-event .event-track {
