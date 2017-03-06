@@ -7,7 +7,6 @@ include "bikesharing/BikesharingResponse.fbs";
 include "guesser/StationGuesserRequest.fbs";
 include "guesser/StationGuesserResponse.fbs";
 include "intermodal/IntermodalRoutingRequest.fbs";
-include "intermodal/IntermodalRoutingResponse.fbs";
 include "lookup/LookupGeoStationIdRequest.fbs";
 include "lookup/LookupGeoStationRequest.fbs";
 include "lookup/LookupGeoStationResponse.fbs";
@@ -111,7 +110,6 @@ union MsgContent {
   motis.guesser.StationGuesserRequest,
   motis.guesser.StationGuesserResponse,
   motis.intermodal.IntermodalRoutingRequest,
-  motis.intermodal.IntermodalRoutingResponse,
   motis.lookup.LookupGeoStationIdRequest,
   motis.lookup.LookupGeoStationRequest,
   motis.lookup.LookupGeoStationResponse,
@@ -152,7 +150,7 @@ union MsgContent {
   motis.railviz.RailVizTripGuessRequest,
   motis.railviz.RailVizTripGuessResponse,
   motis.address.AddressRequest,
-  motis.address.AddressResponse,
+  motis.address.AddressResponse
 }
 
 // Destination Examples:

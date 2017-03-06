@@ -68,11 +68,13 @@ msg_ptr postprocess_response(msg_ptr const& response_msg,
   }
 
   mc.create_and_finish(
-      MsgContent_IntermodalRoutingResponse,
-      CreateIntermodalRoutingResponse(
-          mc,
+      MsgContent_RoutingResponse,
+      CreateRoutingResponse(
+          mc, routing_response->statistics(),
           mc.CreateVector(utl::to_vec(
-              journeys, [&mc](auto const& j) { return to_connection(mc, j); })))
+              journeys,
+              [&mc](journey const& j) { return to_connection(mc, j); })),
+          routing_response->interval_begin(), routing_response->interval_end())
           .Union());
 
   return make_msg(mc);

@@ -19,7 +19,8 @@ query_start parse_query_start(FlatBufferBuilder& fbb,
                                           fbb.CreateString(STATION_START));
   switch (req->start_type()) {
     case IntermodalStart_IntermodalOntripStart: {
-      auto start = reinterpret_cast<IntermodalOntripStart const*>(req->start());
+      auto const start =
+          reinterpret_cast<IntermodalOntripStart const*>(req->start());
       return {
           Start_OntripStationStart,
           CreateOntripStationStart(fbb, start_station, start->departure_time())
@@ -29,10 +30,14 @@ query_start parse_query_start(FlatBufferBuilder& fbb,
     }
 
     case IntermodalStart_IntermodalPretripStart: {
-      auto start =
+      auto const start =
           reinterpret_cast<IntermodalPretripStart const*>(req->start());
       return {Start_PretripStart,
-              CreatePretripStart(fbb, start_station, start->interval()).Union(),
+              CreatePretripStart(fbb, start_station, start->interval(),
+                                 start->min_connection_count(),
+                                 start->extend_interval_earlier(),
+                                 start->extend_interval_later())
+                  .Union(),
               {start->position()->lat(), start->position()->lng()}};
       break;
     }

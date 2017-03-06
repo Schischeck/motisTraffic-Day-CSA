@@ -85,7 +85,7 @@ TEST_F(intermodal_itest, forward) {
   )";
 
   auto res = call(make_msg(json));
-  auto content = motis_content(IntermodalRoutingResponse, res);
+  auto content = motis_content(RoutingResponse, res);
 
   ASSERT_EQ(1, content->connections()->size());
   auto const& stops = content->connections()->Get(0)->stops();
@@ -160,7 +160,7 @@ TEST_F(intermodal_itest, backward) {
   )";
 
   auto res = call(make_msg(json));
-  auto content = motis_content(IntermodalRoutingResponse, res);
+  auto content = motis_content(RoutingResponse, res);
 
   ASSERT_EQ(1, content->connections()->size());
   auto const& stops = content->connections()->Get(0)->stops();
@@ -213,7 +213,7 @@ TEST_F(intermodal_itest, not_so_intermodal) {
   )";
 
   auto res = call(make_msg(json));
-  auto content = motis_content(IntermodalRoutingResponse, res);
+  auto content = motis_content(RoutingResponse, res);
 
   ASSERT_EQ(1, content->connections()->size());
   auto const& stops = content->connections()->Get(0)->stops();

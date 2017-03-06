@@ -22,6 +22,9 @@ table IntermodalOntripStart {
 table IntermodalPretripStart {
   position: motis.Position;
   interval: motis.Interval;
+  min_connection_count:uint;
+  extend_interval_earlier:bool;
+  extend_interval_later:bool;
 }
 
 union IntermodalStart {
