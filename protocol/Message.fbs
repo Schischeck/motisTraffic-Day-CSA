@@ -124,7 +124,7 @@ union MsgContent {
   motis.lookup.LookupBatchMetaStationResponse,
   motis.lookup.LookupIdTrainRequest,
   motis.lookup.LookupIdTrainResponse,
-  motis.path.PathBoxesResponse = 500,
+  motis.path.PathBoxesResponse,
   motis.path.PathIdTrainRequest,
   motis.path.PathSeqResponse,
   motis.path.PathStationSeqRequest,
