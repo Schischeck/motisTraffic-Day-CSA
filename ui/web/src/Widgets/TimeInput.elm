@@ -12,6 +12,7 @@ import Widgets.Button as Button
 import Util.StringSplit exposing (..)
 import Date.Extra.Create exposing (dateFromFields)
 import Date.Extra.Duration as Duration
+import Date.Extra.Field exposing (..)
 
 
 -- MODEL
@@ -65,7 +66,10 @@ update msg model =
 
         InitDate force d ->
             if force || (Date.toTime model.date) == 0 then
-                { model | date = d, inputStr = formatDate d }
+                { model
+                    | date = (fieldToDateClamp (Second 0) d)
+                    , inputStr = formatDate d
+                }
             else
                 model
 
