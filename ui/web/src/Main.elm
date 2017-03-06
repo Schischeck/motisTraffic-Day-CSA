@@ -10,6 +10,7 @@ import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Widgets.StationEvents as StationEvents
 import Widgets.TripSearch as TripSearch
+import Widgets.SimTimePicker as SimTimePicker
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
@@ -99,6 +100,7 @@ type alias Model =
     , overlayVisible : Bool
     , stationSearch : Typeahead.Model
     , programFlags : ProgramFlags
+    , simTimePicker : SimTimePicker.Model
     }
 
 
@@ -121,7 +123,7 @@ init flags initialLocation =
             Calendar.init locale.dateConfig
 
         ( timeModel, timeCmd ) =
-            TimeInput.init
+            TimeInput.init False
 
         ( mapModel, mapCmd ) =
             RailViz.init remoteAddress
@@ -137,6 +139,9 @@ init flags initialLocation =
 
         ( tripSearchModel, tripSearchCmd ) =
             TripSearch.init remoteAddress locale
+
+        ( simTimePickerModel, simTimePickerCmd ) =
+            SimTimePicker.init locale
 
         initialModel =
             { fromLocation = fromLocationModel
@@ -165,6 +170,7 @@ init flags initialLocation =
             , overlayVisible = True
             , stationSearch = stationSearchModel
             , programFlags = flags
+            , simTimePicker = simTimePickerModel
             }
 
         ( model1, cmd1 ) =
@@ -186,6 +192,7 @@ init flags initialLocation =
               , Cmd.map ToLocationUpdate toLocationCmd
               , Cmd.map StationSearchUpdate stationSearchCmd
               , Cmd.map TripSearchUpdate tripSearchCmd
+              , Cmd.map SimTimePickerUpdate simTimePickerCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
               , cmd1
@@ -248,6 +255,7 @@ type Msg
     | ShowTripSearch
     | ToggleTripSearch
     | HandleRailVizPermalink Float Float Float Date
+    | SimTimePickerUpdate SimTimePicker.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -261,10 +269,21 @@ update msg model =
 
         MapUpdate msg_ ->
             let
-                ( m, c ) =
+                ( railViz_, railVizCmd ) =
                     RailViz.update msg_ model.railViz
+
+                ( model1, cmd1 ) =
+                    ( { model | railViz = railViz_ }, Cmd.map MapUpdate railVizCmd )
+
+                ( model2, cmd2 ) =
+                    case msg_ of
+                        RailViz.ToggleSimTimePicker ->
+                            update (SimTimePickerUpdate (SimTimePicker.Toggle (getCurrentDate model1) (model1.timeOffset /= 0))) model1
+
+                        _ ->
+                            model1 ! []
             in
-                ( { model | railViz = m }, Cmd.map MapUpdate c )
+                model2 ! [ cmd1, cmd2 ]
 
         FromLocationUpdate msg_ ->
             let
@@ -457,12 +476,16 @@ update msg model =
                 ( newTripSearch, _ ) =
                     TripSearch.update (TripSearch.UpdateScheduleInfo si) model.tripSearch
 
+                ( newSimTimePicker, _ ) =
+                    SimTimePicker.update (SimTimePicker.UpdateScheduleInfo si) model.simTimePicker
+
                 model1 =
                     { model
                         | scheduleInfo = Just si
                         , connections = connections_
                         , date = newDate
                         , tripSearch = newTripSearch
+                        , simTimePicker = newSimTimePicker
                     }
 
                 currentDate =
@@ -483,11 +506,23 @@ update msg model =
             Debounce.update debounceCfg a model
 
         SetLocale newLocale ->
-            { model
-                | locale = newLocale
-                , date = Calendar.update (Calendar.SetDateConfig newLocale.dateConfig) model.date
-            }
-                ! []
+            let
+                date_ =
+                    Calendar.update (Calendar.SetDateConfig newLocale.dateConfig) model.date
+
+                ( tripSearch_, _ ) =
+                    TripSearch.update (TripSearch.SetLocale newLocale) model.tripSearch
+
+                ( simTimePicker_, _ ) =
+                    SimTimePicker.update (SimTimePicker.SetLocale newLocale) model.simTimePicker
+            in
+                { model
+                    | locale = newLocale
+                    , date = date_
+                    , tripSearch = tripSearch_
+                    , simTimePicker = simTimePicker_
+                }
+                    ! []
 
         NavigateTo route ->
             model ! [ Navigation.newUrl (toUrl route) ]
@@ -744,6 +779,35 @@ update msg model =
             in
                 model2 ! [ cmd1, cmd2 ]
 
+        SimTimePickerUpdate msg_ ->
+            let
+                ( m, c ) =
+                    SimTimePicker.update msg_ model.simTimePicker
+
+                ( model1, cmd1 ) =
+                    ( { model | simTimePicker = m }, Cmd.map SimTimePickerUpdate c )
+
+                ( model2, cmd2 ) =
+                    case msg_ of
+                        SimTimePicker.SetSimulationTime ->
+                            let
+                                pickedTime =
+                                    SimTimePicker.getSelectedSimTime model1.simTimePicker
+                            in
+                                update (SetSimulationTime pickedTime) model1
+
+                        SimTimePicker.DisableSimMode ->
+                            let
+                                currentTime =
+                                    Date.toTime model1.currentTime
+                            in
+                                update (SetTimeOffset currentTime currentTime) model1
+
+                        _ ->
+                            model1 ! []
+            in
+                model2 ! [ cmd1, cmd2 ]
+
 
 buildRoutingRequest : Model -> RoutingRequest
 buildRoutingRequest model =
@@ -925,6 +989,7 @@ view model =
             [ Html.map MapUpdate (RailViz.view model.locale permalink model.railViz)
             , lazy overlayView model
             , lazy stationSearchView model
+            , lazy simTimePickerView model
             ]
 
 
@@ -1076,6 +1141,14 @@ stationSearchView model =
         ]
         [ Html.map StationSearchUpdate <|
             Typeahead.view 10 "" (Just "place") model.stationSearch
+        ]
+
+
+simTimePickerView : Model -> Html Msg
+simTimePickerView model =
+    div [ class "sim-time-picker-container" ]
+        [ Html.map SimTimePickerUpdate <|
+            SimTimePicker.view model.locale model.simTimePicker
         ]
 
 

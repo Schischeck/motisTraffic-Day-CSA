@@ -139,13 +139,6 @@ function initPorts(app, apiEndpoint) {
     map.addLayer(c);
 
     RailViz.Main.init(c._el, apiEndpoint, app.ports);
-
-    var simTime = document.getElementById('sim-time-overlay');
-    if (simTime) {
-      simTime.addEventListener('click', function() {
-        simulationTimePopup(app.ports.setSimulationTime);
-      });
-    }
   });
 
   app.ports.setRailVizFilter.subscribe(RailViz.Main.setTripFilter);
@@ -172,18 +165,4 @@ function initPorts(app, apiEndpoint) {
 
   app.ports.mapUseTrainClassColors.subscribe(
       RailViz.Trains.setUseCategoryColor);
-}
-
-function simulationTimePopup(port) {
-  var currentSimTime =
-      new Date(Date.now() + (RailViz.Main.getTimeOffset() * 1000));
-  var result = prompt(
-      'Set simulation time (ISO 8601/Unix timestamp):',
-      currentSimTime.toISOString());
-  var time = parseTimestamp(result);
-  if (time) {
-    port.send(time);
-  } else {
-    port.send(Date.now());
-  }
 }
