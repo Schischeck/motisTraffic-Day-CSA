@@ -37,13 +37,18 @@ function initApp() {
     language: language,
     motisParam: motisParam,
     timeParam: timeParam,
-    langParam: langParam
+    langParam: langParam,
+    fromLocation: localStorage.getItem('motis.routing.from_location'),
+    toLocation: localStorage.getItem('motis.routing.to_location')
   });
 
   window.elmMaps = {};
 
   initPorts(app, apiEndpoint);
   handleDrop(document.getElementById('app-container'));
+  app.ports.localStorageSet.subscribe(function(kv) {
+    localStorageSet(kv[0], kv[1]);
+  });
 }
 
 window.addEventListener('load', initApp);

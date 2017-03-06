@@ -56,6 +56,8 @@ type alias ProgramFlags =
     , motisParam : Maybe String
     , timeParam : Maybe String
     , langParam : Maybe String
+    , fromLocation : Maybe String
+    , toLocation : Maybe String
     }
 
 
@@ -119,6 +121,14 @@ init flags initialLocation =
         remoteAddress =
             flags.apiEndpoint
 
+        fromLocation =
+            flags.fromLocation
+                |> Maybe.withDefault ""
+
+        toLocation =
+            flags.toLocation
+                |> Maybe.withDefault ""
+
         ( dateModel, dateCmd ) =
             Calendar.init locale.dateConfig
 
@@ -129,10 +139,10 @@ init flags initialLocation =
             RailViz.init remoteAddress
 
         ( fromLocationModel, fromLocationCmd ) =
-            Typeahead.init remoteAddress "Willy-Brandt-Platz, Darmstadt"
+            Typeahead.init remoteAddress fromLocation
 
         ( toLocationModel, toLocationCmd ) =
-            Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
+            Typeahead.init remoteAddress toLocation
 
         ( stationSearchModel, stationSearchCmd ) =
             Typeahead.init remoteAddress ""
@@ -864,9 +874,24 @@ checkRoutingRequest ( model, cmds ) =
 
                 Nothing ->
                     True
+
+        fromLocation =
+            Typeahead.getSelectedSuggestion model.fromLocation
+                |> Maybe.map Typeahead.getSuggestionName
+                |> Maybe.withDefault ""
+
+        toLocation =
+            Typeahead.getSelectedSuggestion model.toLocation
+                |> Maybe.map Typeahead.getSuggestionName
+                |> Maybe.withDefault ""
     in
         if completeQuery && requestChanged then
-            model ! [ cmds, Debounce.debounceCmd debounceCfg <| SearchConnections ]
+            model
+                ! [ cmds
+                  , Debounce.debounceCmd debounceCfg <| SearchConnections
+                  , Port.localStorageSet ("motis.routing.from_location" => fromLocation)
+                  , Port.localStorageSet ("motis.routing.to_location" => toLocation)
+                  ]
         else
             ( model, cmds )
 
