@@ -310,7 +310,9 @@
 }
 
 .sim-time-picker-overlay {
-  position: relative;
+  position: absolute;
+  bottom: 70px;
+  right: 70px;
   width: 250px;
   display: flex;
   flex-direction: column;
@@ -352,6 +354,14 @@
 .sim-time-picker-overlay .disabled {
   filter: grayscale(100%) opacity(70%);
   pointer-events: none;
+}
+
+.sim-time-picker-overlay .date {
+  position: relative;
+}
+
+.sim-time-picker-overlay .paper {
+  bottom: 70px;
 }
 
 .train-color-picker-overlay {
