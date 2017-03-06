@@ -289,23 +289,36 @@
   font-size: 20px;
   vertical-align: middle;
   margin-right: 5px;
+  cursor: pointer;
 }
 
 .sim-time-overlay .time {
   cursor: pointer;
 }
 
-.sim-time-picker-overlay {
+.sim-time-picker-container {
   position: absolute;
-  bottom: 250px;
-  right: 70px;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sim-time-picker-overlay {
+  position: relative;
   width: 250px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   padding: 20px 20px 5px 20px;
   font-size: 14px;
   background: #fff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  pointer-events: auto;
 }
 
 .sim-time-picker-overlay.hidden {
@@ -324,10 +337,31 @@
   cursor: pointer;
 }
 
+.sim-time-picker-overlay .title {
+  margin: 0 0 20px 0;
+}
+
+.sim-time-picker-overlay .title input {
+  margin-right: 5px;
+}
+
+.sim-time-picker-overlay>div {
+  transition: all .4s ease;
+}
+
+.sim-time-picker-overlay .disabled {
+  filter: grayscale(100%) opacity(70%);
+  pointer-events: none;
+}
+
 .train-color-picker-overlay {
   padding: 0 5px 5px 5px;
   font-size: 14px;
   background: rgba(255, 255, 255, 0.7);
+}
+
+.train-color-picker-overlay input {
+  margin-right: 5px;
 }
 
 #railviz-error-overlay {

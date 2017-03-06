@@ -1,6 +1,6 @@
 module Widgets.SimTimePicker
     exposing
-        ( Msg(SetLocale, Show, Hide, Toggle, SetSimulationTime)
+        ( Msg(SetLocale, Show, Hide, Toggle, SetSimulationTime, DisableSimMode)
         , Model
         , init
         , view
@@ -14,6 +14,7 @@ import Html.Events exposing (onClick)
 import Time exposing (Time)
 import Date exposing (Date)
 import Html exposing (Html)
+import Task
 import Util.Core exposing ((=>))
 import Util.Date exposing (combineDateTime)
 import Localization.Base exposing (..)
@@ -31,6 +32,7 @@ type alias Model =
     , debounce : Debounce.State
     , visible : Bool
     , pickedTime : Time
+    , simModeActive : Bool
     }
 
 
@@ -48,6 +50,7 @@ init locale =
         , debounce = Debounce.init
         , visible = False
         , pickedTime = 0
+        , simModeActive = False
         }
             ! [ Cmd.map DateUpdate dateCmd
               , Cmd.map TimeUpdate timeCmd
@@ -63,10 +66,12 @@ type Msg
     | DateUpdate Calendar.Msg
     | TimeUpdate TimeInput.Msg
     | Deb (Debounce.Msg Msg)
-    | Show Date
+    | Show Date Bool
     | Hide
-    | Toggle Date
+    | Toggle Date Bool
     | SetSimulationTime
+    | ToggleSimMode
+    | DisableSimMode
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -87,10 +92,13 @@ update msg model =
         Deb a ->
             Debounce.update debounceCfg a model
 
-        Show currentDate ->
+        Show currentDate simModeActive ->
             let
                 model1 =
-                    { model | pickedTime = Date.toTime currentDate }
+                    { model
+                        | pickedTime = Date.toTime currentDate
+                        , simModeActive = simModeActive
+                    }
 
                 ( model2, cmds1 ) =
                     update (DateUpdate (Calendar.InitDate True currentDate)) model1
@@ -103,15 +111,35 @@ update msg model =
         Hide ->
             { model | visible = False } ! []
 
-        Toggle currentDate ->
+        Toggle currentDate simModeActive ->
             if model.visible then
                 update Hide model
             else
-                update (Show currentDate) model
+                update (Show currentDate simModeActive) model
 
         SetSimulationTime ->
             -- handled in Main
             model ! []
+
+        DisableSimMode ->
+            -- handled in Main
+            model ! []
+
+        ToggleSimMode ->
+            let
+                active =
+                    not model.simModeActive
+
+                model_ =
+                    { model | simModeActive = active }
+
+                cmd =
+                    if active then
+                        Debounce.debounceCmd debounceCfg <| SetSimulationTime
+                    else
+                        Task.perform identity (Task.succeed DisableSimMode)
+            in
+                handleTimeUpdate (model_ ! [ cmd ])
 
 
 handleTimeUpdate : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
@@ -126,7 +154,7 @@ handleTimeUpdate ( model, cmd ) =
         model_ =
             { model | pickedTime = newTime }
     in
-        if model.visible && changed then
+        if model.visible && model.simModeActive && changed then
             model_ ! [ cmd, Debounce.debounceCmd debounceCfg <| SetSimulationTime ]
         else
             model_ ! [ cmd ]
@@ -158,11 +186,32 @@ view locale model =
             , "hidden" => not model.visible
             ]
         ]
-        [ div [ class "date" ]
+        [ div [ class "title" ]
+            [ input
+                [ type_ "checkbox"
+                , id "sim-mode-checkbox"
+                , name "sim-mode-checkbox"
+                , checked model.simModeActive
+                , onClick ToggleSimMode
+                ]
+                []
+            , label [ for "sim-mode-checkbox" ] [ text locale.t.simTime.simMode ]
+            ]
+        , div
+            [ classList
+                [ "date" => True
+                , "disabled" => not model.simModeActive
+                ]
+            ]
             [ Html.map DateUpdate <|
                 Calendar.view 20 locale.t.search.date model.dateInput
             ]
-        , div [ class "time" ]
+        , div
+            [ classList
+                [ "time" => True
+                , "disabled" => not model.simModeActive
+                ]
+            ]
             [ Html.map TimeUpdate <|
                 TimeInput.view 21 locale.t.search.time model.timeInput
             ]

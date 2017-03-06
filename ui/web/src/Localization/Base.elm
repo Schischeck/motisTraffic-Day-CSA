@@ -71,4 +71,7 @@ type alias Translations =
         }
     , misc :
         { permalink : String }
+    , simTime :
+        { simMode : String
+        }
     }

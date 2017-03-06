@@ -278,7 +278,7 @@ update msg model =
                 ( model2, cmd2 ) =
                     case msg_ of
                         RailViz.ToggleSimTimePicker ->
-                            update (SimTimePickerUpdate (SimTimePicker.Toggle (getCurrentDate model1))) model1
+                            update (SimTimePickerUpdate (SimTimePicker.Toggle (getCurrentDate model1) (model1.timeOffset /= 0))) model1
 
                         _ ->
                             model1 ! []
@@ -792,6 +792,13 @@ update msg model =
                             in
                                 update (SetSimulationTime pickedTime) model1
 
+                        SimTimePicker.DisableSimMode ->
+                            let
+                                currentTime =
+                                    Date.toTime model1.currentTime
+                            in
+                                update (SetTimeOffset currentTime currentTime) model1
+
                         _ ->
                             model1 ! []
             in
@@ -1135,8 +1142,10 @@ stationSearchView model =
 
 simTimePickerView : Model -> Html Msg
 simTimePickerView model =
-    Html.map SimTimePickerUpdate <|
-        SimTimePicker.view model.locale model.simTimePicker
+    div [ class "sim-time-picker-container" ]
+        [ Html.map SimTimePickerUpdate <|
+            SimTimePicker.view model.locale model.simTimePicker
+        ]
 
 
 connectionConfig : Connections.Config Msg

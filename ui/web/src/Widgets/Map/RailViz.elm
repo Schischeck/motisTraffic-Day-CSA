@@ -384,7 +384,11 @@ simulationTimeOverlay locale permalink model =
 
         simIcon =
             if simActive then
-                div [ class "sim-icon", title locale.t.railViz.simActive ]
+                div
+                    [ class "sim-icon"
+                    , title locale.t.railViz.simActive
+                    , onClick ToggleSimTimePicker
+                    ]
                     [ i [ class "icon" ] [ text "warning" ] ]
             else
                 text ""

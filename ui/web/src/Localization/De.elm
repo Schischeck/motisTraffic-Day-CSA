@@ -99,4 +99,7 @@ deTranslations =
         }
     , misc =
         { permalink = "Permalink" }
+    , simTime =
+        { simMode = "Simulationsmodus"
+        }
     }

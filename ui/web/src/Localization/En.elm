@@ -98,4 +98,7 @@ enTranslations =
         }
     , misc =
         { permalink = "Permalink" }
+    , simTime =
+        { simMode = "Simulation mode"
+        }
     }
