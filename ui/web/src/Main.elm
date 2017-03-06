@@ -103,6 +103,7 @@ type alias Model =
     , stationSearch : Typeahead.Model
     , programFlags : ProgramFlags
     , simTimePicker : SimTimePicker.Model
+    , updateSearchTime : Bool
     }
 
 
@@ -181,6 +182,7 @@ init flags initialLocation =
             , stationSearch = stationSearchModel
             , programFlags = flags
             , simTimePicker = simTimePickerModel
+            , updateSearchTime = isJust flags.simulationTime
             }
 
         ( model1, cmd1 ) =
@@ -508,7 +510,9 @@ update msg model =
                     if currentTimeInSchedule then
                         ( model1, Cmd.none )
                     else
-                        update (SetSimulationTime (Date.toTime (combineDateTime si.begin currentDate))) model1
+                        update
+                            (SetSimulationTime (Date.toTime (combineDateTime si.begin currentDate)))
+                            { model1 | updateSearchTime = True }
             in
                 model2 ! [ Cmd.map ConnectionsUpdate connCmd, cmd1 ]
 
@@ -591,6 +595,7 @@ update msg model =
                     { model
                         | currentTime = Date.fromTime currentTime
                         , timeOffset = offset
+                        , updateSearchTime = False
                     }
 
                 _ =
@@ -599,17 +604,29 @@ update msg model =
                 newDate =
                     getCurrentDate model1
 
+                updateSearchTime =
+                    model.updateSearchTime
+
                 ( model2, cmds1 ) =
                     update (MapUpdate (RailViz.SetTimeOffset offset)) model1
 
                 ( model3, cmds2 ) =
-                    update (DateUpdate (Calendar.InitDate True newDate)) model2
+                    if updateSearchTime then
+                        update (DateUpdate (Calendar.InitDate True newDate)) model2
+                    else
+                        model2 ! []
 
                 ( model4, cmds3 ) =
-                    update (TimeUpdate (TimeInput.InitDate True newDate)) model3
+                    if updateSearchTime then
+                        update (TimeUpdate (TimeInput.InitDate True newDate)) model3
+                    else
+                        model3 ! []
 
                 ( model5, cmds4 ) =
-                    update (TripSearchUpdate (TripSearch.SetTime newDate)) model4
+                    if updateSearchTime then
+                        update (TripSearchUpdate (TripSearch.SetTime newDate)) model4
+                    else
+                        model4 ! []
             in
                 model5
                     ! [ cmds1
