@@ -99,6 +99,9 @@ var CanvasOverlay = L.Layer.extend({
 
     app.ports.mapUpdate.send(mapInfo);
     RailViz.Main.mapUpdate(mapInfo);
+
+    var mapSettings = {lat: center.lat, lng: center.lng, zoom: zoom};
+    localStorageSet('motis.map', JSON.stringify(mapSettings));
   },
 
   _updateSize: function() {
@@ -118,7 +121,15 @@ var CanvasOverlay = L.Layer.extend({
 
 function initPorts(app, apiEndpoint) {
   app.ports.mapInit.subscribe(function(id) {
-    var map = L.map('map', {zoomControl: false}).setView([49.8728, 8.6512], 14);
+    var mapSettings = localStorage.getItem('motis.map');
+    if (mapSettings) {
+      mapSettings = JSON.parse(mapSettings);
+    }
+    var lat = mapSettings && mapSettings.lat || 49.8728;
+    var lng = mapSettings && mapSettings.lng || 8.6512;
+    var zoom = mapSettings && mapSettings.zoom || 14;
+
+    var map = L.map('map', {zoomControl: false}).setView([lat, lng], zoom);
 
     L.tileLayer(
          'https://tiles.motis-project.de/osm_light/{z}/{x}/{y}.png?token={accessToken}',
