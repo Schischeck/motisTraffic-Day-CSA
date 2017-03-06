@@ -294,6 +294,7 @@ trainNrInputView tabIndex label model =
         , tabindex tabIndex
         , attribute "inputmode" "numeric"
         , attribute "pattern" "[0-9]+"
+        , id "trip-search-trainnr-input"
         ]
         label
         Nothing

@@ -33,6 +33,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (..)
+import Dom
 import Dom.Scroll as Scroll
 import Http exposing (encodeUri)
 import Task
@@ -774,13 +775,19 @@ update msg model =
 
         ShowTripSearch ->
             let
-                model_ =
+                model1 =
                     { model
                         | subView = Just TripSearchView
                         , overlayVisible = True
                     }
+
+                ( model2, cmd1 ) =
+                    setRailVizFilter model1 Nothing
             in
-                setRailVizFilter model_ Nothing
+                model2
+                    ! [ cmd1
+                      , Task.attempt noop (Dom.focus "trip-search-trainnr-input")
+                      ]
 
         ToggleTripSearch ->
             case model.subView of
