@@ -505,7 +505,9 @@ eventView (Config { selectTripMsg }) locale event =
                 [ class "event-direction"
                 , title direction
                 ]
-                [ text direction ]
+                [ i [ class "icon" ] [ text "arrow_forward" ]
+                , text direction
+                ]
             , div [ class "event-track" ]
                 [ text track ]
             ]
