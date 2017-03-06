@@ -291,6 +291,39 @@
   margin-right: 5px;
 }
 
+.sim-time-overlay .time {
+  cursor: pointer;
+}
+
+.sim-time-picker-overlay {
+  position: absolute;
+  bottom: 250px;
+  right: 70px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 20px 20px 5px 20px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.sim-time-picker-overlay.hidden {
+  display: none;
+}
+
+.sim-time-picker-overlay .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  color: #4971E7;
+}
+
+.sim-time-picker-overlay .close i {
+  cursor: pointer;
+}
+
 .train-color-picker-overlay {
   padding: 0 5px 5px 5px;
   font-size: 14px;

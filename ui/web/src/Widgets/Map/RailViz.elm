@@ -1,6 +1,6 @@
 module Widgets.Map.RailViz
     exposing
-        ( Msg(SetTimeOffset, SetApiError)
+        ( Msg(SetTimeOffset, SetApiError, ToggleSimTimePicker)
         , Model
         , init
         , view
@@ -88,6 +88,7 @@ type Msg
     | SetTooltip MapTooltip
     | SetTrainColors TrainColors
     | SetApiError (Maybe ApiError)
+    | ToggleSimTimePicker
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -130,6 +131,9 @@ update msg model =
         SetApiError err ->
             { model | apiError = err } ! []
 
+        ToggleSimTimePicker ->
+            model ! []
+
 
 flyTo : Position -> Maybe Float -> Bool -> Cmd msg
 flyTo pos zoom animate =
@@ -140,6 +144,21 @@ flyTo pos zoom animate =
         , zoom = zoom
         , animate = animate
         }
+
+
+getMapPermalink : Model -> String
+getMapPermalink model =
+    let
+        simDate =
+            Date.fromTime model.time
+
+        pos =
+            model.mapInfo.center
+
+        zoom =
+            model.mapInfo.zoom
+    in
+        toUrl (RailVizPermalink pos.lat pos.lng zoom simDate)
 
 
 
@@ -186,6 +205,10 @@ view locale permalink model =
             , errorOverlay locale model
             ]
         ]
+
+
+
+-- Tooltips
 
 
 railVizTooltip : Model -> Html Msg
@@ -283,6 +306,27 @@ railVizTrainTooltip model train =
             ]
 
 
+delayView : Bool -> Int -> Html Msg
+delayView hasDelayInfo minutes =
+    let
+        delayType =
+            if minutes > 0 then
+                "delay pos-delay"
+            else
+                "delay neg-delay"
+
+        delayText =
+            if minutes >= 0 then
+                "+" ++ (toString minutes)
+            else
+                toString minutes
+    in
+        if hasDelayInfo then
+            span [ class delayType ] [ text delayText ]
+        else
+            text ""
+
+
 railVizStationTooltip : Model -> String -> Html Msg
 railVizStationTooltip model stationName =
     let
@@ -325,6 +369,10 @@ railVizStationTooltip model stationName =
             [ div [ class "station-name" ] [ text stationName ] ]
 
 
+
+-- Overlays/controls
+
+
 simulationTimeOverlay : Localization -> String -> Model -> Html Msg
 simulationTimeOverlay locale permalink model =
     let
@@ -347,30 +395,13 @@ simulationTimeOverlay locale permalink model =
             , div [ class "permalink", title locale.t.misc.permalink ]
                 [ a [ href permalink ] [ i [ class "icon" ] [ text "link" ] ] ]
             , simIcon
-            , div [ class "time", id "sim-time-overlay" ]
+            , div
+                [ class "time"
+                , id "sim-time-overlay"
+                , onClick ToggleSimTimePicker
+                ]
                 [ text (formatDateTimeWithSeconds locale.dateConfig simDate) ]
             ]
-
-
-delayView : Bool -> Int -> Html Msg
-delayView hasDelayInfo minutes =
-    let
-        delayType =
-            if minutes > 0 then
-                "delay pos-delay"
-            else
-                "delay neg-delay"
-
-        delayText =
-            if minutes >= 0 then
-                "+" ++ (toString minutes)
-            else
-                toString minutes
-    in
-        if hasDelayInfo then
-            span [ class delayType ] [ text delayText ]
-        else
-            text ""
 
 
 trainColorPickerView : Localization -> Model -> Html Msg
@@ -422,18 +453,3 @@ apiErrorOverlay locale err =
             [ i [ class "icon" ] [ text "error_outline" ]
             , text errorMsg
             ]
-
-
-getMapPermalink : Model -> String
-getMapPermalink model =
-    let
-        simDate =
-            Date.fromTime model.time
-
-        pos =
-            model.mapInfo.center
-
-        zoom =
-            model.mapInfo.zoom
-    in
-        toUrl (RailVizPermalink pos.lat pos.lng zoom simDate)
