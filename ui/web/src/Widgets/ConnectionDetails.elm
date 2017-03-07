@@ -278,18 +278,29 @@ stopView selectStationMsg stopViewType eventType locale currentTime progress sto
 
                 Nothing ->
                     [ div [ class "timeline train-color-border" ] [] ]
+
+        stationAttrs =
+            if isRealStation stop.station then
+                [ onClick (selectStationMsg stop.station event.time) ]
+            else
+                [ class "virtual" ]
     in
         div [ class ("stop " ++ stopTimestampClass) ]
             (timelines
                 ++ [ div [ class "time" ] timeCell
                    , div [ class "delay" ] delayCell
                    , div [ class "station" ]
-                        [ span [ onClick (selectStationMsg stop.station event.time) ]
+                        [ span stationAttrs
                             [ text stop.station.name ]
                         ]
                    , trackCell
                    ]
             )
+
+
+isRealStation : Station -> Bool
+isRealStation station =
+    station.id /= "START" && station.id /= "END"
 
 
 timestampClass : Date -> EventInfo -> String

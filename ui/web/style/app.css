@@ -924,6 +924,10 @@
   cursor: pointer;
 }
 
+.train-detail .stop .station span.virtual {
+  cursor: default;
+}
+
 .train-detail .timeline {
   position: absolute;
   top: 0px;
