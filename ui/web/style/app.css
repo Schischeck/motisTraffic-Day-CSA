@@ -1326,6 +1326,7 @@
 
 .connection-details .train-box.train-class-walk {
   cursor: default;
+  padding: 4px 6px;
 }
 
 .station-events {
