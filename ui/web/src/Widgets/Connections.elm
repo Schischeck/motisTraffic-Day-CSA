@@ -20,9 +20,20 @@ import Date exposing (Date)
 import Date.Extra.Duration as Duration exposing (Duration(..))
 import Maybe.Extra exposing (isJust)
 import Data.Connection.Types as Connection exposing (Connection, Stop)
-import Data.Routing.Types exposing (RoutingRequest, RoutingResponse, SearchDirection(..))
+import Data.Routing.Types exposing (RoutingResponse, SearchDirection(..), Interval)
 import Data.Routing.Decode exposing (decodeRoutingResponse)
-import Data.Routing.Request as RoutingRequest exposing (encodeRequest)
+import Data.Intermodal.Types exposing (IntermodalRoutingRequest)
+import Data.Intermodal.Request as IntermodalRoutingRequest
+    exposing
+        ( IntermodalLocation(..)
+        , PretripSearchOptions
+        , encodeRequest
+        , getInterval
+        , setInterval
+        , setPretripSearchOptions
+        , startToIntermodalLocation
+        , destinationToIntermodalLocation
+        )
 import Data.Journey.Types as Journey exposing (Journey, Train)
 import Data.ScheduleInfo.Types as ScheduleInfo exposing (ScheduleInfo)
 import Widgets.Helpers.ConnectionUtil exposing (..)
@@ -54,7 +65,7 @@ type alias Model =
     , errorBefore : Maybe ApiError
     , errorAfter : Maybe ApiError
     , scheduleInfo : Maybe ScheduleInfo
-    , routingRequest : Maybe RoutingRequest
+    , routingRequest : Maybe IntermodalRoutingRequest
     , newJourneys : List Int
     , allowExtend : Bool
     , labels : List String
@@ -112,10 +123,10 @@ getJourney model connectionIdx =
 
 type Msg
     = NoOp
-    | Search SearchAction RoutingRequest
+    | Search SearchAction IntermodalRoutingRequest
     | ExtendSearchInterval ExtendIntervalType
-    | ReceiveResponse SearchAction RoutingRequest RoutingResponse
-    | ReceiveError SearchAction RoutingRequest ApiError
+    | ReceiveResponse SearchAction IntermodalRoutingRequest RoutingResponse
+    | ReceiveError SearchAction IntermodalRoutingRequest ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
     | ResetNew
     | JTGUpdate Int JourneyTransportGraph.Msg
@@ -215,13 +226,14 @@ update msg model =
         SetRoutingResponses responses ->
             let
                 placeholderStation =
-                    { id = ""
-                    , name = ""
-                    , pos = { lat = 0, lng = 0 }
-                    }
+                    IntermodalStation
+                        { id = ""
+                        , name = ""
+                        , pos = { lat = 0, lng = 0 }
+                        }
 
                 request =
-                    RoutingRequest.initialRequest
+                    IntermodalRoutingRequest.initialRequest
                         0
                         placeholderStation
                         placeholderStation
@@ -262,8 +274,8 @@ update msg model =
 
 extendSearchInterval :
     ExtendIntervalType
-    -> RoutingRequest
-    -> ( RoutingRequest, RoutingRequest )
+    -> IntermodalRoutingRequest
+    -> ( IntermodalRoutingRequest, IntermodalRoutingRequest )
 extendSearchInterval direction base =
     let
         extendBy =
@@ -272,54 +284,62 @@ extendSearchInterval direction base =
         minConnectionCount =
             3
 
-        newIntervalStart =
+        previousInterval =
+            getInterval base
+
+        newIntervalBegin =
             case direction of
                 ExtendBefore ->
-                    base.intervalStart - extendBy
+                    previousInterval.begin - extendBy
 
                 ExtendAfter ->
-                    base.intervalStart
+                    previousInterval.begin
 
         newIntervalEnd =
             case direction of
                 ExtendBefore ->
-                    base.intervalEnd
+                    previousInterval.end
 
                 ExtendAfter ->
-                    base.intervalEnd + extendBy
+                    previousInterval.end + extendBy
 
         newRequest =
             case direction of
                 ExtendBefore ->
-                    { base
-                        | intervalStart = newIntervalStart
-                        , intervalEnd = base.intervalStart - 1
+                    setPretripSearchOptions base
+                        { interval =
+                            { begin = newIntervalBegin
+                            , end = previousInterval.begin - 1
+                            }
                         , minConnectionCount = minConnectionCount
                         , extendIntervalEarlier = True
                         , extendIntervalLater = False
-                    }
+                        }
 
                 ExtendAfter ->
-                    { base
-                        | intervalStart = base.intervalEnd + 1
-                        , intervalEnd = newIntervalEnd
+                    setPretripSearchOptions base
+                        { interval =
+                            { begin = previousInterval.end + 1
+                            , end = newIntervalEnd
+                            }
                         , minConnectionCount = minConnectionCount
                         , extendIntervalEarlier = False
                         , extendIntervalLater = True
-                    }
+                        }
+
+        updatedFullRequest =
+            setInterval base
+                { begin = newIntervalBegin
+                , end = newIntervalEnd
+                }
     in
-        ( newRequest
-        , { base
-            | intervalStart = newIntervalStart
-            , intervalEnd = newIntervalEnd
-          }
-        )
+        ( newRequest, updatedFullRequest )
 
 
 updateModelWithNewResults :
     Model
     -> SearchAction
-    -> RoutingRequest
+    -> IntermodalRoutingRequest
     -> List ( String, RoutingResponse )
     -> Model
 updateModelWithNewResults model action request responses =
@@ -331,18 +351,22 @@ updateModelWithNewResults model action request responses =
         updateInterval updateStart updateEnd routingRequest =
             case firstResponse of
                 Just response ->
-                    { routingRequest
-                        | intervalStart =
-                            if updateStart then
-                                unixTime response.intervalStart
-                            else
-                                routingRequest.intervalStart
-                        , intervalEnd =
-                            if updateEnd then
-                                unixTime response.intervalEnd
-                            else
-                                routingRequest.intervalEnd
-                    }
+                    let
+                        previousInterval =
+                            getInterval routingRequest
+                    in
+                        setInterval routingRequest
+                            { begin =
+                                if updateStart then
+                                    unixTime response.intervalStart
+                                else
+                                    previousInterval.begin
+                            , end =
+                                if updateEnd then
+                                    unixTime response.intervalEnd
+                                else
+                                    previousInterval.end
+                            }
 
                 Nothing ->
                     routingRequest
@@ -522,14 +546,33 @@ handleRequestError model action msg =
         newModel
 
 
-belongsToCurrentSearch : Model -> RoutingRequest -> Bool
+belongsToCurrentSearch : Model -> IntermodalRoutingRequest -> Bool
 belongsToCurrentSearch model check =
     case model.routingRequest of
         Just currentRequest ->
-            (currentRequest.from == check.from)
-                && (currentRequest.to == check.to)
-                && (currentRequest.intervalStart <= check.intervalStart)
-                && (currentRequest.intervalEnd >= check.intervalEnd)
+            let
+                currentInterval =
+                    getInterval currentRequest
+
+                checkInterval =
+                    getInterval check
+
+                currentStart =
+                    startToIntermodalLocation currentRequest.start
+
+                checkStart =
+                    startToIntermodalLocation check.start
+
+                currentDest =
+                    destinationToIntermodalLocation currentRequest.destination
+
+                checkDest =
+                    destinationToIntermodalLocation check.destination
+            in
+                (currentStart == checkStart)
+                    && (currentDest == checkDest)
+                    && (currentInterval.begin <= checkInterval.begin)
+                    && (currentInterval.end >= checkInterval.end)
 
         Nothing ->
             False
@@ -777,7 +820,7 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
 -- ROUTING REQUEST
 
 
-sendRequest : String -> SearchAction -> RoutingRequest -> Cmd Msg
+sendRequest : String -> SearchAction -> IntermodalRoutingRequest -> Cmd Msg
 sendRequest remoteAddress action request =
     Api.sendRequest
         remoteAddress

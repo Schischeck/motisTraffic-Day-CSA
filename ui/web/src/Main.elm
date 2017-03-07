@@ -14,8 +14,9 @@ import Widgets.SimTimePicker as SimTimePicker
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
-import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
-import Data.Routing.Request as RoutingRequest
+import Data.Routing.Types exposing (SearchDirection(..))
+import Data.Intermodal.Types exposing (IntermodalRoutingRequest)
+import Data.Intermodal.Request as IntermodalRoutingRequest exposing (IntermodalLocation(..))
 import Data.Routing.Decode exposing (decodeRoutingResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
 import Data.Journey.Types exposing (Journey, toJourney)
@@ -95,7 +96,7 @@ type alias Model =
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
     , apiEndpoint : String
-    , currentRoutingRequest : Maybe RoutingRequest
+    , currentRoutingRequest : Maybe IntermodalRoutingRequest
     , debounce : Debounce.State
     , connectionListScrollPos : Float
     , currentTime : Date
@@ -843,29 +844,36 @@ update msg model =
                 model2 ! [ cmd1, cmd2 ]
 
 
-buildRoutingRequest : Model -> RoutingRequest
+buildRoutingRequest : Model -> IntermodalRoutingRequest
 buildRoutingRequest model =
     let
-        guessStation input =
-            Station "" input (Position 0 0)
+        default =
+            IntermodalStation (Station "" "" (Position 0 0))
 
-        getStation typeaheadModel =
-            Typeahead.getSelectedStation typeaheadModel
-                |> Maybe.withDefault (guessStation typeaheadModel.input)
+        toIntermodalLocation typeahead =
+            case (Typeahead.getSelectedSuggestion typeahead) of
+                Just (Typeahead.StationSuggestion s) ->
+                    IntermodalStation s
 
-        fromStation =
-            getStation model.fromLocation
+                Just (Typeahead.AddressSuggestion a) ->
+                    IntermodalPosition a.pos
 
-        toStation =
-            getStation model.toLocation
+                Nothing ->
+                    default
+
+        fromLocation =
+            toIntermodalLocation model.fromLocation
+
+        toLocation =
+            toIntermodalLocation model.toLocation
 
         minConnectionCount =
             5
     in
-        RoutingRequest.initialRequest
+        IntermodalRoutingRequest.initialRequest
             minConnectionCount
-            fromStation
-            toStation
+            fromLocation
+            toLocation
             (combineDateTime model.date.date model.time.date)
             model.searchDirection
 
@@ -873,13 +881,13 @@ buildRoutingRequest model =
 isCompleteQuery : Model -> Bool
 isCompleteQuery model =
     let
-        fromStation =
-            Typeahead.getSelectedStation model.fromLocation
+        fromLocation =
+            Typeahead.getSelectedSuggestion model.fromLocation
 
-        toStation =
-            Typeahead.getSelectedStation model.toLocation
+        toLocation =
+            Typeahead.getSelectedSuggestion model.toLocation
     in
-        isJust fromStation && isJust toStation
+        isJust fromLocation && isJust toLocation
 
 
 checkRoutingRequest : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )

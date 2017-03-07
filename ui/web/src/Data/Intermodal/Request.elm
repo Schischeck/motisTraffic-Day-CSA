@@ -105,6 +105,79 @@ toIntermodalDestination location =
             InputPosition p
 
 
+startToIntermodalLocation : IntermodalStart -> IntermodalLocation
+startToIntermodalLocation start =
+    case start of
+        PretripStart i ->
+            IntermodalStation i.station
+
+        IntermodalPretripStart i ->
+            IntermodalPosition i.position
+
+
+destinationToIntermodalLocation : IntermodalDestination -> IntermodalLocation
+destinationToIntermodalLocation dest =
+    case dest of
+        InputStation s ->
+            IntermodalStation s
+
+        InputPosition p ->
+            IntermodalPosition p
+
+
+getInterval : IntermodalRoutingRequest -> Interval
+getInterval req =
+    case req.start of
+        IntermodalPretripStart i ->
+            i.interval
+
+        PretripStart i ->
+            i.interval
+
+
+setInterval : IntermodalRoutingRequest -> Interval -> IntermodalRoutingRequest
+setInterval req interval =
+    let
+        newStart =
+            case req.start of
+                IntermodalPretripStart i ->
+                    IntermodalPretripStart { i | interval = interval }
+
+                PretripStart i ->
+                    PretripStart { i | interval = interval }
+    in
+        { req | start = newStart }
+
+
+setPretripSearchOptions :
+    IntermodalRoutingRequest
+    -> PretripSearchOptions
+    -> IntermodalRoutingRequest
+setPretripSearchOptions req options =
+    let
+        newStart =
+            case req.start of
+                IntermodalPretripStart i ->
+                    IntermodalPretripStart
+                        { i
+                            | interval = options.interval
+                            , minConnectionCount = options.minConnectionCount
+                            , extendIntervalEarlier = options.extendIntervalEarlier
+                            , extendIntervalLater = options.extendIntervalLater
+                        }
+
+                PretripStart i ->
+                    PretripStart
+                        { i
+                            | interval = options.interval
+                            , minConnectionCount = options.minConnectionCount
+                            , extendIntervalEarlier = options.extendIntervalEarlier
+                            , extendIntervalLater = options.extendIntervalLater
+                        }
+    in
+        { req | start = newStart }
+
+
 encodeRequest : IntermodalRoutingRequest -> Encode.Value
 encodeRequest request =
     let
