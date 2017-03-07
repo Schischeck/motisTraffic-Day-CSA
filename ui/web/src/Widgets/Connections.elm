@@ -69,6 +69,8 @@ type alias Model =
     , newJourneys : List Int
     , allowExtend : Bool
     , labels : List String
+    , fromName : Maybe String
+    , toName : Maybe String
     }
 
 
@@ -102,6 +104,8 @@ init remoteAddress =
     , newJourneys = []
     , allowExtend = True
     , labels = []
+    , fromName = Nothing
+    , toName = Nothing
     }
 
 
@@ -123,7 +127,7 @@ getJourney model connectionIdx =
 
 type Msg
     = NoOp
-    | Search SearchAction IntermodalRoutingRequest
+    | Search SearchAction IntermodalRoutingRequest (Maybe String) (Maybe String)
     | ExtendSearchInterval ExtendIntervalType
     | ReceiveResponse SearchAction IntermodalRoutingRequest RoutingResponse
     | ReceiveError SearchAction IntermodalRoutingRequest ApiError
@@ -151,12 +155,14 @@ update msg model =
         NoOp ->
             model ! []
 
-        Search action req ->
+        Search action req fromName toName ->
             { model
                 | loading = True
                 , loadingBefore = False
                 , loadingAfter = False
                 , routingRequest = Just req
+                , fromName = fromName
+                , toName = toName
             }
                 ! [ sendRequest model.remoteAddress ReplaceResults req ]
 
@@ -243,7 +249,11 @@ update msg model =
                         Forward
 
                 model_ =
-                    { model | allowExtend = False }
+                    { model
+                        | allowExtend = False
+                        , fromName = Nothing
+                        , toName = Nothing
+                    }
             in
                 (updateModelWithNewResults model_ ReplaceResults request responses) ! []
 
@@ -403,7 +413,9 @@ updateModelWithNewResults model action request responses =
 
         journeysToAdd : List LabeledJourney
         journeysToAdd =
-            toLabeledJourneys responses
+            responses
+                |> patchConnections base
+                |> toLabeledJourneys
 
         newJourneys =
             case action of
@@ -466,6 +478,55 @@ updateModelWithNewResults model action request responses =
             , newJourneys = newNewJourneys
             , labels = newLabels
         }
+
+
+patchConnection : Model -> Connection -> Connection
+patchConnection model connection =
+    let
+        intermodalStartName =
+            model.fromName
+                |> Maybe.withDefault "START"
+
+        intermodalDestName =
+            model.toName
+                |> Maybe.withDefault "END"
+
+        replaceStationName station name =
+            { station | name = name }
+
+        patchStop stop =
+            case stop.station.id of
+                "START" ->
+                    { stop
+                        | station =
+                            replaceStationName stop.station intermodalStartName
+                    }
+
+                "END" ->
+                    { stop
+                        | station =
+                            replaceStationName stop.station intermodalDestName
+                    }
+
+                _ ->
+                    stop
+    in
+        { connection | stops = List.map patchStop connection.stops }
+
+
+patchConnections :
+    Model
+    -> List ( String, RoutingResponse )
+    -> List ( String, RoutingResponse )
+patchConnections model responses =
+    let
+        patchResponse response =
+            { response
+                | connections = List.map (patchConnection model) response.connections
+            }
+    in
+        responses
+            |> List.map (\( l, r ) -> ( l, patchResponse r ))
 
 
 toLabeledJourneys : List ( String, RoutingResponse ) -> List LabeledJourney

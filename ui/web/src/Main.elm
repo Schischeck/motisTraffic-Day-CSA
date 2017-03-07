@@ -364,10 +364,23 @@ update msg model =
                 routingRequest =
                     buildRoutingRequest model
 
+                fromName =
+                    Typeahead.getSelectedSuggestion model.fromLocation
+                        |> Maybe.map Typeahead.getSuggestionName
+
+                toName =
+                    Typeahead.getSelectedSuggestion model.toLocation
+                        |> Maybe.map Typeahead.getSuggestionName
+
+                searchReq =
+                    Connections.Search
+                        Connections.ReplaceResults
+                        routingRequest
+                        fromName
+                        toName
+
                 ( m, c ) =
-                    Connections.update
-                        (Connections.Search Connections.ReplaceResults routingRequest)
-                        model.connections
+                    Connections.update searchReq model.connections
             in
                 { model
                     | connections = m
