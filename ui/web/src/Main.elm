@@ -1117,26 +1117,36 @@ searchView : Model -> List (Html Msg)
 searchView model =
     [ div [ id "search" ]
         [ div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-1-2 from-location" ]
+            [ div [ class "pure-u-1 pure-u-sm-14-24 from-location" ]
                 [ Html.map FromLocationUpdate <|
                     Typeahead.view 1 model.locale.t.search.start (Just "place") model.fromLocation
                 , (swapLocationsView model)
                 ]
-            , div [ class "pure-u-1 pure-u-sm-1-2" ]
-                [ Html.map DateUpdate <|
-                    Calendar.view 3 model.locale.t.search.date model.date
+            , div [ class "pure-u-1 pure-u-sm-10-24" ]
+                [ Html.map FromTransportsUpdate <|
+                    TagList.view model.locale.t.search.startTransports model.fromTransports
                 ]
             ]
         , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-12-24 to-location" ]
+            [ div [ class "pure-u-1 pure-u-sm-14-24 to-location" ]
                 [ Html.map ToLocationUpdate <|
                     Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
                 ]
-            , div [ class "pure-u-1 pure-u-sm-9-24" ]
+            , div [ class "pure-u-1 pure-u-sm-10-24" ]
+                [ Html.map ToTransportsUpdate <|
+                    TagList.view model.locale.t.search.destinationTransports model.toTransports
+                ]
+            ]
+        , div [ class "pure-g gutters" ]
+            [ div [ class "pure-u-1 pure-u-sm-10-24" ]
+                [ Html.map DateUpdate <|
+                    Calendar.view 3 model.locale.t.search.date model.date
+                ]
+            , div [ class "pure-u-1 pure-u-sm-10-24" ]
                 [ Html.map TimeUpdate <|
                     TimeInput.view 4 model.locale.t.search.time model.time
                 ]
-            , div [ class "pure-u-1 pure-u-sm-3-24 time-option" ]
+            , div [ class "pure-u-1 pure-u-sm-4-24 time-option" ]
                 (searchDirectionView model)
             ]
         ]
