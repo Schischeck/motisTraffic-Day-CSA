@@ -10,6 +10,7 @@ module Widgets.Typeahead
         , getSelectedAddress
         , getSelectedSuggestion
         , getSuggestionName
+        , getShortSuggestionName
         )
 
 import Html exposing (Html, div, ul, li, text, i, span)
@@ -240,6 +241,16 @@ getSuggestionName suggestion =
             getAddressStr address
 
 
+getShortSuggestionName : Suggestion -> String
+getShortSuggestionName suggestion =
+    case suggestion of
+        StationSuggestion station ->
+            station.name
+
+        AddressSuggestion address ->
+            getShortAddressStr address
+
+
 getAddressStr : Address -> String
 getAddressStr address =
     let
@@ -252,24 +263,44 @@ getAddressStr address =
             address.name ++ ", " ++ region
 
 
+getShortAddressStr : Address -> String
+getShortAddressStr address =
+    case getCity address of
+        Just city ->
+            address.name ++ ", " ++ city
+
+        Nothing ->
+            address.name
+
+
 getRegionStr : Address -> String
 getRegionStr address =
     let
         city =
-            address.regions
-                |> List.filter (\a -> a.adminLevel <= 8)
-                |> List.head
-                |> Maybe.map .name
+            getCity address
 
         country =
-            address.regions
-                |> List.filter (\a -> a.adminLevel == 2)
-                |> List.head
-                |> Maybe.map .name
+            getCountry address
     in
         [ city, country ]
             |> Maybe.Extra.values
             |> String.join ", "
+
+
+getCity : Address -> Maybe String
+getCity address =
+    address.regions
+        |> List.filter (\a -> a.adminLevel <= 8)
+        |> List.head
+        |> Maybe.map .name
+
+
+getCountry : Address -> Maybe String
+getCountry address =
+    address.regions
+        |> List.filter (\a -> a.adminLevel == 2)
+        |> List.head
+        |> Maybe.map .name
 
 
 getSelectedSuggestion : Model -> Maybe Suggestion

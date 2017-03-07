@@ -366,11 +366,11 @@ update msg model =
 
                 fromName =
                     Typeahead.getSelectedSuggestion model.fromLocation
-                        |> Maybe.map Typeahead.getSuggestionName
+                        |> Maybe.map Typeahead.getShortSuggestionName
 
                 toName =
                     Typeahead.getSelectedSuggestion model.toLocation
-                        |> Maybe.map Typeahead.getSuggestionName
+                        |> Maybe.map Typeahead.getShortSuggestionName
 
                 searchReq =
                     Connections.Search
