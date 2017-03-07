@@ -1,10 +1,19 @@
-module Widgets.TagList exposing (Model, Msg, init, subscriptions, update, view)
+module Widgets.TagList
+    exposing
+        ( Model
+        , Tag(..)
+        , Msg
+        , init
+        , subscriptions
+        , update
+        , view
+        , getSelectedTags
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Html.Lazy exposing (..)
-import Set exposing (..)
 import Mouse
 import Util.View exposing (onStopAll, onStopPropagation)
 
@@ -13,11 +22,34 @@ import Util.View exposing (onStopAll, onStopPropagation)
 
 
 type alias Model =
-    { tags : Set String
-    , selected : Set String
+    { tags : List Tag
+    , selected : List Tag
     , visible : Bool
     , ignoreNextToggle : Bool
     }
+
+
+type Tag
+    = WalkTag { maxDuration : Int }
+    | BikeTag { maxDuration : Int }
+    | CarTag { maxDuration : Int }
+
+
+init : Model
+init =
+    { tags =
+        [ WalkTag { maxDuration = 900 }
+        , BikeTag { maxDuration = 900 }
+        ]
+    , selected = []
+    , visible = False
+    , ignoreNextToggle = False
+    }
+
+
+getSelectedTags : Model -> List Tag
+getSelectedTags model =
+    model.selected
 
 
 
@@ -25,8 +57,8 @@ type alias Model =
 
 
 type Msg
-    = AddTag String
-    | RemoveTag String
+    = AddTag Tag
+    | RemoveTag Tag
     | ToggleVisibility
     | Click
     | NoOp
@@ -40,13 +72,13 @@ update msg model =
 
         AddTag t ->
             { model
-                | selected = Set.insert t model.selected
+                | selected = model.selected ++ [ t ]
                 , visible = False
                 , ignoreNextToggle = True
             }
 
         RemoveTag t ->
-            { model | selected = Set.remove t model.selected }
+            { model | selected = List.filter (\s -> s /= t) model.selected }
 
         ToggleVisibility ->
             if model.ignoreNextToggle then
@@ -66,11 +98,11 @@ tagListView : String -> Model -> Html Msg
 tagListView label model =
     let
         availableTags =
-            Set.toList (Set.diff model.tags model.selected)
+            List.filter (\t -> not (List.member t model.selected)) model.tags
                 |> List.map
-                    (\s ->
-                        a [ class "tag", onClick (AddTag s) ]
-                            [ i [ class "icon" ] [ text s ] ]
+                    (\t ->
+                        a [ class "tag", onClick (AddTag t) ]
+                            [ i [ class "icon" ] [ text (tagIcon t) ] ]
                     )
                 |> div
                     [ classList
@@ -82,7 +114,7 @@ tagListView label model =
                     ]
 
         addButton =
-            if (Set.size model.selected == Set.size model.tags) then
+            if (List.length model.selected == List.length model.tags) then
                 []
             else
                 [ div [ class "tag outline", onClick ToggleVisibility ]
@@ -92,12 +124,12 @@ tagListView label model =
                 ]
 
         selectedTags =
-            Set.toList model.selected
+            model.selected
                 |> List.map
-                    (\s ->
+                    (\t ->
                         a [ class "tag" ]
-                            [ i [ class "icon" ] [ text s ]
-                            , i [ class "remove icon", onClick (RemoveTag s) ] [ text "cancel" ]
+                            [ i [ class "icon" ] [ text (tagIcon t) ]
+                            , i [ class "remove icon", onClick (RemoveTag t) ] [ text "cancel" ]
                             ]
                     )
     in
@@ -106,6 +138,19 @@ tagListView label model =
                 ++ selectedTags
                 ++ addButton
             )
+
+
+tagIcon : Tag -> String
+tagIcon tag =
+    case tag of
+        WalkTag _ ->
+            "directions_walk"
+
+        BikeTag _ ->
+            "directions_bike"
+
+        CarTag _ ->
+            "directions_car"
 
 
 view : String -> Model -> Html Msg
@@ -123,16 +168,3 @@ subscriptions model =
         Mouse.downs (\_ -> Click)
     else
         Sub.none
-
-
-
--- INIT
-
-
-init : Model
-init =
-    { tags = Set.fromList [ "directions_car", "directions_walk", "directions_bike" ]
-    , selected = Set.empty
-    , visible = False
-    , ignoreNextToggle = False
-    }

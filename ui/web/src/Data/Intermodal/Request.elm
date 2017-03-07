@@ -38,10 +38,12 @@ initialRequest :
     Int
     -> IntermodalLocation
     -> IntermodalLocation
+    -> List Mode
+    -> List Mode
     -> Date
     -> SearchDirection
     -> IntermodalRoutingRequest
-initialRequest minConnectionCount from to date searchDirection =
+initialRequest minConnectionCount from to startModes destModes date searchDirection =
     let
         selectedTime =
             unixTime date
@@ -65,9 +67,9 @@ initialRequest minConnectionCount from to date searchDirection =
             toIntermodalDestination to
     in
         { start = start
-        , startModes = []
+        , startModes = startModes
         , destination = destination
-        , destinationModes = []
+        , destinationModes = destModes
         , searchType = DefaultSearchType
         , searchDir = searchDirection
         }

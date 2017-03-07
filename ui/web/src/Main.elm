@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Widgets.TimeInput as TimeInput
-import Widgets.TagList as TagList
+import Widgets.TagList as TagList exposing (Tag(..))
 import Widgets.Calendar as Calendar
 import Widgets.Typeahead as Typeahead
 import Widgets.Map.RailViz as RailViz
@@ -15,7 +15,7 @@ import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Routing.Types exposing (SearchDirection(..))
-import Data.Intermodal.Types exposing (IntermodalRoutingRequest)
+import Data.Intermodal.Types as Intermodal exposing (IntermodalRoutingRequest)
 import Data.Intermodal.Request as IntermodalRoutingRequest exposing (IntermodalLocation(..))
 import Data.Routing.Decode exposing (decodeRoutingResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
@@ -304,26 +304,38 @@ update msg model =
                 ( m, c ) =
                     Typeahead.update msg_ model.fromLocation
             in
-                checkTypeaheadUpdate msg_ ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
+                { model | fromLocation = m }
+                    ! [ Cmd.map FromLocationUpdate c ]
+                    |> checkTypeaheadUpdate msg_
 
         ToLocationUpdate msg_ ->
             let
                 ( m, c ) =
                     Typeahead.update msg_ model.toLocation
             in
-                checkTypeaheadUpdate msg_ ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
+                { model | toLocation = m }
+                    ! [ Cmd.map ToLocationUpdate c ]
+                    |> checkTypeaheadUpdate msg_
 
         FromTransportsUpdate msg_ ->
-            ( { model | fromTransports = TagList.update msg_ model.fromTransports }, Cmd.none )
+            { model | fromTransports = TagList.update msg_ model.fromTransports }
+                ! []
+                |> checkRoutingRequest
 
         ToTransportsUpdate msg_ ->
-            ( { model | toTransports = TagList.update msg_ model.toTransports }, Cmd.none )
+            { model | toTransports = TagList.update msg_ model.toTransports }
+                ! []
+                |> checkRoutingRequest
 
         DateUpdate msg_ ->
-            checkRoutingRequest ( { model | date = Calendar.update msg_ model.date }, Cmd.none )
+            { model | date = Calendar.update msg_ model.date }
+                ! []
+                |> checkRoutingRequest
 
         TimeUpdate msg_ ->
-            checkRoutingRequest ( { model | time = TimeInput.update msg_ model.time }, Cmd.none )
+            { model | time = TimeInput.update msg_ model.time }
+                ! []
+                |> checkRoutingRequest
 
         SearchDirectionUpdate dir ->
             { model | searchDirection = dir }
@@ -861,11 +873,30 @@ buildRoutingRequest model =
                 Nothing ->
                     default
 
+        tagToMode tag =
+            case tag of
+                WalkTag o ->
+                    Just (Intermodal.Foot { maxDuration = o.maxDuration })
+
+                BikeTag o ->
+                    Just (Intermodal.Bike { maxDuration = o.maxDuration })
+
+                CarTag o ->
+                    Nothing
+
         fromLocation =
             toIntermodalLocation model.fromLocation
 
         toLocation =
             toIntermodalLocation model.toLocation
+
+        fromModes =
+            TagList.getSelectedTags model.fromTransports
+                |> List.filterMap tagToMode
+
+        toModes =
+            TagList.getSelectedTags model.toTransports
+                |> List.filterMap tagToMode
 
         minConnectionCount =
             5
@@ -874,6 +905,8 @@ buildRoutingRequest model =
             minConnectionCount
             fromLocation
             toLocation
+            fromModes
+            toModes
             (combineDateTime model.date.date model.time.date)
             model.searchDirection
 

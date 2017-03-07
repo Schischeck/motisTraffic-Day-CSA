@@ -237,6 +237,8 @@ update msg model =
                         0
                         placeholderStation
                         placeholderStation
+                        []
+                        []
                         (Date.fromTime 0)
                         Forward
 
