@@ -154,16 +154,28 @@ trainBox viewMode locale t =
             ]
 
 
-walkBox : Html msg
-walkBox =
-    div [ class <| "train-box train-class-walk" ]
-        [ Svg.svg
-            [ Svg.Attributes.class "train-icon" ]
-            [ Svg.use
-                [ xlinkHref <| "#walk" ]
-                []
+walkBox : String -> Html msg
+walkBox mumoType =
+    let
+        icon =
+            case mumoType of
+                "walk" ->
+                    "#walk"
+
+                "bike" ->
+                    "#bike"
+
+                _ ->
+                    "#walk"
+    in
+        div [ class <| "train-box train-class-walk" ]
+            [ Svg.svg
+                [ Svg.Attributes.class "train-icon" ]
+                [ Svg.use
+                    [ xlinkHref <| icon ]
+                    []
+                ]
             ]
-        ]
 
 
 isDelayed : DeltaRecord -> Bool

@@ -637,10 +637,18 @@ walkDetail selectStationMsg locale currentTime walk =
 
         progress =
             timelineProgress currentTime walk.from.departure walk.to.arrival
+
+        txt =
+            case walk.mumoType of
+                "bike" ->
+                    locale.t.connections.tripBike durationStr
+
+                _ ->
+                    locale.t.connections.tripWalk durationStr
     in
         div [ class <| "train-detail train-class-walk" ] <|
             [ div [ class "top-border" ] []
-            , walkBox
+            , walkBox walk.mumoType
             , div [ class "first-stop" ]
                 [ stopView selectStationMsg CompactStopView Departure locale currentTime Nothing walk.from ]
             , div [ class "intermediate-stops-toggle" ]
@@ -653,7 +661,7 @@ walkDetail selectStationMsg locale currentTime walk =
                         []
                     ]
                 , div [ class "expand-icon" ] []
-                , span [] [ text <| locale.t.connections.tripWalk durationStr ]
+                , span [] [ text <| txt ]
                 ]
             , div [ class "last-stop" ]
                 [ stopView selectStationMsg CompactStopView Arrival locale currentTime Nothing walk.to ]

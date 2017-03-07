@@ -39,8 +39,10 @@ type alias Translations =
         , track : String
         , tripIntermediateStops : Int -> String
         , tripWalk : String -> String
+        , tripBike : String -> String
         , provider : String
         , walk : String
+        , bike : String
         , trainNr : String
         , lineId : String
         }

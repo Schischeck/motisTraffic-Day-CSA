@@ -35,6 +35,7 @@ type alias JourneyWalk =
     { from : Stop
     , to : Stop
     , duration : Duration.DeltaRecord
+    , mumoType : String
     }
 
 
@@ -203,6 +204,7 @@ toJourneyWalk connection walkInfo =
             { from = from
             , to = to
             , duration = getWalkDuration from to
+            , mumoType = walkInfo.mumo_type
             }
     in
         Maybe.map2 makeJourneyWalk fromStop toStop
