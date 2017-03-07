@@ -5,7 +5,7 @@ import Date exposing (Date)
 import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
 import Data.Connection.Types exposing (Station)
-import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
+import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..), SearchType(..))
 
 
 initialRequest :
@@ -65,7 +65,7 @@ encodeRequest request =
                             => Encode.bool request.extendIntervalLater
                         ]
                 , "destination" => encodeInputStation request.to
-                , "search_type" => Encode.string "Default"
+                , "search_type" => encodeSearchType DefaultSearchType
                 , "search_dir" => encodeSearchDirection request.searchDirection
                 , "via" => Encode.list []
                 , "additional_edges" => Encode.list []
@@ -89,3 +89,22 @@ encodeSearchDirection direction =
 
         Backward ->
             Encode.string "Backward"
+
+
+encodeSearchType : SearchType -> Encode.Value
+encodeSearchType t =
+    case t of
+        DefaultSearchType ->
+            Encode.string "Default"
+
+        SingleCriterion ->
+            Encode.string "SingleCriterion"
+
+        SingleCriterionNoIntercity ->
+            Encode.string "SingleCriterionNoIntercity"
+
+        LateConnections ->
+            Encode.string "LateConnections"
+
+        LateConnectionsTest ->
+            Encode.string "LateConnectionsTest"

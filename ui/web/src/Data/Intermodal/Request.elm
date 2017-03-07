@@ -6,9 +6,103 @@ import Util.Core exposing ((=>))
 import Util.Date exposing (unixTime)
 import Data.Connection.Types exposing (Station, Position)
 import Data.Intermodal.Types exposing (..)
-import Data.Routing.Types exposing (SearchDirection(..), Interval)
-import Data.Routing.Request exposing (encodeInputStation, encodeSearchDirection)
+import Data.Routing.Types
+    exposing
+        ( SearchDirection(..)
+        , Interval
+        , SearchType(..)
+        )
+import Data.Routing.Request
+    exposing
+        ( encodeInputStation
+        , encodeSearchDirection
+        , encodeSearchType
+        )
 import Data.RailViz.Request exposing (encodePosition)
+
+
+type IntermodalLocation
+    = IntermodalStation Station
+    | IntermodalPosition Position
+
+
+type alias PretripSearchOptions =
+    { interval : Interval
+    , minConnectionCount : Int
+    , extendIntervalEarlier : Bool
+    , extendIntervalLater : Bool
+    }
+
+
+initialRequest :
+    Int
+    -> IntermodalLocation
+    -> IntermodalLocation
+    -> Date
+    -> SearchDirection
+    -> IntermodalRoutingRequest
+initialRequest minConnectionCount from to date searchDirection =
+    let
+        selectedTime =
+            unixTime date
+
+        interval =
+            { begin = selectedTime - 3600
+            , end = selectedTime + 3600
+            }
+
+        options =
+            { interval = interval
+            , minConnectionCount = minConnectionCount
+            , extendIntervalEarlier = True
+            , extendIntervalLater = True
+            }
+
+        start =
+            toIntermodalStart from options
+
+        destination =
+            toIntermodalDestination to
+    in
+        { start = start
+        , startModes = []
+        , destination = destination
+        , destinationModes = []
+        , searchType = DefaultSearchType
+        , searchDir = searchDirection
+        }
+
+
+toIntermodalStart : IntermodalLocation -> PretripSearchOptions -> IntermodalStart
+toIntermodalStart location options =
+    case location of
+        IntermodalStation s ->
+            PretripStart
+                { station = s
+                , interval = options.interval
+                , minConnectionCount = options.minConnectionCount
+                , extendIntervalEarlier = options.extendIntervalEarlier
+                , extendIntervalLater = options.extendIntervalLater
+                }
+
+        IntermodalPosition p ->
+            IntermodalPretripStart
+                { position = p
+                , interval = options.interval
+                , minConnectionCount = options.minConnectionCount
+                , extendIntervalEarlier = options.extendIntervalEarlier
+                , extendIntervalLater = options.extendIntervalLater
+                }
+
+
+toIntermodalDestination : IntermodalLocation -> IntermodalDestination
+toIntermodalDestination location =
+    case location of
+        IntermodalStation s ->
+            InputStation s
+
+        IntermodalPosition p ->
+            InputPosition p
 
 
 encodeRequest : IntermodalRoutingRequest -> Encode.Value
@@ -37,7 +131,7 @@ encodeRequest request =
                     , "destination" => destination
                     , "destination_modes"
                         => Encode.list (List.map encodeMode request.destinationModes)
-                    , "search_type" => Encode.string "Default"
+                    , "search_type" => encodeSearchType DefaultSearchType
                     , "search_dir" => encodeSearchDirection request.searchDir
                     ]
             ]
@@ -51,6 +145,12 @@ encodeIntermodalStart start =
             , Encode.object
                 [ "position" => encodePosition info.position
                 , "interval" => encodeInterval info.interval
+                , "min_connection_count"
+                    => Encode.int info.minConnectionCount
+                , "extend_interval_earlier"
+                    => Encode.bool info.extendIntervalEarlier
+                , "extend_interval_later"
+                    => Encode.bool info.extendIntervalLater
                 ]
             )
 
