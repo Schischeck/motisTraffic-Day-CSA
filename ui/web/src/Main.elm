@@ -60,6 +60,8 @@ type alias ProgramFlags =
     , langParam : Maybe String
     , fromLocation : Maybe String
     , toLocation : Maybe String
+    , fromTransports : Maybe String
+    , toTransports : Maybe String
     }
 
 
@@ -159,8 +161,8 @@ init flags initialLocation =
         initialModel =
             { fromLocation = fromLocationModel
             , toLocation = toLocationModel
-            , fromTransports = TagList.init
-            , toTransports = TagList.init
+            , fromTransports = TagList.init flags.fromTransports
+            , toTransports = TagList.init flags.toTransports
             , date = dateModel
             , time = timeModel
             , searchDirection = Forward
@@ -949,6 +951,12 @@ checkRoutingRequest ( model, cmds ) =
             Typeahead.getSelectedSuggestion model.toLocation
                 |> Maybe.map Typeahead.getSuggestionName
                 |> Maybe.withDefault ""
+
+        fromTransports =
+            TagList.saveSelections model.fromTransports
+
+        toTransports =
+            TagList.saveSelections model.toTransports
     in
         if completeQuery && requestChanged then
             model
@@ -956,6 +964,8 @@ checkRoutingRequest ( model, cmds ) =
                   , Debounce.debounceCmd debounceCfg <| SearchConnections
                   , Port.localStorageSet ("motis.routing.from_location" => fromLocation)
                   , Port.localStorageSet ("motis.routing.to_location" => toLocation)
+                  , Port.localStorageSet ("motis.routing.from_transports" => fromTransports)
+                  , Port.localStorageSet ("motis.routing.to_transports" => toTransports)
                   ]
         else
             ( model, cmds )

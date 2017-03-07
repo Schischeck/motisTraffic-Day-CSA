@@ -8,6 +8,7 @@ module Widgets.TagList
         , update
         , view
         , getSelectedTags
+        , saveSelections
         )
 
 import Html exposing (..)
@@ -16,6 +17,7 @@ import Html.Events exposing (onClick)
 import Html.Lazy exposing (..)
 import Mouse
 import Util.View exposing (onStopAll, onStopPropagation)
+import Util.List exposing ((!!))
 
 
 -- MODEL
@@ -35,13 +37,21 @@ type Tag
     | CarTag { maxDuration : Int }
 
 
-init : Model
-init =
+defaultMaxDuration : Int
+defaultMaxDuration =
+    900
+
+
+init : Maybe String -> Model
+init storedSelections =
     { tags =
-        [ WalkTag { maxDuration = 900 }
-        , BikeTag { maxDuration = 900 }
+        [ WalkTag { maxDuration = defaultMaxDuration }
+        , BikeTag { maxDuration = defaultMaxDuration }
         ]
-    , selected = []
+    , selected =
+        storedSelections
+            |> Maybe.map restoreSelections
+            |> Maybe.withDefault []
     , visible = False
     , ignoreNextToggle = False
     }
@@ -168,3 +178,68 @@ subscriptions model =
         Mouse.downs (\_ -> Click)
     else
         Sub.none
+
+
+
+-- LOCAL STORAGE
+
+
+saveSelections : Model -> String
+saveSelections model =
+    let
+        tagToString tag =
+            case tag of
+                WalkTag o ->
+                    "w," ++ toString o.maxDuration
+
+                BikeTag o ->
+                    "b," ++ toString o.maxDuration
+
+                CarTag o ->
+                    "c," ++ toString o.maxDuration
+    in
+        model.selected
+            |> List.map tagToString
+            |> String.join ";"
+
+
+restoreSelections : String -> List Tag
+restoreSelections str =
+    let
+        parseTag s =
+            let
+                parts =
+                    String.split "," s
+
+                t =
+                    List.head parts
+
+                args =
+                    List.drop 1 parts
+
+                getInt idx default =
+                    args
+                        !! idx
+                        |> Maybe.map String.toInt
+                        |> Maybe.map (Result.withDefault default)
+                        |> Maybe.withDefault default
+            in
+                case t of
+                    Just "w" ->
+                        Just <|
+                            WalkTag { maxDuration = getInt 0 defaultMaxDuration }
+
+                    Just "b" ->
+                        Just <|
+                            BikeTag { maxDuration = getInt 0 defaultMaxDuration }
+
+                    Just "c" ->
+                        Just <|
+                            CarTag { maxDuration = getInt 0 defaultMaxDuration }
+
+                    _ ->
+                        Nothing
+    in
+        str
+            |> String.split ";"
+            |> List.filterMap parseTag

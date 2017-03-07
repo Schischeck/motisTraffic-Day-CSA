@@ -39,7 +39,9 @@ function initApp() {
     timeParam: timeParam,
     langParam: langParam,
     fromLocation: localStorage.getItem('motis.routing.from_location'),
-    toLocation: localStorage.getItem('motis.routing.to_location')
+    toLocation: localStorage.getItem('motis.routing.to_location'),
+    fromTransports: localStorage.getItem('motis.routing.from_transports'),
+    toTransports: localStorage.getItem('motis.routing.to_transports')
   });
 
   window.elmMaps = {};
