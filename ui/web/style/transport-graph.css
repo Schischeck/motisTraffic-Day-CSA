@@ -33,7 +33,7 @@
   background: #fff;
   color: #777;
   border: 1px solid #BBB;
-  box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
   border-radius: 2px;
   padding: 2px 5px;
   position: relative;
@@ -42,7 +42,7 @@
   justify-content: space-between;
   opacity: 0;
   transition: opacity 250ms;
-  z-index: 20;
+  z-index: 5;
 }
 
 .transport-graph .tooltip.visible {
@@ -55,7 +55,7 @@
   padding-right: 5px;
 }
 
-.transport-graph .tooltip .stations > div {
+.transport-graph .tooltip .stations>div {
   display: flex;
   justify-content: space-between;
 }
@@ -75,7 +75,6 @@
   justify-content: center;
   align-items: center;
 }
-
 
 .transport-graph .train-class-0 circle {
   fill: #9c27b0;
@@ -114,8 +113,6 @@
 .transport-graph .train-class-walk circle {
   fill: #333;
 }
-
-
 
 .transport-graph .train-class-0 line {
   stroke: #9c27b0;
