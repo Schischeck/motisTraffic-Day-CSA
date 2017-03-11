@@ -1,4 +1,4 @@
-module Data.Address.Decode exposing (decodeAddressResponse)
+module Data.Address.Decode exposing (decodeAddressResponse, decodeAddress)
 
 import Data.Address.Types exposing (..)
 import Data.Connection.Types exposing (Position)

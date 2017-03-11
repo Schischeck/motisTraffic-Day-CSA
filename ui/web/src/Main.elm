@@ -956,14 +956,10 @@ checkRoutingRequest ( model, cmds ) =
                     True
 
         fromLocation =
-            Typeahead.getSelectedSuggestion model.fromLocation
-                |> Maybe.map Typeahead.getSuggestionName
-                |> Maybe.withDefault ""
+            Typeahead.saveSelection model.fromLocation
 
         toLocation =
-            Typeahead.getSelectedSuggestion model.toLocation
-                |> Maybe.map Typeahead.getSuggestionName
-                |> Maybe.withDefault ""
+            Typeahead.saveSelection model.toLocation
 
         fromTransports =
             TagList.saveSelections model.fromTransports

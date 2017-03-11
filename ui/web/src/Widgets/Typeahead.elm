@@ -11,6 +11,7 @@ module Widgets.Typeahead
         , getSelectedSuggestion
         , getSuggestionName
         , getShortSuggestionName
+        , saveSelection
         )
 
 import Html exposing (Html, div, ul, li, text, i, span)
@@ -21,19 +22,25 @@ import String
 import Dict exposing (..)
 import Task
 import Json.Decode as Decode
+import Json.Encode as Encode
 import List.Extra
 import Maybe.Extra
 import Widgets.Input as Input
 import Util.View exposing (onStopAll)
 import Util.List exposing ((!!), last)
 import Util.Api as Api exposing (ApiError(..))
+import Util.Core exposing ((=>))
 import Debounce
 import Data.Connection.Types exposing (Station)
+import Data.Connection.Decode exposing (decodeStation)
+import Data.Connection.Request exposing (encodeStation)
 import Data.StationGuesser.Request as StationGuesser
 import Data.StationGuesser.Decode exposing (decodeStationGuesserResponse)
 import Data.Address.Types exposing (..)
-import Data.Address.Request exposing (encodeAddressRequest)
-import Data.Address.Decode exposing (decodeAddressResponse)
+import Data.Address.Request exposing (encodeAddressRequest, encodeAddress)
+import Data.Address.Decode exposing (decodeAddressResponse, decodeAddress)
+import Json.Decode as Decode
+import Json.Decode.Pipeline as JDP exposing (decode, required, optional, hardcoded, requiredAt)
 
 
 -- MODEL
@@ -60,22 +67,31 @@ type Suggestion
 
 init : String -> String -> ( Model, Cmd Msg )
 init remoteAddress initialValue =
-    { suggestions = []
-    , stationSuggestions = []
-    , addressSuggestions = []
-    , input = initialValue
-    , hoverIndex = 0
-    , selectedSuggestion = Nothing
-    , visible = False
-    , inputWidget = Input.init
-    , remoteAddress = remoteAddress
-    , debounce = Debounce.init
-    }
-        ! (if String.isEmpty initialValue then
-            []
-           else
-            [ requestSuggestions remoteAddress initialValue ]
-          )
+    let
+        suggestion =
+            restoreSelection initialValue
+
+        inputText =
+            suggestion
+                |> Maybe.map getSuggestionName
+                |> Maybe.withDefault initialValue
+    in
+        { suggestions = []
+        , stationSuggestions = []
+        , addressSuggestions = []
+        , input = inputText
+        , hoverIndex = 0
+        , selectedSuggestion = suggestion
+        , visible = False
+        , inputWidget = Input.init
+        , remoteAddress = remoteAddress
+        , debounce = Debounce.init
+        }
+            ! (if String.isEmpty inputText then
+                []
+               else
+                [ requestSuggestions remoteAddress inputText ]
+              )
 
 
 
@@ -502,3 +518,57 @@ requestAddressSuggestions remoteAddress input =
         AddressSuggestionsError
         AddressSuggestionsResponse
         (encodeAddressRequest input)
+
+
+
+-- LOCAL STORAGE
+
+
+encodeSuggestion : Suggestion -> Encode.Value
+encodeSuggestion suggestion =
+    case suggestion of
+        StationSuggestion station ->
+            Encode.object
+                [ "type" => Encode.string "Station"
+                , "station" => encodeStation station
+                ]
+
+        AddressSuggestion address ->
+            Encode.object
+                [ "type" => Encode.string "Address"
+                , "address" => encodeAddress address
+                ]
+
+
+decodeSuggestion : Decode.Decoder Suggestion
+decodeSuggestion =
+    let
+        suggestion : String -> Decode.Decoder Suggestion
+        suggestion type_ =
+            case type_ of
+                "Station" ->
+                    decode StationSuggestion
+                        |> JDP.required "station" decodeStation
+
+                "Address" ->
+                    decode AddressSuggestion
+                        |> JDP.required "address" decodeAddress
+
+                _ ->
+                    Decode.fail "unknown suggestion type"
+    in
+        (Decode.field "type" Decode.string) |> Decode.andThen suggestion
+
+
+saveSelection : Model -> String
+saveSelection model =
+    model.selectedSuggestion
+        |> Maybe.map encodeSuggestion
+        |> Maybe.map (Encode.encode 0)
+        |> Maybe.withDefault ""
+
+
+restoreSelection : String -> Maybe Suggestion
+restoreSelection str =
+    Decode.decodeString decodeSuggestion str
+        |> Result.toMaybe
