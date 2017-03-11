@@ -71,6 +71,7 @@ type alias Model =
     , labels : List String
     , fromName : Maybe String
     , toName : Maybe String
+    , lastRequestId : Int
     }
 
 
@@ -106,6 +107,7 @@ init remoteAddress =
     , labels = []
     , fromName = Nothing
     , toName = Nothing
+    , lastRequestId = 0
     }
 
 
@@ -129,8 +131,8 @@ type Msg
     = NoOp
     | Search SearchAction IntermodalRoutingRequest (Maybe String) (Maybe String)
     | ExtendSearchInterval ExtendIntervalType
-    | ReceiveResponse SearchAction IntermodalRoutingRequest RoutingResponse
-    | ReceiveError SearchAction IntermodalRoutingRequest ApiError
+    | ReceiveResponse SearchAction IntermodalRoutingRequest Int RoutingResponse
+    | ReceiveError SearchAction IntermodalRoutingRequest Int ApiError
     | UpdateScheduleInfo (Maybe ScheduleInfo)
     | ResetNew
     | JTGUpdate Int JourneyTransportGraph.Msg
@@ -164,7 +166,7 @@ update msg model =
                 , fromName = fromName
                 , toName = toName
             }
-                ! [ sendRequest model.remoteAddress ReplaceResults req ]
+                |> sendRequest ReplaceResults req
 
         ExtendSearchInterval direction ->
             case model.routingRequest of
@@ -202,13 +204,13 @@ update msg model =
                             , loadingBefore = loadingBefore_
                             , loadingAfter = loadingAfter_
                         }
-                            ! [ sendRequest model.remoteAddress action newRequest ]
+                            |> sendRequest action newRequest
 
                 Nothing ->
                     model ! []
 
-        ReceiveResponse action request response ->
-            if belongsToCurrentSearch model request then
+        ReceiveResponse action request requestId response ->
+            if requestId == model.lastRequestId then
                 let
                     model_ =
                         { model | allowExtend = True }
@@ -223,8 +225,8 @@ update msg model =
             else
                 model ! []
 
-        ReceiveError action request msg_ ->
-            if belongsToCurrentSearch model request then
+        ReceiveError action request requestId msg_ ->
+            if requestId == model.lastRequestId then
                 (handleRequestError model action msg_) ! []
             else
                 model ! []
@@ -609,38 +611,6 @@ handleRequestError model action msg =
         newModel
 
 
-belongsToCurrentSearch : Model -> IntermodalRoutingRequest -> Bool
-belongsToCurrentSearch model check =
-    case model.routingRequest of
-        Just currentRequest ->
-            let
-                currentInterval =
-                    getInterval currentRequest
-
-                checkInterval =
-                    getInterval check
-
-                currentStart =
-                    startToIntermodalLocation currentRequest.start
-
-                checkStart =
-                    startToIntermodalLocation check.start
-
-                currentDest =
-                    destinationToIntermodalLocation currentRequest.destination
-
-                checkDest =
-                    destinationToIntermodalLocation check.destination
-            in
-                (currentStart == checkStart)
-                    && (currentDest == checkDest)
-                    && (currentInterval.begin <= checkInterval.begin)
-                    && (currentInterval.end >= checkInterval.end)
-
-        Nothing ->
-            False
-
-
 
 -- VIEW
 
@@ -883,11 +853,20 @@ extendIntervalButton direction (Config { internalMsg }) locale model =
 -- ROUTING REQUEST
 
 
-sendRequest : String -> SearchAction -> IntermodalRoutingRequest -> Cmd Msg
-sendRequest remoteAddress action request =
-    Api.sendRequest
-        remoteAddress
-        decodeRoutingResponse
-        (ReceiveError action request)
-        (ReceiveResponse action request)
-        (encodeRequest request)
+sendRequest : SearchAction -> IntermodalRoutingRequest -> Model -> ( Model, Cmd Msg )
+sendRequest action request model =
+    let
+        requestId =
+            model.lastRequestId + 1
+
+        model_ =
+            { model | lastRequestId = requestId }
+    in
+        model_
+            ! [ Api.sendRequest
+                    model.remoteAddress
+                    decodeRoutingResponse
+                    (ReceiveError action request requestId)
+                    (ReceiveResponse action request requestId)
+                    (encodeRequest request)
+              ]
