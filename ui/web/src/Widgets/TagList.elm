@@ -18,6 +18,10 @@ import Html.Lazy exposing (..)
 import Mouse
 import Util.View exposing (onStopAll, onStopPropagation)
 import Util.List exposing ((!!))
+import Util.Core exposing ((=>))
+import Json.Encode as Encode
+import Json.Decode as Decode
+import Json.Decode.Pipeline as JDP exposing (decode, required, optional, hardcoded, requiredAt)
 
 
 -- MODEL
@@ -32,9 +36,13 @@ type alias Model =
 
 
 type Tag
-    = WalkTag { maxDuration : Int }
-    | BikeTag { maxDuration : Int }
-    | CarTag { maxDuration : Int }
+    = WalkTag TagOptions
+    | BikeTag TagOptions
+    | CarTag TagOptions
+
+
+type alias TagOptions =
+    { maxDuration : Int }
 
 
 defaultMaxDuration : Int
@@ -184,62 +192,66 @@ subscriptions model =
 -- LOCAL STORAGE
 
 
+encodeTag : Tag -> Encode.Value
+encodeTag tag =
+    case tag of
+        WalkTag o ->
+            Encode.object
+                [ "type" => Encode.string "Walk"
+                , "max_duration" => Encode.int o.maxDuration
+                ]
+
+        BikeTag o ->
+            Encode.object
+                [ "type" => Encode.string "Bike"
+                , "max_duration" => Encode.int o.maxDuration
+                ]
+
+        CarTag o ->
+            Encode.object
+                [ "type" => Encode.string "Car"
+                , "max_duration" => Encode.int o.maxDuration
+                ]
+
+
+decodeTag : Decode.Decoder Tag
+decodeTag =
+    let
+        parseTag : String -> Decode.Decoder Tag
+        parseTag type_ =
+            case type_ of
+                "Walk" ->
+                    decodeOptions
+                        |> Decode.map WalkTag
+
+                "Bike" ->
+                    decodeOptions
+                        |> Decode.map BikeTag
+
+                "Car" ->
+                    decodeOptions
+                        |> Decode.map CarTag
+
+                _ ->
+                    Decode.fail "unknown tag type"
+
+        decodeOptions : Decode.Decoder TagOptions
+        decodeOptions =
+            decode TagOptions
+                |> JDP.required "max_duration" Decode.int
+    in
+        (Decode.field "type" Decode.string) |> Decode.andThen parseTag
+
+
 saveSelections : Model -> String
 saveSelections model =
-    let
-        tagToString tag =
-            case tag of
-                WalkTag o ->
-                    "w," ++ toString o.maxDuration
-
-                BikeTag o ->
-                    "b," ++ toString o.maxDuration
-
-                CarTag o ->
-                    "c," ++ toString o.maxDuration
-    in
-        model.selected
-            |> List.map tagToString
-            |> String.join ";"
+    model.selected
+        |> List.map encodeTag
+        |> Encode.list
+        |> Encode.encode 0
 
 
 restoreSelections : String -> List Tag
 restoreSelections str =
-    let
-        parseTag s =
-            let
-                parts =
-                    String.split "," s
-
-                t =
-                    List.head parts
-
-                args =
-                    List.drop 1 parts
-
-                getInt idx default =
-                    args
-                        !! idx
-                        |> Maybe.map String.toInt
-                        |> Maybe.map (Result.withDefault default)
-                        |> Maybe.withDefault default
-            in
-                case t of
-                    Just "w" ->
-                        Just <|
-                            WalkTag { maxDuration = getInt 0 defaultMaxDuration }
-
-                    Just "b" ->
-                        Just <|
-                            BikeTag { maxDuration = getInt 0 defaultMaxDuration }
-
-                    Just "c" ->
-                        Just <|
-                            CarTag { maxDuration = getInt 0 defaultMaxDuration }
-
-                    _ ->
-                        Nothing
-    in
-        str
-            |> String.split ";"
-            |> List.filterMap parseTag
+    Decode.decodeString (Decode.list decodeTag) str
+        |> Result.withDefault []

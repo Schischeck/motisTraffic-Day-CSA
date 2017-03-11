@@ -21,8 +21,6 @@ import Html.Lazy exposing (..)
 import String
 import Dict exposing (..)
 import Task
-import Json.Decode as Decode
-import Json.Encode as Encode
 import List.Extra
 import Maybe.Extra
 import Widgets.Input as Input
@@ -39,6 +37,7 @@ import Data.StationGuesser.Decode exposing (decodeStationGuesserResponse)
 import Data.Address.Types exposing (..)
 import Data.Address.Request exposing (encodeAddressRequest, encodeAddress)
 import Data.Address.Decode exposing (decodeAddressResponse, decodeAddress)
+import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as JDP exposing (decode, required, optional, hardcoded, requiredAt)
 
