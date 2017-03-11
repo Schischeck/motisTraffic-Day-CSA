@@ -252,15 +252,8 @@ getShortSuggestionName suggestion =
 
 
 getAddressStr : Address -> String
-getAddressStr address =
-    let
-        region =
-            getRegionStr address
-    in
-        if String.isEmpty region then
-            address.name
-        else
-            address.name ++ ", " ++ region
+getAddressStr =
+    getShortAddressStr
 
 
 getShortAddressStr : Address -> String
