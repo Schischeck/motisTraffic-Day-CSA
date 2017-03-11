@@ -1494,6 +1494,10 @@
   flex: 0 0 70px;
 }
 
+.trip-search .trip .trip-time .date {
+  color: #888;
+}
+
 .trip-search .trip .trip-train {
   margin-top: -7px;
   flex: 0 0 130px;

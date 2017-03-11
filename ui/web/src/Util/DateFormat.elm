@@ -151,15 +151,14 @@ formatShortDate conf date =
             toString (monthToInt (month date))
     in
         if conf.dayPos < conf.monthPos then
-            d ++ conf.seperator ++ m
+            d ++ conf.seperator ++ m ++ conf.shortFormatTrailingSeperator
         else
-            m ++ conf.seperator ++ d
+            m ++ conf.seperator ++ d ++ conf.shortFormatTrailingSeperator
 
 
 formatShortDateTime : DateConfig -> Date -> String
 formatShortDateTime conf date =
     (formatShortDate conf date)
-        ++ conf.shortFormatTrailingSeperator
         ++ " "
         ++ (formatTime date)
 
