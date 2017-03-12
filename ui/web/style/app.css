@@ -580,6 +580,10 @@
   min-height: 200px;
 }
 
+#connections .main-error div {
+  text-align: center;
+}
+
 #connections .schedule-range {
   margin-top: 1em;
 }

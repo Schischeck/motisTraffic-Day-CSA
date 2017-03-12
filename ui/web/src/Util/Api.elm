@@ -30,6 +30,7 @@ type MotisErrorInfo
     | RoutingError RoutingErrorInfo
     | LookupError LookupErrorInfo
     | AccessError AccessErrorInfo
+    | OsrmError OsrmErrorInfo
     | UnknownMotisError MotisErrorDetail
 
 
@@ -65,6 +66,12 @@ type AccessErrorInfo
     | AccessServiceNotFound
     | AccessTimestampNotInSchedule
     | UnknownAccessError MotisErrorDetail
+
+
+type OsrmErrorInfo
+    = OsrmProfileNotAvailable
+    | OsrmNoRoutingResponse
+    | UnknownOsrmError MotisErrorDetail
 
 
 type alias MotisErrorDetail =
@@ -197,6 +204,9 @@ mapMotisError err =
         "motis::access" ->
             AccessError (mapAccessError err)
 
+        "motis::osrm" ->
+            OsrmError (mapOsrmError err)
+
         _ ->
             UnknownMotisError err
 
@@ -284,3 +294,16 @@ mapAccessError err =
 
         _ ->
             UnknownAccessError err
+
+
+mapOsrmError : MotisErrorDetail -> OsrmErrorInfo
+mapOsrmError err =
+    case err.errorCode of
+        1 ->
+            OsrmProfileNotAvailable
+
+        2 ->
+            OsrmNoRoutingResponse
+
+        _ ->
+            UnknownOsrmError err
