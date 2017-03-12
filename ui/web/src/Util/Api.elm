@@ -6,6 +6,7 @@ module Util.Api
         , RoutingErrorInfo(..)
         , LookupErrorInfo(..)
         , AccessErrorInfo(..)
+        , OsrmErrorInfo(..)
         , MotisErrorDetail
         , sendRequest
         , decodeErrorResponse

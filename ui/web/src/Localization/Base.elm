@@ -68,6 +68,8 @@ type alias Translations =
         , http : Int -> String
         , decode : String -> String
         , moduleNotFound : String
+        , osrmProfileNotAvailable : String
+        , osrmNoRoutingResponse : String
         }
     , trips :
         { noResults : String

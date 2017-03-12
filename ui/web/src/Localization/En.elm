@@ -95,6 +95,8 @@ enTranslations =
         , http = \code -> "HTTP error " ++ (toString code)
         , decode = \msg -> "Invalid response (" ++ msg ++ ")"
         , moduleNotFound = "Module not found"
+        , osrmProfileNotAvailable = "OSRM: Profile not available"
+        , osrmNoRoutingResponse = "OSRM: No routing response"
         }
     , trips =
         { noResults = "No matching trains found"

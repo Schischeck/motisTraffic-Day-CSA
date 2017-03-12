@@ -96,6 +96,8 @@ deTranslations =
         , http = \code -> "HTTP-Fehler " ++ (toString code)
         , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
         , moduleNotFound = "Modul nicht geladen"
+        , osrmProfileNotAvailable = "OSRM: Profil nicht verfügbar"
+        , osrmNoRoutingResponse = "OSRM: Keine Routing-Antwort"
         }
     , trips =
         { noResults = "Keine passenden Züge gefunden"
