@@ -1,8 +1,14 @@
+.tag-list .tags {
+  display: flex;
+}
+
 .tag {
-  display: block;
-  float: left;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 32px;
-  width: 32px;
+  min-width: 32px;
   background-color: #6d8dec;
   color: white;
   margin: 5px;
@@ -10,10 +16,11 @@
   line-height: 32px;
   font-size: 32px;
   border-radius: 3px;
-  box-shadow: 0 2px 4px rgba(0,0,0,.16);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .16);
 }
 
-.tag, .tag > * {
+.tag.clickable,
+.tag.clickable>* {
   cursor: pointer;
 }
 
@@ -23,26 +30,42 @@
   color: #6d8dec;
 }
 
-.tag > .remove {
-  position: relative;
+.tag .tag-icon {
+  padding: 4px;
+}
+
+.tag>.remove {
+  position: absolute;
   z-index: 1;
-  top: -50px;
-  left: 15px;
+  top: -9px;
+  right: -9px;
   color: white;
   font-size: .6em;
-  text-shadow: 0 2px 2px rgba(0,0,0,.56);
+  text-shadow: 0 2px 2px rgba(0, 0, 0, .56);
   border-radius: 999px;
+  cursor: pointer;
 }
 
-.tag > .remove:hover {
-  text-shadow: 0 2px 4px rgba(0,0,0,.56);
+.tag>.remove:hover {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .56);
 }
 
-.tag > .remove:active {
-  text-shadow: 0 1px 2px rgba(0,0,0,.56);
+.tag>.remove:active {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .56);
 }
 
-.add {
+.tag .options {
+  display: flex;
+  align-items: center;
+  padding-right: 5px;
+}
+
+.tag .options input {
+  width: 30px;
+  text-align: center;
+}
+
+.add-tag-popup {
   width: 32px !important;
   padding: 4px;
 }

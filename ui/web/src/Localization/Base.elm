@@ -22,6 +22,7 @@ type alias Translations =
         , departure : String
         , arrival : String
         , trainNr : String
+        , maxDuration : String
         }
     , connections :
         { timeHeader : String

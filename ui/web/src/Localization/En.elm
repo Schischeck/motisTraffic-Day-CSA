@@ -24,6 +24,7 @@ enTranslations =
         , departure = "Departure"
         , arrival = "Arrival"
         , trainNr = "Train Number"
+        , maxDuration = "Max. duration (minutes)"
         }
     , connections =
         { timeHeader = "Time"

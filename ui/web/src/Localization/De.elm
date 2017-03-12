@@ -24,6 +24,7 @@ deTranslations =
         , departure = "Abfahrt"
         , arrival = "Ankunft"
         , trainNr = "Zugnummer"
+        , maxDuration = "Maximale Dauer (Minuten)"
         }
     , connections =
         { timeHeader = "Zeit"

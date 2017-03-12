@@ -627,9 +627,6 @@ update msg model =
                         , updateSearchTime = False
                     }
 
-                _ =
-                    Debug.log "SetSimulationTime" ( offset, model1.currentTime, getCurrentDate model1 )
-
                 newDate =
                     getCurrentDate model1
 
@@ -1176,7 +1173,7 @@ searchView model =
                 ]
             , div [ class "pure-u-1 pure-u-sm-10-24" ]
                 [ Html.map FromTransportsUpdate <|
-                    TagList.view model.locale.t.search.startTransports model.fromTransports
+                    TagList.view model.locale model.locale.t.search.startTransports model.fromTransports
                 ]
             ]
         , div [ class "pure-g gutters" ]
@@ -1186,7 +1183,7 @@ searchView model =
                 ]
             , div [ class "pure-u-1 pure-u-sm-10-24" ]
                 [ Html.map ToTransportsUpdate <|
-                    TagList.view model.locale.t.search.destinationTransports model.toTransports
+                    TagList.view model.locale model.locale.t.search.destinationTransports model.toTransports
                 ]
             ]
         , div [ class "pure-g gutters" ]

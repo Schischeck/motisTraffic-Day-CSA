@@ -13,15 +13,17 @@ module Widgets.TagList
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (..)
 import Mouse
 import Util.View exposing (onStopAll, onStopPropagation)
 import Util.List exposing ((!!))
 import Util.Core exposing ((=>))
+import Localization.Base exposing (..)
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Json.Decode.Pipeline as JDP exposing (decode, required, optional, hardcoded, requiredAt)
+import List.Extra
 
 
 -- MODEL
@@ -70,6 +72,32 @@ getSelectedTags model =
     model.selected
 
 
+getTagOptions : Tag -> TagOptions
+getTagOptions tag =
+    case tag of
+        WalkTag o ->
+            o
+
+        BikeTag o ->
+            o
+
+        CarTag o ->
+            o
+
+
+updateTagOptions : (TagOptions -> TagOptions) -> Tag -> Tag
+updateTagOptions f tag =
+    case tag of
+        WalkTag o ->
+            WalkTag (f o)
+
+        BikeTag o ->
+            BikeTag (f o)
+
+        CarTag o ->
+            CarTag (f o)
+
+
 
 -- UPDATE
 
@@ -79,6 +107,7 @@ type Msg
     | RemoveTag Tag
     | ToggleVisibility
     | Click
+    | TagDurationInput Tag String
     | NoOp
 
 
@@ -107,13 +136,28 @@ update msg model =
         Click ->
             { model | visible = False }
 
+        TagDurationInput t input ->
+            let
+                duration =
+                    String.toInt input
+                        |> Result.map (\v -> v * 60)
+                        |> Result.withDefault 0
+
+                t_ =
+                    updateTagOptions (\o -> { o | maxDuration = duration }) t
+
+                selected_ =
+                    List.Extra.replaceIf (\x -> x == t) t_ model.selected
+            in
+                { model | selected = selected_ }
+
 
 
 -- VIEW
 
 
-tagListView : String -> Model -> Html Msg
-tagListView label model =
+tagListView : Localization -> String -> Model -> Html Msg
+tagListView locale label model =
     let
         availableTags =
             List.filter (\t -> not (List.member t model.selected)) model.tags
@@ -124,7 +168,7 @@ tagListView label model =
                     )
                 |> div
                     [ classList
-                        [ ( "add", True )
+                        [ ( "add-tag-popup", True )
                         , ( "paper", True )
                         , ( "hide", not model.visible )
                         ]
@@ -135,7 +179,7 @@ tagListView label model =
             if (List.length model.selected == List.length model.tags) then
                 []
             else
-                [ div [ class "tag outline", onClick ToggleVisibility ]
+                [ div [ class "tag outline clickable", onClick ToggleVisibility ]
                     ([ i [ class "icon" ] [ text "add" ] ]
                         ++ [ availableTags ]
                     )
@@ -143,19 +187,39 @@ tagListView label model =
 
         selectedTags =
             model.selected
-                |> List.map
-                    (\t ->
-                        a [ class "tag" ]
-                            [ i [ class "icon" ] [ text (tagIcon t) ]
-                            , i [ class "remove icon", onClick (RemoveTag t) ] [ text "cancel" ]
-                            ]
-                    )
+                |> List.map (tagView locale)
     in
-        div [ class "clear" ]
-            ([ div [ class "label" ] [ text label ] ]
-                ++ selectedTags
-                ++ addButton
-            )
+        div [ class "tag-list" ]
+            [ div [ class "label" ] [ text label ]
+            , div [ class "tags" ]
+                (selectedTags ++ addButton)
+            ]
+
+
+tagView : Localization -> Tag -> Html Msg
+tagView locale tag =
+    let
+        tagOptions =
+            getTagOptions tag
+
+        maxDuration =
+            toString (tagOptions.maxDuration // 60)
+    in
+        div [ class "tag" ]
+            [ i [ class "tag-icon icon" ] [ text (tagIcon tag) ]
+            , i [ class "remove icon", onClick (RemoveTag tag) ] [ text "cancel" ]
+            , div [ class "options" ]
+                [ input
+                    [ type_ "text"
+                    , attribute "inputmode" "numeric"
+                    , attribute "pattern" "[0-9]+"
+                    , value maxDuration
+                    , title locale.t.search.maxDuration
+                    , onInput (TagDurationInput tag)
+                    ]
+                    []
+                ]
+            ]
 
 
 tagIcon : Tag -> String
@@ -171,9 +235,9 @@ tagIcon tag =
             "directions_car"
 
 
-view : String -> Model -> Html Msg
-view label model =
-    lazy2 tagListView label model
+view : Localization -> String -> Model -> Html Msg
+view locale label model =
+    lazy3 tagListView locale label model
 
 
 
