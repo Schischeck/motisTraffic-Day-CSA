@@ -478,15 +478,10 @@ update msg model =
             update (NavigateTo (tripDetailsRoute tripId)) model
 
         TripToConnectionError tripId err ->
-            -- TODO
-            let
-                _ =
-                    Debug.log "TripToConnectionError" err
-            in
-                setRailVizFilter model Nothing
+            setFullTripError model tripId err
 
         TripToConnectionResponse tripId connection ->
-            showFullTripConnection model tripId connection
+            setFullTripConnection model tripId connection
 
         ScheduleInfoError err ->
             let
@@ -1031,11 +1026,65 @@ selectConnectionTrip model tripIdx =
 
 loadTripById : Model -> TripId -> ( Model, Cmd Msg )
 loadTripById model tripId =
-    { model
-        | stationEvents = Nothing
-        , overlayVisible = True
-    }
-        ! [ sendTripRequest model.apiEndpoint tripId ]
+    let
+        tripDetails =
+            ConnectionDetails.init True True (Just tripId) Nothing
+    in
+        { model
+            | stationEvents = Nothing
+            , tripDetails = Just tripDetails
+            , subView = Just TripDetailsView
+            , overlayVisible = True
+        }
+            ! [ sendTripRequest model.apiEndpoint tripId
+              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
+              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
+              ]
+
+
+setFullTripConnection : Model -> TripId -> Connection -> ( Model, Cmd Msg )
+setFullTripConnection model tripId connection =
+    let
+        journey =
+            toJourney connection
+
+        tripJourney =
+            { journey | isSingleCompleteTrip = True }
+
+        ( tripDetails, _ ) =
+            case model.tripDetails of
+                Just td ->
+                    ConnectionDetails.update (ConnectionDetails.SetJourney tripJourney True) td
+
+                Nothing ->
+                    ConnectionDetails.init True True (Just tripId) (Just tripJourney) ! []
+
+        ( model_, cmds ) =
+            setRailVizFilter model (Just [ tripId ])
+    in
+        { model_
+            | tripDetails = Just tripDetails
+            , subView = Just TripDetailsView
+        }
+            ! [ MapConnectionDetails.setConnectionFilter tripJourney
+              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
+              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
+              , cmds
+              ]
+
+
+setFullTripError : Model -> TripId -> ApiError -> ( Model, Cmd Msg )
+setFullTripError model tripId error =
+    case model.tripDetails of
+        Just td ->
+            let
+                ( tripDetails, _ ) =
+                    ConnectionDetails.update (ConnectionDetails.SetApiError error) td
+            in
+                setRailVizFilter { model | tripDetails = Just tripDetails } Nothing
+
+        Nothing ->
+            model ! []
 
 
 getCurrentTime : Model -> Time
@@ -1507,7 +1556,7 @@ selectConnection model idx =
                 in
                     { model_
                         | connectionDetails =
-                            Maybe.map (ConnectionDetails.init False False Nothing) journey
+                            Maybe.map (ConnectionDetails.init False False Nothing) (Just journey)
                         , connections = newConnections
                         , selectedConnectionIdx = Just idx
                         , tripDetails = Nothing
@@ -1553,29 +1602,6 @@ closeSubOverlay model =
           }
         , cmds
         )
-
-
-showFullTripConnection : Model -> TripId -> Connection -> ( Model, Cmd Msg )
-showFullTripConnection model tripId connection =
-    let
-        journey =
-            toJourney connection
-
-        tripJourney =
-            { journey | isSingleCompleteTrip = True }
-
-        ( model_, cmds ) =
-            setRailVizFilter model (Just [ tripId ])
-    in
-        { model_
-            | tripDetails = Just (ConnectionDetails.init True True (Just tripId) tripJourney)
-            , subView = Just TripDetailsView
-        }
-            ! [ MapConnectionDetails.setConnectionFilter tripJourney
-              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
-              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
-              , cmds
-              ]
 
 
 setRailVizFilter : Model -> Maybe (List TripId) -> ( Model, Cmd Msg )

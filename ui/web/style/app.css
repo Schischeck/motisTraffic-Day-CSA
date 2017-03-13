@@ -1320,6 +1320,10 @@
   padding: 20px 20px 0 20px;
 }
 
+.connection-details .connection-journey.empty {
+  padding-top: 100px;
+}
+
 .connection-details .train-box {
   cursor: pointer;
 }
@@ -1450,7 +1454,8 @@
   text-align: center;
 }
 
-.station-events .main-error {
+.station-events .main-error,
+.connection-journey .main-error {
   text-align: center;
 }
 

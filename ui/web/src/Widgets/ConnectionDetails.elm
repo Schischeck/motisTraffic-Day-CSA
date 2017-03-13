@@ -2,7 +2,7 @@ module Widgets.ConnectionDetails
     exposing
         ( State
         , Config(..)
-        , Msg
+        , Msg(SetJourney, SetApiError)
         , view
         , init
         , update
@@ -19,9 +19,12 @@ import Date.Extra.Duration as Duration exposing (DeltaRecord)
 import Data.Connection.Types as Connection exposing (..)
 import Data.Journey.Types as Journey exposing (..)
 import Widgets.Helpers.ConnectionUtil exposing (..)
+import Widgets.Helpers.ApiErrorUtil exposing (errorText)
+import Widgets.LoadingSpinner as LoadingSpinner
 import Util.Core exposing ((=>))
 import Util.DateFormat exposing (..)
 import Util.List exposing (..)
+import Util.Api exposing (ApiError)
 import Localization.Base exposing (..)
 
 
@@ -29,10 +32,11 @@ import Localization.Base exposing (..)
 
 
 type alias State =
-    { journey : Journey
+    { journey : Maybe Journey
     , expanded : List Bool
     , inSubOverlay : Bool
     , tripId : Maybe TripId
+    , apiError : Maybe ApiError
     }
 
 
@@ -45,17 +49,23 @@ type Config msg
         }
 
 
-init : Bool -> Bool -> Maybe TripId -> Journey -> State
+init : Bool -> Bool -> Maybe TripId -> Maybe Journey -> State
 init expanded inSubOverlay tripId journey =
     { journey = journey
-    , expanded = List.repeat (List.length journey.trains) expanded
+    , expanded =
+        journey
+            |> Maybe.map (\j -> List.repeat (List.length j.trains) expanded)
+            |> Maybe.withDefault []
     , inSubOverlay = inSubOverlay
     , tripId = tripId
+    , apiError = Nothing
     }
 
 
 type Msg
     = ToggleExpand Int
+    | SetJourney Journey Bool
+    | SetApiError ApiError
 
 
 update : Msg -> State -> ( State, Cmd Msg )
@@ -63,6 +73,17 @@ update msg model =
     case msg of
         ToggleExpand idx ->
             { model | expanded = (toggle model.expanded idx) } ! []
+
+        SetJourney journey expanded ->
+            { model
+                | journey = Just journey
+                , expanded = List.repeat (List.length journey.trains) expanded
+                , apiError = Nothing
+            }
+                ! []
+
+        SetApiError error ->
+            { model | apiError = Just error } ! []
 
 
 toggle : List Bool -> Int -> List Bool
@@ -78,7 +99,7 @@ toggle list idx =
             []
 
 
-getJourney : State -> Journey
+getJourney : State -> Maybe Journey
 getJourney state =
     state.journey
 
@@ -93,7 +114,69 @@ getTripId state =
 
 
 view : Config msg -> Localization -> Date -> State -> Html msg
-view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime { journey, expanded, inSubOverlay } =
+view config locale currentTime state =
+    let
+        content =
+            case state.journey of
+                Just journey ->
+                    journeyView config locale currentTime state journey
+
+                Nothing ->
+                    emptyView config locale state
+
+        isTripView =
+            Maybe.map .isSingleCompleteTrip state.journey
+                |> Maybe.withDefault True
+    in
+        div
+            [ classList
+                [ "connection-details" => True
+                , "trip-view" => isTripView
+                ]
+            ]
+            content
+
+
+emptyView : Config msg -> Localization -> State -> List (Html msg)
+emptyView (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale state =
+    let
+        cjId =
+            if state.inSubOverlay then
+                "sub-connection-journey"
+            else
+                "connection-journey"
+
+        content =
+            case state.apiError of
+                Just error ->
+                    errorView locale error
+
+                Nothing ->
+                    div [ class "loading" ] [ LoadingSpinner.view ]
+    in
+        [ div [ class "connection-info" ]
+            [ div [ class "header" ]
+                [ div [ onClick goBackMsg, class "back" ]
+                    [ i [ class "icon" ] [ text "arrow_back" ] ]
+                ]
+            ]
+        , div [ class "connection-journey empty", id cjId ]
+            [ content ]
+        ]
+
+
+errorView : Localization -> ApiError -> Html msg
+errorView locale err =
+    let
+        errorMsg =
+            errorText locale err
+    in
+        div [ class "main-error" ]
+            [ div [] [ text errorMsg ] ]
+
+
+journeyView : Config msg -> Localization -> Date -> State -> Journey -> List (Html msg)
+journeyView (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime state journey =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -106,7 +189,7 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
                 (trainDetail journey.isSingleCompleteTrip internalMsg selectTripMsg selectStationMsg locale currentTime)
                 trains
                 indices
-                expanded
+                state.expanded
 
         walkView maybeWalk =
             case maybeWalk of
@@ -126,21 +209,15 @@ view (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale
             leadingWalkView ++ trainsView ++ trailingWalkView
 
         cjId =
-            if inSubOverlay then
+            if state.inSubOverlay then
                 "sub-connection-journey"
             else
                 "connection-journey"
     in
-        div
-            [ classList
-                [ "connection-details" => True
-                , "trip-view" => journey.isSingleCompleteTrip
-                ]
-            ]
-            [ connectionInfoView goBackMsg locale inSubOverlay journey.connection
-            , div [ class "connection-journey", id cjId ]
-                transportsView
-            ]
+        [ connectionInfoView goBackMsg locale state.inSubOverlay journey.connection
+        , div [ class "connection-journey", id cjId ]
+            transportsView
+        ]
 
 
 connectionInfoView : msg -> Localization -> Bool -> Connection -> Html msg
