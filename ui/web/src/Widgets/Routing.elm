@@ -47,6 +47,7 @@ type alias Model =
     , currentRoutingRequest : Maybe IntermodalRoutingRequest
     , debounce : Debounce.State
     , connectionListScrollPos : Float
+    , optionsVisible : Bool
     }
 
 
@@ -89,6 +90,7 @@ init flags locale =
             , currentRoutingRequest = Nothing
             , debounce = Debounce.init
             , connectionListScrollPos = 0
+            , optionsVisible = False
             }
     in
         initialModel
@@ -125,6 +127,7 @@ type Msg
     | SetSearchTime Date
     | ResetNew
     | SetLocale Localization
+    | ShowOptions Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -342,6 +345,9 @@ update msg model =
             in
                 { model | date = date_ } ! []
 
+        ShowOptions visible ->
+            { model | optionsVisible = visible } ! []
+
 
 buildRoutingRequest : Model -> IntermodalRoutingRequest
 buildRoutingRequest model =
@@ -509,39 +515,44 @@ searchView : Localization -> Model -> List (Html Msg)
 searchView locale model =
     [ div [ id "search" ]
         [ div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-14-24 from-location" ]
+            [ div [ class "pure-u-1 pure-u-sm-12-24 from-location" ]
                 [ Html.map FromLocationUpdate <|
                     Typeahead.view 1 locale.t.search.start (Just "place") model.fromLocation
                 , (swapLocationsView model)
                 ]
-            , div [ class "pure-u-1 pure-u-sm-10-24" ]
-                [ Html.map FromTransportsUpdate <|
-                    TagList.view locale locale.t.search.startTransports model.fromTransports
-                ]
-            ]
-        , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-14-24 to-location" ]
-                [ Html.map ToLocationUpdate <|
-                    Typeahead.view 2 locale.t.search.destination (Just "place") model.toLocation
-                ]
-            , div [ class "pure-u-1 pure-u-sm-10-24" ]
-                [ Html.map ToTransportsUpdate <|
-                    TagList.view locale locale.t.search.destinationTransports model.toTransports
-                ]
-            ]
-        , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-10-24" ]
+            , div [ class "pure-u-1 pure-u-sm-12-24" ]
                 [ Html.map DateUpdate <|
                     Calendar.view 3 locale.t.search.date model.date
                 ]
-            , div [ class "pure-u-1 pure-u-sm-10-24" ]
+            ]
+        , div [ class "pure-g gutters" ]
+            [ div [ class "pure-u-1 pure-u-sm-12-24 to-location" ]
+                [ Html.map ToLocationUpdate <|
+                    Typeahead.view 2 locale.t.search.destination (Just "place") model.toLocation
+                ]
+            , div [ class "pure-u-1 pure-u-sm-9-24" ]
                 [ Html.map TimeUpdate <|
                     TimeInput.view 4 locale.t.search.time model.time
                 ]
-            , div [ class "pure-u-1 pure-u-sm-4-24 time-option" ]
+            , div
+                [ class "pure-u-1 pure-u-sm-3-24 time-option" ]
                 (searchDirectionView locale model)
             ]
+        , div [ class "search-options-toggle" ]
+            [ div
+                [ class "search-options-btn gb-button gb-button-small gb-button-outline gb-button-PRIMARY_COLOR disable-select"
+                , onClick (ShowOptions (not model.optionsVisible))
+                ]
+                [ i [ class "icon" ]
+                    [ if model.optionsVisible then
+                        text "expand_less"
+                      else
+                        text "expand_more"
+                    ]
+                ]
+            ]
         ]
+    , optionsView locale model
     , div [ id "connections" ]
         [ lazy3 Connections.view connectionConfig locale model.connections ]
     ]
@@ -586,6 +597,25 @@ swapLocationsView model =
                 ]
                 []
             , i [ class "icon" ] [ text "swap_vert" ]
+            ]
+        ]
+
+
+optionsView : Localization -> Model -> Html Msg
+optionsView locale model =
+    div
+        [ classList
+            [ "search-options" => True
+            , "visible" => model.optionsVisible
+            ]
+        ]
+        [ div [ class "option" ]
+            [ Html.map FromTransportsUpdate <|
+                TagList.view locale locale.t.search.startTransports model.fromTransports
+            ]
+        , div [ class "option" ]
+            [ Html.map ToTransportsUpdate <|
+                TagList.view locale locale.t.search.destinationTransports model.toTransports
             ]
         ]
 
