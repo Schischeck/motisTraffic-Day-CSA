@@ -66,6 +66,11 @@
 }
 
 .add-tag-popup {
-  width: 32px !important;
+  display: flex !important;
+  width: unset !important;
   padding: 4px;
+}
+
+.add-tag-popup.hide {
+  display: none !important;
 }

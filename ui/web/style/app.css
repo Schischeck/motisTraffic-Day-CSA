@@ -469,26 +469,26 @@
 }
 
 .search-options {
-  position: absolute;
-  top: 230px;
-  left: 0px;
-  width: 100%;
-  padding: 0 24px 24px 24px;
+  padding: 0 24px;
+  margin-bottom: 12px;
   background: #fff;
   z-index: 2;
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.23);
-  display: none;
-  transition: all 0.2s ease;
+  display: flex;
+  max-height: 0px;
+  transition: all 0.2s ease-out;
   justify-content: space-between;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.search-options.visible {
+  max-height: 200px;
+  overflow: auto;
 }
 
 .search-options .option {
   width: 50%;
   padding: 0 0.5em;
-}
-
-.search-options.visible {
-  display: flex;
 }
 
 .with-tooltip::after {
