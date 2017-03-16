@@ -658,10 +658,10 @@ update msg model =
                 response =
                     { time = 0, distance = 0.0, polyline = fallbackPolyline }
             in
-                setWalkRoute model journeyIdx walk response
+                setWalkRoute model journeyIdx walk response False
 
         OSRMResponse journeyIdx walk response ->
-            setWalkRoute model journeyIdx walk response
+            setWalkRoute model journeyIdx walk response True
 
 
 noop : a -> Msg
@@ -719,23 +719,31 @@ requestWalkRoutes remoteAddress journey idx =
             |> Cmd.batch
 
 
-setWalkRoute : Model -> Int -> JourneyWalk -> OSRMViaRouteResponse -> ( Model, Cmd Msg )
-setWalkRoute model journeyIdx walk response =
+setWalkRoute : Model -> Int -> JourneyWalk -> OSRMViaRouteResponse -> Bool -> ( Model, Cmd Msg )
+setWalkRoute model journeyIdx walk response updateAll =
     let
         updateJourney j =
             { j | walks = List.map updateWalk j.walks }
 
         updateWalk w =
-            if w == walk then
+            if isSameWalk w then
                 { w | polyline = Just response.polyline.coordinates }
             else
                 w
+
+        isSameWalk w =
+            (w.from.station == walk.from.station)
+                && (w.to.station == walk.to.station)
+                && (w.mumoType == walk.mumoType)
 
         routing =
             model.routing
 
         connections_ =
-            Connections.updateJourney routing.connections journeyIdx updateJourney
+            if updateAll then
+                Connections.updateJourneys routing.connections updateJourney
+            else
+                Connections.updateJourney routing.connections journeyIdx updateJourney
 
         routing_ =
             { routing | connections = connections_ }

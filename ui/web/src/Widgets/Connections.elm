@@ -10,6 +10,7 @@ module Widgets.Connections
         , connectionIdxToListIdx
         , getJourney
         , updateJourney
+        , updateJourneys
         )
 
 import Html exposing (Html, div, ul, li, text, span, i, a)
@@ -142,6 +143,18 @@ updateJourney model connectionIdx f =
 
             Nothing ->
                 model
+
+
+updateJourneys : Model -> (Journey -> Journey) -> Model
+updateJourneys model f =
+    let
+        updateLabeledJourney lj =
+            { lj | journey = f lj.journey }
+
+        journeys_ =
+            List.map updateLabeledJourney model.journeys
+    in
+        { model | journeys = journeys_ }
 
 
 
