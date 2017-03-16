@@ -13,7 +13,7 @@ import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
-import Data.Journey.Types exposing (Journey, toJourney, JourneyWalk)
+import Data.Journey.Types exposing (Journey, toJourney, JourneyWalk, walkFallbackPolyline)
 import Data.Lookup.Request exposing (encodeTripToConnection)
 import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
 import Data.OSRM.Types exposing (..)
@@ -203,6 +203,7 @@ type Msg
     | SimTimePickerUpdate SimTimePicker.Msg
     | OSRMError Int JourneyWalk ApiError
     | OSRMResponse Int JourneyWalk OSRMViaRouteResponse
+    | SelectWalk JourneyWalk
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -647,13 +648,7 @@ update msg model =
                     Debug.log "OSRMError" ( journeyIdx, walk, err )
 
                 fallbackPolyline =
-                    { coordinates =
-                        [ walk.from.station.pos.lat
-                        , walk.from.station.pos.lng
-                        , walk.to.station.pos.lat
-                        , walk.to.station.pos.lng
-                        ]
-                    }
+                    { coordinates = walkFallbackPolyline walk }
 
                 response =
                     { time = 0, distance = 0.0, polyline = fallbackPolyline }
@@ -662,6 +657,14 @@ update msg model =
 
         OSRMResponse journeyIdx walk response ->
             setWalkRoute model journeyIdx walk response True
+
+        SelectWalk walk ->
+            let
+                coords =
+                    walk.polyline
+                        |> Maybe.withDefault (walkFallbackPolyline walk)
+            in
+                model ! [ RailViz.fitBounds coords ]
 
 
 noop : a -> Msg
@@ -1014,6 +1017,7 @@ connectionDetailsConfig =
         { internalMsg = ConnectionDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
         , selectStationMsg = PrepareSelectStation
+        , selectWalkMsg = SelectWalk
         , goBackMsg = ConnectionDetailsGoBack
         }
 
@@ -1029,6 +1033,7 @@ tripDetailsConfig =
         { internalMsg = TripDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
         , selectStationMsg = PrepareSelectStation
+        , selectWalkMsg = SelectWalk
         , goBackMsg = TripDetailsGoBack
         }
 

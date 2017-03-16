@@ -7,6 +7,7 @@ module Data.Journey.Types
         , InterchangeInfo
         , toJourney
         , trainsWithInterchangeInfo
+        , walkFallbackPolyline
         )
 
 import Date.Extra.Duration as Duration
@@ -251,3 +252,12 @@ trainsWithInterchangeInfo trains =
                     ]
     in
         List.foldl foldTrains [] trains
+
+
+walkFallbackPolyline : JourneyWalk -> List Float
+walkFallbackPolyline walk =
+    [ walk.from.station.pos.lat
+    , walk.from.station.pos.lng
+    , walk.to.station.pos.lat
+    , walk.to.station.pos.lng
+    ]

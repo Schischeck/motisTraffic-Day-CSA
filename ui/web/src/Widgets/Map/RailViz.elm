@@ -8,6 +8,7 @@ module Widgets.Map.RailViz
         , subscriptions
         , mapId
         , flyTo
+        , fitBounds
         , getMapPermalink
         )
 
@@ -28,6 +29,7 @@ import Util.Api as Api exposing (ApiError)
 import Widgets.Helpers.ApiErrorUtil exposing (errorText)
 import Widgets.LoadingSpinner as LoadingSpinner
 import Routes exposing (Route(RailVizPermalink), toUrl)
+import List.Extra
 
 
 -- MODEL
@@ -144,6 +146,18 @@ flyTo pos zoom animate =
         , zoom = zoom
         , animate = animate
         }
+
+
+fitBounds : List Float -> Cmd msg
+fitBounds coords =
+    let
+        coordPairs =
+            List.Extra.groupsOf 2 coords
+    in
+        mapFitBounds
+            { mapId = mapId
+            , coords = coordPairs
+            }
 
 
 getMapPermalink : Model -> String

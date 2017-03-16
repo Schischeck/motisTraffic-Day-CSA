@@ -45,6 +45,7 @@ type Config msg
         { internalMsg : Msg -> msg
         , selectTripMsg : Int -> msg
         , selectStationMsg : Station -> Maybe Date -> msg
+        , selectWalkMsg : JourneyWalk -> msg
         , goBackMsg : msg
         }
 
@@ -176,7 +177,7 @@ errorView locale err =
 
 
 journeyView : Config msg -> Localization -> Date -> State -> Journey -> List (Html msg)
-journeyView (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg }) locale currentTime state journey =
+journeyView (Config { internalMsg, selectTripMsg, selectStationMsg, selectWalkMsg, goBackMsg }) locale currentTime state journey =
     let
         trains =
             trainsWithInterchangeInfo journey.trains
@@ -194,7 +195,7 @@ journeyView (Config { internalMsg, selectTripMsg, selectStationMsg, goBackMsg })
         walkView maybeWalk =
             case maybeWalk of
                 Just walk ->
-                    [ walkDetail selectStationMsg locale currentTime walk ]
+                    [ walkDetail selectStationMsg selectWalkMsg locale currentTime walk ]
 
                 Nothing ->
                     []
@@ -706,8 +707,8 @@ intermediateStopsWithProgress selectStationMsg intermediateStopViewType locale c
                 intermediateStops
 
 
-walkDetail : (Station -> Maybe Date -> msg) -> Localization -> Date -> JourneyWalk -> Html msg
-walkDetail selectStationMsg locale currentTime walk =
+walkDetail : (Station -> Maybe Date -> msg) -> (JourneyWalk -> msg) -> Localization -> Date -> JourneyWalk -> Html msg
+walkDetail selectStationMsg selectWalkMsg locale currentTime walk =
     let
         durationStr =
             durationText walk.duration
@@ -725,7 +726,7 @@ walkDetail selectStationMsg locale currentTime walk =
     in
         div [ class <| "train-detail train-class-walk" ] <|
             [ div [ class "top-border" ] []
-            , walkBox walk.mumoType
+            , div [ onClick (selectWalkMsg walk) ] [ walkBox walk.mumoType ]
             , div [ class "first-stop" ]
                 [ stopView selectStationMsg CompactStopView Departure locale currentTime Nothing walk.from ]
             , div [ class "intermediate-stops-toggle" ]
