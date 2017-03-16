@@ -91,6 +91,7 @@ type alias RVConnectionSection =
 type alias RVConnectionWalk =
     { departureStation : Station
     , arrivalStation : Station
+    , polyline : Maybe (List Float)
     }
 
 

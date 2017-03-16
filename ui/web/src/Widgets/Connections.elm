@@ -9,6 +9,7 @@ module Widgets.Connections
         , view
         , connectionIdxToListIdx
         , getJourney
+        , updateJourney
         )
 
 import Html exposing (Html, div, ul, li, text, span, i, a)
@@ -121,6 +122,26 @@ getJourney model connectionIdx =
     model.journeys
         !! (connectionIdxToListIdx model connectionIdx)
         |> Maybe.map .journey
+
+
+updateJourney : Model -> Int -> (Journey -> Journey) -> Model
+updateJourney model connectionIdx f =
+    let
+        idx =
+            connectionIdxToListIdx model connectionIdx
+
+        updateLabeledJourney lj =
+            { lj | journey = f lj.journey }
+
+        journeys_ =
+            List.Extra.updateAt idx updateLabeledJourney model.journeys
+    in
+        case journeys_ of
+            Just j ->
+                { model | journeys = j }
+
+            Nothing ->
+                model
 
 
 

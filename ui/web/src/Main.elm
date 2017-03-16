@@ -13,9 +13,12 @@ import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
-import Data.Journey.Types exposing (Journey, toJourney)
+import Data.Journey.Types exposing (Journey, toJourney, JourneyWalk)
 import Data.Lookup.Request exposing (encodeTripToConnection)
 import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
+import Data.OSRM.Types exposing (..)
+import Data.OSRM.Request exposing (encodeOSRMViaRouteRequest)
+import Data.OSRM.Decode exposing (decodeOSRMViaRouteResponse)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime, unixTime)
@@ -35,7 +38,7 @@ import Task
 import Navigation exposing (Location)
 import UrlParser
 import Routes exposing (..)
-import Maybe.Extra exposing (isJust, orElse)
+import Maybe.Extra exposing (isJust, isNothing, orElse)
 import Port
 import ProgramFlags exposing (..)
 import Json.Encode
@@ -198,6 +201,8 @@ type Msg
     | ToggleTripSearch
     | HandleRailVizPermalink Float Float Float Date
     | SimTimePickerUpdate SimTimePicker.Msg
+    | OSRMError Int JourneyWalk ApiError
+    | OSRMResponse Int JourneyWalk OSRMViaRouteResponse
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -636,10 +641,107 @@ update msg model =
             in
                 model2 ! [ cmd1, cmd2 ]
 
+        OSRMError journeyIdx walk err ->
+            let
+                _ =
+                    Debug.log "OSRMError" ( journeyIdx, walk, err )
+            in
+                model ! []
+
+        OSRMResponse journeyIdx walk response ->
+            setWalkRoute model journeyIdx walk response
+
 
 noop : a -> Msg
 noop =
     \_ -> NoOp
+
+
+selectConnection : Model -> Int -> ( Model, Cmd Msg )
+selectConnection model idx =
+    let
+        journey =
+            Connections.getJourney model.routing.connections idx
+
+        ( newRouting, _ ) =
+            Routing.update Routing.ResetNew model.routing
+    in
+        case journey of
+            Just j ->
+                let
+                    trips =
+                        journeyTrips j
+
+                    ( model_, cmds ) =
+                        setRailVizFilter model (Just trips)
+                in
+                    { model_
+                        | connectionDetails =
+                            Maybe.map (ConnectionDetails.init False False Nothing) (Just journey)
+                        , routing = newRouting
+                        , selectedConnectionIdx = Just idx
+                        , tripDetails = Nothing
+                        , stationEvents = Nothing
+                        , subView = Nothing
+                    }
+                        ! [ MapConnectionDetails.setConnectionFilter j
+                          , requestWalkRoutes model.apiEndpoint j idx
+                          , cmds
+                          ]
+
+            Nothing ->
+                update (ReplaceLocation Connections) model
+
+
+requestWalkRoutes : String -> Journey -> Int -> Cmd Msg
+requestWalkRoutes remoteAddress journey idx =
+    let
+        requestWalk walk =
+            if isNothing walk.polyline then
+                Just (sendOSRMViaRouteRequest remoteAddress walk idx)
+            else
+                Nothing
+    in
+        journey.walks
+            |> List.filterMap requestWalk
+            |> Cmd.batch
+
+
+setWalkRoute : Model -> Int -> JourneyWalk -> OSRMViaRouteResponse -> ( Model, Cmd Msg )
+setWalkRoute model journeyIdx walk response =
+    let
+        updateJourney j =
+            { j | walks = List.map updateWalk j.walks }
+
+        updateWalk w =
+            if w == walk then
+                { w | polyline = Just response.polyline.coordinates }
+            else
+                w
+
+        routing =
+            model.routing
+
+        connections_ =
+            Connections.updateJourney routing.connections journeyIdx updateJourney
+
+        routing_ =
+            { routing | connections = connections_ }
+
+        cmd =
+            case model.selectedConnectionIdx of
+                Just journeyIdx ->
+                    Connections.getJourney connections_ journeyIdx
+                        |> Maybe.map (MapConnectionDetails.setConnectionFilter)
+                        |> Maybe.withDefault Cmd.none
+
+                _ ->
+                    Cmd.none
+    in
+        { model
+            | routing = routing_
+        }
+            ! [ cmd ]
 
 
 selectConnectionTrip : Model -> Int -> ( Model, Cmd Msg )
@@ -1032,6 +1134,36 @@ sendTripRequest remoteAddress tripId =
         (encodeTripToConnection tripId)
 
 
+sendOSRMViaRouteRequest : String -> JourneyWalk -> Int -> Cmd Msg
+sendOSRMViaRouteRequest remoteAddress walk journeyIdx =
+    let
+        request =
+            { profile = osrmProfile walk
+            , waypoints =
+                [ walk.from.station.pos
+                , walk.to.station.pos
+                ]
+            }
+
+        osrmProfile walk =
+            case walk.mumoType of
+                "bike" ->
+                    "bike"
+
+                "walk" ->
+                    "foot"
+
+                _ ->
+                    "foot"
+    in
+        Api.sendRequest
+            remoteAddress
+            decodeOSRMViaRouteResponse
+            (OSRMError journeyIdx walk)
+            (OSRMResponse journeyIdx walk)
+            (encodeOSRMViaRouteRequest request)
+
+
 
 -- NAVIGATION
 
@@ -1079,41 +1211,6 @@ routeToMsg route =
 
         RailVizPermalink lat lng zoom date ->
             HandleRailVizPermalink lat lng zoom date
-
-
-selectConnection : Model -> Int -> ( Model, Cmd Msg )
-selectConnection model idx =
-    let
-        journey =
-            Connections.getJourney model.routing.connections idx
-
-        ( newRouting, _ ) =
-            Routing.update Routing.ResetNew model.routing
-    in
-        case journey of
-            Just j ->
-                let
-                    trips =
-                        journeyTrips j
-
-                    ( model_, cmds ) =
-                        setRailVizFilter model (Just trips)
-                in
-                    { model_
-                        | connectionDetails =
-                            Maybe.map (ConnectionDetails.init False False Nothing) (Just journey)
-                        , routing = newRouting
-                        , selectedConnectionIdx = Just idx
-                        , tripDetails = Nothing
-                        , stationEvents = Nothing
-                        , subView = Nothing
-                    }
-                        ! [ MapConnectionDetails.setConnectionFilter j
-                          , cmds
-                          ]
-
-            Nothing ->
-                update (ReplaceLocation Connections) model
 
 
 closeSelectedConnection : Model -> ( Model, Cmd Msg )

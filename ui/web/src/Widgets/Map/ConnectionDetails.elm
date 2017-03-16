@@ -105,4 +105,5 @@ buildRVWalk : JourneyWalk -> RVConnectionWalk
 buildRVWalk walk =
     { departureStation = walk.from.station
     , arrivalStation = walk.to.station
+    , polyline = walk.polyline
     }

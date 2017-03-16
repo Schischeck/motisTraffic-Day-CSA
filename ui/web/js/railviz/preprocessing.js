@@ -70,12 +70,17 @@ RailViz.Preprocessing = (function() {
     preprocessStation(walk.arrivalStation);
     walk.from_station_id = walk.departureStation.id;
     walk.to_station_id = walk.arrivalStation.id;
-    walk.coordinates = {
-      coordinates: [
-        walk.departureStation.pos.x, walk.departureStation.pos.y,
-        walk.arrivalStation.pos.x, walk.arrivalStation.pos.y
-      ]
-    };
+    if (walk.polyline) {
+      walk.coordinates = {coordinates: walk.polyline};
+      convertPolyline(walk.coordinates);
+    } else {
+      walk.coordinates = {
+        coordinates: [
+          walk.departureStation.pos.x, walk.departureStation.pos.y,
+          walk.arrivalStation.pos.x, walk.arrivalStation.pos.y
+        ]
+      };
+    }
   }
 
   const initialResolution = 2 * Math.PI * 6378137 / 256;

@@ -101,6 +101,7 @@ RailViz.Render = (function() {
   }
 
   function adjustFootpathCoords(footpath) {
+    const replace = !footpath.polyline;
     const from_station_id = footpath.from_station_id;
     const to_station_id = footpath.to_station_id;
     const startSegments = data.routes.reduce(
@@ -109,8 +110,14 @@ RailViz.Render = (function() {
         []);
     if (startSegments.length == 1) {
       const fromCoords = startSegments[0].coordinates.coordinates;
-      footpath.coordinates.coordinates[0] = fromCoords[fromCoords.length - 2];
-      footpath.coordinates.coordinates[1] = fromCoords[fromCoords.length - 1];
+      const x = fromCoords[fromCoords.length - 2];
+      const y = fromCoords[fromCoords.length - 1];
+      if (replace) {
+        footpath.coordinates.coordinates[0] = x;
+        footpath.coordinates.coordinates[1] = y;
+      } else {
+        footpath.coordinates.coordinates.unshift(x, y);
+      }
     }
     const endSegments = data.routes.reduce(
         (acc, r) => acc.concat(
@@ -118,8 +125,14 @@ RailViz.Render = (function() {
         []);
     if (endSegments.length == 1) {
       const toCoords = endSegments[0].coordinates.coordinates;
-      footpath.coordinates.coordinates[2] = toCoords[0];
-      footpath.coordinates.coordinates[3] = toCoords[1];
+      const x = toCoords[0];
+      const y = toCoords[1];
+      if (replace) {
+        footpath.coordinates.coordinates[2] = x;
+        footpath.coordinates.coordinates[3] = y;
+      } else {
+        footpath.coordinates.coordinates.push(x, y);
+      }
     }
     forceDraw = true;
   }
