@@ -114,3 +114,6 @@ port mapUseTrainClassColors : Bool -> Cmd msg
 
 
 port mapSetConnectionFilter : RVConnectionFilter -> Cmd msg
+
+
+port mapUpdateWalks : List RVConnectionWalk -> Cmd msg

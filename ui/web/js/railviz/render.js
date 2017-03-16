@@ -108,15 +108,18 @@ RailViz.Render = (function() {
         (acc, r) => acc.concat(
             r.segments.filter(seg => seg.to_station_id == from_station_id)),
         []);
+    const coords = footpath.coordinates.coordinates;
     if (startSegments.length == 1) {
       const fromCoords = startSegments[0].coordinates.coordinates;
       const x = fromCoords[fromCoords.length - 2];
       const y = fromCoords[fromCoords.length - 1];
       if (replace) {
-        footpath.coordinates.coordinates[0] = x;
-        footpath.coordinates.coordinates[1] = y;
+        coords[0] = x;
+        coords[1] = y;
       } else {
-        footpath.coordinates.coordinates.unshift(x, y);
+        if (coords[0] != x || coords[1] != y) {
+          coords.unshift(x, y);
+        }
       }
     }
     const endSegments = data.routes.reduce(
@@ -128,10 +131,12 @@ RailViz.Render = (function() {
       const x = toCoords[0];
       const y = toCoords[1];
       if (replace) {
-        footpath.coordinates.coordinates[2] = x;
-        footpath.coordinates.coordinates[3] = y;
+        coords[2] = x;
+        coords[3] = y;
       } else {
-        footpath.coordinates.coordinates.push(x, y);
+        if (coords[coords.length - 2] != x || coords[coords.length - 1] != y) {
+          coords.push(x, y);
+        }
       }
     }
     forceDraw = true;

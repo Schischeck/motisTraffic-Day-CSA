@@ -645,8 +645,20 @@ update msg model =
             let
                 _ =
                     Debug.log "OSRMError" ( journeyIdx, walk, err )
+
+                fallbackPolyline =
+                    { coordinates =
+                        [ walk.from.station.pos.lat
+                        , walk.from.station.pos.lng
+                        , walk.to.station.pos.lat
+                        , walk.to.station.pos.lng
+                        ]
+                    }
+
+                response =
+                    { time = 0, distance = 0.0, polyline = fallbackPolyline }
             in
-                model ! []
+                setWalkRoute model journeyIdx walk response
 
         OSRMResponse journeyIdx walk response ->
             setWalkRoute model journeyIdx walk response
@@ -728,12 +740,23 @@ setWalkRoute model journeyIdx walk response =
         routing_ =
             { routing | connections = connections_ }
 
+        journey =
+            Connections.getJourney connections_ journeyIdx
+
+        journeyComplete =
+            journey
+                |> Maybe.map (\j -> List.all (.polyline >> isJust) j.walks)
+                |> Maybe.withDefault False
+
         cmd =
             case model.selectedConnectionIdx of
                 Just journeyIdx ->
-                    Connections.getJourney connections_ journeyIdx
-                        |> Maybe.map (MapConnectionDetails.setConnectionFilter)
-                        |> Maybe.withDefault Cmd.none
+                    if journeyComplete then
+                        journey
+                            |> Maybe.map (MapConnectionDetails.updateWalks)
+                            |> Maybe.withDefault Cmd.none
+                    else
+                        Cmd.none
 
                 _ ->
                     Cmd.none

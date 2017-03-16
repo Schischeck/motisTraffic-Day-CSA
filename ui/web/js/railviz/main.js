@@ -59,6 +59,35 @@ RailViz.Main = (function() {
     }
   }
 
+  function updateWalks(walks) {
+    if (!connectionFilter) {
+      return;
+    }
+    let updated = false;
+    walks.forEach(walk => {
+      RailViz.Preprocessing.prepareWalk(walk);
+      const existingWalk =
+          connectionFilter.walks.find(w => isSameWalk(w, walk));
+      if (existingWalk) {
+        existingWalk.polyline = walk.polyline;
+        existingWalk.coordinates = walk.coordinates;
+        updated = true;
+      }
+    });
+    if (showingFilteredData) {
+      showFilteredData();
+    }
+  }
+
+  function isSameWalk(a, b) {
+    return isSameStation(a.departureStation, b.departureStation) &&
+        isSameStation(a.arrivalStation, b.arrivalStation);
+  }
+
+  function isSameStation(a, b) {
+    return a.id == b.id && a.pos.lat == b.pos.lat && a.pos.lng == b.pos.lng;
+  }
+
   function setUseFpsLimiter(enabled) {
     useFpsLimiter = enabled;
     setupFpsLimiter();
@@ -260,6 +289,7 @@ RailViz.Main = (function() {
     },
     setTripFilter: setTripFilter,
     setConnectionFilter: setConnectionFilter,
+    updateWalks: updateWalks,
     dragEnd: dragEnd,
     setUseFpsLimiter: setUseFpsLimiter
   };

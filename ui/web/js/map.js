@@ -154,6 +154,7 @@ function initPorts(app, apiEndpoint) {
 
   app.ports.setRailVizFilter.subscribe(RailViz.Main.setTripFilter);
   app.ports.mapSetConnectionFilter.subscribe(RailViz.Main.setConnectionFilter);
+  app.ports.mapUpdateWalks.subscribe(RailViz.Main.updateWalks);
   app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
 
   app.ports.mapFlyTo.subscribe(function(opt) {

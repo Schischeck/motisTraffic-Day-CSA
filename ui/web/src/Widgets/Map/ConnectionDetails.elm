@@ -1,6 +1,7 @@
 module Widgets.Map.ConnectionDetails
     exposing
         ( setConnectionFilter
+        , updateWalks
         )
 
 import Widgets.Map.Port exposing (..)
@@ -23,6 +24,13 @@ setConnectionFilter journey =
             [ mapSetConnectionFilter connectionFilter
             , mapFitBounds bounds
             ]
+
+
+updateWalks : Journey -> Cmd msg
+updateWalks journey =
+    journey.walks
+        |> List.map buildRVWalk
+        |> mapUpdateWalks
 
 
 buildConnectionFilter : Journey -> ( RVConnectionFilter, MapFitBounds )
