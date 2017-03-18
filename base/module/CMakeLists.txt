@@ -20,6 +20,7 @@ set(resource-header "${generated-headers-dir}/resources.h")
 compile_flatbuffers_to_resource_header(
   "${protocol-dir}/Message.fbs"
   "${resource-header}"
+  "motis::module"
   "${protocol-files}"
 )
 
