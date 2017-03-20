@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
     timer->async_wait([&ios](boost::system::error_code) { ios.stop(); });
   } else if (launcher_opt.mode_ == launcher_settings::motis_mode_t::BATCH) {
     inject_queries(ios, instance, launcher_opt.batch_input_file_,
-                   launcher_opt.batch_output_file_);
+                   launcher_opt.batch_output_file_, launcher_opt.num_threads_);
   }
 
   LOG(info) << "system boot finished";

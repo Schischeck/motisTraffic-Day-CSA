@@ -22,11 +22,12 @@ public:
   query_injector(boost::asio::io_service& ios,
                  motis::module::receiver& receiver,
                  std::string const& input_file_path,
-                 std::string const& output_file_path)
+                 std::string const& output_file_path, int num_threads)
       : ios_(ios),
         receiver_(receiver),
         in_(input_file_path),
-        out_(output_file_path) {
+        out_(output_file_path),
+        num_threads_(num_threads) {
     in_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   }
@@ -36,8 +37,10 @@ public:
   void start() {
     auto self = shared_from_this();
     ios_.post([this, self]() {
-      for (int i = 0; i < 10; ++i) {
-        inject_msg(self);
+      for (int i = 0; i < 2 * num_threads_; ++i) {
+        if (!inject_msg(self)) {
+          break;
+        }
       }
     });
   }
@@ -53,7 +56,7 @@ private:
     return make_msg(json);
   }
 
-  void inject_msg(std::shared_ptr<query_injector>) {
+  bool inject_msg(std::shared_ptr<query_injector>) {
     msg_ptr next;
     try {
       next = next_query();
@@ -61,11 +64,14 @@ private:
         receiver_.on_msg(next, ios_.wrap(std::bind(&query_injector::on_response,
                                                    this, shared_from_this(),
                                                    next->id(), p::_1, p::_2)));
+      } else {
+        return false;
       }
     } catch (std::system_error const& e) {
       on_response(shared_from_this(), next ? next->id() : -1, msg_ptr(),
                   e.code());
     }
+    return true;
   }
 
   void on_response(std::shared_ptr<query_injector> self, int id, msg_ptr res,
@@ -97,14 +103,16 @@ private:
 
   std::ifstream in_;
   std::ofstream out_;
+
+  int num_threads_;
 };
 
 void inject_queries(boost::asio::io_service& ios,
                     motis::module::receiver& receiver,
                     std::string const& input_file_path,
-                    std::string const& output_file_path) {
+                    std::string const& output_file_path, int num_threads) {
   std::make_shared<query_injector>(ios, receiver, input_file_path,
-                                   output_file_path)
+                                   output_file_path, num_threads)
       ->start();
 }
 
