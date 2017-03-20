@@ -29,3 +29,6 @@ port handleRailVizError : (Json.Encode.Value -> msg) -> Sub msg
 
 
 port clearRailVizError : (() -> msg) -> Sub msg
+
+
+port localStorageSet : ( String, String ) -> Cmd msg

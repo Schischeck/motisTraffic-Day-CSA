@@ -7,6 +7,7 @@ module Data.Journey.Types
         , InterchangeInfo
         , toJourney
         , trainsWithInterchangeInfo
+        , walkFallbackPolyline
         )
 
 import Date.Extra.Duration as Duration
@@ -35,6 +36,8 @@ type alias JourneyWalk =
     { from : Stop
     , to : Stop
     , duration : Duration.DeltaRecord
+    , mumoType : String
+    , polyline : Maybe (List Float)
     }
 
 
@@ -203,6 +206,8 @@ toJourneyWalk connection walkInfo =
             { from = from
             , to = to
             , duration = getWalkDuration from to
+            , mumoType = walkInfo.mumo_type
+            , polyline = Nothing
             }
     in
         Maybe.map2 makeJourneyWalk fromStop toStop
@@ -247,3 +252,12 @@ trainsWithInterchangeInfo trains =
                     ]
     in
         List.foldl foldTrains [] trains
+
+
+walkFallbackPolyline : JourneyWalk -> List Float
+walkFallbackPolyline walk =
+    [ walk.from.station.pos.lat
+    , walk.from.station.pos.lng
+    , walk.to.station.pos.lat
+    , walk.to.station.pos.lng
+    ]

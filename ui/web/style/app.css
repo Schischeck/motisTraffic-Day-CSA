@@ -48,6 +48,7 @@
   flex-direction: column;
   height: 100%;
   pointer-events: auto;
+  position: relative;
 }
 
 .sub-overlay {
@@ -284,10 +285,94 @@
   cursor: pointer;
 }
 
+.sim-time-overlay .sim-icon i {
+  color: #999;
+  font-size: 20px;
+  vertical-align: middle;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.sim-time-overlay .time {
+  cursor: pointer;
+}
+
+.sim-time-picker-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sim-time-picker-overlay {
+  position: absolute;
+  bottom: 70px;
+  right: 70px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 5px 20px;
+  font-size: 14px;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  pointer-events: auto;
+}
+
+.sim-time-picker-overlay.hidden {
+  display: none;
+}
+
+.sim-time-picker-overlay .close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  color: #4971E7;
+}
+
+.sim-time-picker-overlay .close i {
+  cursor: pointer;
+}
+
+.sim-time-picker-overlay .title {
+  margin: 0 0 20px 0;
+}
+
+.sim-time-picker-overlay .title input {
+  margin-right: 5px;
+}
+
+.sim-time-picker-overlay>div {
+  transition: all .4s ease;
+}
+
+.sim-time-picker-overlay .disabled {
+  filter: grayscale(100%) opacity(70%);
+  pointer-events: none;
+}
+
+.sim-time-picker-overlay .date {
+  position: relative;
+}
+
+.sim-time-picker-overlay .paper {
+  bottom: 70px;
+}
+
 .train-color-picker-overlay {
   padding: 0 5px 5px 5px;
   font-size: 14px;
   background: rgba(255, 255, 255, 0.7);
+}
+
+.train-color-picker-overlay input {
+  margin-right: 5px;
 }
 
 #railviz-error-overlay {
@@ -355,7 +440,7 @@
 }
 
 #search {
-  height: 210px;
+  height: 230px;
   flex: 0 0 auto;
   padding-bottom: 0;
   transition: filter 1s;
@@ -363,6 +448,47 @@
 
 #search.disabled {
   filter: grayscale(100%) opacity(10%);
+}
+
+.search-options-toggle {
+  display: flex;
+  justify-content: center;
+}
+
+.search-options-toggle .search-options-btn {
+  width: 50px;
+  height: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-options-toggle .search-options-btn,
+.search-options-toggle .search-options-btn i {
+  cursor: pointer;
+}
+
+.search-options {
+  padding: 0 24px;
+  margin-bottom: 12px;
+  background: #fff;
+  z-index: 2;
+  display: flex;
+  max-height: 0px;
+  transition: all 0.2s ease-out;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.search-options.visible {
+  max-height: 200px;
+  overflow: hidden;
+}
+
+.search-options .option {
+  width: 50%;
+  padding: 0 0.5em;
 }
 
 .with-tooltip::after {
@@ -447,7 +573,7 @@
   height: 50px;
   line-height: 15px;
   margin-top: 15px;
-  padding: 0;
+  padding: 0 !important;
 }
 
 .time-option label {
@@ -494,6 +620,10 @@
   flex-direction: column;
   height: 100%;
   min-height: 200px;
+}
+
+#connections .main-error div {
+  text-align: center;
 }
 
 #connections .schedule-range {
@@ -840,6 +970,10 @@
   cursor: pointer;
 }
 
+.train-detail .stop .station span.virtual {
+  cursor: default;
+}
+
 .train-detail .timeline {
   position: absolute;
   top: 0px;
@@ -1161,18 +1295,29 @@
   margin-bottom: 10px;
 }
 
+.connection-info .connection-times {
+  display: flex;
+}
+
 .connection-info .connection-times>div {
   display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .connection-info .connection-times .times {
   font-weight: 700;
   text-align: right;
   padding-right: 10px;
+  flex: 0 0 auto;
 }
 
-.connection-info .connection-times .locations {
+.connection-info .connection-times .locations div {
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .connection-info .summary {
@@ -1217,6 +1362,10 @@
   padding: 20px 20px 0 20px;
 }
 
+.connection-details .connection-journey.empty {
+  padding-top: 100px;
+}
+
 .connection-details .train-box {
   cursor: pointer;
 }
@@ -1226,7 +1375,7 @@
 }
 
 .connection-details .train-box.train-class-walk {
-  cursor: default;
+  padding: 4px 6px;
 }
 
 .station-events {
@@ -1316,6 +1465,16 @@
 
 .station-events .station-event .event-direction {
   flex: 2 2 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.station-events .station-event .event-direction i {
+  vertical-align: middle;
+  font-size: 20px;
+  margin-right: 2px;
+  margin-top: -4px;
 }
 
 .station-events .station-event .event-track {
@@ -1336,7 +1495,8 @@
   text-align: center;
 }
 
-.station-events .main-error {
+.station-events .main-error,
+.connection-journey .main-error {
   text-align: center;
 }
 
@@ -1384,6 +1544,10 @@
   flex: 0 0 70px;
 }
 
+.trip-search .trip .trip-time .date {
+  color: #888;
+}
+
 .trip-search .trip .trip-train {
   margin-top: -7px;
   flex: 0 0 130px;
@@ -1395,15 +1559,22 @@
 
 .trip-search .trip .trip-first-station {
   flex: 2 2 auto;
+  min-width: 0;
 }
 
 .trip-search .trip .station {
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trip-search .trip .direction {
   font-weight: 300;
   color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trip-search .trip .direction i {

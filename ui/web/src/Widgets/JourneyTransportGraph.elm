@@ -236,10 +236,15 @@ partView locale totalWidth tooltipVisible displayPart =
             Basics.min position ((toFloat totalWidth) - tooltipWidth)
 
         tooltipTransportName =
-            if part.icon == "walk" then
-                locale.t.connections.walk
-            else
-                part.longName
+            case part.icon of
+                "walk" ->
+                    locale.t.connections.walk
+
+                "bike" ->
+                    locale.t.connections.bike
+
+                _ ->
+                    part.longName
 
         tooltip =
             Html.div
@@ -359,8 +364,16 @@ walkPart walk =
 
         ( arrivalStation, arrivalTime ) =
             arrivalInfo walk.to
+
+        icon =
+            case walk.mumoType of
+                "bike" ->
+                    "bike"
+
+                _ ->
+                    "walk"
     in
-        { icon = "walk"
+        { icon = icon
         , colorClass = "walk"
         , duration = deltaRecordToMinutes walk.duration
         , longName = ""

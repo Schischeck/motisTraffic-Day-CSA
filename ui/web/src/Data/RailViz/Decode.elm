@@ -3,6 +3,7 @@ module Data.RailViz.Decode
         ( decodeRailVizTrainsResponse
         , decodeRailVizStationResponse
         , decodeRailVizTripGuessResponse
+        , decodePolyline
         )
 
 import Data.RailViz.Types exposing (..)

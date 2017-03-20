@@ -1,8 +1,6 @@
 module Main exposing (..)
 
-import Widgets.TimeInput as TimeInput
-import Widgets.TagList as TagList
-import Widgets.Calendar as Calendar
+import Widgets.Routing as Routing
 import Widgets.Typeahead as Typeahead
 import Widgets.Map.RailViz as RailViz
 import Widgets.Map.ConnectionDetails as MapConnectionDetails
@@ -10,16 +8,17 @@ import Widgets.Connections as Connections
 import Widgets.ConnectionDetails as ConnectionDetails
 import Widgets.StationEvents as StationEvents
 import Widgets.TripSearch as TripSearch
+import Widgets.SimTimePicker as SimTimePicker
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Data.ScheduleInfo.Request as ScheduleInfo
 import Data.ScheduleInfo.Decode exposing (decodeScheduleInfoResponse)
-import Data.Routing.Types exposing (RoutingRequest, SearchDirection(..))
-import Data.Routing.Request as RoutingRequest
-import Data.Routing.Decode exposing (decodeRoutingResponse)
 import Data.Connection.Types exposing (Station, Position, TripId, Connection)
-import Data.Journey.Types exposing (Journey, toJourney)
+import Data.Journey.Types exposing (Journey, toJourney, JourneyWalk, walkFallbackPolyline)
 import Data.Lookup.Request exposing (encodeTripToConnection)
 import Data.Lookup.Decode exposing (decodeTripToConnectionResponse)
+import Data.OSRM.Types exposing (..)
+import Data.OSRM.Request exposing (encodeOSRMViaRouteRequest)
+import Data.OSRM.Decode exposing (decodeOSRMViaRouteResponse)
 import Util.List exposing ((!!))
 import Util.Api as Api exposing (ApiError(..))
 import Util.Date exposing (combineDateTime, unixTime)
@@ -32,30 +31,20 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy exposing (..)
+import Dom
 import Dom.Scroll as Scroll
 import Http exposing (encodeUri)
 import Task
 import Navigation exposing (Location)
 import UrlParser
 import Routes exposing (..)
-import Debounce
-import Maybe.Extra exposing (isJust, orElse)
+import Maybe.Extra exposing (isJust, isNothing, orElse)
 import Port
+import ProgramFlags exposing (..)
 import Json.Encode
 import Json.Decode as Decode
 import Date exposing (Date)
 import Time exposing (Time)
-
-
-type alias ProgramFlags =
-    { apiEndpoint : String
-    , currentTime : Time
-    , simulationTime : Maybe Time
-    , language : String
-    , motisParam : Maybe String
-    , timeParam : Maybe String
-    , langParam : Maybe String
-    }
 
 
 main : Program ProgramFlags Model Msg
@@ -73,15 +62,8 @@ main =
 
 
 type alias Model =
-    { fromLocation : Typeahead.Model
-    , toLocation : Typeahead.Model
-    , fromTransports : TagList.Model
-    , toTransports : TagList.Model
-    , date : Calendar.Model
-    , time : TimeInput.Model
-    , searchDirection : SearchDirection
+    { routing : Routing.Model
     , railViz : RailViz.Model
-    , connections : Connections.Model
     , connectionDetails : Maybe ConnectionDetails.State
     , tripDetails : Maybe ConnectionDetails.State
     , stationEvents : Maybe StationEvents.Model
@@ -91,14 +73,13 @@ type alias Model =
     , scheduleInfo : Maybe ScheduleInfo
     , locale : Localization
     , apiEndpoint : String
-    , currentRoutingRequest : Maybe RoutingRequest
-    , debounce : Debounce.State
-    , connectionListScrollPos : Float
     , currentTime : Date
     , timeOffset : Float
     , overlayVisible : Bool
     , stationSearch : Typeahead.Model
     , programFlags : ProgramFlags
+    , simTimePicker : SimTimePicker.Model
+    , updateSearchTime : Bool
     }
 
 
@@ -117,20 +98,11 @@ init flags initialLocation =
         remoteAddress =
             flags.apiEndpoint
 
-        ( dateModel, dateCmd ) =
-            Calendar.init locale.dateConfig
-
-        ( timeModel, timeCmd ) =
-            TimeInput.init
+        ( routingModel, routingCmd ) =
+            Routing.init flags locale
 
         ( mapModel, mapCmd ) =
             RailViz.init remoteAddress
-
-        ( fromLocationModel, fromLocationCmd ) =
-            Typeahead.init remoteAddress "Willy-Brandt-Platz, Darmstadt"
-
-        ( toLocationModel, toLocationCmd ) =
-            Typeahead.init remoteAddress "Frankfurt(M)Hauptwache"
 
         ( stationSearchModel, stationSearchCmd ) =
             Typeahead.init remoteAddress ""
@@ -138,16 +110,12 @@ init flags initialLocation =
         ( tripSearchModel, tripSearchCmd ) =
             TripSearch.init remoteAddress locale
 
+        ( simTimePickerModel, simTimePickerCmd ) =
+            SimTimePicker.init locale
+
         initialModel =
-            { fromLocation = fromLocationModel
-            , toLocation = toLocationModel
-            , fromTransports = TagList.init
-            , toTransports = TagList.init
-            , date = dateModel
-            , time = timeModel
-            , searchDirection = Forward
+            { routing = routingModel
             , railViz = mapModel
-            , connections = Connections.init remoteAddress
             , connectionDetails = Nothing
             , tripDetails = Nothing
             , stationEvents = Nothing
@@ -157,14 +125,13 @@ init flags initialLocation =
             , scheduleInfo = Nothing
             , locale = locale
             , apiEndpoint = remoteAddress
-            , currentRoutingRequest = Nothing
-            , debounce = Debounce.init
-            , connectionListScrollPos = 0
             , currentTime = Date.fromTime flags.currentTime
             , timeOffset = 0
             , overlayVisible = True
             , stationSearch = stationSearchModel
             , programFlags = flags
+            , simTimePicker = simTimePickerModel
+            , updateSearchTime = isJust flags.simulationTime
             }
 
         ( model1, cmd1 ) =
@@ -179,13 +146,11 @@ init flags initialLocation =
                     ( model1, Cmd.none )
     in
         model2
-            ! [ Cmd.map DateUpdate dateCmd
-              , Cmd.map TimeUpdate timeCmd
+            ! [ Cmd.map RoutingUpdate routingCmd
               , Cmd.map MapUpdate mapCmd
-              , Cmd.map FromLocationUpdate fromLocationCmd
-              , Cmd.map ToLocationUpdate toLocationCmd
               , Cmd.map StationSearchUpdate stationSearchCmd
               , Cmd.map TripSearchUpdate tripSearchCmd
+              , Cmd.map SimTimePickerUpdate simTimePickerCmd
               , requestScheduleInfo remoteAddress
               , Task.perform UpdateCurrentTime Time.now
               , cmd1
@@ -199,21 +164,9 @@ init flags initialLocation =
 
 type Msg
     = NoOp
-    | Reset
-    | FromLocationUpdate Typeahead.Msg
-    | ToLocationUpdate Typeahead.Msg
-    | FromTransportsUpdate TagList.Msg
-    | ToTransportsUpdate TagList.Msg
-    | DateUpdate Calendar.Msg
-    | TimeUpdate TimeInput.Msg
-    | SearchDirectionUpdate SearchDirection
-    | SwitchInputs
+    | RoutingUpdate Routing.Msg
     | MapUpdate RailViz.Msg
-    | ConnectionsUpdate Connections.Msg
-    | SearchConnections
-    | PrepareSelectConnection Int
     | SelectConnection Int
-    | StoreConnectionListScrollPos Msg Float
     | ConnectionDetailsUpdate ConnectionDetails.Msg
     | TripDetailsUpdate ConnectionDetails.Msg
     | ConnectionDetailsGoBack
@@ -226,7 +179,6 @@ type Msg
     | TripToConnectionResponse TripId Connection
     | ScheduleInfoError ApiError
     | ScheduleInfoResponse ScheduleInfo
-    | Deb (Debounce.Msg Msg)
     | SetLocale Localization
     | NavigateTo Route
     | ReplaceLocation Route
@@ -248,6 +200,10 @@ type Msg
     | ShowTripSearch
     | ToggleTripSearch
     | HandleRailVizPermalink Float Float Float Date
+    | SimTimePickerUpdate SimTimePicker.Msg
+    | OSRMError Int JourneyWalk ApiError
+    | OSRMResponse Int JourneyWalk OSRMViaRouteResponse
+    | SelectWalk JourneyWalk
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -256,96 +212,30 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        Reset ->
-            ( model, Cmd.none )
+        RoutingUpdate msg_ ->
+            let
+                ( routingModel, routingCmd ) =
+                    Routing.update msg_ model.routing
+            in
+                { model | routing = routingModel } ! [ Cmd.map RoutingUpdate routingCmd ]
 
         MapUpdate msg_ ->
             let
-                ( m, c ) =
+                ( railViz_, railVizCmd ) =
                     RailViz.update msg_ model.railViz
+
+                ( model1, cmd1 ) =
+                    ( { model | railViz = railViz_ }, Cmd.map MapUpdate railVizCmd )
+
+                ( model2, cmd2 ) =
+                    case msg_ of
+                        RailViz.ToggleSimTimePicker ->
+                            update (SimTimePickerUpdate (SimTimePicker.Toggle (getCurrentDate model1) (model1.timeOffset /= 0))) model1
+
+                        _ ->
+                            model1 ! []
             in
-                ( { model | railViz = m }, Cmd.map MapUpdate c )
-
-        FromLocationUpdate msg_ ->
-            let
-                ( m, c ) =
-                    Typeahead.update msg_ model.fromLocation
-            in
-                checkTypeaheadUpdate msg_ ( { model | fromLocation = m }, Cmd.map FromLocationUpdate c )
-
-        ToLocationUpdate msg_ ->
-            let
-                ( m, c ) =
-                    Typeahead.update msg_ model.toLocation
-            in
-                checkTypeaheadUpdate msg_ ( { model | toLocation = m }, Cmd.map ToLocationUpdate c )
-
-        FromTransportsUpdate msg_ ->
-            ( { model | fromTransports = TagList.update msg_ model.fromTransports }, Cmd.none )
-
-        ToTransportsUpdate msg_ ->
-            ( { model | toTransports = TagList.update msg_ model.toTransports }, Cmd.none )
-
-        DateUpdate msg_ ->
-            checkRoutingRequest ( { model | date = Calendar.update msg_ model.date }, Cmd.none )
-
-        TimeUpdate msg_ ->
-            checkRoutingRequest ( { model | time = TimeInput.update msg_ model.time }, Cmd.none )
-
-        SearchDirectionUpdate dir ->
-            { model | searchDirection = dir }
-                ! []
-                |> checkRoutingRequest
-
-        SwitchInputs ->
-            { model
-                | fromLocation = model.toLocation
-                , toLocation = model.fromLocation
-            }
-                ! []
-                |> checkRoutingRequest
-
-        ConnectionsUpdate msg_ ->
-            let
-                ( m, c ) =
-                    Connections.update msg_ model.connections
-            in
-                ( { model | connections = m }, Cmd.map ConnectionsUpdate c )
-
-        SearchConnections ->
-            let
-                routingRequest =
-                    buildRoutingRequest model
-
-                ( m, c ) =
-                    Connections.update
-                        (Connections.Search Connections.ReplaceResults routingRequest)
-                        model.connections
-            in
-                { model
-                    | connections = m
-                    , currentRoutingRequest = Just routingRequest
-                    , connectionListScrollPos = 0
-                }
-                    ! [ Cmd.map ConnectionsUpdate c ]
-
-        PrepareSelectConnection idx ->
-            let
-                selectMsg =
-                    NavigateTo (ConnectionDetails idx)
-            in
-                model
-                    ! [ Task.attempt
-                            (\r ->
-                                case r of
-                                    Ok pos ->
-                                        StoreConnectionListScrollPos selectMsg pos
-
-                                    Err _ ->
-                                        selectMsg
-                            )
-                            (Scroll.y "connections")
-                      ]
+                model2 ! [ cmd1, cmd2 ]
 
         SelectConnection idx ->
             let
@@ -357,13 +247,6 @@ update msg model =
                       , Task.attempt noop <| Scroll.toTop "overlay-content"
                       , Task.attempt noop <| Scroll.toTop "connection-journey"
                       ]
-
-        StoreConnectionListScrollPos msg_ pos ->
-            let
-                newModel =
-                    { model | connectionListScrollPos = pos }
-            in
-                update msg_ newModel
 
         ConnectionDetailsUpdate msg_ ->
             let
@@ -418,51 +301,39 @@ update msg model =
             update (NavigateTo (tripDetailsRoute tripId)) model
 
         TripToConnectionError tripId err ->
-            -- TODO
-            let
-                _ =
-                    Debug.log "TripToConnectionError" err
-            in
-                setRailVizFilter model Nothing
+            setFullTripError model tripId err
 
         TripToConnectionResponse tripId connection ->
-            showFullTripConnection model tripId connection
+            setFullTripConnection model tripId connection
 
         ScheduleInfoError err ->
             let
-                ( connections_, _ ) =
-                    Connections.update (Connections.SetError err) model.connections
-
-                ( newConnections, c ) =
-                    Connections.update (Connections.UpdateScheduleInfo Nothing) connections_
-
-                newDate =
-                    Calendar.update (Calendar.SetValidRange Nothing) model.date
+                ( routingModel, routingCmd ) =
+                    Routing.update (Routing.ScheduleInfoError err) model.routing
             in
                 { model
                     | scheduleInfo = Nothing
-                    , connections = newConnections
-                    , date = newDate
+                    , routing = routingModel
                 }
-                    ! [ Cmd.map ConnectionsUpdate c ]
+                    ! [ Cmd.map RoutingUpdate routingCmd ]
 
         ScheduleInfoResponse si ->
             let
-                ( connections_, connCmd ) =
-                    Connections.update (Connections.UpdateScheduleInfo (Just si)) model.connections
-
-                newDate =
-                    Calendar.update (Calendar.SetValidRange (Just ( si.begin, si.end ))) model.date
+                ( routingModel, routingCmd ) =
+                    Routing.update (Routing.ScheduleInfoResponse si) model.routing
 
                 ( newTripSearch, _ ) =
                     TripSearch.update (TripSearch.UpdateScheduleInfo si) model.tripSearch
 
+                ( newSimTimePicker, _ ) =
+                    SimTimePicker.update (SimTimePicker.UpdateScheduleInfo si) model.simTimePicker
+
                 model1 =
                     { model
                         | scheduleInfo = Just si
-                        , connections = connections_
-                        , date = newDate
+                        , routing = routingModel
                         , tripSearch = newTripSearch
+                        , simTimePicker = newSimTimePicker
                     }
 
                 currentDate =
@@ -475,19 +346,30 @@ update msg model =
                     if currentTimeInSchedule then
                         ( model1, Cmd.none )
                     else
-                        update (SetSimulationTime (Date.toTime (combineDateTime si.begin currentDate))) model1
+                        update
+                            (SetSimulationTime (Date.toTime (combineDateTime si.begin currentDate)))
+                            { model1 | updateSearchTime = True }
             in
-                model2 ! [ Cmd.map ConnectionsUpdate connCmd, cmd1 ]
-
-        Deb a ->
-            Debounce.update debounceCfg a model
+                model2 ! [ Cmd.map RoutingUpdate routingCmd, cmd1 ]
 
         SetLocale newLocale ->
-            { model
-                | locale = newLocale
-                , date = Calendar.update (Calendar.SetDateConfig newLocale.dateConfig) model.date
-            }
-                ! []
+            let
+                ( routing_, _ ) =
+                    Routing.update (Routing.SetLocale newLocale) model.routing
+
+                ( tripSearch_, _ ) =
+                    TripSearch.update (TripSearch.SetLocale newLocale) model.tripSearch
+
+                ( simTimePicker_, _ ) =
+                    SimTimePicker.update (SimTimePicker.SetLocale newLocale) model.simTimePicker
+            in
+                { model
+                    | locale = newLocale
+                    , routing = routing_
+                    , tripSearch = tripSearch_
+                    , simTimePicker = simTimePicker_
+                }
+                    ! []
 
         NavigateTo route ->
             model ! [ Navigation.newUrl (toUrl route) ]
@@ -497,38 +379,16 @@ update msg model =
 
         SetRoutingResponses files ->
             let
-                parsed =
-                    List.map
-                        (\( name, json ) -> ( name, Decode.decodeString decodeRoutingResponse json ))
-                        files
+                ( routingModel, routingCmd ) =
+                    Routing.update (Routing.SetRoutingResponses files) model.routing
 
-                valid =
-                    List.filterMap
-                        (\( name, result ) ->
-                            case result of
-                                Ok routingResponse ->
-                                    Just ( name, routingResponse )
-
-                                Err _ ->
-                                    Nothing
-                        )
-                        parsed
-
-                errors =
-                    List.filterMap
-                        (\( name, result ) ->
-                            case result of
-                                Err msg_ ->
-                                    Just ( name, msg_ )
-
-                                Ok _ ->
-                                    Nothing
-                        )
-                        parsed
+                ( _, navigation ) =
+                    update (NavigateTo Connections) model
             in
-                update
-                    (ConnectionsUpdate (Connections.SetRoutingResponses valid))
-                    model
+                { model | routing = routingModel }
+                    ! [ Cmd.map RoutingUpdate routingCmd
+                      , navigation
+                      ]
 
         UpdateCurrentTime time ->
             { model | currentTime = Date.fromTime time } ! []
@@ -546,31 +406,34 @@ update msg model =
                     { model
                         | currentTime = Date.fromTime currentTime
                         , timeOffset = offset
+                        , updateSearchTime = False
                     }
-
-                _ =
-                    Debug.log "SetSimulationTime" ( offset, model1.currentTime, getCurrentDate model1 )
 
                 newDate =
                     getCurrentDate model1
+
+                updateSearchTime =
+                    model.updateSearchTime
 
                 ( model2, cmds1 ) =
                     update (MapUpdate (RailViz.SetTimeOffset offset)) model1
 
                 ( model3, cmds2 ) =
-                    update (DateUpdate (Calendar.InitDate True newDate)) model2
+                    if updateSearchTime then
+                        update (RoutingUpdate (Routing.SetSearchTime newDate)) model2
+                    else
+                        model2 ! []
 
                 ( model4, cmds3 ) =
-                    update (TimeUpdate (TimeInput.InitDate True newDate)) model3
-
-                ( model5, cmds4 ) =
-                    update (TripSearchUpdate (TripSearch.SetTime newDate)) model4
+                    if updateSearchTime then
+                        update (TripSearchUpdate (TripSearch.SetTime newDate)) model3
+                    else
+                        model3 ! []
             in
-                model5
+                model4
                     ! [ cmds1
                       , cmds2
                       , cmds3
-                      , cmds4
                       , Port.setTimeOffset offset
                       ]
 
@@ -712,13 +575,19 @@ update msg model =
 
         ShowTripSearch ->
             let
-                model_ =
+                model1 =
                     { model
                         | subView = Just TripSearchView
                         , overlayVisible = True
                     }
+
+                ( model2, cmd1 ) =
+                    setRailVizFilter model1 Nothing
             in
-                setRailVizFilter model_ Nothing
+                model2
+                    ! [ cmd1
+                      , Task.attempt noop (Dom.focus "trip-search-trainnr-input")
+                      ]
 
         ToggleTripSearch ->
             case model.subView of
@@ -744,94 +613,58 @@ update msg model =
             in
                 model2 ! [ cmd1, cmd2 ]
 
+        SimTimePickerUpdate msg_ ->
+            let
+                ( m, c ) =
+                    SimTimePicker.update msg_ model.simTimePicker
 
-buildRoutingRequest : Model -> RoutingRequest
-buildRoutingRequest model =
-    let
-        guessStation input =
-            Station "" input (Position 0 0)
+                ( model1, cmd1 ) =
+                    ( { model | simTimePicker = m }, Cmd.map SimTimePickerUpdate c )
 
-        getStation typeaheadModel =
-            Typeahead.getSelectedStation typeaheadModel
-                |> Maybe.withDefault (guessStation typeaheadModel.input)
+                ( model2, cmd2 ) =
+                    case msg_ of
+                        SimTimePicker.SetSimulationTime ->
+                            let
+                                pickedTime =
+                                    SimTimePicker.getSelectedSimTime model1.simTimePicker
+                            in
+                                update (SetSimulationTime pickedTime) model1
 
-        fromStation =
-            getStation model.fromLocation
+                        SimTimePicker.DisableSimMode ->
+                            let
+                                currentTime =
+                                    Date.toTime model1.currentTime
+                            in
+                                update (SetTimeOffset currentTime currentTime) model1
 
-        toStation =
-            getStation model.toLocation
+                        _ ->
+                            model1 ! []
+            in
+                model2 ! [ cmd1, cmd2 ]
 
-        minConnectionCount =
-            5
-    in
-        RoutingRequest.initialRequest
-            minConnectionCount
-            fromStation
-            toStation
-            (combineDateTime model.date.date model.time.date)
-            model.searchDirection
+        OSRMError journeyIdx walk err ->
+            let
+                _ =
+                    Debug.log "OSRMError" ( journeyIdx, walk, err )
 
+                fallbackPolyline =
+                    { coordinates = walkFallbackPolyline walk }
 
-isCompleteQuery : Model -> Bool
-isCompleteQuery model =
-    let
-        fromStation =
-            Typeahead.getSelectedStation model.fromLocation
+                response =
+                    { time = 0, distance = 0.0, polyline = fallbackPolyline }
+            in
+                setWalkRoute model journeyIdx walk response False
 
-        toStation =
-            Typeahead.getSelectedStation model.toLocation
-    in
-        isJust fromStation && isJust toStation
+        OSRMResponse journeyIdx walk response ->
+            setWalkRoute model journeyIdx walk response True
 
-
-checkRoutingRequest : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-checkRoutingRequest ( model, cmds ) =
-    let
-        completeQuery =
-            isCompleteQuery model
-
-        newRoutingRequest =
-            buildRoutingRequest model
-
-        requestChanged =
-            case model.currentRoutingRequest of
-                Just currentRequest ->
-                    newRoutingRequest /= currentRequest
-
-                Nothing ->
-                    True
-    in
-        if completeQuery && requestChanged then
-            model ! [ cmds, Debounce.debounceCmd debounceCfg <| SearchConnections ]
-        else
-            ( model, cmds )
-
-
-checkTypeaheadUpdate : Typeahead.Msg -> ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
-checkTypeaheadUpdate msg ( model, cmds ) =
-    let
-        model_ =
-            case msg of
-                Typeahead.StationSuggestionsError err ->
-                    let
-                        ( m, _ ) =
-                            Connections.update (Connections.SetError err) model.connections
-                    in
-                        { model | connections = m }
-
-                _ ->
-                    model
-    in
-        checkRoutingRequest ( model_, cmds )
-
-
-debounceCfg : Debounce.Config Model Msg
-debounceCfg =
-    Debounce.config
-        .debounce
-        (\model s -> { model | debounce = s })
-        Deb
-        700
+        SelectWalk walk ->
+            let
+                coords =
+                    walk.polyline
+                        |> Maybe.withDefault (walkFallbackPolyline walk)
+            in
+                model ! [ RailViz.fitBounds coords ]
 
 
 noop : a -> Msg
@@ -839,12 +672,118 @@ noop =
     \_ -> NoOp
 
 
+selectConnection : Model -> Int -> ( Model, Cmd Msg )
+selectConnection model idx =
+    let
+        journey =
+            Connections.getJourney model.routing.connections idx
+
+        ( newRouting, _ ) =
+            Routing.update Routing.ResetNew model.routing
+    in
+        case journey of
+            Just j ->
+                let
+                    trips =
+                        journeyTrips j
+
+                    ( model_, cmds ) =
+                        setRailVizFilter model (Just trips)
+                in
+                    { model_
+                        | connectionDetails =
+                            Maybe.map (ConnectionDetails.init False False Nothing) (Just journey)
+                        , routing = newRouting
+                        , selectedConnectionIdx = Just idx
+                        , tripDetails = Nothing
+                        , stationEvents = Nothing
+                        , subView = Nothing
+                    }
+                        ! [ MapConnectionDetails.setConnectionFilter j
+                          , requestWalkRoutes model.apiEndpoint j idx
+                          , cmds
+                          ]
+
+            Nothing ->
+                update (ReplaceLocation Connections) model
+
+
+requestWalkRoutes : String -> Journey -> Int -> Cmd Msg
+requestWalkRoutes remoteAddress journey idx =
+    let
+        requestWalk walk =
+            if isNothing walk.polyline then
+                Just (sendOSRMViaRouteRequest remoteAddress walk idx)
+            else
+                Nothing
+    in
+        journey.walks
+            |> List.filterMap requestWalk
+            |> Cmd.batch
+
+
+setWalkRoute : Model -> Int -> JourneyWalk -> OSRMViaRouteResponse -> Bool -> ( Model, Cmd Msg )
+setWalkRoute model journeyIdx walk response updateAll =
+    let
+        updateJourney j =
+            { j | walks = List.map updateWalk j.walks }
+
+        updateWalk w =
+            if isSameWalk w then
+                { w | polyline = Just response.polyline.coordinates }
+            else
+                w
+
+        isSameWalk w =
+            (w.from.station == walk.from.station)
+                && (w.to.station == walk.to.station)
+                && (w.mumoType == walk.mumoType)
+
+        routing =
+            model.routing
+
+        connections_ =
+            if updateAll then
+                Connections.updateJourneys routing.connections updateJourney
+            else
+                Connections.updateJourney routing.connections journeyIdx updateJourney
+
+        routing_ =
+            { routing | connections = connections_ }
+
+        journey =
+            Connections.getJourney connections_ journeyIdx
+
+        journeyComplete =
+            journey
+                |> Maybe.map (\j -> List.all (.polyline >> isJust) j.walks)
+                |> Maybe.withDefault False
+
+        cmd =
+            case model.selectedConnectionIdx of
+                Just journeyIdx ->
+                    if journeyComplete then
+                        journey
+                            |> Maybe.map (MapConnectionDetails.updateWalks)
+                            |> Maybe.withDefault Cmd.none
+                    else
+                        Cmd.none
+
+                _ ->
+                    Cmd.none
+    in
+        { model
+            | routing = routing_
+        }
+            ! [ cmd ]
+
+
 selectConnectionTrip : Model -> Int -> ( Model, Cmd Msg )
 selectConnectionTrip model tripIdx =
     let
         journey =
             model.selectedConnectionIdx
-                |> Maybe.andThen (Connections.getJourney model.connections)
+                |> Maybe.andThen (Connections.getJourney model.routing.connections)
 
         trip =
             journey
@@ -861,11 +800,65 @@ selectConnectionTrip model tripIdx =
 
 loadTripById : Model -> TripId -> ( Model, Cmd Msg )
 loadTripById model tripId =
-    { model
-        | stationEvents = Nothing
-        , overlayVisible = True
-    }
-        ! [ sendTripRequest model.apiEndpoint tripId ]
+    let
+        tripDetails =
+            ConnectionDetails.init True True (Just tripId) Nothing
+    in
+        { model
+            | stationEvents = Nothing
+            , tripDetails = Just tripDetails
+            , subView = Just TripDetailsView
+            , overlayVisible = True
+        }
+            ! [ sendTripRequest model.apiEndpoint tripId
+              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
+              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
+              ]
+
+
+setFullTripConnection : Model -> TripId -> Connection -> ( Model, Cmd Msg )
+setFullTripConnection model tripId connection =
+    let
+        journey =
+            toJourney connection
+
+        tripJourney =
+            { journey | isSingleCompleteTrip = True }
+
+        ( tripDetails, _ ) =
+            case model.tripDetails of
+                Just td ->
+                    ConnectionDetails.update (ConnectionDetails.SetJourney tripJourney True) td
+
+                Nothing ->
+                    ConnectionDetails.init True True (Just tripId) (Just tripJourney) ! []
+
+        ( model_, cmds ) =
+            setRailVizFilter model (Just [ tripId ])
+    in
+        { model_
+            | tripDetails = Just tripDetails
+            , subView = Just TripDetailsView
+        }
+            ! [ MapConnectionDetails.setConnectionFilter tripJourney
+              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
+              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
+              , cmds
+              ]
+
+
+setFullTripError : Model -> TripId -> ApiError -> ( Model, Cmd Msg )
+setFullTripError model tripId error =
+    case model.tripDetails of
+        Just td ->
+            let
+                ( tripDetails, _ ) =
+                    ConnectionDetails.update (ConnectionDetails.SetApiError error) td
+            in
+                setRailVizFilter { model | tripDetails = Just tripDetails } Nothing
+
+        Nothing ->
+            model ! []
 
 
 getCurrentTime : Model -> Time
@@ -898,8 +891,7 @@ getLocale language =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Sub.map FromTransportsUpdate (TagList.subscriptions model.fromTransports)
-        , Sub.map ToTransportsUpdate (TagList.subscriptions model.toTransports)
+        [ Sub.map RoutingUpdate (Routing.subscriptions model.routing)
         , Sub.map MapUpdate (RailViz.subscriptions model.railViz)
         , Port.setRoutingResponses SetRoutingResponses
         , Port.showStationDetails ShowStationDetails
@@ -925,6 +917,7 @@ view model =
             [ Html.map MapUpdate (RailViz.view model.locale permalink model.railViz)
             , lazy overlayView model
             , lazy stationSearchView model
+            , lazy simTimePickerView model
             ]
 
 
@@ -934,7 +927,8 @@ overlayView model =
         mainOverlayContent =
             case model.connectionDetails of
                 Nothing ->
-                    searchView model
+                    Routing.view model.locale model.routing
+                        |> List.map (Html.map RoutingUpdate)
 
                 Just c ->
                     connectionDetailsView model.locale (getCurrentDate model) c
@@ -991,81 +985,6 @@ overlayView model =
             ]
 
 
-searchView : Model -> List (Html Msg)
-searchView model =
-    [ div [ id "search" ]
-        [ div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-1-2 from-location" ]
-                [ Html.map FromLocationUpdate <|
-                    Typeahead.view 1 model.locale.t.search.start (Just "place") model.fromLocation
-                , (swapLocationsView model)
-                ]
-            , div [ class "pure-u-1 pure-u-sm-1-2" ]
-                [ Html.map DateUpdate <|
-                    Calendar.view 3 model.locale.t.search.date model.date
-                ]
-            ]
-        , div [ class "pure-g gutters" ]
-            [ div [ class "pure-u-1 pure-u-sm-12-24 to-location" ]
-                [ Html.map ToLocationUpdate <|
-                    Typeahead.view 2 model.locale.t.search.destination (Just "place") model.toLocation
-                ]
-            , div [ class "pure-u-1 pure-u-sm-9-24" ]
-                [ Html.map TimeUpdate <|
-                    TimeInput.view 4 model.locale.t.search.time model.time
-                ]
-            , div [ class "pure-u-1 pure-u-sm-3-24 time-option" ]
-                (searchDirectionView model)
-            ]
-        ]
-    , div [ id "connections" ]
-        [ lazy3 Connections.view connectionConfig model.locale model.connections ]
-    ]
-
-
-searchDirectionView : Model -> List (Html Msg)
-searchDirectionView model =
-    [ div []
-        [ input
-            [ type_ "radio"
-            , id "search-forward"
-            , name "time-option"
-            , checked (model.searchDirection == Forward)
-            , onClick (SearchDirectionUpdate Forward)
-            ]
-            []
-        , label [ for "search-forward" ] [ text model.locale.t.search.departure ]
-        ]
-    , div []
-        [ input
-            [ type_ "radio"
-            , id "search-backward"
-            , name "time-option"
-            , checked (model.searchDirection == Backward)
-            , onClick (SearchDirectionUpdate Backward)
-            ]
-            []
-        , label [ for "search-backward" ] [ text model.locale.t.search.arrival ]
-        ]
-    ]
-
-
-swapLocationsView : Model -> Html Msg
-swapLocationsView model =
-    div
-        [ class "swap-locations-btn" ]
-        [ label
-            [ class "gb-button gb-button-small gb-button-circle gb-button-outline gb-button-PRIMARY_COLOR disable-select" ]
-            [ input
-                [ type_ "checkbox"
-                , onClick SwitchInputs
-                ]
-                []
-            , i [ class "icon" ] [ text "swap_vert" ]
-            ]
-        ]
-
-
 stationSearchView : Model -> Html Msg
 stationSearchView model =
     div
@@ -1079,12 +998,12 @@ stationSearchView model =
         ]
 
 
-connectionConfig : Connections.Config Msg
-connectionConfig =
-    Connections.Config
-        { internalMsg = ConnectionsUpdate
-        , selectMsg = PrepareSelectConnection
-        }
+simTimePickerView : Model -> Html Msg
+simTimePickerView model =
+    div [ class "sim-time-picker-container" ]
+        [ Html.map SimTimePickerUpdate <|
+            SimTimePicker.view model.locale model.simTimePicker
+        ]
 
 
 connectionDetailsView : Localization -> Date -> ConnectionDetails.State -> List (Html Msg)
@@ -1098,6 +1017,7 @@ connectionDetailsConfig =
         { internalMsg = ConnectionDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
         , selectStationMsg = PrepareSelectStation
+        , selectWalkMsg = SelectWalk
         , goBackMsg = ConnectionDetailsGoBack
         }
 
@@ -1113,6 +1033,7 @@ tripDetailsConfig =
         { internalMsg = TripDetailsUpdate
         , selectTripMsg = PrepareSelectTrip
         , selectStationMsg = PrepareSelectStation
+        , selectWalkMsg = SelectWalk
         , goBackMsg = TripDetailsGoBack
         }
 
@@ -1249,6 +1170,36 @@ sendTripRequest remoteAddress tripId =
         (encodeTripToConnection tripId)
 
 
+sendOSRMViaRouteRequest : String -> JourneyWalk -> Int -> Cmd Msg
+sendOSRMViaRouteRequest remoteAddress walk journeyIdx =
+    let
+        request =
+            { profile = osrmProfile walk
+            , waypoints =
+                [ walk.from.station.pos
+                , walk.to.station.pos
+                ]
+            }
+
+        osrmProfile walk =
+            case walk.mumoType of
+                "bike" ->
+                    "bike"
+
+                "walk" ->
+                    "foot"
+
+                _ ->
+                    "foot"
+    in
+        Api.sendRequest
+            remoteAddress
+            decodeOSRMViaRouteResponse
+            (OSRMError journeyIdx walk)
+            (OSRMResponse journeyIdx walk)
+            (encodeOSRMViaRouteRequest request)
+
+
 
 -- NAVIGATION
 
@@ -1298,41 +1249,6 @@ routeToMsg route =
             HandleRailVizPermalink lat lng zoom date
 
 
-selectConnection : Model -> Int -> ( Model, Cmd Msg )
-selectConnection model idx =
-    let
-        journey =
-            Connections.getJourney model.connections idx
-
-        ( newConnections, _ ) =
-            Connections.update Connections.ResetNew model.connections
-    in
-        case journey of
-            Just j ->
-                let
-                    trips =
-                        journeyTrips j
-
-                    ( model_, cmds ) =
-                        setRailVizFilter model (Just trips)
-                in
-                    { model_
-                        | connectionDetails =
-                            Maybe.map (ConnectionDetails.init False False Nothing) journey
-                        , connections = newConnections
-                        , selectedConnectionIdx = Just idx
-                        , tripDetails = Nothing
-                        , stationEvents = Nothing
-                        , subView = Nothing
-                    }
-                        ! [ MapConnectionDetails.setConnectionFilter j
-                          , cmds
-                          ]
-
-            Nothing ->
-                update (ReplaceLocation Connections) model
-
-
 closeSelectedConnection : Model -> ( Model, Cmd Msg )
 closeSelectedConnection model =
     let
@@ -1346,7 +1262,7 @@ closeSelectedConnection model =
             , stationEvents = Nothing
             , subView = Nothing
         }
-            ! [ Task.attempt noop <| Scroll.toY "connections" model.connectionListScrollPos
+            ! [ Task.attempt noop <| Scroll.toY "connections" model.routing.connectionListScrollPos
               , cmds
               ]
 
@@ -1364,29 +1280,6 @@ closeSubOverlay model =
           }
         , cmds
         )
-
-
-showFullTripConnection : Model -> TripId -> Connection -> ( Model, Cmd Msg )
-showFullTripConnection model tripId connection =
-    let
-        journey =
-            toJourney connection
-
-        tripJourney =
-            { journey | isSingleCompleteTrip = True }
-
-        ( model_, cmds ) =
-            setRailVizFilter model (Just [ tripId ])
-    in
-        { model_
-            | tripDetails = Just (ConnectionDetails.init True True (Just tripId) tripJourney)
-            , subView = Just TripDetailsView
-        }
-            ! [ MapConnectionDetails.setConnectionFilter tripJourney
-              , Task.attempt noop <| Scroll.toTop "sub-overlay-content"
-              , Task.attempt noop <| Scroll.toTop "sub-connection-journey"
-              , cmds
-              ]
 
 
 setRailVizFilter : Model -> Maybe (List TripId) -> ( Model, Cmd Msg )

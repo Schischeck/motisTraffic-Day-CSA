@@ -1,6 +1,7 @@
 module Data.Address.Request exposing (..)
 
 import Data.Address.Types exposing (..)
+import Data.Connection.Request exposing (encodePosition)
 import Json.Encode as Encode exposing (string, int)
 import Util.Core exposing ((=>))
 
@@ -17,4 +18,26 @@ encodeAddressRequest input =
         , "content"
             => Encode.object
                 [ "input" => Encode.string input ]
+        ]
+
+
+
+-- for local storage
+
+
+encodeAddress : Address -> Encode.Value
+encodeAddress address =
+    Encode.object
+        [ "pos" => encodePosition address.pos
+        , "name" => Encode.string address.name
+        , "type" => Encode.string address.type_
+        , "regions" => Encode.list (List.map encodeRegion address.regions)
+        ]
+
+
+encodeRegion : Region -> Encode.Value
+encodeRegion region =
+    Encode.object
+        [ "name" => Encode.string region.name
+        , "admin_level" => Encode.int region.adminLevel
         ]

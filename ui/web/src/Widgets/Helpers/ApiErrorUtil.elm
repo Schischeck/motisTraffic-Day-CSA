@@ -35,5 +35,11 @@ motisErrorMsg { t } err =
         ModuleError TargetNotFound ->
             t.errors.moduleNotFound
 
+        OsrmError OsrmProfileNotAvailable ->
+            t.errors.osrmProfileNotAvailable
+
+        OsrmError OsrmNoRoutingResponse ->
+            t.errors.osrmNoRoutingResponse
+
         _ ->
             t.errors.internalError (toString err)

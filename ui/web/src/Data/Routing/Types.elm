@@ -28,6 +28,14 @@ type SearchDirection
     | Backward
 
 
+type SearchType
+    = DefaultSearchType
+    | SingleCriterion
+    | SingleCriterionNoIntercity
+    | LateConnections
+    | LateConnectionsTest
+
+
 type alias Interval =
     { begin : Int
     , end : Int

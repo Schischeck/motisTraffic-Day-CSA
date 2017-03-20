@@ -1,7 +1,7 @@
 module Data.Intermodal.Types exposing (..)
 
 import Data.Connection.Types exposing (Connection, Station, Position)
-import Data.Routing.Types exposing (SearchDirection, Interval)
+import Data.Routing.Types exposing (SearchDirection, SearchType, Interval)
 
 
 type alias IntermodalRoutingRequest =
@@ -9,6 +9,7 @@ type alias IntermodalRoutingRequest =
     , startModes : List Mode
     , destination : IntermodalDestination
     , destinationModes : List Mode
+    , searchType : SearchType
     , searchDir : SearchDirection
     }
 
@@ -21,6 +22,9 @@ type IntermodalStart
 type alias IntermodalPretripStartInfo =
     { position : Position
     , interval : Interval
+    , minConnectionCount : Int
+    , extendIntervalEarlier : Bool
+    , extendIntervalLater : Bool
     }
 
 
@@ -49,8 +53,3 @@ type alias FootModeInfo =
 
 type alias BikeModeInfo =
     { maxDuration : Int }
-
-
-type alias IntermodalRoutingResponse =
-    { connections : List Connection
-    }

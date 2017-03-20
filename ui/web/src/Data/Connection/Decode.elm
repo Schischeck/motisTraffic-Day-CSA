@@ -104,7 +104,7 @@ decodeWalkInfo : Decode.Decoder WalkInfo
 decodeWalkInfo =
     decode WalkInfo
         |> required "range" decodeRange
-        |> required "mumo_id" int
+        |> optional "mumo_id" int 0
         |> optional "price" (nullable int) Nothing
         |> required "mumo_type" string
 

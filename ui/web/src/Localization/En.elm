@@ -24,6 +24,7 @@ enTranslations =
         , departure = "Departure"
         , arrival = "Arrival"
         , trainNr = "Train Number"
+        , maxDuration = "Max. duration (minutes)"
         }
     , connections =
         { timeHeader = "Time"
@@ -66,8 +67,10 @@ enTranslations =
                     _ ->
                         (toString count) ++ " intermediate stops"
         , tripWalk = \duration -> "Walk (" ++ duration ++ ")"
+        , tripBike = \duration -> "Bike (" ++ duration ++ ")"
         , provider = "Provider"
         , walk = "Walk"
+        , bike = "Bike"
         , trainNr = "Train number"
         , lineId = "Line"
         }
@@ -82,6 +85,7 @@ enTranslations =
         { trainColors = "Train colors"
         , delayColors = "Delay"
         , classColors = "Category"
+        , simActive = "Simulation mode active"
         }
     , errors =
         { journeyDateNotInSchedule = "Date not in schedule"
@@ -91,10 +95,15 @@ enTranslations =
         , http = \code -> "HTTP error " ++ (toString code)
         , decode = \msg -> "Invalid response (" ++ msg ++ ")"
         , moduleNotFound = "Module not found"
+        , osrmProfileNotAvailable = "OSRM: Profile not available"
+        , osrmNoRoutingResponse = "OSRM: No routing response"
         }
     , trips =
         { noResults = "No matching trains found"
         }
     , misc =
         { permalink = "Permalink" }
+    , simTime =
+        { simMode = "Simulation mode"
+        }
     }

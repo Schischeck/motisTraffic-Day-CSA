@@ -1,23 +1,101 @@
-module Widgets.TagList exposing (Model, Msg, init, subscriptions, update, view)
+module Widgets.TagList
+    exposing
+        ( Model
+        , Tag(..)
+        , Msg
+        , init
+        , subscriptions
+        , update
+        , view
+        , getSelectedTags
+        , saveSelections
+        )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onInput)
 import Html.Lazy exposing (..)
-import Set exposing (..)
 import Mouse
 import Util.View exposing (onStopAll, onStopPropagation)
+import Util.List exposing ((!!))
+import Util.Core exposing ((=>))
+import Localization.Base exposing (..)
+import Json.Encode as Encode
+import Json.Decode as Decode
+import Json.Decode.Pipeline as JDP exposing (decode, required, optional, hardcoded, requiredAt)
+import List.Extra
 
 
 -- MODEL
 
 
 type alias Model =
-    { tags : Set String
-    , selected : Set String
+    { tags : List Tag
+    , selected : List Tag
     , visible : Bool
     , ignoreNextToggle : Bool
     }
+
+
+type Tag
+    = WalkTag TagOptions
+    | BikeTag TagOptions
+    | CarTag TagOptions
+
+
+type alias TagOptions =
+    { maxDuration : Int }
+
+
+defaultMaxDuration : Int
+defaultMaxDuration =
+    900
+
+
+init : Maybe String -> Model
+init storedSelections =
+    { tags =
+        [ WalkTag { maxDuration = defaultMaxDuration }
+        , BikeTag { maxDuration = defaultMaxDuration }
+        ]
+    , selected =
+        storedSelections
+            |> Maybe.map restoreSelections
+            |> Maybe.withDefault []
+    , visible = False
+    , ignoreNextToggle = False
+    }
+
+
+getSelectedTags : Model -> List Tag
+getSelectedTags model =
+    model.selected
+
+
+getTagOptions : Tag -> TagOptions
+getTagOptions tag =
+    case tag of
+        WalkTag o ->
+            o
+
+        BikeTag o ->
+            o
+
+        CarTag o ->
+            o
+
+
+updateTagOptions : (TagOptions -> TagOptions) -> Tag -> Tag
+updateTagOptions f tag =
+    case tag of
+        WalkTag o ->
+            WalkTag (f o)
+
+        BikeTag o ->
+            BikeTag (f o)
+
+        CarTag o ->
+            CarTag (f o)
 
 
 
@@ -25,10 +103,11 @@ type alias Model =
 
 
 type Msg
-    = AddTag String
-    | RemoveTag String
+    = AddTag Tag
+    | RemoveTag Tag
     | ToggleVisibility
     | Click
+    | TagDurationInput Tag String
     | NoOp
 
 
@@ -40,13 +119,13 @@ update msg model =
 
         AddTag t ->
             { model
-                | selected = Set.insert t model.selected
+                | selected = model.selected ++ [ t ]
                 , visible = False
                 , ignoreNextToggle = True
             }
 
         RemoveTag t ->
-            { model | selected = Set.remove t model.selected }
+            { model | selected = List.filter (\s -> s /= t) model.selected }
 
         ToggleVisibility ->
             if model.ignoreNextToggle then
@@ -57,24 +136,39 @@ update msg model =
         Click ->
             { model | visible = False }
 
+        TagDurationInput t input ->
+            let
+                duration =
+                    String.toInt input
+                        |> Result.map (\v -> v * 60)
+                        |> Result.withDefault 0
+
+                t_ =
+                    updateTagOptions (\o -> { o | maxDuration = duration }) t
+
+                selected_ =
+                    List.Extra.replaceIf (\x -> x == t) t_ model.selected
+            in
+                { model | selected = selected_ }
+
 
 
 -- VIEW
 
 
-tagListView : String -> Model -> Html Msg
-tagListView label model =
+tagListView : Localization -> String -> Model -> Html Msg
+tagListView locale label model =
     let
         availableTags =
-            Set.toList (Set.diff model.tags model.selected)
+            List.filter (\t -> not (List.member t model.selected)) model.tags
                 |> List.map
-                    (\s ->
-                        a [ class "tag", onClick (AddTag s) ]
-                            [ i [ class "icon" ] [ text s ] ]
+                    (\t ->
+                        a [ class "tag", onClick (AddTag t) ]
+                            [ i [ class "icon" ] [ text (tagIcon t) ] ]
                     )
                 |> div
                     [ classList
-                        [ ( "add", True )
+                        [ ( "add-tag-popup", True )
                         , ( "paper", True )
                         , ( "hide", not model.visible )
                         ]
@@ -82,35 +176,68 @@ tagListView label model =
                     ]
 
         addButton =
-            if (Set.size model.selected == Set.size model.tags) then
+            if (List.length model.selected == List.length model.tags) then
                 []
             else
-                [ div [ class "tag outline", onClick ToggleVisibility ]
+                [ div [ class "tag outline clickable", onClick ToggleVisibility ]
                     ([ i [ class "icon" ] [ text "add" ] ]
                         ++ [ availableTags ]
                     )
                 ]
 
         selectedTags =
-            Set.toList model.selected
-                |> List.map
-                    (\s ->
-                        a [ class "tag" ]
-                            [ i [ class "icon" ] [ text s ]
-                            , i [ class "remove icon", onClick (RemoveTag s) ] [ text "cancel" ]
-                            ]
-                    )
+            model.selected
+                |> List.map (tagView locale)
     in
-        div [ class "clear" ]
-            ([ div [ class "label" ] [ text label ] ]
-                ++ selectedTags
-                ++ addButton
-            )
+        div [ class "tag-list" ]
+            [ div [ class "label" ] [ text label ]
+            , div [ class "tags" ]
+                (selectedTags ++ addButton)
+            ]
 
 
-view : String -> Model -> Html Msg
-view label model =
-    lazy2 tagListView label model
+tagView : Localization -> Tag -> Html Msg
+tagView locale tag =
+    let
+        tagOptions =
+            getTagOptions tag
+
+        maxDuration =
+            toString (tagOptions.maxDuration // 60)
+    in
+        div [ class "tag" ]
+            [ i [ class "tag-icon icon" ] [ text (tagIcon tag) ]
+            , i [ class "remove icon", onClick (RemoveTag tag) ] [ text "cancel" ]
+            , div [ class "options" ]
+                [ input
+                    [ type_ "text"
+                    , attribute "inputmode" "numeric"
+                    , attribute "pattern" "[0-9]+"
+                    , value maxDuration
+                    , title locale.t.search.maxDuration
+                    , onInput (TagDurationInput tag)
+                    ]
+                    []
+                ]
+            ]
+
+
+tagIcon : Tag -> String
+tagIcon tag =
+    case tag of
+        WalkTag _ ->
+            "directions_walk"
+
+        BikeTag _ ->
+            "directions_bike"
+
+        CarTag _ ->
+            "directions_car"
+
+
+view : Localization -> String -> Model -> Html Msg
+view locale label model =
+    lazy3 tagListView locale label model
 
 
 
@@ -126,13 +253,69 @@ subscriptions model =
 
 
 
--- INIT
+-- LOCAL STORAGE
 
 
-init : Model
-init =
-    { tags = Set.fromList [ "directions_car", "directions_walk", "directions_bike" ]
-    , selected = Set.empty
-    , visible = False
-    , ignoreNextToggle = False
-    }
+encodeTag : Tag -> Encode.Value
+encodeTag tag =
+    case tag of
+        WalkTag o ->
+            Encode.object
+                [ "type" => Encode.string "Walk"
+                , "max_duration" => Encode.int o.maxDuration
+                ]
+
+        BikeTag o ->
+            Encode.object
+                [ "type" => Encode.string "Bike"
+                , "max_duration" => Encode.int o.maxDuration
+                ]
+
+        CarTag o ->
+            Encode.object
+                [ "type" => Encode.string "Car"
+                , "max_duration" => Encode.int o.maxDuration
+                ]
+
+
+decodeTag : Decode.Decoder Tag
+decodeTag =
+    let
+        parseTag : String -> Decode.Decoder Tag
+        parseTag type_ =
+            case type_ of
+                "Walk" ->
+                    decodeOptions
+                        |> Decode.map WalkTag
+
+                "Bike" ->
+                    decodeOptions
+                        |> Decode.map BikeTag
+
+                "Car" ->
+                    decodeOptions
+                        |> Decode.map CarTag
+
+                _ ->
+                    Decode.fail "unknown tag type"
+
+        decodeOptions : Decode.Decoder TagOptions
+        decodeOptions =
+            decode TagOptions
+                |> JDP.required "max_duration" Decode.int
+    in
+        (Decode.field "type" Decode.string) |> Decode.andThen parseTag
+
+
+saveSelections : Model -> String
+saveSelections model =
+    model.selected
+        |> List.map encodeTag
+        |> Encode.list
+        |> Encode.encode 0
+
+
+restoreSelections : String -> List Tag
+restoreSelections str =
+    Decode.decodeString (Decode.list decodeTag) str
+        |> Result.withDefault []

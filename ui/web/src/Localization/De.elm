@@ -24,6 +24,7 @@ deTranslations =
         , departure = "Abfahrt"
         , arrival = "Ankunft"
         , trainNr = "Zugnummer"
+        , maxDuration = "Maximale Dauer (Minuten)"
         }
     , connections =
         { timeHeader = "Zeit"
@@ -67,8 +68,10 @@ deTranslations =
                     _ ->
                         "Fahrt " ++ (toString count) ++ " Stationen"
         , tripWalk = \duration -> "Fußweg (" ++ duration ++ ")"
+        , tripBike = \duration -> "Fahrrad (" ++ duration ++ ")"
         , provider = "Betreiber"
         , walk = "Fußweg"
+        , bike = "Fahrrad"
         , trainNr = "Zugnummer"
         , lineId = "Linie"
         }
@@ -83,6 +86,7 @@ deTranslations =
         { trainColors = "Zugfarben"
         , delayColors = "Verspätung"
         , classColors = "Kategorie"
+        , simActive = "Simulationsmodus aktiv"
         }
     , errors =
         { journeyDateNotInSchedule = "Zeitraum nicht im Fahrplan"
@@ -92,10 +96,15 @@ deTranslations =
         , http = \code -> "HTTP-Fehler " ++ (toString code)
         , decode = \msg -> "Ungültige Antwort (" ++ msg ++ ")"
         , moduleNotFound = "Modul nicht geladen"
+        , osrmProfileNotAvailable = "OSRM: Profil nicht verfügbar"
+        , osrmNoRoutingResponse = "OSRM: Keine Routing-Antwort"
         }
     , trips =
         { noResults = "Keine passenden Züge gefunden"
         }
     , misc =
         { permalink = "Permalink" }
+    , simTime =
+        { simMode = "Simulationsmodus"
+        }
     }

@@ -20,7 +20,7 @@ import Data.RailViz.Decode exposing (decodeRailVizTripGuessResponse)
 import Data.RailViz.Request as Request exposing (encodeTripGuessRequest)
 import Data.ScheduleInfo.Types exposing (ScheduleInfo)
 import Util.Core exposing ((=>))
-import Util.Date exposing (combineDateTime, unixTime)
+import Util.Date exposing (combineDateTime, unixTime, isSameDay)
 import Util.DateFormat exposing (..)
 import Util.Api as Api exposing (ApiError)
 import Localization.Base exposing (..)
@@ -71,7 +71,7 @@ init remoteAddress locale =
             Calendar.init locale.dateConfig
 
         ( timeModel, timeCmd ) =
-            TimeInput.init
+            TimeInput.init False
     in
         { loading = False
         , remoteAddress = remoteAddress
@@ -294,6 +294,7 @@ trainNrInputView tabIndex label model =
         , tabindex tabIndex
         , attribute "inputmode" "numeric"
         , attribute "pattern" "[0-9]+"
+        , id "trip-search-trainnr-input"
         ]
         label
         Nothing
@@ -326,14 +327,14 @@ tripsView config locale model =
                 div [ class "no-results" ]
                     [ div [] [ text locale.t.trips.noResults ] ]
             else
-                div [] (List.map (tripView config locale) trips)
+                div [] (List.map (tripView config locale model.date.date) trips)
 
         Nothing ->
             text ""
 
 
-tripView : Config msg -> Localization -> Trip -> Html msg
-tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale trip =
+tripView : Config msg -> Localization -> Date -> Trip -> Html msg
+tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale queryDate trip =
     let
         departureTime =
             Date.fromTime (toFloat trip.tripInfo.id.time * 1000)
@@ -343,12 +344,21 @@ tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale trip =
 
         direction =
             if not (String.isEmpty transport.direction) then
-                div [ class "direction" ]
+                div
+                    [ class "direction"
+                    , title transport.direction
+                    ]
                     [ i [ class "icon" ] [ text "arrow_forward" ]
                     , text transport.direction
                     ]
             else
                 text ""
+
+        dateText =
+            if isSameDay queryDate departureTime then
+                text ""
+            else
+                div [ class "date" ] [ text (formatShortDate locale.dateConfig departureTime) ]
     in
         div [ class "trip" ]
             [ div [ class "trip-train" ]
@@ -357,11 +367,14 @@ tripView (Config { internalMsg, selectTripMsg, selectStationMsg }) locale trip =
                     [ trainBox LongName locale transport ]
                 ]
             , div [ class "trip-time" ]
-                [ text (formatTime departureTime) ]
+                [ div [ class "time" ] [ text (formatTime departureTime) ]
+                , dateText
+                ]
             , div [ class "trip-first-station" ]
-                [ span
+                [ div
                     [ class "station"
                     , onClick (selectStationMsg trip.firstStation (Just departureTime))
+                    , title trip.firstStation.name
                     ]
                     [ text trip.firstStation.name ]
                 , direction

@@ -22,6 +22,7 @@ type alias Translations =
         , departure : String
         , arrival : String
         , trainNr : String
+        , maxDuration : String
         }
     , connections :
         { timeHeader : String
@@ -39,8 +40,10 @@ type alias Translations =
         , track : String
         , tripIntermediateStops : Int -> String
         , tripWalk : String -> String
+        , tripBike : String -> String
         , provider : String
         , walk : String
+        , bike : String
         , trainNr : String
         , lineId : String
         }
@@ -55,6 +58,7 @@ type alias Translations =
         { trainColors : String
         , delayColors : String
         , classColors : String
+        , simActive : String
         }
     , errors :
         { journeyDateNotInSchedule : String
@@ -64,10 +68,15 @@ type alias Translations =
         , http : Int -> String
         , decode : String -> String
         , moduleNotFound : String
+        , osrmProfileNotAvailable : String
+        , osrmNoRoutingResponse : String
         }
     , trips :
         { noResults : String
         }
     , misc :
         { permalink : String }
+    , simTime :
+        { simMode : String
+        }
     }
