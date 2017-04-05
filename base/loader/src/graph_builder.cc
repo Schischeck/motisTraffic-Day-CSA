@@ -522,7 +522,9 @@ void graph_builder::connect_reverse() {
 }
 
 void graph_builder::sort_trips() {
-  std::sort(begin(sched_.trips_), end(sched_.trips_));
+  std::sort(
+      begin(sched_.trips_), end(sched_.trips_),
+      [](auto const& lhs, auto const& rhs) { return lhs.first < rhs.first; });
 }
 
 bitfield const& graph_builder::get_or_create_bitfield(
