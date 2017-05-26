@@ -110,5 +110,7 @@ public class Query {
         outState.putInt(MINUTE, getMinute());
     }
 
-    public boolean isComplete() { return !getFromId().isEmpty() && !getToId().isEmpty();  }
+    public boolean isComplete() {
+        return !getFromId().isEmpty() && !getToId().isEmpty() && !getFromId().equals(getToId());
+    }
 }
