@@ -363,6 +363,9 @@ buildRoutingRequest model =
                 Just (Typeahead.AddressSuggestion a) ->
                     IntermodalPosition a.pos
 
+                Just (Typeahead.PositionSuggestion p) ->
+                    IntermodalPosition p
+
                 Nothing ->
                     default
 

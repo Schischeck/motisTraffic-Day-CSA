@@ -522,6 +522,9 @@ update msg model =
                                 Just (Typeahead.AddressSuggestion address) ->
                                     RailViz.flyTo address.pos Nothing True
 
+                                Just (Typeahead.PositionSuggestion pos) ->
+                                    RailViz.flyTo pos Nothing True
+
                                 Nothing ->
                                     Cmd.none
 

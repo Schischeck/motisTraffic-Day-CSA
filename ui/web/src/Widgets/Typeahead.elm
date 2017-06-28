@@ -29,9 +29,9 @@ import Util.List exposing ((!!), last)
 import Util.Api as Api exposing (ApiError(..))
 import Util.Core exposing ((=>))
 import Debounce
-import Data.Connection.Types exposing (Station)
-import Data.Connection.Decode exposing (decodeStation)
-import Data.Connection.Request exposing (encodeStation)
+import Data.Connection.Types exposing (Station, Position)
+import Data.Connection.Decode exposing (decodeStation, decodePosition)
+import Data.Connection.Request exposing (encodeStation, encodePosition)
 import Data.StationGuesser.Request as StationGuesser
 import Data.StationGuesser.Decode exposing (decodeStationGuesserResponse)
 import Data.Address.Types exposing (..)
@@ -48,6 +48,7 @@ import Json.Decode.Pipeline as JDP exposing (decode, required, optional, hardcod
 type alias Model =
     { stationSuggestions : List Station
     , addressSuggestions : List Address
+    , positionSuggestions : List Position
     , suggestions : List Suggestion
     , input : String
     , hoverIndex : Int
@@ -62,6 +63,7 @@ type alias Model =
 type Suggestion
     = StationSuggestion Station
     | AddressSuggestion Address
+    | PositionSuggestion Position
 
 
 init : String -> String -> ( Model, Cmd Msg )
@@ -78,6 +80,7 @@ init remoteAddress initialValue =
         { suggestions = []
         , stationSuggestions = []
         , addressSuggestions = []
+        , positionSuggestions = []
         , input = inputText
         , hoverIndex = 0
         , selectedSuggestion = suggestion
@@ -103,6 +106,7 @@ type Msg
     | StationSuggestionsError ApiError
     | AddressSuggestionsResponse AddressResponse
     | AddressSuggestionsError ApiError
+    | PositionSuggestionsResponse (Maybe Position)
     | InputChange String
     | EnterSelection
     | ClickElement Int
@@ -141,6 +145,9 @@ update msg model =
                     Debug.log "AddressSuggestionsError" err
             in
                 updateSuggestions { model | addressSuggestions = [] } ! []
+
+        PositionSuggestionsResponse maybePos ->
+            updateSuggestions { model | positionSuggestions = Maybe.Extra.maybeToList maybePos } ! []
 
         InputChange str ->
             { model
@@ -222,8 +229,11 @@ updateSuggestions model =
         addresses =
             List.map AddressSuggestion model.addressSuggestions
 
+        positions =
+            List.map PositionSuggestion model.positionSuggestions
+
         model1 =
-            { model | suggestions = stations ++ addresses }
+            { model | suggestions = positions ++ stations ++ addresses }
 
         model2 =
             case model1.selectedSuggestion of
@@ -255,6 +265,9 @@ getSuggestionName suggestion =
         AddressSuggestion address ->
             getAddressStr address
 
+        PositionSuggestion pos ->
+            getPositionStr pos
+
 
 getShortSuggestionName : Suggestion -> String
 getShortSuggestionName suggestion =
@@ -264,6 +277,9 @@ getShortSuggestionName suggestion =
 
         AddressSuggestion address ->
             getShortAddressStr address
+
+        PositionSuggestion pos ->
+            getPositionStr pos
 
 
 getAddressStr : Address -> String
@@ -309,6 +325,11 @@ getCountry address =
         |> List.filter (\a -> a.adminLevel == 2)
         |> List.head
         |> Maybe.map .name
+
+
+getPositionStr : Position -> String
+getPositionStr pos =
+    (toString pos.lat) ++ ";" ++ (toString pos.lng)
 
 
 getSelectedSuggestion : Model -> Maybe Suggestion
@@ -411,6 +432,9 @@ proposalView hoverIndex index suggestion =
 
                 AddressSuggestion address ->
                     addressView address
+
+                PositionSuggestion pos ->
+                    positionView pos
     in
         li
             [ classList [ ( "selected", hoverIndex == index ) ]
@@ -444,6 +468,17 @@ addressView address =
         [ i [ class "icon" ] [ text "place" ]
         , span [ class "address-name" ] [ text name ]
         , span [ class "address-region" ] [ text region ]
+        ]
+
+
+positionView : Position -> List (Html Msg)
+positionView pos =
+    let
+        str =
+            getPositionStr pos
+    in
+        [ i [ class "icon" ] [ text "my_location" ]
+        , span [ class "address-name" ] [ text str ]
         ]
 
 
@@ -496,6 +531,7 @@ requestSuggestions remoteAddress input =
     Cmd.batch
         [ requestStationSuggestions remoteAddress input
         , requestAddressSuggestions remoteAddress input
+        , requestPositionSuggestions input
         ]
 
 
@@ -519,6 +555,11 @@ requestAddressSuggestions remoteAddress input =
         (encodeAddressRequest input)
 
 
+requestPositionSuggestions : String -> Cmd Msg
+requestPositionSuggestions input =
+    Task.perform PositionSuggestionsResponse (Task.succeed (parsePosition input))
+
+
 
 -- LOCAL STORAGE
 
@@ -538,6 +579,12 @@ encodeSuggestion suggestion =
                 , "address" => encodeAddress address
                 ]
 
+        PositionSuggestion pos ->
+            Encode.object
+                [ "type" => Encode.string "Coordinates"
+                , "position" => encodePosition pos
+                ]
+
 
 decodeSuggestion : Decode.Decoder Suggestion
 decodeSuggestion =
@@ -552,6 +599,10 @@ decodeSuggestion =
                 "Address" ->
                     decode AddressSuggestion
                         |> JDP.required "address" decodeAddress
+
+                "Position" ->
+                    decode PositionSuggestion
+                        |> JDP.required "position" decodePosition
 
                 _ ->
                     Decode.fail "unknown suggestion type"
@@ -571,3 +622,23 @@ restoreSelection : String -> Maybe Suggestion
 restoreSelection str =
     Decode.decodeString decodeSuggestion str
         |> Result.toMaybe
+
+
+
+-- UTIL
+
+
+parsePosition : String -> Maybe Position
+parsePosition input =
+    let
+        split =
+            input
+                |> String.split ";"
+                |> List.map String.toFloat
+    in
+        case split of
+            [ Ok lat, Ok lng ] ->
+                Just { lat = lat, lng = lng }
+
+            _ ->
+                Nothing
