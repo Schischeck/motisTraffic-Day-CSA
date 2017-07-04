@@ -581,7 +581,7 @@ encodeSuggestion suggestion =
 
         PositionSuggestion pos ->
             Encode.object
-                [ "type" => Encode.string "Coordinates"
+                [ "type" => Encode.string "Position"
                 , "position" => encodePosition pos
                 ]
 
