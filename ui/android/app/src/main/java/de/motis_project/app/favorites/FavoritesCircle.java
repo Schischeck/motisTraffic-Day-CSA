@@ -5,9 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -24,7 +22,8 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
     final static Paint dbgPaint = new Paint();
     final Paint accentPaint = new Paint();
     final Paint highlightPaint = new Paint();
-    private List<EmojiCircle> icons = new ArrayList<>();
+    private Paint innerHighlightPaint;
+    private List<SelectableItem> icons = new ArrayList<>();
     private final Paint shadowPaint = new Paint();
     private boolean touchDown = false;
     private MotionEvent.PointerCoords touchNowPos = new MotionEvent.PointerCoords();
@@ -51,28 +50,11 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         init(c);
     }
 
-    private void drawCircleSymbols(Canvas c) {
-        float cx = c.getWidth() / 2.0f;
-        float cy = c.getHeight() / 2.0f;
-        float itemCount = icons.size();
-        float dim = c.getWidth() / 3.0f;
-        tPaint.setTextSize(iconTextSize(c));
-        int i = 0;
-        for (EmojiCircle symbol : icons) {
-            float x = (float) (cx + dim * Math.cos(Math.PI * (i * 2) / itemCount));
-            float y = (float) (cy + dim * Math.sin(Math.PI * (i * 2) / itemCount));
-            symbol.draw(c, x, y, iconTextSize(c));
-            i++;
-        }
-    }
-
     private static float iconTextSize(Canvas c) {
         return c.getWidth() / 10;
     }
 
     private void init(Context c) {
-        buildIcons();
-
         accentPaint.setColor(ContextCompat.getColor(c, R.color.colorAccent));
         accentPaint.setAntiAlias(true);
         accentPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -81,25 +63,33 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         highlightPaint.setAntiAlias(true);
         highlightPaint.setStyle(Paint.Style.STROKE);
 
+        innerHighlightPaint = new Paint(highlightPaint);
+
         shadowPaint.setShadowLayer(15.0f, 0.0f, 5.0f, 0x55000000);
         shadowPaint.setColor(Color.WHITE);
         shadowPaint.setAntiAlias(true);
         setLayerType(LAYER_TYPE_SOFTWARE, shadowPaint);
         setOnTouchListener(this);
+
+        buildIcons();
     }
 
     void buildIcons() {
-        EmojiCircle[] symbols = {
-                new EmojiCircle(new String(Character.toChars(0x1F498)), tPaint, highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F3EB)), tPaint, highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F3CA)), tPaint, highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F3E4)), tPaint, highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x26BD)), tPaint, highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F354)), tPaint, highlightPaint)};
+        Paint myPosBgPaint = new Paint(highlightPaint);
+        Paint myPosHlPaint = new Paint(accentPaint);
+        myPosHlPaint.setStyle(Paint.Style.STROKE);
+        SelectableItem[] symbols = {
+                new DrawableSymbol(myPosBgPaint, myPosHlPaint, getResources().getDrawable(R.drawable.ic_my_location_black_24dp)),
+                new EmojiCircle(new String(Character.toChars(0x1F498)), tPaint, this.highlightPaint),
+                new EmojiCircle(new String(Character.toChars(0x1F3EB)), tPaint, this.highlightPaint),
+                new EmojiCircle(new String(Character.toChars(0x1F3CA)), tPaint, this.highlightPaint),
+                new EmojiCircle(new String(Character.toChars(0x1F3E4)), tPaint, this.highlightPaint),
+                new EmojiCircle(new String(Character.toChars(0x26BD)), tPaint, this.highlightPaint),
+                new EmojiCircle(new String(Character.toChars(0x1F354)), tPaint, this.highlightPaint)};
         icons = Arrays.asList(symbols);
     }
 
-    public int isIconPos(float x, float y) {
+    public int isEmojiPos(float x, float y) {
         for (int i = 0; i < icons.size(); i++) {
             if (icons.get(i).getBounds().contains((int) x, (int) y)) {
                 return i;
@@ -108,8 +98,8 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         return -1;
     }
 
-    public int isIconPos(MotionEvent.PointerCoords pos) {
-        return isIconPos(pos.x, pos.y);
+    public int isEmojiPos(MotionEvent.PointerCoords pos) {
+        return isEmojiPos(pos.x, pos.y);
     }
 
     protected final void onDraw(Canvas c) {
@@ -117,11 +107,10 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         accentPaint.setStrokeWidth(0.03f * (width * 2));
         highlightPaint.setStrokeWidth(0.005f * (width * 2));
         drawCircleSymbols(c);
-        drawMyPosSymbol(c);
 
         // connecting line and circle highlights
-        int startIconIdx = isIconPos(touchStartPos);
-        int nowIconIndex = isIconPos(touchNowPos);
+        int startIconIdx = isEmojiPos(touchStartPos);
+        int nowIconIndex = isEmojiPos(touchNowPos);
         if (touchDown && startIconIdx >= 0 && nowIconIndex >= 0) {
             icons.get(startIconIdx).drawHighlight(c);
             icons.get(nowIconIndex).drawHighlight(c);
@@ -135,22 +124,26 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         }
     }
 
-    private void drawMyPosSymbol(Canvas canvas) {
-        highlightPaint.setStyle(Paint.Style.FILL);
-        float iconRadius = 0.66f * iconTextSize(canvas);
-        float iconSize = iconRadius / 2.0f;
-        float cx = canvas.getWidth() / 2.0f;
-        float cy = canvas.getHeight() / 2.0f;
-        canvas.drawCircle(cx, cy, iconRadius, shadowPaint);
-        canvas.drawCircle(cx, cy, iconRadius, highlightPaint);
-        Drawable myPosDrawable = getResources().getDrawable(R.drawable.ic_my_location_black_24dp);
-        DrawableCompat.setTint(DrawableCompat.wrap(myPosDrawable), Color.WHITE);
-        myPosDrawable.setBounds((int) (cx - iconSize),
-                (int) (cy - iconSize),
-                (int) (iconSize + cx),
-                (int) (iconSize + cy));
-        myPosDrawable.draw(canvas);
-        highlightPaint.setStyle(Paint.Style.STROKE);
+    private void drawCircleSymbols(Canvas c) {
+        float cx = c.getWidth() / 2.0f;
+        float cy = c.getHeight() / 2.0f;
+        float itemCount = icons.size() - 1;
+        float dim = c.getWidth() / 3.0f;
+        tPaint.setTextSize(iconTextSize(c));
+        for (int i = 0; i < icons.size(); ++i) {
+            SelectableItem symbol = icons.get(i);
+            float x, y, size;
+            if (i == 0) {
+                x = c.getWidth() / 2.0f;
+                y = c.getHeight() / 2.0f;
+                size = iconTextSize(c) * 0.8f;
+            } else {
+                x = (float) (cx + dim * Math.cos(Math.PI * ((i - 1) * 2) / itemCount));
+                y = (float) (cy + dim * Math.sin(Math.PI * ((i - 1) * 2) / itemCount));
+                size = iconTextSize(c);
+            }
+            symbol.draw(c, x, y, size);
+        }
     }
 
     public final boolean onTouch(View v, MotionEvent motionEvent) {
@@ -159,7 +152,7 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
 
     public boolean onTouchEvent(MotionEvent me) {
         me.getPointerCoords(0, touchNowPos);
-        if (isIconPos(touchNowPos) >= 0) {
+        if (isEmojiPos(touchNowPos) >= 0) {
             getParent().requestDisallowInterceptTouchEvent(true);
         }
         invalidate();

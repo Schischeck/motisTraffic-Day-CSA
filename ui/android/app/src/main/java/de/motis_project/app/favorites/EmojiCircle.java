@@ -12,7 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextPaint;
 
-public class EmojiCircle extends Drawable {
+public class EmojiCircle extends Drawable implements SelectableItem {
     private final Paint shadowPaint = new Paint();
     private final Paint highlightPaint;
     private final TextPaint tPaint;
@@ -45,12 +45,14 @@ public class EmojiCircle extends Drawable {
         canvas.translate(-outBounds.exactCenterX(), -outBounds.exactCenterY());
     }
 
+    @Override
     public void drawHighlight(Canvas canvas) {
         Rect bounds = getBounds();
         float radius = bounds.width() / 2f;
         canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), radius, highlightPaint);
     }
 
+    @Override
     public void draw(@NonNull Canvas canvas, float x, float y, float radius) {
         setBounds(x, y, radius);
         draw(canvas);
