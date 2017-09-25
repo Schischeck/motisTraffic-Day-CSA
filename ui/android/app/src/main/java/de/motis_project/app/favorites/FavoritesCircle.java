@@ -22,7 +22,6 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
     final static Paint dbgPaint = new Paint();
     final Paint accentPaint = new Paint();
     final Paint highlightPaint = new Paint();
-    private Paint innerHighlightPaint;
     private List<SelectableItem> icons = new ArrayList<>();
     private final Paint shadowPaint = new Paint();
     private boolean touchDown = false;
@@ -62,8 +61,6 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         highlightPaint.setColor(ContextCompat.getColor(c, R.color.colorPrimary));
         highlightPaint.setAntiAlias(true);
         highlightPaint.setStyle(Paint.Style.STROKE);
-
-        innerHighlightPaint = new Paint(highlightPaint);
 
         shadowPaint.setShadowLayer(15.0f, 0.0f, 5.0f, 0x55000000);
         shadowPaint.setColor(Color.WHITE);
