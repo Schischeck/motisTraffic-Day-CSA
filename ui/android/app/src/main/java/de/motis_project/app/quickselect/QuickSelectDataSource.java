@@ -68,7 +68,7 @@ public class QuickSelectDataSource {
     }
 
     private static final String SQL_GET = "" +
-            "SELECT * FROM " + QuickSelectDataSource.Table.TABLE + " LIMIT 8;";
+            "SELECT * FROM " + QuickSelectDataSource.Table.TABLE + " LIMIT 6;";
 
     private final SqlBrite sqlBrite;
     private final BriteDatabase db;

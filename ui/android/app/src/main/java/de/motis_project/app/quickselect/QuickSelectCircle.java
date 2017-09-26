@@ -82,16 +82,15 @@ public class QuickSelectCircle extends View implements View.OnTouchListener {
     }
 
     void buildIcons() {
-        Paint myPosBgPaint = new Paint(highlightPaint);
-        Paint myPosHlPaint = new Paint(accentPaint);
-        myPosHlPaint.setStyle(Paint.Style.STROKE);
-
         Status.get()
                 .getQuickSelectDb()
                 .getAll()
                 .startWith(new ArrayList<QuickSelectDataSource.Location>())
                 .map(locations -> {
                     List<SelectableItem> newicons = new ArrayList<>();
+                    Paint myPosBgPaint = new Paint(highlightPaint);
+                    Paint myPosHlPaint = new Paint(accentPaint);
+                    myPosHlPaint.setStyle(Paint.Style.STROKE);
                     newicons.add(
                             new DrawableSymbol(myPosBgPaint, myPosHlPaint, getResources().getDrawable(R.drawable.ic_my_location_black_24dp)));
                     for (QuickSelectDataSource.Location e : locations) {
@@ -132,6 +131,7 @@ public class QuickSelectCircle extends View implements View.OnTouchListener {
     }
 
     protected final void onDraw(Canvas c) {
+        c.drawColor(Color.WHITE);
         int width = c.getWidth();
         accentPaint.setStrokeWidth(0.03f * (width * 2));
         highlightPaint.setStrokeWidth(0.005f * (width * 2));
@@ -203,7 +203,7 @@ public class QuickSelectCircle extends View implements View.OnTouchListener {
         int down_idx = isEmojiPos(touchStartPos);
         int up_idx = isEmojiPos(touchNowPos);
         if (down_idx != -1 && up_idx != -1) {
-            Toast.makeText(getContext(), "from=" + down_idx + " to=" + up_idx, Toast.LENGTH_SHORT).show();
+            Snackbar.make(this, "from=" + down_idx + " to=" + up_idx, Snackbar.LENGTH_SHORT).show();
         }
     }
 }
