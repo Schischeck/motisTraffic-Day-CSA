@@ -1,4 +1,4 @@
-package de.motis_project.app.favorites;
+package de.motis_project.app.quickselect;
 
 import android.graphics.Canvas;
 import android.graphics.Color;

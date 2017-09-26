@@ -1,23 +1,33 @@
-package de.motis_project.app.favorites;
+package de.motis_project.app.quickselect;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import de.motis_project.app.R;
+import de.motis_project.app.io.Status;
+import motis.Station;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
-public class FavoritesCircle extends View implements View.OnTouchListener {
+public class QuickSelectCircle extends View implements View.OnTouchListener {
     static final TextPaint tPaint = new TextPaint();
     final static Paint dbgPaint = new Paint();
     final Paint accentPaint = new Paint();
@@ -38,12 +48,12 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         dbgPaint.setStrokeWidth(10.0f);
     }
 
-    public FavoritesCircle(Context c) {
+    public QuickSelectCircle(Context c) {
         super(c);
         init(c);
     }
 
-    public FavoritesCircle(Context c, AttributeSet attribs) {
+    public QuickSelectCircle(Context c, AttributeSet attribs) {
         super(c, attribs);
         buildIcons();
         init(c);
@@ -75,15 +85,37 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
         Paint myPosBgPaint = new Paint(highlightPaint);
         Paint myPosHlPaint = new Paint(accentPaint);
         myPosHlPaint.setStyle(Paint.Style.STROKE);
-        SelectableItem[] symbols = {
-                new DrawableSymbol(myPosBgPaint, myPosHlPaint, getResources().getDrawable(R.drawable.ic_my_location_black_24dp)),
-                new EmojiCircle(new String(Character.toChars(0x1F498)), tPaint, this.highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F3EB)), tPaint, this.highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F3CA)), tPaint, this.highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F3E4)), tPaint, this.highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x26BD)), tPaint, this.highlightPaint),
-                new EmojiCircle(new String(Character.toChars(0x1F354)), tPaint, this.highlightPaint)};
-        icons = Arrays.asList(symbols);
+
+        Status.get()
+                .getQuickSelectDb()
+                .getAll()
+                .startWith(new ArrayList<QuickSelectDataSource.Location>())
+                .map(locations -> {
+                    List<SelectableItem> newicons = new ArrayList<>();
+                    newicons.add(
+                            new DrawableSymbol(myPosBgPaint, myPosHlPaint, getResources().getDrawable(R.drawable.ic_my_location_black_24dp)));
+                    for (QuickSelectDataSource.Location e : locations) {
+                        newicons.add(new EmojiCircle(e.symbol, tPaint, this.highlightPaint));
+                    }
+                    return newicons;
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<List<SelectableItem>>() {
+                    @Override
+                    public void onCompleted() {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onNext(List<SelectableItem> selectableItems) {
+                        icons = selectableItems;
+                        invalidate();
+                    }
+                });
     }
 
     public int isEmojiPos(float x, float y) {
@@ -161,8 +193,17 @@ public class FavoritesCircle extends View implements View.OnTouchListener {
                 break;
             case MotionEvent.ACTION_UP:
                 touchDown = false;
+                handleGuesture();
                 break;
         }
         return true;
+    }
+
+    private void handleGuesture() {
+        int down_idx = isEmojiPos(touchStartPos);
+        int up_idx = isEmojiPos(touchNowPos);
+        if (down_idx != -1 && up_idx != -1) {
+            Toast.makeText(getContext(), "from=" + down_idx + " to=" + up_idx, Toast.LENGTH_SHORT).show();
+        }
     }
 }

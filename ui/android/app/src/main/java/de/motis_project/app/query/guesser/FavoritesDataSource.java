@@ -10,11 +10,12 @@ import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.List;
 
+import de.motis_project.app.quickselect.QuickSelectDataSource;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
 public class FavoritesDataSource {
-    private class Table extends SQLiteOpenHelper {
+    public class Table extends SQLiteOpenHelper {
         static final int DATABASE_VERSION = 1;
         static final String DATABASE_NAME = "stations.db";
 
@@ -23,7 +24,7 @@ public class FavoritesDataSource {
         static final String COL_STATION_NAME = "name";
         static final String COL_SELECTED_COUNT = "priority";
 
-        private static final String CREATE_LIST = ""
+        public static final String CREATE_SQL = ""
                 + "CREATE TABLE " + TABLE + "("
                 + COL_STATION_ID + " TEXT NOT NULL PRIMARY KEY,"
                 + COL_STATION_NAME + " TEXT NOT NULL,"
@@ -36,7 +37,8 @@ public class FavoritesDataSource {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL(CREATE_LIST);
+            db.execSQL(CREATE_SQL);
+            db.execSQL(QuickSelectDataSource.Table.CREATE_SQL);
         }
 
         @Override

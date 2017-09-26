@@ -5,7 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
-import de.motis_project.app.favorites.FavoritesFragment;
+import de.motis_project.app.quickselect.QuickSelectFragment;
 import de.motis_project.app.query.QueryFragment;
 import de.motis_project.app.saved.SavedConnectionsFragment;
 
@@ -25,7 +25,7 @@ public class TabPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position) {
             case 0:
-                return new FavoritesFragment();
+                return new QuickSelectFragment();
             case 1:
                 return new QueryFragment();
             case 2:
