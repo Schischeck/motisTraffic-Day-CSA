@@ -52,14 +52,16 @@ public class GuesserActivity extends FragmentActivity {
 
     @OnItemClick(R.id.suggestionslist)
     void onSuggestionSelected(int pos) {
-        StationGuess selected = adapter.getItem(pos);
+        LocationGuess selected = adapter.getItem(pos);
 
         Intent i = new Intent();
         i.putExtra(RESULT_NAME, selected.name);
-        i.putExtra(RESULT_ID, selected.eva);
+        i.putExtra(RESULT_ID, selected.stationId);
         setResult(Activity.RESULT_OK, i);
 
-        Status.get().getFavoritesDb().addOrIncrement(selected.eva, selected.name);
+        if (selected.type == LocationGuess.STATION) {
+            Status.get().getFavoritesDb().addOrIncrement(selected.stationId, selected.name);
+        }
 
         finish();
     }
@@ -98,7 +100,7 @@ public class GuesserActivity extends FragmentActivity {
     }
 
     private Subscription setupSubscription(String init) {
-        Observable<List<StationGuess>> favoriteGuesses =
+        Observable<List<LocationGuess>> favoriteGuesses =
                 RxTextView.textChangeEvents(searchInput)
                         .map(TextViewTextChangeEvent::text)
                         .map(CharSequence::toString)
@@ -106,37 +108,62 @@ public class GuesserActivity extends FragmentActivity {
                         .map(String::toLowerCase)
                         .flatMap(in -> Status.get().getFavoritesDb().getFavorites(in));
 
-        Observable<List<StationGuess>> serverGuesses =
+        Observable<List<LocationGuess>> stationGuesses =
                 RxTextView.textChangeEvents(searchInput)
                         .map(TextViewTextChangeEvent::text)
                         .map(CharSequence::toString)
                         .startWith(init)
                         .map(String::toLowerCase)
                         .filter(in -> in.length() >= 3)
-                        .flatMap(in -> Status.get().getServer().guess(in))
+                        .flatMap(in -> Status.get().getServer().guessStation(in))
                         .map(res -> {
-                            List<StationGuess> guesses = new ArrayList<>(res.guessesLength());
+                            List<LocationGuess> guesses = new ArrayList<>(res.guessesLength());
                             for (int i = 0; i < res.guessesLength(); i++) {
-                                guesses.add(new StationGuess(
-                                        res.guesses(i).id(),
+                                guesses.add(new LocationGuess(
                                         res.guesses(i).name(),
+                                        res.guesses(i).pos().lat(),
+                                        res.guesses(i).pos().lng(),
                                         -i - 1,
-                                        StationGuess.SERVER_GUESS));
+                                        LocationGuess.STATION,
+                                        res.guesses(i).id()));
                             }
                             return guesses;
                         })
-                        .startWith(new ArrayList<StationGuess>());
+                        .startWith(new ArrayList<LocationGuess>());
+
+        Observable<List<LocationGuess>> addressGuesses =
+                RxTextView.textChangeEvents(searchInput)
+                        .map(TextViewTextChangeEvent::text)
+                        .map(CharSequence::toString)
+                        .startWith(init)
+                        .map(String::toLowerCase)
+                        .filter(in -> in.length() >= 3)
+                        .flatMap(in -> Status.get().getServer().guessAddress(in))
+                        .map(res -> {
+                            List<LocationGuess> guesses = new ArrayList<>(res.guessesLength());
+                            for (int i = 0; i < res.guessesLength(); i++) {
+                                guesses.add(new LocationGuess(
+                                        res.guesses(i).name(),
+                                        res.guesses(i).pos().lat(),
+                                        res.guesses(i).pos().lng(),
+                                        -i - 1,
+                                        LocationGuess.ADDRESS));
+                            }
+                            return guesses;
+                        })
+                        .startWith(new ArrayList<LocationGuess>());
 
         return Observable
-                .combineLatest(favoriteGuesses, serverGuesses, (f, g) -> {
-                    final List<StationGuess> guesses = new ArrayList<>();
-                    g.removeAll(f);
+                .combineLatest(favoriteGuesses, stationGuesses, addressGuesses, (f, s, a) -> {
+                    final List<LocationGuess> guesses = new ArrayList<>();
+                    s.removeAll(f);
                     guesses.addAll(f);
-                    guesses.addAll(g);
+                    guesses.addAll(a);
+                    guesses.addAll(s);
                     Collections.sort(guesses);
                     return guesses;
                 })
-                .subscribe(new Subscriber<List<StationGuess>>() {
+                .subscribe(new Subscriber<List<LocationGuess>>() {
                     @Override
                     public void onCompleted() {
                     }
@@ -146,7 +173,7 @@ public class GuesserActivity extends FragmentActivity {
                     }
 
                     @Override
-                    public void onNext(List<StationGuess> guesses) {
+                    public void onNext(List<LocationGuess> guesses) {
                         runOnUiThread(() -> adapter.setContent(guesses));
                     }
                 });

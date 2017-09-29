@@ -77,14 +77,14 @@ public class FavoritesDataSource {
         }
     }
 
-    public Observable<List<StationGuess>> getFavorites(CharSequence queryString) {
+    public Observable<List<LocationGuess>> getFavorites(CharSequence queryString) {
         String query = String.format(SQL_GET_TOP, queryString);
         QueryObservable obs = db.createQuery(Table.TABLE, query);
         return obs.mapToList(c -> {
-            String eva = c.getString(c.getColumnIndex(Table.COL_STATION_ID));
+            String stationId = c.getString(c.getColumnIndex(Table.COL_STATION_ID));
             String name = c.getString(c.getColumnIndex(Table.COL_STATION_NAME));
             int count = c.getInt(c.getColumnIndex(Table.COL_SELECTED_COUNT));
-            return new StationGuess(eva, name, count, StationGuess.FAVORITE_GUESS);
+            return new LocationGuess(name, 0.0, 0.0, count, LocationGuess.FAVORITE, stationId);
         });
     }
 }

@@ -14,6 +14,7 @@ import motis.Message;
 import motis.MotisError;
 import motis.MotisNoMessage;
 import motis.MsgContent;
+import motis.address.AddressRequest;
 import motis.guesser.StationGuesserRequest;
 import motis.routing.InputStation;
 import motis.routing.PretripStart;
@@ -28,9 +29,9 @@ public class MessageBuilder {
         FlatBufferBuilder b = new FlatBufferBuilder();
         int error = MotisError
                 .createMotisError(b, code, b.createString(category),
-                                  b.createString(reason));
+                        b.createString(reason));
         b.finish(Message.createMessage(b, 0, MsgContent.MotisError, error,
-                                       ssid));
+                ssid));
         return Message.getRootAsMessage(b.dataBuffer());
     }
 
@@ -43,6 +44,17 @@ public class MessageBuilder {
         b.finish(Message.createMessage(
                 b, destination, MsgContent.StationGuesserRequest,
                 guesserRequestOffset, ssid));
+        return Snappy.compress(b.sizedByteArray());
+    }
+
+    public static byte[] address(int ssid, String input) {
+        FlatBufferBuilder b = new FlatBufferBuilder();
+        int addressRequestOffset = AddressRequest.createAddressRequest(b, b.createString(input));
+        int destination = Destination.createDestination(
+                b, DestinationType.Module, b.createString("/address"));
+        b.finish(Message.createMessage(
+                b, destination, MsgContent.AddressRequest,
+                addressRequestOffset, ssid));
         return Snappy.compress(b.sizedByteArray());
     }
 

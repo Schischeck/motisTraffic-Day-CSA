@@ -1,8 +1,10 @@
 package de.motis_project.app.query.guesser;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,19 +16,15 @@ import java.util.List;
 
 import de.motis_project.app.R;
 
-public class GuesserListAdapter extends ArrayAdapter<StationGuess> {
+public class GuesserListAdapter extends ArrayAdapter<LocationGuess> {
     private final LayoutInflater inflater;
-    private int favoriteCount;
-
-    private static final int FAVORITE_ITEM = 0;
-    private static final int SUGGESTED_ITEM = 1;
 
     public GuesserListAdapter(Context context) {
         super(context, R.layout.query_guesser_list_item);
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setContent(List<StationGuess> suggestions) {
+    public void setContent(List<LocationGuess> suggestions) {
         clear();
         addAll(suggestions);
     }
@@ -43,22 +41,35 @@ public class GuesserListAdapter extends ArrayAdapter<StationGuess> {
             view = inflater.inflate(R.layout.query_guesser_list_item, parent, false);
         }
 
-        StationGuess item = getItem(position);
+        LocationGuess item = getItem(position);
 
         TextView tv = (TextView) view.findViewById(R.id.guess_text);
         tv.setText(item.name);
 
-        int drawable = item.type == StationGuess.FAVORITE_GUESS
-                       ? R.drawable.ic_favorite_black_24dp
-                       : R.drawable.ic_place_black_24dp;
+        int symbol;
+        switch (item.type) {
+            case LocationGuess.ADDRESS:
+                symbol = R.drawable.ic_place_black_24dp;
+                break;
+            case LocationGuess.FAVORITE:
+                symbol = R.drawable.ic_favorite_black_24dp;
+                break;
+            case LocationGuess.STATION:
+                symbol = R.drawable.tram;
+                break;
+            default:
+                symbol = R.drawable.ic_place_black_24dp;
+        }
         ImageView icon = (ImageView) view.findViewById(R.id.guess_icon);
-        icon.setImageDrawable(ContextCompat.getDrawable(getContext(), drawable));
+        Drawable drawable = ContextCompat.getDrawable(getContext(), symbol);
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(getContext(), R.color.md_black));
+        icon.setImageDrawable(drawable);
 
         return view;
     }
 
     @Override
     public int getViewTypeCount() {
-        return 2;
+        return 3;
     }
 }
