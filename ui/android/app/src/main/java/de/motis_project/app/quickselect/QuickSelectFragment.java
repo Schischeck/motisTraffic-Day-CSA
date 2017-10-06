@@ -26,7 +26,7 @@ public class QuickSelectFragment extends Fragment {
 
     @OnClick(R.id.add_place_fab)
     public void setAddPlace(View view) {
-        Status.get().getQuickSelectDb().addLocation("", 0.0, 0.0, "\uD83C\uDFED");
+        Status.get().getQuickSelectDb().updateSymbolOrInsert("", "", 0.0, 0.0, "\uD83C\uDFED");
     }
 
     @OnClick(R.id.add_person_fab)

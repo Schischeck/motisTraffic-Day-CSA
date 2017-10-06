@@ -84,7 +84,7 @@ public class QuickSelectCircle extends View implements View.OnTouchListener {
     void buildIcons() {
         Status.get()
                 .getQuickSelectDb()
-                .getAll()
+                .getQuickSelect()
                 .startWith(new ArrayList<QuickSelectDataSource.Location>())
                 .map(locations -> {
                     List<SelectableItem> newicons = new ArrayList<>();

@@ -5,7 +5,6 @@ import android.os.Handler;
 
 import java.io.IOException;
 
-import de.motis_project.app.query.guesser.FavoritesDataSource;
 import de.motis_project.app.quickselect.QuickSelectDataSource;
 import de.motis_project.app.saved.SavedConnectionsDataSource;
 import motis.Connection;
@@ -16,13 +15,11 @@ public class Status {
     private static Status SINGLETON;
     private final MotisServer server;
     private SavedConnectionsDataSource savedConnectionsDb;
-    private FavoritesDataSource favoritesDb;
     private QuickSelectDataSource quickSelectDb;
     private Connection connection;
 
     private Status(Context ctx, Handler handler) {
         savedConnectionsDb = new SavedConnectionsDataSource(ctx);
-        favoritesDb = new FavoritesDataSource(ctx);
         quickSelectDb = new QuickSelectDataSource(ctx);
         server = new MotisServer(SERVER_URL, handler);
     }
@@ -52,8 +49,6 @@ public class Status {
     public SavedConnectionsDataSource getSavedConnectionsDb() {
         return savedConnectionsDb;
     }
-
-    public FavoritesDataSource getFavoritesDb() { return favoritesDb; }
 
     public QuickSelectDataSource getQuickSelectDb() { return quickSelectDb; }
 }

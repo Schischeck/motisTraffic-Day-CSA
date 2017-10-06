@@ -1,17 +1,17 @@
 package de.motis_project.app.quickselect;
 
-import android.content.ContentValues;
 import android.content.Context;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.Nullable;
 
 import com.squareup.sqlbrite.BriteDatabase;
-import com.squareup.sqlbrite.QueryObservable;
 import com.squareup.sqlbrite.SqlBrite;
 
 import java.util.List;
+import java.util.Locale;
 
-import de.motis_project.app.query.guesser.FavoritesDataSource;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
@@ -22,13 +22,15 @@ public class QuickSelectDataSource {
         public final String station;
         public final double lat;
         public final double lng;
+        public final int count;
 
-        public Location(String name, String symbol, String station, double lat, double lng) {
+        public Location(String name, String symbol, String station, double lat, double lng, int count) {
             this.name = name;
             this.symbol = symbol;
             this.station = station;
             this.lat = lat;
             this.lng = lng;
+            this.count = count;
         }
     }
 
@@ -42,14 +44,16 @@ public class QuickSelectDataSource {
         static final String COL_LAT = "lat";
         static final String COL_LNG = "lng";
         static final String COL_SYMBOL = "symbol";
+        static final String COL_COUNT = "count";
 
         public static final String CREATE_SQL = ""
                 + "CREATE TABLE " + TABLE + "("
-                + COL_NAME + " TEXT NOT NULL, "
+                + COL_NAME + " TEXT NOT NULL PRIMARY KEY, "
                 + COL_STATION + " TEXT, "
                 + COL_LAT + " DOUBLE NOT NULL, "
                 + COL_LNG + " DOUBLE NOT NULL, "
-                + COL_SYMBOL + " TEXT NOT NULL"
+                + COL_SYMBOL + " TEXT, "
+                + COL_COUNT + " INTEGER NOT NULL"
                 + ")";
 
         Table(Context context) {
@@ -59,16 +63,12 @@ public class QuickSelectDataSource {
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_SQL);
-            db.execSQL(FavoritesDataSource.Table.CREATE_SQL);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         }
     }
-
-    private static final String SQL_GET = "" +
-            "SELECT * FROM " + QuickSelectDataSource.Table.TABLE + " LIMIT 6;";
 
     private final SqlBrite sqlBrite;
     private final BriteDatabase db;
@@ -81,38 +81,77 @@ public class QuickSelectDataSource {
         db.setLoggingEnabled(true);
     }
 
-    public void addStation(String name, String station, double lat, double lng, String symbol) {
-        ContentValues entry = new ContentValues();
-        entry.put(Table.COL_NAME, name);
-        entry.put(Table.COL_STATION, station);
-        entry.put(Table.COL_LAT, lat);
-        entry.put(Table.COL_LNG, lng);
-        entry.put(Table.COL_SYMBOL, symbol);
-        db.insert(Table.TABLE, entry);
+    public void addOrIncrement(String name, @Nullable String station, double lat, double lng, @Nullable String symbol) {
+        name = DatabaseUtils.sqlEscapeString(name);
+        station = station != null ? DatabaseUtils.sqlEscapeString(station) : "NULL";
+        symbol = symbol != null ? DatabaseUtils.sqlEscapeString(symbol) : "NULL";
+        try (BriteDatabase.Transaction t = db.newTransaction()) {
+            db.execute(String.format(Locale.US,
+                    "INSERT OR IGNORE INTO %s VALUES(%s, %s, %f, %f, %s, 0)",
+                    Table.TABLE, name, station, lat, lng, symbol));
+            db.executeAndTrigger(Table.TABLE, String.format(Locale.US,
+                    "UPDATE %s SET %s = %s + 1 WHERE %s = %s",
+                    Table.TABLE, Table.COL_COUNT, Table.COL_COUNT, Table.COL_NAME, name));
+            t.markSuccessful();
+        }
     }
 
-    public void addLocation(String name, double lat, double lng, String symbol) {
-        ContentValues entry = new ContentValues();
-        entry.put(Table.COL_NAME, name);
-        entry.putNull(Table.COL_STATION);
-        entry.put(Table.COL_LAT, lat);
-        entry.put(Table.COL_LNG, lng);
-        entry.put(Table.COL_SYMBOL, symbol);
-
-        db.insert(Table.TABLE, entry);
+    public void updateSymbolOrInsert(String name, @Nullable String station, double lat, double lng, @Nullable String symbol) {
+        name = "'" + DatabaseUtils.sqlEscapeString(name) + "'";
+        station = station != null ? DatabaseUtils.sqlEscapeString(station) : "NULL";
+        symbol = symbol != null ? DatabaseUtils.sqlEscapeString(symbol) : "NULL";
+        try (BriteDatabase.Transaction t = db.newTransaction()) {
+            db.executeAndTrigger(Table.TABLE, String.format(Locale.US,
+                    "INSERT OR REPLACE INTO %s VALUES(%s, %s, %f, %f, %s, " +
+                            "(SELECT %s FROM %s WHERE %s = %s))",
+                    Table.TABLE, name, station, lat, lng, symbol, Table.COL_COUNT, Table.TABLE, Table.COL_NAME, name));
+            t.markSuccessful();
+        }
     }
 
-    public Observable<List<Location>> getAll() {
-        QueryObservable obs = db.createQuery(QuickSelectDataSource.Table.TABLE, SQL_GET);
-        return obs.mapToList(c -> {
-            String name = c.getString(c.getColumnIndex(Table.COL_NAME));
-            String symbol = c.getString(c.getColumnIndex(Table.COL_SYMBOL));
-            String stationId = c.getString(c.getColumnIndex(Table.COL_STATION));
-            double lat = c.getDouble(c.getColumnIndex(Table.COL_LAT));
-            double lng = c.getDouble(c.getColumnIndex(Table.COL_LNG));
+    public Observable<List<Location>> getFavorites(String in) {
+        in = DatabaseUtils.sqlEscapeString("%" + in + "%");
 
-            return new Location(name, symbol, stationId, lat, lng);
-        });
+        String query = String.format("SELECT * FROM %s" +
+                        " WHERE %s LIKE %s" +
+                        " AND %s > 0" +
+                        " ORDER BY %s DESC" +
+                        " LIMIT 5",
+                Table.TABLE,
+                Table.COL_NAME, in,
+                Table.COL_COUNT,
+                Table.COL_COUNT);
+        return db.createQuery(QuickSelectDataSource.Table.TABLE,
+                query)
+                .mapToList(c -> {
+                    String name = c.getString(c.getColumnIndex(Table.COL_NAME));
+                    String symbol = c.getString(c.getColumnIndex(Table.COL_SYMBOL));
+                    String stationId = c.getString(c.getColumnIndex(Table.COL_STATION));
+                    double lat = c.getDouble(c.getColumnIndex(Table.COL_LAT));
+                    double lng = c.getDouble(c.getColumnIndex(Table.COL_LNG));
+                    int count = c.getInt(c.getColumnIndex(Table.COL_COUNT));
+
+                    return new Location(name, symbol, stationId, lat, lng, count);
+                });
+    }
+
+    public Observable<List<Location>> getQuickSelect() {
+        return db.createQuery(QuickSelectDataSource.Table.TABLE,
+                String.format("SELECT * FROM %s" +
+                                " WHERE %s IS NOT NULL" +
+                                " LIMIT 5",
+                        Table.TABLE,
+                        Table.COL_SYMBOL))
+                .mapToList(c -> {
+                    String name = c.getString(c.getColumnIndex(Table.COL_NAME));
+                    String symbol = c.getString(c.getColumnIndex(Table.COL_SYMBOL));
+                    String stationId = c.getString(c.getColumnIndex(Table.COL_STATION));
+                    double lat = c.getDouble(c.getColumnIndex(Table.COL_LAT));
+                    double lng = c.getDouble(c.getColumnIndex(Table.COL_LNG));
+                    int count = c.getInt(c.getColumnIndex(Table.COL_COUNT));
+
+                    return new Location(name, symbol, stationId, lat, lng, count);
+                });
     }
 
     public void clearTable() {

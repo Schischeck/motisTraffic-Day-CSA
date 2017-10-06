@@ -15,8 +15,9 @@ import android.widget.TextView;
 import java.util.List;
 
 import de.motis_project.app.R;
+import de.motis_project.app.quickselect.QuickSelectDataSource;
 
-public class GuesserListAdapter extends ArrayAdapter<LocationGuess> {
+public class GuesserListAdapter extends ArrayAdapter<GuesserListItem> {
     private final LayoutInflater inflater;
 
     public GuesserListAdapter(Context context) {
@@ -24,7 +25,7 @@ public class GuesserListAdapter extends ArrayAdapter<LocationGuess> {
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public void setContent(List<LocationGuess> suggestions) {
+    public void setContent(List<GuesserListItem> suggestions) {
         clear();
         addAll(suggestions);
     }
@@ -41,24 +42,24 @@ public class GuesserListAdapter extends ArrayAdapter<LocationGuess> {
             view = inflater.inflate(R.layout.query_guesser_list_item, parent, false);
         }
 
-        LocationGuess item = getItem(position);
+        GuesserListItem item = getItem(position);
 
         TextView tv = (TextView) view.findViewById(R.id.guess_text);
-        tv.setText(item.name);
+        tv.setText(item.location.name);
 
         int symbol;
         switch (item.type) {
-            case LocationGuess.ADDRESS:
+            case GuesserListItem.ADDRESS:
                 symbol = R.drawable.ic_place_black_24dp;
                 break;
-            case LocationGuess.FAVORITE:
+            case GuesserListItem.FAVORITE:
                 symbol = R.drawable.ic_favorite_black_24dp;
                 break;
-            case LocationGuess.STATION:
+            case GuesserListItem.STATION:
                 symbol = R.drawable.tram;
                 break;
             default:
-                symbol = R.drawable.ic_place_black_24dp;
+                symbol = R.drawable.ic_close_black_24dp;
         }
         ImageView icon = (ImageView) view.findViewById(R.id.guess_icon);
         Drawable drawable = ContextCompat.getDrawable(getContext(), symbol);
