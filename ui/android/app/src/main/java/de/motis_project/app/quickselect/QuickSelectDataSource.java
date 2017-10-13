@@ -53,7 +53,7 @@ public class QuickSelectDataSource {
                 + COL_LAT + " DOUBLE NOT NULL, "
                 + COL_LNG + " DOUBLE NOT NULL, "
                 + COL_SYMBOL + " TEXT, "
-                + COL_COUNT + " INTEGER NOT NULL"
+                + COL_COUNT + " INTEGER NOT NULL DEFAULT 0"
                 + ")";
 
         Table(Context context) {
@@ -97,7 +97,7 @@ public class QuickSelectDataSource {
     }
 
     public void updateSymbolOrInsert(String name, @Nullable String station, double lat, double lng, @Nullable String symbol) {
-        name = "'" + DatabaseUtils.sqlEscapeString(name) + "'";
+        name = DatabaseUtils.sqlEscapeString(name);
         station = station != null ? DatabaseUtils.sqlEscapeString(station) : "NULL";
         symbol = symbol != null ? DatabaseUtils.sqlEscapeString(symbol) : "NULL";
         try (BriteDatabase.Transaction t = db.newTransaction()) {

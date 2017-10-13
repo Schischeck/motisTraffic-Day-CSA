@@ -42,13 +42,19 @@ public class Status {
         return server;
     }
 
-    public Connection getConnection() { return connection; }
+    public Connection getConnection() {
+        return connection;
+    }
 
-    public void setConnection(Connection connection) { this.connection = connection; }
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
 
     public SavedConnectionsDataSource getSavedConnectionsDb() {
         return savedConnectionsDb;
     }
 
-    public QuickSelectDataSource getQuickSelectDb() { return quickSelectDb; }
+    public QuickSelectDataSource getQuickSelectDb() {
+        return quickSelectDb;
+    }
 }

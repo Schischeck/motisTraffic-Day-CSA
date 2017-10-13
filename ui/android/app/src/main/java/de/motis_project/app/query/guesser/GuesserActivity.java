@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.util.Pair;
 import android.widget.EditText;
 import android.widget.ListView;
 
@@ -13,6 +14,7 @@ import com.jakewharton.rxbinding.widget.TextViewTextChangeEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -173,10 +175,19 @@ public class GuesserActivity extends FragmentActivity {
                     a.removeAll(f);
                     guesses.addAll(s);
                     guesses.addAll(a);
-                    guesses.sort((i1, i2) -> {
-                        String ref = searchInput.getText().toString();
-                        return Integer.compare(i2.cosineSimilarity(ref), i1.cosineSimilarity(ref));
-                    });
+
+                    String searchTerm = searchInput.getText().toString();
+                    List<Pair<GuesserListItem, Integer>> cosSim = new ArrayList<>();
+                    for (GuesserListItem i : guesses) {
+                        cosSim.add(new Pair<>(i, i.cosineSimilarity(searchTerm)));
+                    }
+                    cosSim.sort((i1, i2) -> Integer.compare(i2.second, i1.second));
+
+                    guesses.clear();
+                    for (Pair<GuesserListItem, Integer> i : cosSim) {
+                        guesses.add(i.first);
+                    }
+
                     guesses.addAll(0, f);
                     return guesses;
                 })
