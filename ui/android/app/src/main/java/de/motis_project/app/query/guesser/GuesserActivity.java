@@ -11,6 +11,7 @@ import com.jakewharton.rxbinding.widget.RxTextView;
 import com.jakewharton.rxbinding.widget.TextViewTextChangeEvent;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import butterknife.BindView;
@@ -170,9 +171,13 @@ public class GuesserActivity extends FragmentActivity {
                     final List<GuesserListItem> guesses = new ArrayList<>();
                     s.removeAll(f);
                     a.removeAll(f);
-                    guesses.addAll(f);
                     guesses.addAll(s);
                     guesses.addAll(a);
+                    guesses.sort((i1, i2) -> {
+                        String ref = searchInput.getText().toString();
+                        return Integer.compare(i2.cosineSimilarity(ref), i1.cosineSimilarity(ref));
+                    });
+                    guesses.addAll(0, f);
                     return guesses;
                 })
                 .subscribe(new Subscriber<List<GuesserListItem>>() {
