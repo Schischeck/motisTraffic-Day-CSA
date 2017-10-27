@@ -10,7 +10,7 @@ import de.motis_project.app.saved.SavedConnectionsDataSource;
 import motis.Connection;
 
 public class Status {
-    private static final String SERVER_URL = "ws://ws.motis-project.de";
+    private static final String SERVER_URL = "ws://130.83.165.203:80";
 
     private static Status SINGLETON;
     private final MotisServer server;
