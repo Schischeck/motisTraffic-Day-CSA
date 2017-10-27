@@ -176,7 +176,6 @@ public class QueryFragment extends Fragment
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        System.out.println(String.format("Selected: %s %s", data.getExtras().getString(GuesserActivity.RESULT_NAME), data.getExtras().getString(GuesserActivity.RESULT_ID)));
         if (data == null || data.getExtras() == null ||
                 data.getExtras().getString(GuesserActivity.RESULT_NAME) == null ||
                 resultCode != Activity.RESULT_OK) {

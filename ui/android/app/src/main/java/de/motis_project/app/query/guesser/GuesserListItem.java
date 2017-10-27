@@ -75,8 +75,10 @@ public class GuesserListItem {
         Map<String, Integer> trigrams = new HashMap<>();
         for (int i = 2; i < s.length(); i++) {
             String trigram = s.substring(i - 2, i);
-            trigrams.putIfAbsent(trigram, 0);
-            trigrams.compute(trigram, (k, v) -> v + 1);
+            if (!trigrams.containsKey(trigram)) {
+                trigrams.put(trigram, 0);
+            }
+            trigrams.put(trigram, trigrams.get(trigram) + 1);
         }
         return trigrams;
     }
