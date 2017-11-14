@@ -25,7 +25,7 @@ clang-debug-asan:
   tags:
     - artful
   script:
-    - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
+    - export CXXFLAGS="-stdlib=libc++ -fsanitize=address -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
     - export CXX=clang++
     - export CC=clang
@@ -48,7 +48,7 @@ clang-debug-tsan:
   tags:
     - artful
   script:
-    - export CXXFLAGS="-fsanitize=thread -fno-omit-frame-pointer"
+    - export CXXFLAGS="-stdlib=libc++ -fsanitize=thread -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
     - export CXX=clang++
     - export CC=clang
