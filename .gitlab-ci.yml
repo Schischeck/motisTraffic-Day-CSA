@@ -2,14 +2,14 @@ variables:
   ASAN_SYMBOLIZER_PATH: "/opt/clang+llvm-5.0.0-linux-x86_64-ubuntu16.04/bin/llvm-symbolizer"
 
 # GCC 7 production
-gcc-5-release:
+gcc-7-release:
   tags:
     - artful
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-7
     - git submodule update --init --recursive
-    - mkdir -p build-gcc-5
-    - cd build-gcc-5
+    - mkdir -p build-gcc-7
+    - cd build-gcc-7
     - cmake -DCMAKE_BUILD_TYPE=Release ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
@@ -66,14 +66,14 @@ clang-debug-tsan:
     - ./motis-itest
 
 # GCC 7 debug valgrind
-gcc-5-debug-valgrind:
+gcc-7-debug-valgrind:
   tags:
     - artful
   script:
     - export BOOST_ROOT=/opt/boost_1_60_0-gcc-7
     - git submodule update --init --recursive
-    - mkdir -p build-gcc-5-valgrind
-    - cd build-gcc-5-valgrind
+    - mkdir -p build-gcc-7-valgrind
+    - cd build-gcc-7-valgrind
     - cmake -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
