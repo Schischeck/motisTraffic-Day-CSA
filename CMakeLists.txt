@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(motis)
 
+# Quickfix for GCC 7
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_definitions(-Wno-implicit-fallthrough)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-implicit-fallthrough -fpermissive")
+endif()
+
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
 option(MOTIS_COV "enable coverage (coverage) target" OFF)
 
