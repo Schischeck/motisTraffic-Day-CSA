@@ -197,8 +197,8 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
             MOTIS_UNKNOWN_TRACK,
 
             // Arrival graph time:
-            stops.empty() ? INVALID_TIME : last_con ? last_con->a_time_
-                                                    : current.now_,
+            stops.empty() ? INVALID_TIME
+                          : last_con ? last_con->a_time_ : current.now_,
 
             // Departure graph time:
             current.now_,

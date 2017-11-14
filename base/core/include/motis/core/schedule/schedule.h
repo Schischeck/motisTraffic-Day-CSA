@@ -12,7 +12,6 @@
 #include "motis/core/schedule/constant_graph.h"
 #include "motis/core/schedule/delay_info.h"
 #include "motis/core/schedule/event.h"
-#include "motis/core/schedule/event.h"
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/station.h"

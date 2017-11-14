@@ -1,9 +1,12 @@
 #include <iostream>
 
-#include "snappy.h"
+#include "zstd.hpp"
 
 #include "motis/module/message.h"
 #include "motis/client/motis_con.h"
+
+using zstd::compress;
+using zstd::uncompress;
 
 using namespace motis::module;
 using namespace motis::client;
@@ -24,8 +27,7 @@ int main(int argc, char* argv[]) {
   auto req = make_msg(request);
 
   std::string buf;
-  snappy::Compress(reinterpret_cast<char const*>(req->data()), req->size(),
-                   &buf);
+  compress(reinterpret_cast<char const*>(req->data()), req->size(), &buf);
 
   std::string host = argv[1];
   std::string port = argv[2];
@@ -40,8 +42,8 @@ int main(int argc, char* argv[]) {
     }
 
     std::string buf;
-    snappy::Uncompress(static_cast<char const*>(response.data()),
-                       response.size(), &buf);
+    uncompress(static_cast<char const*>(response.data()), response.size(),
+               &buf);
     printf("%s\n",
            make_msg(reinterpret_cast<void const*>(buf.data()), buf.size())
                ->to_json()

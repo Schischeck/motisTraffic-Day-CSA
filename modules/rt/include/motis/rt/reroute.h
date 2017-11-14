@@ -152,8 +152,9 @@ inline void add_additional_events(
     }
 
     auto const new_ev = new_events->Get(i);
-    events.emplace_back(*ev, new_ev, get_stored_delay_info(
-                                         sched, cancelled_delays, trp, new_ev));
+    events.emplace_back(
+        *ev, new_ev,
+        get_stored_delay_info(sched, cancelled_delays, trp, new_ev));
   }
 }
 
@@ -374,9 +375,10 @@ inline std::pair<status, trip const*> reroute(
   }
 
   auto evs = std::vector<reroute_event>{};
-  auto const del_evs = resolve_events(
-      sched, trp, utl::to_vec(*msg->cancelled_events(),
-                              [](ris::Event const* ev) { return ev; }));
+  auto const del_evs =
+      resolve_events(sched, trp,
+                     utl::to_vec(*msg->cancelled_events(),
+                                 [](ris::Event const* ev) { return ev; }));
   add_additional_events(sched, cancelled_delays, trp, msg->new_events(), evs);
   add_not_deleted_trip_events(sched, del_evs, trp, evs);
   std::sort(begin(evs), end(evs));

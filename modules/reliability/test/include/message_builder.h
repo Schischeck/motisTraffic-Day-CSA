@@ -18,8 +18,9 @@ inline module::msg_ptr get_delay_message(
   using namespace ris;
   FlatBufferBuilder fbb;
   std::vector<Offset<UpdatedEvent>> events{CreateUpdatedEvent(
-      fbb, CreateEvent(fbb, fbb.CreateString(station), train_nr,
-                       fbb.CreateString(line_id), event_type, scheduled_time),
+      fbb,
+      CreateEvent(fbb, fbb.CreateString(station), train_nr,
+                  fbb.CreateString(line_id), event_type, scheduled_time),
       delayed_time)};
   fbb.Finish(CreateMessage(
       fbb, MessageUnion_DelayMessage,

@@ -160,11 +160,12 @@ struct search {
     stats.transfers_lb_ = MOTIS_TIMING_MS(transfers_lb_timing);
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
-    return search_result(stats, utl::to_vec(pd.get_results(),
-                                            [&q](Label* label) {
-                                              return output::labels_to_journey(
-                                                  *q.sched_, label, Dir);
-                                            }),
+    return search_result(stats,
+                         utl::to_vec(pd.get_results(),
+                                     [&q](Label* label) {
+                                       return output::labels_to_journey(
+                                           *q.sched_, label, Dir);
+                                     }),
                          interval_begin, interval_end);
   }
 };

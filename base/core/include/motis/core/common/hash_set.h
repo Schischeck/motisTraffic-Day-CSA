@@ -10,7 +10,7 @@ using hash_set = google::dense_hash_set<Entry, Hash, Eq>;
 
 template <typename Entry, typename Hash, typename Eq, typename CreateFun>
 auto set_get_or_create(hash_set<Entry, Hash, Eq>& s, Entry const& key,
-                       CreateFun f) -> decltype(*s.find(key))& {
+                       CreateFun f) -> decltype(*s.find(key)) & {
   auto it = s.find(key);
   if (it != s.end()) {
     return *it;

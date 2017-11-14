@@ -60,10 +60,11 @@ inline void print_edge(edge const& edge, std::ostream& out, int indent) {
       out << "type=foot_edge, "
           << "duration=" << edge.m_.foot_edge_.time_cost_ << ", "
           << "transfer=" << std::boolalpha << edge.m_.foot_edge_.transfer_
-          << ", " << (edge.m_.foot_edge_.mumo_id_ == 0
-                          ? ""
-                          : "mumo_id=" + std::to_string(static_cast<int>(
-                                             edge.m_.foot_edge_.mumo_id_)))
+          << ", "
+          << (edge.m_.foot_edge_.mumo_id_ == 0
+                  ? ""
+                  : "mumo_id=" + std::to_string(static_cast<int>(
+                                     edge.m_.foot_edge_.mumo_id_)))
           << "\n";
       break;
 
