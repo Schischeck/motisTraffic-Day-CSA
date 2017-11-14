@@ -7,13 +7,16 @@
 
 #include "boost/system/system_error.hpp"
 
-#include "snappy.h"
+#include "zstd.hpp"
 
 #define WEBSOCKETPP_STRICT_MASKING
 #include "websocketpp/config/asio_no_tls.hpp"
 #include "websocketpp/server.hpp"
 
 namespace p = std::placeholders;
+
+using zstd::compress;
+using zstd::uncompress;
 
 typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
 
@@ -153,8 +156,8 @@ struct ws_server::ws_server_impl {
 
   msg_ptr decode_msg(std::string const& req_buf) {
     if (binary_) {
-      snappy::Uncompress(static_cast<char const*>(req_buf.data()),
-                         req_buf.size(), &buf_);
+      uncompress(static_cast<char const*>(req_buf.data()), req_buf.size(),
+                 &buf_);
       return make_msg(reinterpret_cast<void const*>(buf_.data()), buf_.size());
     } else {
       return make_msg(req_buf);
@@ -165,7 +168,7 @@ struct ws_server::ws_server_impl {
     std::string b;
     if (binary_) {
       auto const data = reinterpret_cast<char const*>(msg->data());
-      snappy::Compress(data, msg->size(), &b);
+      compress(data, msg->size(), &b);
     } else {
       b = msg->to_json();
     }

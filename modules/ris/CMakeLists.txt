@@ -13,11 +13,11 @@ set_target_properties(motis-ris PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_link_libraries(motis-ris
   conf
   motis-module
-  snappy
+  zstd
   pugixml
   sqlpp11-connector-sqlite3
   sqlite
-  rocksdb
+  zstd
 )
 
 add_executable(ris_loader EXCLUDE_FROM_ALL ${ris_loader-files})

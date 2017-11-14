@@ -55,7 +55,7 @@ foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
 endforeach()
 
 if (NOT MSVC)
-  set(MOTIS_CXX_FLAGS "-std=c++14 -Wall -Wextra")
+  set(MOTIS_CXX_FLAGS "-std=c++17 -Wall -Wextra -DBOOST_NO_AUTO_PTR=1")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
   endif()
@@ -109,8 +109,6 @@ include_directories(SYSTEM external_lib/osrm-backend/external_lib/stxxl/include)
 include_directories(SYSTEM ${CMAKE_BINARY_DIR}/external_lib/osrm-backend/external_lib/stxxl/include)
 include_directories(SYSTEM external_lib/pugixml/src)
 include_directories(SYSTEM external_lib/rapidjson/include)
-include_directories(SYSTEM external_lib/rocksdb/include)
-include_directories(SYSTEM external_lib/rocksdb/external_lib/snappy)
 include_directories(SYSTEM external_lib/sparsehash/src)
 include_directories(SYSTEM external_lib/sqlite/include)
 include_directories(SYSTEM external_lib/sqlpp11/include)
@@ -128,7 +126,6 @@ include_directories(external_lib/utl/include)
 add_subdirectory(external_lib/address-typeahead EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/osrm-backend EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/rocksdb EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlite EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/sqlpp11-connector-sqlite3/src EXCLUDE_FROM_ALL)
@@ -137,6 +134,7 @@ add_subdirectory(external_lib/geo EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/tar/external_lib/zstd EXCLUDE_FROM_ALL)
 
 
 ################################
@@ -161,6 +159,8 @@ set(MODULES ${modules-option} CACHE STRING "Modules to load")
 string(REPLACE " " ";" modules "${MODULES}")
 list(REMOVE_ITEM modules
   "reliability"
+  "path"
+  "bikesharing"
 )
 
 set(module-targets "")

@@ -46,9 +46,6 @@
 [submodule "external_lib/osmium"]
 	path = external_lib/osmium
 	url = git@git.motis-project.de:lib/osmium.git
-[submodule "external_lib/rocksdb"]
-	path = external_lib/rocksdb
-	url = git@git.motis-project.de:lib/rocksdb-flat.git
 [submodule "external_lib/geo"]
 	path = external_lib/geo
 	url = git@git.motis-project.de:lib/geo.git
@@ -61,3 +58,9 @@
 [submodule "external_lib/address-typeahead"]
 	path = external_lib/address-typeahead
 	url = git@git.motis-project.de:lib/address-typeahead.git
+[submodule "external_lib/lmdb"]
+	path = external_lib/lmdb
+	url = git@git.motis-project.de:lib/lmdb.git
+[submodule "external_lib/tar"]
+	path = external_lib/tar
+	url = git@git.motis-project.de:lib/tar.git

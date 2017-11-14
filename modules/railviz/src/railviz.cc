@@ -292,7 +292,7 @@ std::vector<Offset<Train>> events_to_trains(
                     [&](trip const* trp) { return to_fbs(sched, fbb, trp); }));
   };
 
-  auto const get_route = [&fbb, &sched, &routes, &fbs_routes, &route_edges,
+  auto const get_route = [&fbb, &routes, &fbs_routes, &route_edges,
                           &get_route_segments](ev_key const& k) -> int {
     auto const insert = routes.emplace(k.get_node()->route_, fbs_routes.size());
     if (insert.second) {

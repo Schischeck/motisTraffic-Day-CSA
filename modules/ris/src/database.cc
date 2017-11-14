@@ -1,12 +1,16 @@
 #include "motis/ris/database.h"
 
-#include "snappy.h"
+#include "zstd.hpp"
+
 #include "sqlite3.h"
 #include "sqlpp11/ppgen.h"
 #include "sqlpp11/sqlite3/sqlite3.h"
 #include "sqlpp11/sqlpp11.h"
 
 #include "motis/ris/ris_message.h"
+
+using zstd::compress;
+using zstd::uncompress;
 
 namespace motis {
 namespace ris {
@@ -88,13 +92,13 @@ void db_put_messages(db_ptr const& db, std::string const& filename,
                          m.timestamp = parameter(m.timestamp),
                          m.msg = parameter(m.msg)));
   // clang-format on
+  std::string b;
   for (auto const& msg : msgs) {
     insert.params.earliest = msg.earliest_;
     insert.params.latest = msg.latest_;
     insert.params.timestamp = msg.timestamp_;
 
-    std::string b;
-    snappy::Compress(reinterpret_cast<char const*>(msg.data()), msg.size(), &b);
+    compress(reinterpret_cast<char const*>(msg.data()), msg.size(), &b);
     insert.params.msg = {reinterpret_cast<uint8_t const*>(b.data()), b.size()};
     (*db)(insert);
   }
@@ -123,6 +127,7 @@ std::vector<std::pair<std::time_t, blob>> db_get_messages(
     std::time_t batch_from, std::time_t batch_to) {
   std::vector<std::pair<std::time_t, blob>> result;
 
+  std::string b;
   db::ris_message::ris_message m;
   for (auto const& row : (*db)(
            select(m.msg, m.timestamp)
@@ -130,11 +135,8 @@ std::vector<std::pair<std::time_t, blob>> db_get_messages(
                .where(m.timestamp > batch_from and m.timestamp <= batch_to and
                       m.latest >= schedule_begin and m.earliest <= schedule_end)
                .order_by(m.timestamp.asc()))) {
-
     blob msg = row.msg;
-    std::string b;
-    snappy::Uncompress(reinterpret_cast<char const*>(msg.data()), msg.size(),
-                       &b);
+    uncompress(reinterpret_cast<char const*>(msg.data()), msg.size(), &b);
     result.emplace_back(
         row.timestamp,
         blob(reinterpret_cast<uint8_t const*>(b.data()), b.size()));
