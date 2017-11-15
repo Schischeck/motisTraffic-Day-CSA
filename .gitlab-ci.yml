@@ -136,6 +136,7 @@ clang-tidy:
   tags:
     - artful
   script:
+    - export CXXFLAGS="-stdlib=libc++"
     - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
     - export CXX=clang++
     - export CC=clang
