@@ -32,7 +32,7 @@ clang-debug-asan:
     - git submodule update --init --recursive
     - mkdir -p build-asan
     - cd build-asan
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
+    - cmake -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
     - make -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -86,7 +86,7 @@ gcc-7-debug-valgrind:
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-itest
-  
+
 # MSVC release
 msvc-release:
   tags:
