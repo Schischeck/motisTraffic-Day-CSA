@@ -7,6 +7,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
+# Quickfix for MSVC
+if (MSVC)
+  add_definitions(/std:c++latest)
+  add_definitions(/D_HAS_AUTO_PTR_ETC)
+endif()
+
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
 option(MOTIS_COV "enable coverage (coverage) target" OFF)
 
