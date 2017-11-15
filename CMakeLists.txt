@@ -4,7 +4,7 @@ project(motis)
 # Quickfix for GCC 7
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   add_definitions(-Wno-implicit-fallthrough)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-implicit-fallthrough -fpermissive")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
@@ -248,11 +248,9 @@ if(MOTIS_LINT)
   add_custom_target(lint
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
-        -exit-on-error
         -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(base/)|(modules/)|(test/)"
         "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"
-        "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
     COMMENT "Running clang-tidy"
     VERBATIM
   )
