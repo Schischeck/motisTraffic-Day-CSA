@@ -131,7 +131,7 @@ def run_tidy(args, tmpdir, build_path, queue):
                                      tmpdir, build_path, args.header_filter,
                                      args.extra_arg, args.extra_arg_before,
                                      args.quiet)
-    if args.quiet:
+    if not args.quiet:
     	sys.stdout.write(' '.join(invocation) + '\n')
 
     (stdout, stderr) = subprocess.Popen(invocation, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
