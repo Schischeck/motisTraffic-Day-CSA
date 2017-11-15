@@ -12,6 +12,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
+# Quickfix for MSVC
+if (MSVC)
+  add_definitions(/std:c++latest)
+  add_definitions(/D_HAS_AUTO_PTR_ETC)
+endif()
+
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
 option(MOTIS_COV "enable coverage (coverage) target" OFF)
 
@@ -253,9 +259,12 @@ if(MOTIS_LINT)
   add_custom_target(lint
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
+        -exit-on-error
+        -quiet
         -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(base/)|(modules/)|(test/)"
         "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"
+        "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
     COMMENT "Running clang-tidy"
     VERBATIM
   )
