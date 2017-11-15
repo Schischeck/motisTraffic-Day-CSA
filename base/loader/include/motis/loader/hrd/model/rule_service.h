@@ -13,12 +13,13 @@ struct service_resolvent {
 
   service_resolvent(
 #ifdef _WIN32
-	  std::shared_ptr<hrd_service> service,
+      std::shared_ptr<hrd_service> service,
 #else
-	  std::unique_ptr<hrd_service> service,
+      std::unique_ptr<hrd_service> service,
 #endif
-	  hrd_service* origin)
-      : service_(std::move(service)), origin_(origin) {}
+      hrd_service* origin)
+      : service_(std::move(service)), origin_(origin) {
+  }
 
   friend bool operator<(service_resolvent const& rhs,
                         service_resolvent const& lhs) {
