@@ -10,8 +10,11 @@ namespace motis {
 
 struct delay_info {
   delay_info() = default;
-
   delay_info(delay_info const&) = default;
+  delay_info(delay_info&&) = default;
+  delay_info& operator=(delay_info&&) = default;
+  delay_info& operator=(delay_info const&) = default;
+  ~delay_info() = default;
 
   explicit delay_info(ev_key ev)
       : ev_(std::move(ev)),

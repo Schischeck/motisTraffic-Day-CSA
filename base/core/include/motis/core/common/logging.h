@@ -38,6 +38,11 @@ struct scoped_timer final {
     LOG(info) << "[" << name_ << "] starting";
   }
 
+  scoped_timer(scoped_timer const&) = delete;
+  scoped_timer(scoped_timer&&) = delete;
+  scoped_timer& operator=(scoped_timer const&) = delete;
+  scoped_timer& operator=(scoped_timer&&) = delete;
+
   ~scoped_timer() {
     using namespace std::chrono;
     auto stop = steady_clock::now();

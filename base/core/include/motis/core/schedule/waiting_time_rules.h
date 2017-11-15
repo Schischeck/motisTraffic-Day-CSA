@@ -10,12 +10,8 @@
 
 namespace motis {
 
-struct schedule;
-class graph_loader;
-
-class waiting_time_rules {
-public:
-  friend graph_loader;
+struct waiting_time_rules {
+  waiting_time_rules() : default_group_(0) {}
 
   int waiting_time_category(const std::string& train_category) const {
     auto it = category_map_.find(train_category);
@@ -43,7 +39,6 @@ public:
   }
 
   int default_group_;
-
   std::unordered_map<std::string, int> category_map_;
   std::vector<int> family_to_wtr_category_;
   flat_matrix<duration> waiting_time_matrix_;

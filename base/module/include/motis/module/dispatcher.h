@@ -78,7 +78,7 @@ struct dispatcher : public receiver {
     std::vector<char const*> fbs_def;
     auto def = message::get_fbs_definitions();
     for (auto i = 0u; i < def.second; ++i) {
-      fbs_def.push_back(def.first[i]);
+      fbs_def.emplace_back(def.first[i]);
     }
 
     struct method {

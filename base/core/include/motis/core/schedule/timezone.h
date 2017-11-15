@@ -50,8 +50,8 @@ struct timezone {
                              motis_time - MINUTES_A_DAY + active_offset);
   }
 
-  int const general_offset_;
-  season const season_;
+  int general_offset_;
+  season season_;
 };
 
 }  // namespace motis

@@ -24,7 +24,7 @@ struct ctx_data {
   schedule* sched_;
   env_table env_;
 
-  void transition(ctx::transition, ctx::op_id, ctx::op_id) {}
+  void transition(ctx::transition, ctx::op_id const&, ctx::op_id const&) {}
 };
 
 inline ctx_data& current_data() { return ctx::current_op<ctx_data>().data_; }

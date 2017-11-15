@@ -78,15 +78,15 @@ struct hrd_service {
 
     // Add first service id.
     auto const& first_section = sections_.front();
-    ids.push_back(std::make_pair(first_section.train_num_,
-                                 raw_to_int<uint64_t>(first_section.admin_)));
+    ids.emplace_back(std::make_pair(
+        first_section.train_num_, raw_to_int<uint64_t>(first_section.admin_)));
 
     // Add new service id if it changed.
     for (size_t i = 1; i < sections_.size(); ++i) {
       auto id = std::make_pair(sections_[i].train_num_,
                                raw_to_int<uint64_t>(sections_[i].admin_));
       if (id != ids.back()) {
-        ids.push_back(id);
+        ids.emplace_back(id);
       }
     }
 

@@ -10,7 +10,7 @@ namespace motis {
 namespace loader {
 
 constexpr int BIT_COUNT = 512;
-typedef std::bitset<BIT_COUNT> bitfield;
+using bitfield = std::bitset<BIT_COUNT>;
 
 template <std::size_t BitSetSize>
 struct bitset_comparator {

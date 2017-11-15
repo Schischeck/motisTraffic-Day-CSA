@@ -18,7 +18,7 @@ struct loaded_file {
   loaded_file(char const* filename, parser::buffer&& buf)
       : name_(filename), buf_(std::move(buf)) {}
 
-  explicit loaded_file(boost::filesystem::path p)
+  explicit loaded_file(boost::filesystem::path const& p)
       : name_(p.filename().string()),
         buf_(parser::file(p.string().c_str(), "r").content()) {}
 

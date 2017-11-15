@@ -33,7 +33,7 @@ struct ev_key {
   }
 
   bool valid() const { return route_edge_.valid(); }
-  operator bool() const { return valid(); }
+  explicit operator bool() const { return valid(); }
 
   bool is_arrival() const { return ev_type_ == event_type::ARR; }
   bool is_departure() const { return ev_type_ == event_type::DEP; }

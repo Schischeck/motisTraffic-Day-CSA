@@ -15,7 +15,7 @@
 namespace motis {
 
 struct primary_trip_id {
-  primary_trip_id() = default;
+  primary_trip_id() = default;  // NOLINT
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
       : station_id_(station_id), time_(time), train_nr_(train_nr) {}
 
@@ -40,7 +40,7 @@ struct primary_trip_id {
 };
 
 struct secondary_trip_id {
-  secondary_trip_id() = default;
+  secondary_trip_id() = default;  // NOLINT
   secondary_trip_id(uint32_t target_station_id, uint16_t target_time,
                     std::string line_id)
       : target_station_id_(target_station_id),
@@ -115,7 +115,7 @@ struct trip {
 
     edge* operator->() const { return get_edge(); }
 
-    operator edge*() const { return get_edge(); }
+    operator edge*() const { return get_edge(); }  // NOLINT
 
     node* route_node_;
     std::size_t outgoing_edge_idx_;

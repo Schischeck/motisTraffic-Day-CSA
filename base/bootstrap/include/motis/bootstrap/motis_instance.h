@@ -21,6 +21,11 @@ struct motis_instance : public motis::module::controller {
   motis_instance(motis_instance const&) = delete;
   motis_instance& operator=(motis_instance const&) = delete;
 
+  motis_instance(motis_instance&&) = delete;
+  motis_instance& operator=(motis_instance&&) = delete;
+
+  ~motis_instance() override = default;
+
   std::vector<motis::module::module*> modules() const;
   std::vector<std::string> module_names() const;
 

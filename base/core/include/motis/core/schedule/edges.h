@@ -14,7 +14,11 @@ namespace motis {
 class node;
 
 struct edge_cost {
-  edge_cost() : time_(INVALID_TIME) {}
+  edge_cost()
+      : connection_(nullptr),
+        time_(INVALID_TIME),
+        price_(0),
+        transfer_(false) {}
 
   edge_cost(duration time, light_connection const* c)
       : connection_(c), time_(time), price_(0), transfer_(false) {}
@@ -127,7 +131,7 @@ public:
     if (m_.type_ == INVALID_EDGE) {
       return NO_EDGE;
     } else if (m_.type_ == ROUTE_EDGE) {
-      if (m_.route_edge_.conns_.size() == 0) {
+      if (m_.route_edge_.conns_.empty()) {
         return NO_EDGE;
       } else {
         return edge_cost(
@@ -192,7 +196,7 @@ public:
   light_connection const* get_connection(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
-    if (m_.route_edge_.conns_.size() == 0) {
+    if (m_.route_edge_.conns_.empty()) {
       return nullptr;
     }
 
@@ -310,9 +314,11 @@ public:
   node* to_;
 
   union edge_details {
-    edge_details() { std::memset(this, 0, sizeof(*this)); }
+    edge_details() {  // NOLINT
+      std::memset(this, 0, sizeof(*this));  // NOLINT
+    }
 
-    edge_details(edge_details&& other) noexcept {
+    edge_details(edge_details&& other) noexcept {  // NOLINT
       type_ = other.type_;
       if (type_ == ROUTE_EDGE) {
         route_edge_.init_empty();
@@ -324,7 +330,7 @@ public:
       }
     }
 
-    edge_details(edge_details const& other) {
+    edge_details(edge_details const& other) {  // NOLINT
       type_ = other.type_;
       if (type_ == ROUTE_EDGE) {
         route_edge_.init_empty();
