@@ -110,7 +110,7 @@ msvc-release:
     - motis-itest
 
 # MSVC debug
-msvc-release:
+msvc-debug:
   tags:
     - windows
   script:
