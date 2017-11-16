@@ -86,7 +86,7 @@ struct trip {
     route_edge(edge const* e) : route_edge() {  // NOLINT
       if (e != nullptr) {
         route_node_ = e->from_;
-        for (std::size_t i = 0; i < route_node_->edges_.size(); ++i) {
+        for (auto i = 0u; i < route_node_->edges_.size(); ++i) {
           if (&route_node_->edges_[i] == e) {
             outgoing_edge_idx_ = i;
             return;
