@@ -17,6 +17,11 @@ public:
   mem_manager(mem_manager const&) = delete;
   mem_manager& operator=(mem_manager const&) = delete;
 
+  mem_manager(mem_manager&&) = delete;
+  mem_manager& operator=(mem_manager&&) = delete;
+
+  ~mem_manager() = default;
+
   void reset() {
     allocations_ = 0;
     alloc_.clear();

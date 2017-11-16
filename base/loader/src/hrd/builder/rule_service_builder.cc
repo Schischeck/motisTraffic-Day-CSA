@@ -135,8 +135,8 @@ void rule_service_builder::resolve_rule_services() {
 }
 
 void create_rule_service(
-    rule_service const& rs, rule_service_builder::service_builder_fun sbf,
-    station_builder& sb,
+    rule_service const& rs,
+    rule_service_builder::service_builder_fun const& sbf, station_builder& sb,
     std::vector<flatbuffers64::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
   std::map<hrd_service const*, Offset<Service>> services;
@@ -157,7 +157,7 @@ void create_rule_service(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));
 }
 
-void rule_service_builder::create_rule_services(service_builder_fun sbf,
+void rule_service_builder::create_rule_services(service_builder_fun const& sbf,
                                                 station_builder& sb,
                                                 FlatBufferBuilder& fbb) {
   scoped_timer timer("create rule and remaining services");

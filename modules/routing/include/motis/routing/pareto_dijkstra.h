@@ -116,7 +116,7 @@ struct pareto_dijkstra {
 
 private:
   void create_new_label(Label* l, edge const& edge) {
-    Label blank;
+    Label blank{};
     bool created =
         l->create_label(blank, edge, lower_bounds_,
                         edge.get_source<Dir>()->get_station() == goal_ &&

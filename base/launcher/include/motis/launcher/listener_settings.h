@@ -19,6 +19,12 @@ public:
 
   ~listener_settings() override = default;
 
+  listener_settings(listener_settings const&) = default;
+  listener_settings& operator=(listener_settings const&) = default;
+
+  listener_settings(listener_settings&&) = default;
+  listener_settings& operator=(listener_settings&&) = default;
+
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 

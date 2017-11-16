@@ -36,12 +36,12 @@ public:
     --index_;
     return *this;
   }
-  trip_iterator<T> operator++(int) {
+  trip_iterator<T> const operator++(int) {
     trip_iterator<T> tmp(*this);
     ++index_;
     return tmp;
   }
-  trip_iterator<T> operator--(int) {
+  trip_iterator<T> const operator--(int) {
     trip_iterator<T> tmp(*this);
     --index_;
     return tmp;

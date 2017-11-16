@@ -28,8 +28,8 @@ R call(std::function<R(Args...)> const& func, Params<Args...> const& params) {
 }  // namespace detail
 
 template <typename R, typename... Args>
-std::function<R(Args...)> motis_wrap_(std::function<R(Args...)> fn,
-                                      ctx::op_id id) {
+std::function<R(Args...)> motis_wrap_impl(std::function<R(Args...)> fn,
+                                          ctx::op_id id) {
   auto& op = ctx::current_op<ctx_data>();
   auto& dispatcher = op.data_.dispatcher_;
 
@@ -47,7 +47,7 @@ std::function<R(Args...)> motis_wrap_(std::function<R(Args...)> fn,
   };
 }
 
-#define motis_wrap(fn) motis_wrap_(fn, ctx::op_id(CTX_LOCATION))
+#define motis_wrap(fn) motis_wrap_impl(fn, ctx::op_id(CTX_LOCATION))
 
 }  // namespace module
 }  // namespace motis

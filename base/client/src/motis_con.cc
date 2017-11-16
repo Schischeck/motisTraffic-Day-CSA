@@ -12,7 +12,7 @@ motis_con::motis_con(asio::io_service& ios, std::string host, std::string port,
       request_size_(0),
       response_size_(0) {}
 
-void motis_con::query(std::string const& req, callback cb) {
+void motis_con::query(std::string const& req, callback const& cb) {
   request_ = req;
   request_size_ = htonl(static_cast<uint32_t>(req.size()));
 
@@ -71,19 +71,20 @@ void motis_con::transfer(net::tcp::tcp_ptr self, callback cb, error_code ec) {
 }
 #include "boost/asio/unyield.hpp"
 
-void motis_con::respond(callback cb, net::tcp::tcp_ptr self, error_code ec) {
+void motis_con::respond(callback const& cb, net::tcp::tcp_ptr self,
+                        error_code ec) {
   finally(ec);
   if (asio::error::eof == ec) {
     ec = error_code();
   }
   std::string response(response_.begin(), response_.end());
   response_.clear();
-  cb(self, response, ec);
+  cb(std::move(self), response, ec);
 }
 
 std::size_t motis_con::copy_content(std::size_t buffer_size) {
   if (buffer_size > 0) {
-    const char* buf = asio::buffer_cast<const char*>(buf_.data());
+    auto const buf = asio::buffer_cast<const char*>(buf_.data());
     std::size_t original = response_.size();
     response_.resize(response_.size() + buffer_size);
     std::memcpy(&(response_[original]), buf, buffer_size);

@@ -5,7 +5,7 @@
 
 #define MODULES "modules"
 
-namespace std {
+namespace std {  // NOLINT
 template <typename T>
 ostream& operator<<(ostream& out, vector<T> const& v) {
   auto it = begin(v);

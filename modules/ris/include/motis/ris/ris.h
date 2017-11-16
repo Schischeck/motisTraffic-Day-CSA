@@ -18,22 +18,28 @@ struct base_mode;
 enum class mode_t { LIVE, SIMULATION, TEST };
 
 struct config {
-  mode_t mode_;
+  mode_t mode_{mode_t::LIVE};
 
   std::string input_folder_;
   std::string database_file_;
 
   // live mode
-  int update_interval_;
-  int max_days_;
+  int update_interval_{0};
+  int max_days_{0};
 
   // simulation mode
-  conf::holder<std::time_t> sim_init_time_;
+  conf::holder<std::time_t> sim_init_time_{0};
 };
 
 struct ris final : public motis::module::module {
   ris();
   ~ris() override;
+
+  ris(ris const&) = delete;
+  ris& operator=(ris const&) = delete;
+
+  ris(ris&&) = delete;
+  ris& operator=(ris&&) = delete;
 
   std::string name() const override { return "ris"; }
   void init(motis::module::registry&) override;

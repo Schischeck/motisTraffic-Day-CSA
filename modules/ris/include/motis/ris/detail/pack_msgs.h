@@ -2,6 +2,8 @@
 
 #include <vector>
 
+#include "utl/to_vec.h"
+
 #include "motis/module/message.h"
 #include "motis/ris/blob.h"
 #include "motis/ris/ris_message.h"
@@ -21,23 +23,20 @@ inline motis::module::msg_ptr pack_msgs(
 
 inline motis::module::msg_ptr pack_msgs(std::vector<ris_message> const& msgs) {
   motis::module::message_creator b;
-  std::vector<flatbuffers::Offset<MessageHolder>> offsets;
-  for (auto& msg : msgs) {
-    offsets.push_back(
-        CreateMessageHolder(b, b.CreateVector(msg.data(), msg.size())));
-  }
-  return pack_msgs(b, offsets);
+  return pack_msgs(b, utl::to_vec(msgs, [&](auto&& msg) {
+                     return CreateMessageHolder(
+                         b, b.CreateVector(msg.data(), msg.size()));
+                   }));
 }
 
 inline motis::module::msg_ptr pack_msgs(
     std::vector<std::pair<std::time_t, blob>> const& msgs) {
   motis::module::message_creator b;
-  std::vector<flatbuffers::Offset<MessageHolder>> offsets;
-  for (auto& msg : msgs) {
-    offsets.push_back(CreateMessageHolder(
-        b, b.CreateVector(msg.second.data(), msg.second.size())));
-  }
-  return pack_msgs(b, offsets);
+  return pack_msgs(b, utl::to_vec(msgs, [&](auto&& msg) {
+                     return CreateMessageHolder(
+                         b,
+                         b.CreateVector(msg.second.data(), msg.second.size()));
+                   }));
 }
 
 }  // namespace detail

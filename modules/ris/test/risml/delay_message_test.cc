@@ -188,7 +188,7 @@ TEST(ris_delay_message, ist_message_3) {
 }
 
 // clang-format off
-std::string type_fixture(std::string type_string) {
+std::string type_fixture(std::string const& type_string) {
   return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 <Paket TOut=\"20151116180000\"><ListNachricht><Nachricht>\
 <Ist><Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \

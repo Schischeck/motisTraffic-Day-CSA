@@ -21,6 +21,12 @@ struct mem_retriever {
                 std::size_t bytes)
       : mutex_(mutex), memory_(retrieve(mem_pool, bytes)) {}
 
+  mem_retriever(mem_retriever const&) = delete;
+  mem_retriever& operator=(mem_retriever const&) = delete;
+
+  mem_retriever(mem_retriever&&) = delete;
+  mem_retriever& operator=(mem_retriever&&) = delete;
+
   ~mem_retriever() {
     std::lock_guard<std::mutex> lock(mutex_);
     memory_->in_use_ = false;

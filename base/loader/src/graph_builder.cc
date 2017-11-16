@@ -123,7 +123,7 @@ void graph_builder::link_meta_stations(
     for (auto const& fbs_equivalent : *meta->equivalent()) {
       auto equivalent =
           sched_.eva_to_station_.find(fbs_equivalent->id()->str());
-      station->second->equivalent_.push_back(equivalent->second);
+      station->second->equivalent_.emplace_back(equivalent->second);
     }
   }
 }
@@ -353,8 +353,7 @@ void graph_builder::add_to_routes(
     return;
   }
 
-  alt_routes.push_back(
-      std::vector<std::vector<light_connection>>(sections.size()));
+  alt_routes.emplace_back(sections.size());
   add_to_route(alt_routes.back(), sections, 0);
 }
 
@@ -598,7 +597,7 @@ int graph_builder::get_or_create_track(int day,
                                        Vector<Offset<Track>> const* tracks) {
   static constexpr int no_track = 0;
   if (sched_.tracks_.empty()) {
-    sched_.tracks_.push_back("");
+    sched_.tracks_.emplace_back("");
   }
 
   if (tracks == nullptr) {
@@ -615,7 +614,7 @@ int graph_builder::get_or_create_track(int day,
     auto name = track_it->name()->str();
     return utl::get_or_create(tracks_, name, [&]() {
       int index = sched_.tracks_.size();
-      sched_.tracks_.push_back(name);
+      sched_.tracks_.emplace_back(name);
       return index;
     });
   }

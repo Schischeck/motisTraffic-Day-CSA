@@ -87,7 +87,7 @@ struct additional_service_builder {
           events) {
     std::vector<section> sections;
     for (auto it = std::begin(*events); it != std::end(*events);) {
-      light_connection lcon;
+      light_connection lcon{};
       lcon.valid_ = true;
 
       // DEP
@@ -130,7 +130,7 @@ struct additional_service_builder {
     std::vector<trip::route_edge> trip_edges;
     node* prev_route_node = nullptr;
     for (auto const& s : sections) {
-      light_connection l;
+      light_connection l{};
       station_node *from_station, *to_station;
       std::tie(l, from_station, to_station) = s;
 

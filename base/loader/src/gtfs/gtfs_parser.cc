@@ -58,7 +58,7 @@ std::vector<std::string> gtfs_parser::missing_files(
     fs::path const& path) const {
   std::vector<std::string> files;
   if (!fs::is_directory(path)) {
-    files.push_back(path.string());
+    files.emplace_back(path.string());
   }
 
   std::copy_if(
@@ -67,8 +67,8 @@ std::vector<std::string> gtfs_parser::missing_files(
 
   if (!fs::is_regular_file(path / CALENDAR_FILE) &&
       !fs::is_regular_file(path / CALENDAR_DATES_FILE)) {
-    files.push_back(CALENDAR_FILE);
-    files.push_back(CALENDAR_DATES_FILE);
+    files.emplace_back(CALENDAR_FILE);
+    files.emplace_back(CALENDAR_DATES_FILE);
   }
 
   return files;
@@ -165,8 +165,8 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
                 begin(t->stop_times_), end(t->stop_times_), std::vector<int>(),
                 [](std::vector<int>& times,
                    flat_map<stop_time>::entry_t const& st) {
-                  times.push_back(st.second.arr_.time_);
-                  times.push_back(st.second.dep_.time_);
+                  times.emplace_back(st.second.arr_.time_);
+                  times.emplace_back(st.second.dep_.time_);
                   return times;
                 })));
       }));
@@ -176,7 +176,7 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
       [&](std::vector<Offset<Footpath>>& footpaths,
           std::pair<stop_pair, transfer> const& t) {
         if (t.second.type_ == transfer::TIMED_TRANSFER) {
-          footpaths.push_back(CreateFootpath(
+          footpaths.emplace_back(CreateFootpath(
               fbb, get_or_create_stop(t.first.first),
               get_or_create_stop(t.first.second), t.second.minutes_));
         }

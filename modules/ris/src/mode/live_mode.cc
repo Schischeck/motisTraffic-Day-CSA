@@ -19,7 +19,6 @@
 #include "motis/ris/zip_reader.h"
 
 using boost::asio::deadline_timer;
-using boost::system::system_error;
 using boost::system::error_code;
 using websocketpp::md5::md5_hash_hex;
 using namespace motis::logging;

@@ -29,7 +29,7 @@ struct service_builder {
       direction_builder&, flatbuffers64::FlatBufferBuilder&,
       bool is_rule_participant);
 
-  track_rules const track_rules_;
+  track_rules track_rules_;
   std::vector<flatbuffers64::Offset<Service>> fbs_services_;
   std::map<char const*, flatbuffers64::Offset<flatbuffers64::String>>
       filenames_;

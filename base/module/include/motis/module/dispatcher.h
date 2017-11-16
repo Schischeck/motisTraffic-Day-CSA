@@ -23,15 +23,13 @@ struct dispatcher : public receiver {
   std::vector<future> publish(msg_ptr const& msg, ctx_data const& data,
                               ctx::op_id id) {
     id.name = msg->get()->destination()->target()->str();
-    std::vector<future> futures;
     auto it = registry_.topic_subscriptions_.find(id.name);
-    if (it != end(registry_.topic_subscriptions_)) {
-      for (auto& subscriber : it->second) {
-        futures.emplace_back(
-            scheduler_.post(data, std::bind(subscriber, msg), id));
-      }
+    if (it == end(registry_.topic_subscriptions_)) {
+      return {};
     }
-    return futures;
+    return utl::to_vec(it->second, [&](auto&& subscriber) {
+      return scheduler_.post(data, std::bind(subscriber, msg), id);
+    });
   }
 
   future req(msg_ptr const& msg, ctx_data const& data, ctx::op_id id) {
@@ -62,8 +60,8 @@ struct dispatcher : public receiver {
           } catch (std::system_error const& e) {
             return cb(nullptr, e.code());
           } catch (std::out_of_range const&) {
-            LOG(logging::log_level::error)
-                << "target \"" << id.name << "\" not found";
+            LOG(logging::log_level::error) << "target \"" << id.name
+                                           << "\" not found";
             return cb(nullptr, error::target_not_found);
           } catch (...) {
             return cb(nullptr, error::unknown_error);
@@ -77,6 +75,7 @@ struct dispatcher : public receiver {
 
     std::vector<char const*> fbs_def;
     auto def = message::get_fbs_definitions();
+    fbs_def.reserve(def.second);
     for (auto i = 0u; i < def.second; ++i) {
       fbs_def.emplace_back(def.first[i]);
     }
@@ -93,10 +92,10 @@ struct dispatcher : public receiver {
     fbb.create_and_finish(
         MsgContent_ApiDescription,
         CreateApiDescription(
-            fbb,
-            fbb.CreateVector(utl::to_vec(
-                fbs_def,
-                [&fbb](char const* str) { return fbb.CreateString(str); })),
+            fbb, fbb.CreateVector(utl::to_vec(fbs_def,
+                                              [&fbb](char const* str) {
+                                                return fbb.CreateString(str);
+                                              })),
             fbb.CreateVector(utl::to_vec(methods,
                                          [&fbb](method const& m) {
                                            return CreateMethod(

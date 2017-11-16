@@ -37,7 +37,7 @@ struct service_resolvent {
 #else
   std::unique_ptr<hrd_service> service_;
 #endif
-  hrd_service* origin_;
+  hrd_service* origin_{nullptr};
 };
 
 struct service_rule_resolvent {
@@ -46,8 +46,8 @@ struct service_rule_resolvent {
       : rule_info_(std::move(rule_info)), s1_(s1), s2_(s2) {}
 
   resolved_rule_info rule_info_;
-  hrd_service* s1_;
-  hrd_service* s2_;
+  hrd_service* s1_{nullptr};
+  hrd_service* s2_{nullptr};
 };
 
 struct rule_service {

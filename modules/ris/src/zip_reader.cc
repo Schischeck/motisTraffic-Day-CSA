@@ -14,7 +14,7 @@ namespace ris {
 std::vector<buffer> read_zip_buf(buffer const& b) {
   std::vector<buffer> file_contents;
 
-  mz_zip_archive zip_archive;
+  mz_zip_archive zip_archive{};
   memset(&zip_archive, 0, sizeof(zip_archive));
 
   auto archive =

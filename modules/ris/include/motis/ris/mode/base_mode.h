@@ -28,11 +28,17 @@ struct base_mode {  // hint: strategy pattern ;)
   explicit base_mode(config* conf) : conf_(conf) {}
   virtual ~base_mode() = default;
 
+  base_mode(base_mode const&) = delete;
+  base_mode& operator=(base_mode const&) = delete;
+
+  base_mode(base_mode&&) = delete;
+  base_mode& operator=(base_mode&&) = delete;
+
   virtual void init(motis::module::registry&);
   virtual void init_async();
 
 protected:
-  void forward(std::time_t const);
+  void forward(std::time_t);
 
   template <typename Fn>
   void system_time_forward(std::time_t const new_system_time, Fn fn) {

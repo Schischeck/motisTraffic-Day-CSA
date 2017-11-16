@@ -41,6 +41,12 @@ public:
 
   ~generator_settings() override = default;
 
+  generator_settings(generator_settings const&) = default;
+  generator_settings& operator=(generator_settings const&) = default;
+
+  generator_settings(generator_settings&&) = default;
+  generator_settings& operator=(generator_settings&&) = default;
+
   boost::program_options::options_description desc() override {
     po::options_description desc("Generator Settings");
     // clang-format off

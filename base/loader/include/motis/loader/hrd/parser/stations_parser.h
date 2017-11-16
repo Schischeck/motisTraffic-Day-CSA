@@ -12,8 +12,8 @@ namespace hrd {
 
 struct intermediate_station {
   std::string name_;
-  int change_time_;
-  double lng_, lat_;
+  int change_time_{0};
+  double lng_{0.0}, lat_{0.0};
   std::vector<std::string> ds100_;
 };
 

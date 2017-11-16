@@ -41,11 +41,12 @@ public:
     MultiTargetParameters params;
     params.forward = req->direction() == Direction_Forward;
 
-    params.coordinates.push_back(
+    params.coordinates.reserve(req->many()->size() + 1);
+    params.coordinates.emplace_back(
         make_coord(req->one()->lat(), req->one()->lng()));
 
     for (auto const& loc : *req->many()) {
-      params.coordinates.push_back(make_coord(loc->lat(), loc->lng()));
+      params.coordinates.emplace_back(make_coord(loc->lat(), loc->lng()));
     }
 
     Object result;
@@ -76,7 +77,7 @@ public:
     params.overview = RouteParameters::OverviewType::Full;
 
     for (auto const& waypoint : *req->waypoints()) {
-      params.coordinates.push_back(
+      params.coordinates.emplace_back(
           make_coord(waypoint->lat(), waypoint->lng()));
     }
 
@@ -113,9 +114,9 @@ public:
     for (auto const& waypoint : *req->waypoints()) {
       std::vector<Coordinate> coords;
       for (auto const& pos : *waypoint->positions()) {
-        coords.push_back(make_coord(pos->lat(), pos->lng()));
+        coords.emplace_back(make_coord(pos->lat(), pos->lng()));
       }
-      params.waypoints.push_back(std::move(coords));
+      params.waypoints.emplace_back(std::move(coords));
     }
 
     Object result;
@@ -132,7 +133,7 @@ public:
       auto const& polyline = utl::to_vec(
           json_polyline.get<Array>().values,
           [](auto&& jc) { return jc.template get<Number>().value; });
-      segments.push_back(CreatePolyline(mc, mc.CreateVector(polyline)));
+      segments.emplace_back(CreatePolyline(mc, mc.CreateVector(polyline)));
     }
 
     mc.create_and_finish(MsgContent_OSRMSmoothViaRouteResponse,
@@ -147,7 +148,7 @@ public:
   std::unique_ptr<OSRM> osrm_;
 };
 
-router::router(std::string path)
+router::router(std::string const& path)
     : impl_(std::make_unique<router::impl>(path)) {}
 
 router::~router() = default;

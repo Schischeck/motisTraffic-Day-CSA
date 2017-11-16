@@ -43,14 +43,14 @@ protected:
 
     // load bitfields
     flatbuffers64::FlatBufferBuilder fbb;
-    data_.push_back(loaded_file(stamm / "bitfield.101"));
+    data_.emplace_back(stamm / "bitfield.101");
     bitfield_builder bb(parse_bitfields(data_.back()));
 
     // load service rules
     service_rules rs;
-    data_.push_back(loaded_file(stamm / "durchbi.101"));
+    data_.emplace_back(stamm / "durchbi.101");
     parse_through_service_rules(data_.back(), bb.hrd_bitfields_, rs);
-    data_.push_back(loaded_file(stamm / "vereinig_vt.101"));
+    data_.emplace_back(stamm / "vereinig_vt.101");
     parse_merge_split_service_rules(data_.back(), bb.hrd_bitfields_, rs);
 
     // load services and create rule services
@@ -58,7 +58,7 @@ protected:
     std::vector<path> services_files;
     collect_files(fahrten, services_files);
     for (auto const& services_file : services_files) {
-      data_.push_back(loaded_file(services_file));
+      data_.emplace_back(services_file);
       for_each_service(data_.back(), bb.hrd_bitfields_,
                        [&](hrd_service const& s) { rsb_.add_service(s); });
     }

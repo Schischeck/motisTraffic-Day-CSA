@@ -13,6 +13,12 @@ struct lookup final : public motis::module::module {
   lookup();
   ~lookup() override;
 
+  lookup(lookup const&) = delete;
+  lookup& operator=(lookup const&) = delete;
+
+  lookup(lookup&&) = delete;
+  lookup& operator=(lookup&&) = delete;
+
   void init(motis::module::registry&) override;
 
 private:

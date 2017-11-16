@@ -131,7 +131,7 @@ loaded_file load(fs::path const& root, filename_key k) {
 void parse_and_build_services(
     fs::path const& hrd_root, std::map<int, bitfield> const& bitfields,
     std::vector<std::unique_ptr<loaded_file>>& schedule_data,
-    std::function<void(hrd_service const&)> service_builder_fun) {
+    std::function<void(hrd_service const&)> const& service_builder_fun) {
   auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
 
   std::vector<fs::path> files;

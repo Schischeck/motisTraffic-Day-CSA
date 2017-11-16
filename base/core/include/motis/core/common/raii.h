@@ -13,6 +13,12 @@ struct raii {
         destruct_(std::forward<DestructFun>(destruct)),
         omit_destruct_(false) {}
 
+  raii(raii const&) = delete;
+  raii& operator=(raii const&) = delete;
+
+  raii(raii&&) = delete;
+  raii& operator=(raii&&) = delete;
+
   ~raii() {
     if (!omit_destruct_) {
       destruct_(el_);
@@ -20,7 +26,7 @@ struct raii {
   }
 
   T& get() { return el_; }
-  operator T() { return el_; }
+  operator T() { return el_; }  // NOLINT
 
   T el_;
   DestructFun destruct_;
@@ -36,6 +42,13 @@ template <typename DestructFun>
 struct finally {
   explicit finally(DestructFun&& destruct)
       : destruct_(std::forward<DestructFun>(destruct)) {}
+
+  finally(finally const&) = delete;
+  finally& operator=(finally const&) = delete;
+
+  finally(finally&&) = delete;
+  finally& operator=(finally&&) = delete;
+
   ~finally() { destruct_(); }
   DestructFun destruct_;
 };

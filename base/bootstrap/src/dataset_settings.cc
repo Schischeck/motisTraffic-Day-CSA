@@ -19,8 +19,8 @@ dataset_settings::dataset_settings(std::string default_dataset,
                                    std::string schedule_begin, int num_days,
                                    bool write_serialized, bool apply_rules,
                                    bool adjust_footpaths, bool unique_check)
-    : loader_options(default_dataset, schedule_begin, num_days,
-                     write_serialized, apply_rules, adjust_footpaths,
+    : loader_options(std::move(default_dataset), std::move(schedule_begin),
+                     num_days, write_serialized, apply_rules, adjust_footpaths,
                      unique_check) {}
 
 po::options_description dataset_settings::desc() {

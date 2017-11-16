@@ -54,9 +54,10 @@ void parse_specification(loaded_file const& file,
   }
 }
 
-void expand_and_consume(hrd_service&& non_expanded_service,
-                        std::map<int, bitfield> const& bitfields,
-                        std::function<void(hrd_service const&)> consumer) {
+void expand_and_consume(
+    hrd_service&& non_expanded_service,
+    std::map<int, bitfield> const& bitfields,
+    std::function<void(hrd_service const&)> const& consumer) {
   std::vector<hrd_service> expanded_services;
   expand_traffic_days(non_expanded_service, bitfields, expanded_services);
   expand_repetitions(expanded_services);

@@ -39,8 +39,8 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
   return false;
 }
 
-typedef std::pair<route_section, std::vector<participant>> service_section;
-typedef std::pair<Service const*, Rule const*> neighbor;
+using service_section = std::pair<route_section, std::vector<participant>>;
+using neighbor = std::pair<Service const*, Rule const*>;
 
 struct rule_service_section_builder {
   rule_service_section_builder(graph_builder& gb, RuleService const* rs)

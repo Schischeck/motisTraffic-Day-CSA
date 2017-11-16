@@ -23,11 +23,11 @@ struct stop_time {
         dep_({dep_time, in_allowed}) {}
 
   struct ev {
-    int time_;
-    bool in_out_allowed_;
+    int time_{0};
+    bool in_out_allowed_{false};
   };
 
-  stop const* stop_;
+  stop const* stop_{nullptr};
   std::string headsign_;
   ev arr_, dep_;
 };

@@ -18,8 +18,7 @@ namespace p = std::placeholders;
 using zstd::compress;
 using zstd::uncompress;
 
-typedef websocketpp::server<websocketpp::config::asio> asio_ws_server;
-
+using asio_ws_server = websocketpp::server<websocketpp::config::asio>;
 using websocketpp::connection_hdl;
 using websocketpp::lib::bind;
 using websocketpp::lib::error_code;
@@ -87,19 +86,19 @@ struct ws_server::ws_server_impl {
 
   void stop() { server_.stop(); }
 
-  sid add_session(connection_hdl& hdl) {
+  sid add_session(connection_hdl const& hdl) {
     sid_con_map_.insert({next_sid_, hdl});
     con_sid_map_.insert({hdl, next_sid_});
     return next_sid_++;
   }
 
-  void on_open(connection_hdl hdl) {
+  void on_open(connection_hdl const& hdl) {
     if (api_key_.empty()) {
       add_session(hdl);
     }
   }
 
-  void on_close(connection_hdl hdl) {
+  void on_close(connection_hdl const& hdl) {
     auto con_it = con_sid_map_.find(hdl);
     if (con_it == end(con_sid_map_)) {
       return;
@@ -116,7 +115,7 @@ struct ws_server::ws_server_impl {
     sid_con_map_.erase(sid_it);
   }
 
-  void on_msg(connection_hdl hdl, asio_ws_server::message_ptr msg,
+  void on_msg(connection_hdl const& hdl, asio_ws_server::message_ptr const& msg,
               bool authenticated) {
     if (!authenticated && !api_key_.empty() && msg->get_payload() == api_key_) {
       server_.get_con_from_hdl(hdl)->set_message_handler(
@@ -175,7 +174,7 @@ struct ws_server::ws_server_impl {
     return b;
   }
 
-  void reply(sid session, int req_id, msg_ptr res, std::error_code ec) {
+  void reply(sid session, int req_id, msg_ptr const& res, std::error_code ec) {
     if (ec) {
       send_error(ec, session, req_id);
     } else if (res) {

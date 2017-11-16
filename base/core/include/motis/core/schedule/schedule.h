@@ -34,6 +34,7 @@ struct schedule {
   schedule& operator=(schedule const&) = delete;
   schedule(schedule&&) = delete;
   schedule& operator=(schedule&&) = delete;
+  ~schedule() = default;
 
   std::time_t schedule_begin_, schedule_end_;
   std::string name_;

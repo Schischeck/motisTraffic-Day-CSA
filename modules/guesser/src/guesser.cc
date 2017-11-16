@@ -43,9 +43,9 @@ void guesser::init(motis::module::registry& reg) {
   station_names.set_empty_key("");
   for (auto const& s : sched.stations_) {
     auto total_events = std::accumulate(begin(s->dep_class_events_),
-                                        end(s->dep_class_events_), 0) +
+                                        end(s->dep_class_events_), size_t{0u}) +
                         std::accumulate(begin(s->arr_class_events_),
-                                        end(s->arr_class_events_), 0);
+                                        end(s->arr_class_events_), size_t{0u});
     if (total_events != 0 && station_names.insert(s->name_).second) {
       station_indices_.push_back(s->index_);
     }

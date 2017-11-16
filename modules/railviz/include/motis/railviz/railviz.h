@@ -11,6 +11,12 @@ struct railviz : public motis::module::module {
   railviz();
   ~railviz() override;
 
+  railviz(railviz const&) = delete;
+  railviz& operator=(railviz const&) = delete;
+
+  railviz(railviz&&) = delete;
+  railviz& operator=(railviz&&) = delete;
+
   void init(motis::module::registry&) override;
 
 private:

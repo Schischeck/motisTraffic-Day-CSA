@@ -29,6 +29,8 @@ struct loaded_file {
     buf_ = std::move(o.buf_);
   }
 
+  ~loaded_file() = default;
+
   loaded_file& operator=(loaded_file const&) = delete;
 
   loaded_file& operator=(loaded_file&& o) noexcept {

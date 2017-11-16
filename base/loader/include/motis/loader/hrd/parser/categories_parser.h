@@ -18,7 +18,7 @@ struct category {
       : name_(std::move(name)), output_rule_(output_rule) {}
 
   std::string name_;
-  uint8_t output_rule_;
+  uint8_t output_rule_{0};
 };
 
 std::map<uint32_t, category> parse_categories(loaded_file const& file);

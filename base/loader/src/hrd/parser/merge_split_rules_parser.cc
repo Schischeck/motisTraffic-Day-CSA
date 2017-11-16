@@ -26,6 +26,11 @@ struct mss_rule : public service_rule {
         eva_num_begin_(eva_num_begin),
         eva_num_end_(eva_num_end) {}
 
+  mss_rule(mss_rule const&) = delete;
+  mss_rule(mss_rule&&) = delete;
+  mss_rule& operator=(mss_rule const&) = delete;
+  mss_rule& operator=(mss_rule&&) = delete;
+
   ~mss_rule() override = default;
 
   int applies(hrd_service const& s) const override {

@@ -20,6 +20,12 @@ namespace reliability {
 struct reliability : public motis::module::module {
   reliability();
 
+  reliability(reliability const&) = delete;
+  reliability& operator=(reliability const&) = delete;
+
+  reliability(reliability&&) = delete;
+  reliability& operator=(reliability&&) = delete;
+
   std::string name() const override { return "reliability"; }
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;

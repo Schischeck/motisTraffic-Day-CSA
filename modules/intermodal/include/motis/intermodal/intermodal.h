@@ -12,6 +12,12 @@ public:
   intermodal();
   ~intermodal() override;
 
+  intermodal(intermodal const&) = delete;
+  intermodal& operator=(intermodal const&) = delete;
+
+  intermodal(intermodal&&) = delete;
+  intermodal& operator=(intermodal&&) = delete;
+
   std::string name() const override { return "intermodal"; }
   void init(motis::module::registry&) override;
 

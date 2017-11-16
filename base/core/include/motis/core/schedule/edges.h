@@ -52,7 +52,7 @@ public:
     THROUGH_EDGE
   };
 
-  edge() = default;
+  edge() : from_{nullptr}, to_{nullptr} {}
 
   /** route edge constructor. */
   edge(node* from, node* to, std::vector<light_connection> const& connections)
@@ -231,11 +231,10 @@ public:
     assert(type() == ROUTE_EDGE);
 
     light_connection const* c = get_connection<Dir>(start_time);
-    return (c == nullptr)
-               ? NO_EDGE
-               : edge_cost((Dir == search_dir::FWD) ? c->a_time_ - start_time
+    return (c == nullptr) ? NO_EDGE : edge_cost((Dir == search_dir::FWD)
+                                                    ? c->a_time_ - start_time
                                                     : start_time - c->d_time_,
-                           c);
+                                                c);
   }
 
   template <search_dir Dir = search_dir::FWD>

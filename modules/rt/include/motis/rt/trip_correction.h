@@ -47,7 +47,7 @@ struct entry : public delay_info {
     }
   }
 
-  motis::time min_, max_;
+  motis::time min_{0}, max_{0};
 };
 
 struct trip_corrector {

@@ -9,6 +9,12 @@ struct address : public motis::module::module {
   address();
   ~address() override;
 
+  address(address const&) = delete;
+  address& operator=(address const&) = delete;
+
+  address(address&&) = delete;
+  address& operator=(address&&) = delete;
+
   void init(motis::module::registry&) override;
 
 private:

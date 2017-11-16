@@ -104,7 +104,7 @@ struct services_key {
   }
 
   std::set<Service const*> services_;
-  int day_idx_;
+  int day_idx_{0};
 };
 
 template <typename T, typename... Args>
@@ -115,8 +115,8 @@ inline std::size_t push_mem(std::vector<std::unique_ptr<T>>& elements,
   return idx;
 }
 
-typedef std::vector<route_section> route;
-typedef std::vector<std::vector<light_connection>> route_lcs;
+using route = std::vector<route_section>;
+using route_lcs = std::vector<std::vector<light_connection>>;
 
 struct graph_builder {
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,

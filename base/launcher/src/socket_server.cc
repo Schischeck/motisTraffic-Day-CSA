@@ -41,7 +41,8 @@ struct socket_server::impl {
                                          p::_1, p::_2)));
   }
 
-  void reply(int id, net::handler_cb_fun cb, msg_ptr res, std::error_code ec) {
+  void reply(int id, net::handler_cb_fun const& cb, msg_ptr const& res,
+             std::error_code ec) {
     msg_ptr response;
 
     if (ec) {

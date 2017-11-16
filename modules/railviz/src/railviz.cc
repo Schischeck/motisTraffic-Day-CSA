@@ -152,7 +152,7 @@ msg_ptr railviz::get_station(msg_ptr const& msg) const {
   auto const station = get_station_node(sched, req->station_id()->str());
 
   struct ev_info {
-    motis::time t_;
+    motis::time t_{0};
     ev_key k_;
   };
 

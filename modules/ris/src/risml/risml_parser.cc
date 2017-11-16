@@ -66,7 +66,7 @@ Offset<IdEvent> inline parse_trip_id(
       parse_schedule_time(ctx, node.attribute("IdZeit").value());
 
   std::string reg_sta(node.attribute("RegSta").value());
-  auto trip_type = (reg_sta == "" || reg_sta == "Plan")
+  auto trip_type = (reg_sta.empty() || reg_sta == "Plan")
                        ? IdEventType_Schedule
                        : IdEventType_Additional;
   // desired side-effect: update temporal bounds
@@ -217,13 +217,21 @@ Offset<Message> parse_conn_assessment_msg(context& ctx, xml_node const& msg) {
 boost::optional<ris_message> parse_message(xml_node const& msg,
                                            std::time_t t_out) {
   static std::map<cstr, parser_func_t> map(
-      {{"Ist", std::bind(parse_delay_msg, _1, _2, DelayType_Is)},
-       {"IstProg", std::bind(parse_delay_msg, _1, _2, DelayType_Forecast)},
-       {"Ausfall", std::bind(parse_cancel_msg, _1, _2)},
-       {"Zusatzzug", std::bind(parse_addition_msg, _1, _2)},
-       {"Umleitung", std::bind(parse_reroute_msg, _1, _2)},
-       {"Anschluss", std::bind(parse_conn_decision_msg, _1, _2)},
-       {"Anschlussbewertung", std::bind(parse_conn_assessment_msg, _1, _2)}});
+      {{"Ist",
+        [](auto&& c, auto&& m) { return parse_delay_msg(c, m, DelayType_Is); }},
+       {"IstProg",
+        [](auto&& c, auto&& m) {
+          return parse_delay_msg(c, m, DelayType_Forecast);
+        }},
+       {"Ausfall", [](auto&& c, auto&& m) { return parse_cancel_msg(c, m); }},
+       {"Zusatzzug",
+        [](auto&& c, auto&& m) { return parse_addition_msg(c, m); }},
+       {"Umleitung",
+        [](auto&& c, auto&& m) { return parse_reroute_msg(c, m); }},
+       {"Anschluss",
+        [](auto&& c, auto&& m) { return parse_conn_decision_msg(c, m); }},
+       {"Anschlussbewertung",
+        [](auto&& c, auto&& m) { return parse_conn_assessment_msg(c, m); }}});
 
   auto const& payload = msg.first_child();
   auto it = map.find(payload.name());

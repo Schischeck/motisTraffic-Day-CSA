@@ -23,6 +23,11 @@ struct ts_rule : public service_rule {
 
   ~ts_rule() override = default;
 
+  ts_rule(ts_rule const&) = delete;
+  ts_rule(ts_rule&&) = delete;
+  ts_rule& operator=(ts_rule const&) = delete;
+  ts_rule& operator=(ts_rule&&) = delete;
+
   int applies(hrd_service const& s) const override {
     // Check for non-empty intersection.
     if ((s.traffic_days_ & mask_).none()) {

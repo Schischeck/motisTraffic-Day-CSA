@@ -13,6 +13,8 @@ namespace module {
 using op = std::function<msg_ptr(msg_ptr const&)>;
 
 struct registry {
+  registry() : sched_{nullptr} {}
+
   template <typename Fn>
   void register_op(std::string const& name, Fn fn) {
     if (!operations_.emplace(name, std::forward<Fn>(fn)).second) {

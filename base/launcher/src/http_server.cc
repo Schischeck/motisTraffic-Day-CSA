@@ -126,8 +126,9 @@ struct http_server::impl {
     return it != end(req.headers) && it->value.find(v) != std::string::npos;
   }
 
-  void on_response(srv::callback cb, msg_ptr msg, std::error_code ec) {
-    reply rep = reply::stock_reply(reply::internal_server_error);
+  void on_response(srv::callback const& cb, msg_ptr const& msg,
+                   std::error_code ec) {
+    auto rep = reply::stock_reply(reply::internal_server_error);
     try {
       if (!ec && msg) {
         if (msg->get()->content_type() == MsgContent_HTTPResponse) {
@@ -136,13 +137,14 @@ struct http_server::impl {
                            ? reply::ok
                            : reply::internal_server_error;
           rep.content = http_res->content()->str();
+          rep.headers.reserve(http_res->headers()->size());
           for (auto const& h : *http_res->headers()) {
-            rep.headers.push_back(header(h->name()->str(), h->value()->str()));
+            rep.headers.emplace_back(h->name()->str(), h->value()->str());
           }
         } else {
           rep.content = msg->to_json();
           rep.status = reply::ok;
-          rep.headers.push_back(header("Content-Type", "application/json"));
+          rep.headers.emplace_back("Content-Type", "application/json");
         }
       } else if (!ec) {
         rep = reply::stock_reply(reply::ok);

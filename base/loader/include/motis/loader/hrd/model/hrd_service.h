@@ -49,7 +49,7 @@ struct hrd_service {
     section(int train_num, parser::cstr admin)
         : train_num_(train_num), admin_(std::move(admin)) {}
 
-    int train_num_;
+    int train_num_{0};
     parser::cstr admin_;
     std::vector<attribute> attributes_;
     std::vector<parser::cstr> category_;

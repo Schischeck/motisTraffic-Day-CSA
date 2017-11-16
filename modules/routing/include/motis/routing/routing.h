@@ -15,6 +15,12 @@ struct routing : public motis::module::module {
   routing();
   ~routing() override;
 
+  routing(routing const&) = delete;
+  routing& operator=(routing const&) = delete;
+
+  routing(routing&&) = delete;
+  routing& operator=(routing&&) = delete;
+
   void init(motis::module::registry&) override;
 
 private:

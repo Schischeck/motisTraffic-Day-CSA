@@ -19,7 +19,7 @@ struct category_builder {
   flatbuffers64::Offset<Category> get_or_create_category(
       parser::cstr, flatbuffers64::FlatBufferBuilder&);
 
-  std::map<uint32_t, category> const hrd_categories_;
+  std::map<uint32_t, category> hrd_categories_;
   std::map<uint32_t, flatbuffers64::Offset<Category>> fbs_categories_;
 };
 

@@ -10,14 +10,12 @@ namespace detail {
 
 constexpr auto kForwardBatchedInterval = 3600l;
 
-std::time_t forward_batched(std::time_t const sched_begin,
-                            std::time_t const sched_end,
-                            std::time_t const end_time, db_ptr const& db);
+std::time_t forward_batched(std::time_t sched_begin, std::time_t sched_end,
+                            std::time_t end_time, db_ptr const& db);
 
-std::time_t forward_batched(std::time_t const sched_begin,
-                            std::time_t const sched_end,
-                            std::time_t const start_time,
-                            std::time_t const end_time, db_ptr const& db);
+std::time_t forward_batched(std::time_t sched_begin, std::time_t sched_end,
+                            std::time_t start_time, std::time_t end_time,
+                            db_ptr const& db);
 
 }  // namespace detail
 }  // namespace ris

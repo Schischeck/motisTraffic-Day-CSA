@@ -19,7 +19,7 @@ struct interchange {
     enter_ = ev_key();
     exit_ = ev_key();
   }
-  std::size_t exit_stop_idx_, enter_stop_idx_;
+  size_t exit_stop_idx_{0}, enter_stop_idx_{0};
   ev_key exit_, enter_;
 };
 
@@ -83,7 +83,7 @@ std::vector<interchange> get_interchanges(schedule const& sched,
       ic.enter_ = get_event_at(sched, con, stop_idx, event_type::DEP);
       ic.enter_stop_idx_ = stop_idx;
       if (ic.exit_.valid()) {
-        interchanges.emplace_back(std::move(ic));
+        interchanges.emplace_back(ic);
       }
       ic.reset();
     }
