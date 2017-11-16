@@ -46,8 +46,11 @@ struct finally {
   finally(finally const&) = delete;
   finally& operator=(finally const&) = delete;
 
-  finally(finally&& o) : destruct_{std::move(o.destruct_)} { o.exec_ = false; }
-  finally& operator=(finally&& o) {
+  finally(finally&& o) noexcept : destruct_{std::move(o.destruct_)} {
+    o.exec_ = false;
+  }
+
+  finally& operator=(finally&& o) noexcept {
     destruct_ = std::move(o.destruct_);
     o.exec_ = false;
     return *this;
