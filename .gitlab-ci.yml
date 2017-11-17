@@ -6,7 +6,7 @@ gcc-7-release:
   tags:
     - artful
   script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-gcc-7
+    - export BOOST_ROOT=/opt/boost_1_65_1-gcc-7
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7
     - cd build-gcc-7
@@ -26,7 +26,7 @@ clang-debug-asan:
     - artful
   script:
     - export CXXFLAGS="-stdlib=libc++ -fsanitize=address -fno-omit-frame-pointer"
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
+    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
     - export CXX=clang++
     - export CC=clang
     - git submodule update --init --recursive
@@ -49,7 +49,7 @@ clang-debug-tsan:
     - artful
   script:
     - export CXXFLAGS="-stdlib=libc++ -fsanitize=thread -fno-omit-frame-pointer"
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
+    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
     - export CXX=clang++
     - export CC=clang
     - git submodule update --init --recursive
@@ -70,7 +70,7 @@ gcc-7-debug-valgrind:
   tags:
     - artful
   script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-gcc-7
+    - export BOOST_ROOT=/opt/boost_1_65_1-gcc-7
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7-valgrind
     - cd build-gcc-7-valgrind
@@ -95,7 +95,7 @@ msvc-release:
     - set WD=%cd%
     - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
     - cd %WD%
-    - set BOOST_ROOT=C:\boost_1_60_0
+    - set BOOST_ROOT=C:\boost_1_65_1
     - git submodule update --init --recursive
     - mkdir build-msvc-release
     - cd build-msvc-release
@@ -117,7 +117,7 @@ msvc-release:
     - set WD=%cd%
     - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
     - cd %WD%
-    - set BOOST_ROOT=C:\boost_1_60_0
+    - set BOOST_ROOT=C:\boost_1_65_1
     - git submodule update --init --recursive
     - mkdir build-msvc-debug
     - cd build-msvc-debug
@@ -137,7 +137,7 @@ clang-tidy:
     - artful
   script:
     - export CXXFLAGS="-stdlib=libc++"
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
+    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
     - export CXX=clang++
     - export CC=clang
     - git submodule update --init --recursive
@@ -151,7 +151,7 @@ clang-format:
   tags:
     - artful
   script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-5
+    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
     - git submodule update --init --recursive
     - mkdir build-clang-format
     - cd build-clang-format
