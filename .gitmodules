@@ -34,12 +34,6 @@
 [submodule "external_lib/miniz"]
 	path = external_lib/miniz
 	url = git@git.motis-project.de:lib/miniz.git
-[submodule "external_lib/snappy-cmake"]
-	path = external_lib/snappy-cmake
-	url = git@git.motis-project.de:lib/snappy.git
-[submodule "external_lib/leveldb"]
-	path = external_lib/leveldb
-	url = git@git.motis-project.de:lib/leveldb.git
 [submodule "external_lib/ctx"]
 	path = external_lib/ctx
 	url = git@git.motis-project.de:lib/ctx.git
@@ -52,9 +46,6 @@
 [submodule "external_lib/utl"]
 	path = external_lib/utl
 	url = git@git.motis-project.de:lib/utl.git
-[submodule "external_lib/rapidjson"]
-	path = external_lib/rapidjson
-	url = git@git.motis-project.de:lib/rapidjson.git
 [submodule "external_lib/address-typeahead"]
 	path = external_lib/address-typeahead
 	url = git@git.motis-project.de:lib/address-typeahead.git

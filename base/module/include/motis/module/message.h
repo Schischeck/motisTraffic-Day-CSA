@@ -42,7 +42,7 @@ struct message : public typed_flatbuffer<Message> {
 
 using msg_ptr = std::shared_ptr<message>;
 
-msg_ptr make_msg(std::string const& json, bool fix = false);
+msg_ptr make_msg(std::string const& json);
 msg_ptr make_msg(message_creator& builder);
 msg_ptr make_msg(void const* buf, size_t len);
 
