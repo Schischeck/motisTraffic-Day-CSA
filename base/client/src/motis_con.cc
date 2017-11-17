@@ -44,8 +44,9 @@ void motis_con::transfer(net::tcp::tcp_ptr self, callback cb, error_code ec) {
     reenter(this) {
       // Write request size.
       yield asio::async_write(
-          socket_, asio::buffer(reinterpret_cast<void*>(&request_size_),
-                                sizeof(request_size_)),
+          socket_,
+          asio::buffer(reinterpret_cast<void*>(&request_size_),
+                       sizeof(request_size_)),
           re);
 
       // Write request.
@@ -54,8 +55,9 @@ void motis_con::transfer(net::tcp::tcp_ptr self, callback cb, error_code ec) {
 
       // Read response size.
       yield asio::async_read(
-          socket_, asio::buffer(reinterpret_cast<void*>(&response_size_),
-                                sizeof(response_size_)),
+          socket_,
+          asio::buffer(reinterpret_cast<void*>(&response_size_),
+                       sizeof(response_size_)),
           re);
       response_size_ = ntohl(response_size_);
 

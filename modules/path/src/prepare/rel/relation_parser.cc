@@ -116,8 +116,8 @@ parsed_relations parse_relations(std::string const& osm_file) {
     });
   }
 
-  LOG(motis::logging::info) << "found " << result.relations_.size()
-                            << " relations";
+  LOG(motis::logging::info)
+      << "found " << result.relations_.size() << " relations";
 
   return result;
 }

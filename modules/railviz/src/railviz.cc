@@ -134,8 +134,9 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
                    trips,
                    [&](trip const* trp) {
                      return CreateTrip(
-                         fbb, to_fbs(fbb, *sched.stations_.at(
-                                              trp->id_.primary_.station_id_)),
+                         fbb,
+                         to_fbs(fbb, *sched.stations_.at(
+                                         trp->id_.primary_.station_id_)),
                          CreateTripInfo(
                              fbb, to_fbs(sched, fbb, trp),
                              to_fbs(sched, fbb, get_first_dep_ci(trp), trp)));

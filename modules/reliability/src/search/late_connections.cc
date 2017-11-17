@@ -65,10 +65,10 @@ taxi_cost::taxi_cost(double const& lat1, double const& lon1, double const& lat2,
       std::max(distance_in_km - DISTANCE_THRESHOLD, 0.0) *
       AIR_DISTANCE_CORRECTION_FACTOR_HIGHWAY;
 
-  duration_ = taxi_base_time +
-              ((city_distance / taxi_avg_speed_short_distance) +
-               (highway_distance / taxi_avg_speed_long_distance)) *
-                  MIN_PER_HOUR;
+  duration_ =
+      taxi_base_time + ((city_distance / taxi_avg_speed_short_distance) +
+                        (highway_distance / taxi_avg_speed_long_distance)) *
+                           MIN_PER_HOUR;
 
   price_ = taxi_base_price + (city_distance + highway_distance) * taxi_km_price;
 }

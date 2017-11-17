@@ -44,8 +44,9 @@ std::vector<Offset<Stop>> convert_stops(
                               TimestampReason_SCHEDULE);
     auto const pos = Position(stop.lat_, stop.lng_);
     buf_stops.push_back(
-        CreateStop(b, CreateStation(b, b.CreateString(stop.eva_no_),
-                                    b.CreateString(stop.name_), &pos),
+        CreateStop(b,
+                   CreateStation(b, b.CreateString(stop.eva_no_),
+                                 b.CreateString(stop.name_), &pos),
                    arr, dep, static_cast<uint8_t>(stop.exit_),
                    static_cast<uint8_t>(stop.enter_)));
   }
@@ -60,10 +61,11 @@ std::vector<Offset<MoveWrapper>> convert_moves(
   for (auto const& t : transports) {
     Range r(t.from_, t.to_);
     if (t.is_walk_) {
-      moves.push_back(CreateMoveWrapper(
-          b, Move_Walk, CreateWalk(b, &r, t.mumo_id_, t.mumo_price_,
-                                   b.CreateString(t.mumo_type_))
-                            .Union()));
+      moves.push_back(
+          CreateMoveWrapper(b, Move_Walk,
+                            CreateWalk(b, &r, t.mumo_id_, t.mumo_price_,
+                                       b.CreateString(t.mumo_type_))
+                                .Union()));
     } else {
       moves.push_back(CreateMoveWrapper(
           b, Move_Transport,
@@ -86,10 +88,11 @@ std::vector<Offset<Trip>> convert_trips(
   for (auto const& t : trips) {
     auto const r =
         Range{static_cast<int16_t>(t.from_), static_cast<int16_t>(t.to_)};
-    journey_trips.push_back(CreateTrip(
-        b, &r, CreateTripId(b, b.CreateString(t.station_id_), t.train_nr_,
-                            t.time_, b.CreateString(t.target_station_id_),
-                            t.target_time_, b.CreateString(t.line_id_))));
+    journey_trips.push_back(
+        CreateTrip(b, &r,
+                   CreateTripId(b, b.CreateString(t.station_id_), t.train_nr_,
+                                t.time_, b.CreateString(t.target_station_id_),
+                                t.target_time_, b.CreateString(t.line_id_))));
   }
 
   return journey_trips;

@@ -470,16 +470,17 @@ TEST_F(reliability_calc_departure_distribution,
    * feeder-arrival-time: 05:56 lfa: 06:09 transfer-time: 5
    * feeder-distribution: 05:56=0.043, 05:57=0.033, ..., 06:25=0.033
    */
-  data_departure data(route_node, light_connection, false, train_distributions,
-                      distribution_node, context(sched(), feeder_distributions,
-                                                 s_t_distributions));
+  data_departure data(
+      route_node, light_connection, false, train_distributions,
+      distribution_node,
+      context(sched(), feeder_distributions, s_t_distributions));
 
   std::vector<probability_distribution> modified_feeders_distributions;
   detail::cut_minutes_after_latest_feasible_arrival(
       data.feeders_, modified_feeders_distributions);
 
   /* dep-dist: 0=0.142065, 1=0.0393849, 2=0.0439064, 3=0.0486436,
-     * 4=0.033, ..., 25=0.033 */
+   * 4=0.033, ..., 25=0.033 */
   probability_distribution departure_distribution;
   compute_departure_distribution(data, departure_distribution);
 

@@ -128,29 +128,30 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
         auto const& t = entry.second;
         auto const stop_seq = t->stops();
         return CreateService(
-            fbb, utl::get_or_create(
-                     fbs_routes, stop_seq,
-                     [&]() {
-                       return CreateRoute(
-                           fbb,  //
-                           fbb.CreateVector(utl::to_vec(
-                               begin(stop_seq), end(stop_seq),
-                               [&](trip::stop_identity const& s) {
-                                 return get_or_create_stop(std::get<0>(s));
-                               })),
-                           fbb.CreateVector(
-                               utl::to_vec(begin(stop_seq), end(stop_seq),
-                                           [](trip::stop_identity const& s) {
-                                             return static_cast<uint8_t>(
-                                                 std::get<1>(s) ? 1u : 0u);
-                                           })),
-                           fbb.CreateVector(
-                               utl::to_vec(begin(stop_seq), end(stop_seq),
-                                           [](trip::stop_identity const& s) {
-                                             return static_cast<uint8_t>(
-                                                 std::get<2>(s) ? 1u : 0u);
-                                           })));
-                     }),
+            fbb,
+            utl::get_or_create(
+                fbs_routes, stop_seq,
+                [&]() {
+                  return CreateRoute(
+                      fbb,  //
+                      fbb.CreateVector(utl::to_vec(
+                          begin(stop_seq), end(stop_seq),
+                          [&](trip::stop_identity const& s) {
+                            return get_or_create_stop(std::get<0>(s));
+                          })),
+                      fbb.CreateVector(utl::to_vec(
+                          begin(stop_seq), end(stop_seq),
+                          [](trip::stop_identity const& s) {
+                            return static_cast<uint8_t>(std::get<1>(s) ? 1u
+                                                                       : 0u);
+                          })),
+                      fbb.CreateVector(utl::to_vec(
+                          begin(stop_seq), end(stop_seq),
+                          [](trip::stop_identity const& s) {
+                            return static_cast<uint8_t>(std::get<2>(s) ? 1u
+                                                                       : 0u);
+                          })));
+                }),
             fbb.CreateString(serialize_bitset(*t->service_)),
             fbb.CreateVector(repeat_n(
                 CreateSection(

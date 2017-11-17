@@ -30,8 +30,8 @@ using namespace motis::module;
 using namespace parser;
 using namespace pugi;
 namespace fs = boost::filesystem;
-using fs::directory_iterator;
 using boost::system::error_code;
+using fs::directory_iterator;
 
 namespace motis {
 namespace bikesharing {

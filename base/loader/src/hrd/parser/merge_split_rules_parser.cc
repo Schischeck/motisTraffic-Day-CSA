@@ -132,8 +132,9 @@ struct mss_rule : public service_rule {
         if (intersection.any() &&
             all_ms_events_exist(s1, s2, eva_num_begin_, eva_num_end_)) {
           unordered_pairs.emplace_back(
-              s1, s2, resolved_rule_info{intersection, eva_num_begin_,
-                                         eva_num_end_, RuleType_MERGE_SPLIT});
+              s1, s2,
+              resolved_rule_info{intersection, eva_num_begin_, eva_num_end_,
+                                 RuleType_MERGE_SPLIT});
         }
       }
     }

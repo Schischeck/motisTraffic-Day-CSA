@@ -34,8 +34,9 @@ struct routing_rt : public motis_instance_test {
         CreateRoutingRequest(
             fbb, Start_PretripStart,
             CreatePretripStart(
-                fbb, CreateInputStation(fbb, fbb.CreateString("8000260"),
-                                        fbb.CreateString("")),
+                fbb,
+                CreateInputStation(fbb, fbb.CreateString("8000260"),
+                                   fbb.CreateString("")),
                 &interval)
                 .Union(),
             CreateInputStation(fbb, fbb.CreateString("8000208"),

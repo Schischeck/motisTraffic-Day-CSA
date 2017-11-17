@@ -20,10 +20,10 @@ using zstd::uncompress;
 
 using asio_ws_server = websocketpp::server<websocketpp::config::asio>;
 using websocketpp::connection_hdl;
-using websocketpp::lib::bind;
-using websocketpp::lib::error_code;
 using websocketpp::frame::opcode::BINARY;
 using websocketpp::frame::opcode::TEXT;
+using websocketpp::lib::bind;
+using websocketpp::lib::error_code;
 
 using namespace motis::module;
 

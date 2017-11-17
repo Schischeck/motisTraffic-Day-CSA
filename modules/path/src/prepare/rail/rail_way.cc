@@ -125,9 +125,9 @@ struct builder {
   }
 
   void report_cycle_detected(rail_way const& edge, int64_t const where) {
-    LOG(motis::logging::info) << "rail graph: maybe cycle detected @ node "
-                              << where << " -- (" << edge.from_ << "->"
-                              << edge.to_ << ") ";
+    LOG(motis::logging::info)
+        << "rail graph: maybe cycle detected @ node " << where << " -- ("
+        << edge.from_ << "->" << edge.to_ << ") ";
     for (auto const& id : edge.ids_) {
       std::cout << id << ", ";
     }

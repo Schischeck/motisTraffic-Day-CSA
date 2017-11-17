@@ -415,7 +415,7 @@ struct rule_service_route_builder {
       auto from = section_idx;
       auto to = section_idx + 1;
 
-      std::set<service_section *> v_from, v_to;  // visited sets
+      std::set<service_section*> v_from, v_to;  // visited sets
       auto const from_route_node = find_from(v_from, sections, section_idx);
       auto const to_route_node = find_to(v_to, sections, section_idx);
 

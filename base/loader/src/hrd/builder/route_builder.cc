@@ -19,22 +19,22 @@ Offset<Route> route_builder::get_or_create_route(
                                  s.arr_.in_out_allowed_};
       });
   return utl::get_or_create(routes_, events, [&]() {
-    return CreateRoute(
-        fbb, fbb.CreateVector(utl::to_vec(begin(events), end(events),
-                                          [&](stop_restrictions const& sr) {
-                                            return sb.get_or_create_station(
-                                                sr.eva_num_, fbb);
-                                          })),
-        fbb.CreateVector(
-            utl::to_vec(begin(events), end(events),
-                        [](stop_restrictions const& sr) -> uint8_t {
-                          return sr.entering_allowed_ ? 1 : 0;
-                        })),
-        fbb.CreateVector(
-            utl::to_vec(begin(events), end(events),
-                        [](stop_restrictions const& sr) -> uint8_t {
-                          return sr.leaving_allowed_ ? 1 : 0;
-                        })));
+    return CreateRoute(fbb,
+                       fbb.CreateVector(utl::to_vec(
+                           begin(events), end(events),
+                           [&](stop_restrictions const& sr) {
+                             return sb.get_or_create_station(sr.eva_num_, fbb);
+                           })),
+                       fbb.CreateVector(utl::to_vec(
+                           begin(events), end(events),
+                           [](stop_restrictions const& sr) -> uint8_t {
+                             return sr.entering_allowed_ ? 1 : 0;
+                           })),
+                       fbb.CreateVector(utl::to_vec(
+                           begin(events), end(events),
+                           [](stop_restrictions const& sr) -> uint8_t {
+                             return sr.leaving_allowed_ ? 1 : 0;
+                           })));
   });
 }
 

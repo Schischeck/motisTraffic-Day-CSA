@@ -150,9 +150,10 @@ std::vector<journey::stop> generate_journey_stops(
         {stop.exit_, stop.enter_, station.name_, station.eva_nr_,
          station.width_, station.length_,
          stop.a_time_ != INVALID_TIME
-             ? journey::stop::event_info{true, motis_to_unixtime(
-                                                   sched.schedule_begin_,
-                                                   stop.a_time_),
+             ? journey::stop::event_info{true,
+                                         motis_to_unixtime(
+                                             sched.schedule_begin_,
+                                             stop.a_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
                                              stop.a_sched_time_),
@@ -161,9 +162,10 @@ std::vector<journey::stop> generate_journey_stops(
              : journey::stop::event_info{false, 0, 0,
                                          timestamp_reason::SCHEDULE, ""},
          stop.d_time_ != INVALID_TIME
-             ? journey::stop::event_info{true, motis_to_unixtime(
-                                                   sched.schedule_begin_,
-                                                   stop.d_time_),
+             ? journey::stop::event_info{true,
+                                         motis_to_unixtime(
+                                             sched.schedule_begin_,
+                                             stop.d_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
                                              stop.d_sched_time_),

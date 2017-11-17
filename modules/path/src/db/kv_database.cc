@@ -11,9 +11,8 @@ namespace path {
 
 std::unique_ptr<kv_database> load_db(std::string const& path,
                                      bool const required) {
-  if (path == ":memory:" ||
-      (!required &&
-       !boost::filesystem::is_directory(boost::filesystem::path{path}))) {
+  if (path == ":memory:" || (!required && !boost::filesystem::is_directory(
+                                              boost::filesystem::path{path}))) {
     return std::make_unique<map_database>();
   }
   return std::make_unique<rocksdb_database>(path);

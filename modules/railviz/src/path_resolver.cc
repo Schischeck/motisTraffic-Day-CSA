@@ -36,10 +36,10 @@ std::vector<std::vector<double>> path_resolver::get_trip_path(trip const* trp) {
     fbb.create_and_finish(
         MsgContent_PathStationSeqRequest,
         path::CreatePathStationSeqRequest(
-            fbb, fbb.CreateVector(utl::to_vec(ids,
-                                              [&](std::string const& id) {
-                                                return fbb.CreateString(id);
-                                              })),
+            fbb,
+            fbb.CreateVector(utl::to_vec(
+                ids,
+                [&](std::string const& id) { return fbb.CreateString(id); })),
             trp->edges_->front()
                 ->m_.route_edge_.conns_[trp->lcon_idx_]
                 .full_con_->clasz_,

@@ -25,7 +25,7 @@ void add_light_conns(edge* e,
 }
 
 void duplicate_checker::remove_duplicates(station_node* s) {
-  std::vector<std::pair<time, light_connection *>> arr_lcs, dep_lcs;
+  std::vector<std::pair<time, light_connection*>> arr_lcs, dep_lcs;
   for (auto& r : s->get_route_nodes()) {
     for (auto& e : r->incoming_edges_) {
       add_light_conns(e, arr_lcs, &light_connection::a_time_);

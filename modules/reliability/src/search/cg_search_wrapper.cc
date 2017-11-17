@@ -79,9 +79,10 @@ module::msg_ptr search_cgs(ReliableRoutingRequest const& req, reliability& rel,
   auto lock = rel.synced_sched();
   intermodal::individual_modes_container container(
       req, max_bikesharing_duration, pareto_filtering_for_bikesharing);
-  auto cgs = search_cgs(req, ::motis::reliability::context(
-                                 lock.sched(), *rel.precomputed_distributions_,
-                                 *rel.s_t_distributions_),
+  auto cgs = search_cgs(req,
+                        ::motis::reliability::context(
+                            lock.sched(), *rel.precomputed_distributions_,
+                            *rel.s_t_distributions_),
                         detail::get_optimizer(*req.request_type()), container);
   detail::update_mumo_info(cgs, container);
   detail::update_address_info(req, cgs);

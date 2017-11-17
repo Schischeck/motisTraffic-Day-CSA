@@ -4,9 +4,10 @@
 
 using namespace motis;
 
-auto e = make_route_edge(nullptr, nullptr, {light_connection(0, 10, nullptr),
-                                            light_connection(1, 11, nullptr),
-                                            light_connection(2, 12, nullptr)});
+auto e = make_route_edge(
+    nullptr, nullptr,
+    {light_connection(0, 10, nullptr), light_connection(1, 11, nullptr),
+     light_connection(2, 12, nullptr)});
 
 TEST(core_route_edge, get_connection_test_valid) {
   auto c = e.get_connection(1);

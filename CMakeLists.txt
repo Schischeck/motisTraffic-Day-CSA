@@ -304,9 +304,11 @@ add_custom_target(format-check
       ${CMAKE_CURRENT_SOURCE_DIR}/modules
       ${CMAKE_CURRENT_SOURCE_DIR}/test
     -type f
+    (
     -name "*.cc"
     -o
     -name "*.h"
+    )
     -print0
   | xargs -0 clang-format -i
   COMMAND

@@ -80,9 +80,10 @@ struct rerouted_event {
   Offset<ris::ReroutedEvent> to_fbs(schedule const& sched,
                                     FlatBufferBuilder& fbb) const {
     return ris::CreateReroutedEvent(
-        fbb, ris::CreateAdditionalEvent(fbb, ev_.to_fbs(sched, fbb),
-                                        fbb.CreateString(category_),
-                                        fbb.CreateString(track_)),
+        fbb,
+        ris::CreateAdditionalEvent(fbb, ev_.to_fbs(sched, fbb),
+                                   fbb.CreateString(category_),
+                                   fbb.CreateString(track_)),
         withdrawal_ ? ris::RerouteStatus_Normal : ris::RerouteStatus_UmlNeu);
   }
 
@@ -105,8 +106,9 @@ struct cc_check_routed_connection_test : public motis_instance_test {
         CreateRoutingRequest(
             fbb, Start_OntripStationStart,
             CreateOntripStationStart(
-                fbb, CreateInputStation(fbb, fbb.CreateString(from),
-                                        fbb.CreateString("")),
+                fbb,
+                CreateInputStation(fbb, fbb.CreateString(from),
+                                   fbb.CreateString("")),
                 unix_time(hhmm))
                 .Union(),
             CreateInputStation(fbb, fbb.CreateString(to), fbb.CreateString("")),
