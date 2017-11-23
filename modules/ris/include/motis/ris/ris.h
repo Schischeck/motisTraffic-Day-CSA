@@ -21,6 +21,10 @@ struct ris : public motis::module::module {
 private:
   struct impl;
   std::unique_ptr<impl> impl_;
+
+  std::string db_path_;
+  std::string input_folder_;
+  time_t init_time_;
 };
 
 }  // namespace ris
