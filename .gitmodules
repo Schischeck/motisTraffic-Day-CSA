@@ -22,15 +22,6 @@
 [submodule "external_lib/osrm-backend"]
 	path = external_lib/osrm-backend
 	url = git@git.motis-project.de:lib/osrm-backend.git
-[submodule "external_lib/sqlpp11-connector-sqlite3"]
-	path = external_lib/sqlpp11-connector-sqlite3
-	url = git@git.motis-project.de:lib/sqlpp11-connector-sqlite3.git
-[submodule "external_lib/sqlpp11"]
-	path = external_lib/sqlpp11
-	url = git@git.motis-project.de:lib/sqlpp11.git
-[submodule "external_lib/sqlite"]
-	path = external_lib/sqlite
-	url = git@git.motis-project.de:lib/sqlite.git
 [submodule "external_lib/miniz"]
 	path = external_lib/miniz
 	url = git@git.motis-project.de:lib/miniz.git
