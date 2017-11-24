@@ -72,7 +72,7 @@ foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
 endforeach()
 
 if (NOT MSVC)
-  set(MOTIS_CXX_FLAGS "-std=c++17 -Wall -Wextra -DBOOST_NO_AUTO_PTR=1")
+  set(MOTIS_CXX_FLAGS "-std=c++1z -Wall -Wextra -DBOOST_NO_AUTO_PTR=1")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
   endif()
