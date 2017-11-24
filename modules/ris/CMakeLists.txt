@@ -10,6 +10,7 @@ target_link_libraries(motis-ris
   ${Boost_SYSTEM_LIBRARY}
   motis-module
   motis-core
+  pugixml
   lmdb
   tar
 )

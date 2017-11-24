@@ -11,27 +11,54 @@ namespace motis {
 namespace ris {
 
 struct ris::impl {
-  impl(std::string db_path, std::string input_folder, time_t init_time) {
-    ((void)db_path);
-    ((void)input_folder);
-    ((void)init_time);
+  void init() {
+    // TODO(felix)
+    // parse_folder()
+    // forward(new_time=init_time_)
   }
 
-  void init() {}
+  msg_ptr upload(msg_ptr const&) {
+    // TODO(felix)
+    // write to folder()
+    // parse_folder()
+    // forward()
+    return {};
+  }
+
+  msg_ptr forward(msg_ptr const&) {
+    // TODO(felix)
+    /*
+      cursor c;
+      std::vector<parser::buffer> blobs;
+      for (auto const& m : c) {
+        if (m->timstamp() > batch_to) {
+          publish(blobs);
+          blobs.clear();
+        }
+        blobs.emplace_back(m);
+      }
+    */
+    return {};
+  }
+
+  std::string db_path_;
+  std::string input_folder_;
+  conf::holder<std::time_t> init_time_;
 };
 
-ris::ris() : module("RIS", "ris") {
-  string_param(db_path_, "ris_db", "db", "ris database path");
-  string_param(input_folder_, "ris", "input_folder", "ris input folder");
-  template_param(init_time_, {0l}, "init_time",
+ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
+  string_param(impl_->db_path_, "ris_db", "db", "ris database path");
+  string_param(impl_->input_folder_, "ris", "input_folder", "ris input folder");
+  template_param(impl_->init_time_, {0l}, "init_time",
                  "'forward' the simulation clock (expects Unix timestamp)");
 }
 
 ris::~ris() = default;
 
 void ris::init(motis::module::registry& r) {
-  impl_ = std::make_unique<impl>(db_path_, input_folder_, init_time_);
   r.subscribe_void("/init", [this] { impl_->init(); });
+  r.register_op("/ris/upload", [this](auto&& m) { return impl_->upload(m); });
+  r.register_op("/ris/forward", [this](auto&& m) { return impl_->forward(m); });
 }
 
 }  // namespace ris
