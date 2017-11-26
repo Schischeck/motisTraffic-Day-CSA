@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -27,9 +28,6 @@ struct zip_reader {
   struct impl;
   std::unique_ptr<impl> impl_;
 };
-
-// std::vector<parser::buffer> read_zip_buf(parser::buffer const& b);
-// std::vector<parser::buffer> read_zip_file(std::string const& filename);
 
 }  // namespace ris
 }  // namespace motis
