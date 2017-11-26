@@ -52,16 +52,18 @@ constexpr auto const MAX_DAY = "MAX_DAY";
 
 struct ris::impl {
   void init() {
-    env_.set_maxdbs(2);
-    env_.open(db_path_.c_str(), db::env_open_flags::NOMEMINIT);
+    if (fs::is_directory(db_path_)) {
+      env_.set_maxdbs(2);
+      env_.open(db_path_.c_str(), db::env_open_flags::NOMEMINIT);
 
-    {
-      db::txn t{env_};
-      t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
-      t.dbi_open(MSG_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
-      t.dbi_open(MIN_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
-      t.dbi_open(MAX_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
-      t.commit();
+      {
+        db::txn t{env_};
+        t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
+        t.dbi_open(MSG_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+        t.dbi_open(MIN_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+        t.dbi_open(MAX_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+        t.commit();
+      }
     }
 
     // TODO(felix)
