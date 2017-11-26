@@ -11,11 +11,14 @@
 #include "tar/tar_reader.h"
 #include "tar/zstd_reader.h"
 
+#include "lmdb/lmdb.hpp"
+
 #include "motis/module/context/motis_spawn.h"
 #include "motis/ris/risml/risml_parser.h"
 #include "motis/ris/zip_reader.h"
 
 namespace fs = boost::filesystem;
+namespace db = lmdb;
 using namespace motis::module;
 using motis::ris::risml::xml_to_ris_message;
 using tar::file_reader;
@@ -25,8 +28,42 @@ using tar::zstd_reader;
 namespace motis {
 namespace ris {
 
+// stores the list of files that were already parsed
+// key: path
+// value: empty
+constexpr auto const FILE_DB = "FILE_DB";
+
+// messages, sorted by timestamp
+// key: message id
+// value: message buffer
+constexpr auto const MSG_DB = "MSG_DB";
+
+// index for every day referenced by any message
+// key: day.begin (unix timestamp)
+// value: smallest message id from MSG_DB that has
+//        earliest <= day.begin && latest >= day.end
+constexpr auto const MIN_DAY = "MIN_DAY";
+
+// index for every day referenced by any message
+// key: day.begin (unix timestamp)
+// value: largest message id from MSG_DB that has
+//        earliest <= day.begin && latest >= day.end
+constexpr auto const MAX_DAY = "MAX_DAY";
+
 struct ris::impl {
   void init() {
+    env_.set_maxdbs(2);
+    env_.open(db_path_.c_str(), db::env_open_flags::NOMEMINIT);
+
+    {
+      db::txn t{env_};
+      t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
+      t.dbi_open(MSG_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+      t.dbi_open(MIN_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+      t.dbi_open(MAX_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+      t.commit();
+    }
+
     // TODO(felix)
     // parse_folder()
     // forward(new_time=init_time_)
@@ -125,6 +162,8 @@ private:
       default: assert(false);
     }
   }
+
+  lmdb::env env_;
 };
 
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
