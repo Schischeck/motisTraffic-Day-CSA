@@ -80,12 +80,14 @@ using parser_func_t = std::function<Offset<Message>(context&, xml_node const&)>;
 Offset<Message> parse_delay_msg(context& ctx, xml_node const& msg,
                                 DelayType type) {
   std::vector<Offset<UpdatedEvent>> events;
-  foreach_event(ctx, msg, [&](Offset<Event> const& event,
-                              xml_node const& e_node, xml_node const&) {
-    auto attr_name = (type == DelayType_Is) ? "Ist" : "Prog";
-    auto updated = parse_time(child_attr(e_node, "Zeit", attr_name).value());
-    events.push_back(CreateUpdatedEvent(ctx.b_, event, updated));
-  });
+  foreach_event(
+      ctx, msg,
+      [&](Offset<Event> const& event, xml_node const& e_node, xml_node const&) {
+        auto attr_name = (type == DelayType_Is) ? "Ist" : "Prog";
+        auto updated =
+            parse_time(child_attr(e_node, "Zeit", attr_name).value());
+        events.push_back(CreateUpdatedEvent(ctx.b_, event, updated));
+      });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
       ctx.b_, MessageUnion_DelayMessage,
@@ -95,8 +97,9 @@ Offset<Message> parse_delay_msg(context& ctx, xml_node const& msg,
 
 Offset<Message> parse_cancel_msg(context& ctx, xml_node const& msg) {
   std::vector<Offset<Event>> events;
-  foreach_event(ctx, msg, [&](Offset<Event> const& event, xml_node const&,
-                              xml_node const&) { events.push_back(event); });
+  foreach_event(ctx, msg,
+                [&](Offset<Event> const& event, xml_node const&,
+                    xml_node const&) { events.push_back(event); });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
       ctx.b_, MessageUnion_CancelMessage,
@@ -106,10 +109,12 @@ Offset<Message> parse_cancel_msg(context& ctx, xml_node const& msg) {
 
 Offset<Message> parse_addition_msg(context& ctx, xml_node const& msg) {
   std::vector<Offset<AdditionalEvent>> events;
-  foreach_event(ctx, msg, [&](Offset<Event> const& event,
-                              xml_node const& e_node, xml_node const& t_node) {
-    events.push_back(parse_additional_event(ctx.b_, event, e_node, t_node));
-  });
+  foreach_event(
+      ctx, msg,
+      [&](Offset<Event> const& event, xml_node const& e_node,
+          xml_node const& t_node) {
+        events.push_back(parse_additional_event(ctx.b_, event, e_node, t_node));
+      });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
       ctx.b_, MessageUnion_AdditionMessage,

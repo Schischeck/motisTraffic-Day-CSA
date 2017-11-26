@@ -7,5 +7,5 @@ struct db {
   bool is_unknown_file(std::string const& path);
 };
 
-}  // namespace motis
 }  // namespace ris
+}  // namespace motis
