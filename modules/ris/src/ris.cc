@@ -97,7 +97,7 @@ struct ris::impl {
 
   std::string db_path_;
   std::string input_folder_;
-  conf::holder<std::time_t> init_time_;
+  conf::holder<std::time_t> init_time_{0};
 
 private:
   enum class file_type { NONE, ZST, ZIP, XML };
