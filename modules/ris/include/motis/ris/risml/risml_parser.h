@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 
 #include "parser/buffer.h"
@@ -10,7 +11,8 @@ namespace motis {
 namespace ris {
 namespace risml {
 
-std::vector<ris_message> parse_xmls(std::vector<parser::buffer>&& strings);
+void xml_to_ris_message(std::string_view,
+                        std::function<void(ris_message&&)> const&);
 
 }  // namespace risml
 }  // namespace ris

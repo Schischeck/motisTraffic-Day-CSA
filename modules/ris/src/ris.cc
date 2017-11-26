@@ -1,11 +1,26 @@
 #include "motis/ris/ris.h"
 
+#include <optional>
+
+#include "boost/filesystem.hpp"
+
 #include "conf/date_time.h"
 #include "conf/simple_config_param.h"
 
-#include "motis/core/common/logging.h"
+#include "tar/file_reader.h"
+#include "tar/tar_reader.h"
+#include "tar/zstd_reader.h"
 
+#include "motis/module/context/motis_spawn.h"
+#include "motis/ris/risml/risml_parser.h"
+#include "motis/ris/zip_reader.h"
+
+namespace fs = boost::filesystem;
 using namespace motis::module;
+using motis::ris::risml::xml_to_ris_message;
+using tar::file_reader;
+using tar::tar_reader;
+using tar::zstd_reader;
 
 namespace motis {
 namespace ris {
@@ -44,6 +59,71 @@ struct ris::impl {
   std::string db_path_;
   std::string input_folder_;
   conf::holder<std::time_t> init_time_;
+
+private:
+  enum class file_type { NONE, ZST, ZIP, XML };
+
+  static file_type get_file_type(fs::path const& p) {
+    if (p.extension() == ".zst") {
+      return file_type::ZST;
+    } else if (p.extension() == ".zip") {
+      return file_type::ZIP;
+    } else if (p.extension() == ".xml") {
+      return file_type::XML;
+    } else {
+      return file_type::NONE;
+    }
+  }
+
+  void parse_folder(fs::path const& p) {
+    auto const root = p.root_path();
+    std::vector<std::shared_ptr<ctx::future<ctx_data, void>>> futures;
+    for (auto const& it : fs::directory_iterator(p)) {
+      auto rel_path = it.path();
+      if (fs::is_regular_file(p)) {
+        auto const p = fs::canonical(rel_path, root);
+        if (auto const t = get_file_type(p);
+            t != file_type::NONE && !is_known_file(p)) {
+          futures.emplace_back(
+              spawn_job_void([p, t, this]() { write_to_db(p, t); }));
+        }
+      } else if (fs::is_directory(p)) {
+        parse_folder(p);
+      }
+    }
+
+    for (auto& f : futures) {
+      f->val();
+    }
+  }
+
+  bool is_known_file(fs::path const&) {
+    // TODO(felix)
+    return false;
+  }
+
+  void write_to_db(ris_message&&) {
+    // TODO(felix)
+  }
+
+  void write_to_db(fs::path const& p, file_type const type) {
+    auto parse = [&](auto&& reader) {
+      std::optional<std::string_view> xml;
+      while ((xml = reader.read())) {
+        xml_to_ris_message(*xml, [&](auto&& m) { write_to_db(std::move(m)); });
+      }
+    };
+
+    auto cp = p.c_str();
+    switch (type) {
+      case file_type::ZST:
+        parse(tar_reader<zstd_reader>{zstd_reader{cp}});
+        break;
+      case file_type::ZIP: parse(zip_reader{cp}); break;
+      case file_type::XML: parse(file_reader{cp}); break;
+      default: assert(false);
+    }
+  }
 };
 
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {

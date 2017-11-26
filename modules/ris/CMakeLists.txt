@@ -8,6 +8,7 @@ add_library(motis-ris STATIC ${motis-ris-files})
 target_link_libraries(motis-ris
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
+  ${Boost_FILESYSTEM}
   motis-module
   motis-core
   pugixml

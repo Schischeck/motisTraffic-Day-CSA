@@ -1,8 +1,7 @@
 #include "motis/ris/risml/risml_parser.h"
 
 #include <map>
-
-#include "boost/optional.hpp"
+#include <optional>
 
 #include "pugixml.hpp"
 
@@ -250,40 +249,27 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
   return {{ctx.earliest_, ctx.latest_, t_out, std::move(ctx.b_)}};
 }
 
-std::vector<ris_message> parse_xmls(std::vector<buffer>&& strings) {
-  std::vector<ris_message> parsed_messages;
-  for (auto& s : strings) {
-    try {
-      xml_document d;
-      auto r =
-          d.load_buffer_inplace(reinterpret_cast<void*>(s.data()), s.size());
-      if (!r) {
-        LOG(error) << "bad XML: " << r.description();
-        continue;
-      }
-
-      auto t_out = parse_time(child_attr(d, "Paket", "TOut").value());
-      for (auto const& msg : d.select_nodes("/Paket/ListNachricht/Nachricht")) {
-        if (auto parsed_message = parse_message(msg.node(), t_out)) {
-          parsed_messages.emplace_back(std::move(*parsed_message));
-        }
-      }
-    } catch (std::exception const& e) {
-      LOG(error) << "unable to parse RIS message: " << e.what();
-    } catch (...) {
-      LOG(error) << "unable to parse RIS message";
+void xml_to_ris_message(std::string_view s,
+                        std::function<void(ris_message&&)> const& cb) {
+  try {
+    xml_document d;
+    auto r = d.load_buffer(reinterpret_cast<void const*>(s.data()), s.size());
+    if (!r) {
+      LOG(error) << "bad XML: " << r.description();
+      return;
     }
+
+    auto t_out = parse_time(child_attr(d, "Paket", "TOut").value());
+    for (auto const& msg : d.select_nodes("/Paket/ListNachricht/Nachricht")) {
+      if (auto parsed_message = parse_message(msg.node(), t_out)) {
+        cb(std::move(*parsed_message));
+      }
+    }
+  } catch (std::exception const& e) {
+    LOG(error) << "unable to parse RIS message: " << e.what();
+  } catch (...) {
+    LOG(error) << "unable to parse RIS message";
   }
-
-  std::sort(begin(parsed_messages), end(parsed_messages),
-            [](ris_message const& lhs, ris_message const& rhs) {
-              return std::tie(lhs.timestamp_, lhs.earliest_, lhs.latest_,
-                              *lhs.buffer_) <
-                     std::tie(rhs.timestamp_, rhs.earliest_, rhs.latest_,
-                              *rhs.buffer_);
-            });
-
-  return parsed_messages;
 }
 
 }  // namespace risml
