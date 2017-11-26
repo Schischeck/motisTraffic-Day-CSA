@@ -110,7 +110,8 @@ private:
     auto parse = [&](auto&& reader) {
       std::optional<std::string_view> xml;
       while ((xml = reader.read())) {
-        xml_to_ris_message(*xml, [&](auto&& m) { write_to_db(std::move(m)); });
+        xml_to_ris_message(*xml,
+                           [&](ris_message&& m) { write_to_db(std::move(m)); });
       }
     };
 
