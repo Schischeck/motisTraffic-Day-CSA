@@ -12,7 +12,7 @@ namespace ris {
 
 struct zip_reader {
   zip_reader(char const* ptr, size_t size);
-  zip_reader(char const* path);
+  explicit zip_reader(char const* path);
 
   ~zip_reader();
 
