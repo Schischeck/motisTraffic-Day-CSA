@@ -13,7 +13,7 @@ namespace motis {
 namespace ris {
 
 struct zip_reader::impl {
-  impl(char const* path)
+  explicit impl(char const* path)
       : mmap_{std::make_unique<mmap_reader>(path)},
         ptr_{mmap_->m_.fmap_},
         size_{mmap_->m_.size()},
