@@ -79,7 +79,7 @@ private:
     auto const root = p.root_path();
     std::vector<std::shared_ptr<ctx::future<ctx_data, void>>> futures;
     for (auto const& it : fs::directory_iterator(p)) {
-      auto rel_path = it.path();
+      auto const& rel_path = it.path();
       if (fs::is_regular_file(p)) {
         auto const p = fs::canonical(rel_path, root);
         if (auto const t = get_file_type(p);
