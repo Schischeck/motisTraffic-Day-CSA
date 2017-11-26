@@ -3,8 +3,6 @@
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
 
-#include "helper.h"
-
 namespace motis {
 namespace ris {
 namespace risml {
@@ -32,7 +30,7 @@ Esc=\"mue810jyct\" />\
 // clang-format on
 
 TEST(ris_delay_message, ist_message_1) {
-  auto const messages = parse_xmls(pack(ist_fixture_1));
+  auto const messages = parse_xml(ist_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -84,7 +82,7 @@ char const* ist_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
 // clang-format on
 
 TEST(ris_delay_message, ist_message_2) {
-  auto const messages = parse_xmls(pack(ist_fixture_2));
+  auto const messages = parse_xml(ist_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -148,7 +146,7 @@ TIn=\"20151116170958659\" TOutSnd=\"20151116170958601\"/>\
 // clang-format on
 
 TEST(ris_delay_message, ist_message_3) {
-  auto const messages = parse_xmls(pack(ist_fixture_3));
+  auto const messages = parse_xml(ist_fixture_3);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -213,24 +211,24 @@ EventType get_type(std::vector<ris_message> const& messages) {
 
 TEST(ris_delay_message, train_event_type) {
   auto start_msg = type_fixture("Start");
-  auto start = parse_xmls(pack(start_msg.c_str()));
+  auto start = parse_xml(start_msg.c_str());
   ASSERT_EQ(EventType_DEP, get_type(start));
 
   auto ab_msg = type_fixture("Ab");
-  auto ab = parse_xmls(pack(ab_msg.c_str()));
+  auto ab = parse_xml(ab_msg.c_str());
   ASSERT_EQ(EventType_DEP, get_type(ab));
 
   auto an_msg = type_fixture("An");
-  auto an = parse_xmls(pack(an_msg.c_str()));
+  auto an = parse_xml(an_msg.c_str());
   ASSERT_EQ(EventType_ARR, get_type(an));
 
   auto ziel_msg = type_fixture("Ziel");
-  auto ziel = parse_xmls(pack(ziel_msg.c_str()));
+  auto ziel = parse_xml(ziel_msg.c_str());
   ASSERT_EQ(EventType_ARR, get_type(ziel));
 
   // "Durch" events are ignored
   auto pass_msg = type_fixture("Durch");
-  auto pass = parse_xmls(pack(pass_msg.c_str()));
+  auto pass = parse_xml(pass_msg.c_str());
   auto content = GetMessage(pass[0].data())->content();
   auto delay_message = reinterpret_cast<DelayMessage const*>(content);
   EXPECT_EQ(0, delay_message->events()->size());
@@ -256,7 +254,7 @@ char const* ist_prog_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
 // clang-format on
 
 TEST(ris_delay_message, ist_prog_message_1) {
-  auto const messages = parse_xmls(pack(ist_prog_fixture_1));
+  auto const messages = parse_xml(ist_prog_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -306,7 +304,7 @@ char const* ist_prog_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" 
 // clang-format on
 
 TEST(ris_delay_message, ist_prog_message_2) {
-  auto const messages = parse_xmls(pack(ist_prog_fixture_2));
+  auto const messages = parse_xml(ist_prog_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];

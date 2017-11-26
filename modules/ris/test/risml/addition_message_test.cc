@@ -3,8 +3,6 @@
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
 
-#include "helper.h"
-
 namespace motis {
 namespace ris {
 namespace risml {
@@ -46,7 +44,7 @@ TIn=\"20151007001015680\" TOutSnd=\"20151007001023691\"/>\
 // clang-format on
 
 TEST(ris_addition_message, message_1) {
-  auto const messages = parse_xmls(pack(addition_fixture_1));
+  auto const messages = parse_xml(addition_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -145,7 +143,7 @@ TIn=\"20151007043809952\" TOutSnd=\"20151007043811898\"/>\
 // clang-format on
 
 TEST(ris_addition_message, message_2) {
-  auto const messages = parse_xmls(pack(addition_fixture_2));
+  auto const messages = parse_xml(addition_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];

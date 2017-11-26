@@ -3,10 +3,6 @@
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
 
-#include "helper.h"
-
-using namespace parser;
-
 namespace motis {
 namespace ris {
 namespace risml {
@@ -43,7 +39,7 @@ char const* reroute_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?
 // clang-format on
 
 TEST(ris_reroute_message, message_1) {
-  auto const messages = parse_xmls(pack(reroute_fixture_1));
+  auto const messages = parse_xml(reroute_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -140,7 +136,7 @@ char const* reroute_fixture_only_new = "<?xml version=\"1.0\" encoding=\"iso-885
 // clang-format on
 
 TEST(ris_reroute_message, message_only_new) {
-  auto const messages = parse_xmls(pack(reroute_fixture_only_new));
+  auto const messages = parse_xml(reroute_fixture_only_new);
   ASSERT_EQ(1, messages.size());
 
   auto outer_msg = GetMessage(messages[0].data());
@@ -202,7 +198,7 @@ char const* reroute_fixture_only_cancel = "<?xml version=\"1.0\" encoding=\"iso-
 // clang-format on
 
 TEST(ris_reroute_message, message_only_cancel) {
-  auto const messages = parse_xmls(pack(reroute_fixture_only_cancel));
+  auto const messages = parse_xml(reroute_fixture_only_cancel);
   ASSERT_EQ(1, messages.size());
 
   auto outer_msg = GetMessage(messages[0].data());

@@ -3,8 +3,6 @@
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
 
-#include "helper.h"
-
 namespace motis {
 namespace ris {
 namespace risml {
@@ -50,7 +48,7 @@ SourceZNR=\"EFZ\" ZielBfEvaNr=\"8000142\" Zielzeit=\"20151007065800\" IdLinie=\"
 // clang-format on
 
 TEST(ris_connection_assessment_message, message_1) {
-  auto const messages = parse_xmls(pack(connection_assessment_fixture_1));
+  auto const messages = parse_xml(connection_assessment_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -153,7 +151,7 @@ char const* connection_assessment_fixture_2 = "<?xml version=\"1.0\" encoding=\"
 // clang-format on
 
 TEST(ris_connection_assessment_message, message_2) {
-  auto const messages = parse_xmls(pack(connection_assessment_fixture_2));
+  auto const messages = parse_xml(connection_assessment_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];

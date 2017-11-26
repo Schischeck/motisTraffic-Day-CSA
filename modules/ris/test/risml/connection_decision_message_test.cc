@@ -3,8 +3,6 @@
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
 
-#include "helper.h"
-
 namespace motis {
 namespace ris {
 namespace risml {
@@ -47,7 +45,7 @@ IdZGattungInt=\"IRE\" SourceZNr=\"EFZ\"/>\
 // clang-format on
 
 TEST(ris_connection_decision_message, message_1) {
-  auto const messages = parse_xmls(pack(connection_decision_fixture_1));
+  auto const messages = parse_xml(connection_decision_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -129,7 +127,7 @@ TIn=\"20151007161451761\" TOutSnd=\"20151007161453636\"/>\
 // clang-format on
 
 TEST(ris_connection_decision_message, message_2) {
-  auto const messages = parse_xmls(pack(connection_decision_fixture_2));
+  auto const messages = parse_xml(connection_decision_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
