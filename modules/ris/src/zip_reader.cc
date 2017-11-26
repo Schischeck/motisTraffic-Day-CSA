@@ -23,6 +23,12 @@ struct zip_reader::impl {
 
   impl(char const* ptr, size_t size) : ptr_{ptr}, size_{size}, ar_{} { init(); }
 
+  impl(impl&&) = delete;
+  impl& operator=(impl&&) = delete;
+
+  impl(impl const&) = delete;
+  impl& operator=(impl const&) = delete;
+
   ~impl() { mz_zip_reader_end(&ar_); }
 
   void init() {
