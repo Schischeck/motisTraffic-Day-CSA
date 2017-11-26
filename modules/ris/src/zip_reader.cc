@@ -21,7 +21,7 @@ struct zip_reader::impl {
     init();
   }
 
-  impl(char const* ptr, size_t size) : ptr_{ptr}, size_{size} { init(); }
+  impl(char const* ptr, size_t size) : ptr_{ptr}, size_{size}, ar_{} { init(); }
 
   ~impl() { mz_zip_reader_end(&ar_); }
 
@@ -33,7 +33,7 @@ struct zip_reader::impl {
   }
 
   size_t get_curr_file_size() {
-    mz_zip_archive_file_stat file_stat;
+    mz_zip_archive_file_stat file_stat{};
     if (auto const success =
             mz_zip_reader_file_stat(&ar_, curr_file_index_, &file_stat);
         success) {
