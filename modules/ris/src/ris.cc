@@ -56,14 +56,12 @@ struct ris::impl {
       env_.set_maxdbs(2);
       env_.open(db_path_.c_str(), db::env_open_flags::NOMEMINIT);
 
-      {
-        db::txn t{env_};
-        t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
-        t.dbi_open(MSG_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
-        t.dbi_open(MIN_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
-        t.dbi_open(MAX_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
-        t.commit();
-      }
+      db::txn t{env_};
+      t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
+      t.dbi_open(MSG_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+      t.dbi_open(MIN_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+      t.dbi_open(MAX_DAY, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
+      t.commit();
     }
 
     // TODO(felix)
@@ -146,6 +144,8 @@ private:
   }
 
   void write_to_db(fs::path const& p, file_type const type) {
+    using tar_zst_reader = tar_reader<zstd_reader>;
+
     auto parse = [&](auto&& reader) {
       std::optional<std::string_view> xml;
       while ((xml = reader.read())) {
@@ -156,9 +156,7 @@ private:
 
     auto cp = p.c_str();
     switch (type) {
-      case file_type::ZST:
-        parse(tar_reader<zstd_reader>{zstd_reader{cp}});
-        break;
+      case file_type::ZST: parse(tar_zst_reader{zstd_reader{cp}}); break;
       case file_type::ZIP: parse(zip_reader{cp}); break;
       case file_type::XML: parse(file_reader{cp}); break;
       default: assert(false);
