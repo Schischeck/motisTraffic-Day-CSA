@@ -60,6 +60,10 @@ type alias Translations =
         , classColors : String
         , simActive : String
         }
+    , mapContextMenu :
+        { routeFromHere : String
+        , routeToHere : String
+        }
     , errors :
         { journeyDateNotInSchedule : String
         , internalError : String -> String

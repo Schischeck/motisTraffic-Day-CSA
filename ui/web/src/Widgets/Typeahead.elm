@@ -12,6 +12,7 @@ module Widgets.Typeahead
         , getSuggestionName
         , getShortSuggestionName
         , saveSelection
+        , setToPosition
         )
 
 import Html exposing (Html, div, ul, li, text, i, span)
@@ -108,6 +109,7 @@ type Msg
     | AddressSuggestionsError ApiError
     | PositionSuggestionsResponse (Maybe Position)
     | InputChange String
+    | SetText String
     | EnterSelection
     | ClickElement Int
     | SelectionUp
@@ -153,6 +155,14 @@ update msg model =
             { model
                 | input = str
                 , visible = True
+                , selectedSuggestion = getSuggestionByName model str
+            }
+                ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
+
+        SetText str ->
+            { model
+                | input = str
+                , visible = False
                 , selectedSuggestion = getSuggestionByName model str
             }
                 ! [ Debounce.debounceCmd debounceCfg RequestSuggestions ]
@@ -384,6 +394,12 @@ debounceCfg =
         (\model s -> { model | debounce = s })
         Deb
         100
+
+
+setToPosition : Position -> Msg
+setToPosition pos =
+    ((toString pos.lat) ++ ";" ++ (toString pos.lng))
+        |> SetText
 
 
 
