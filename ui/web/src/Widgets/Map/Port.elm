@@ -38,6 +38,14 @@ type alias MapTooltip =
     }
 
 
+type alias MapClickInfo =
+    { mouseX : Int
+    , mouseY : Int
+    , lat : Float
+    , lng : Float
+    }
+
+
 type alias RVTrain =
     { names : List String
     , departureTime : Time
@@ -117,3 +125,9 @@ port mapSetConnectionFilter : RVConnectionFilter -> Cmd msg
 
 
 port mapUpdateWalks : List RVConnectionWalk -> Cmd msg
+
+
+port mapShowContextMenu : (MapClickInfo -> msg) -> Sub msg
+
+
+port mapCloseContextMenu : (() -> msg) -> Sub msg

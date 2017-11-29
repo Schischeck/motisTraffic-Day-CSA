@@ -1,6 +1,6 @@
 module Widgets.Map.RailViz
     exposing
-        ( Msg(SetTimeOffset, SetApiError, ToggleSimTimePicker)
+        ( Msg(..)
         , Model
         , init
         , view
@@ -10,6 +10,7 @@ module Widgets.Map.RailViz
         , flyTo
         , fitBounds
         , getMapPermalink
+        , getContextMenuPosition
         )
 
 import Widgets.Map.Port as Port exposing (..)
@@ -51,6 +52,11 @@ type alias Model =
     , hoveredStation : Maybe String
     , trainColors : TrainColors
     , apiError : Maybe ApiError
+    , contextMenuVisible : Bool
+    , contextMenuX : Int
+    , contextMenuY : Int
+    , contextMenuLat : Float
+    , contextMenuLng : Float
     }
 
 
@@ -73,6 +79,11 @@ init remoteAddress =
     , hoveredStation = Nothing
     , trainColors = ClassColors
     , apiError = Nothing
+    , contextMenuVisible = False
+    , contextMenuX = 0
+    , contextMenuY = 0
+    , contextMenuLat = 0
+    , contextMenuLng = 0
     }
         ! [ Task.perform SetTime Time.now
           , mapInit mapId
@@ -91,6 +102,10 @@ type Msg
     | SetTrainColors TrainColors
     | SetApiError (Maybe ApiError)
     | ToggleSimTimePicker
+    | MapShowContextMenu MapClickInfo
+    | MapCloseContextMenu
+    | MapContextMenuFromHere
+    | MapContextMenuToHere
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -136,6 +151,25 @@ update msg model =
         ToggleSimTimePicker ->
             model ! []
 
+        MapShowContextMenu info ->
+            { model
+                | contextMenuVisible = True
+                , contextMenuX = info.mouseX
+                , contextMenuY = info.mouseY
+                , contextMenuLat = info.lat
+                , contextMenuLng = info.lng
+            }
+                ! []
+
+        MapCloseContextMenu ->
+            { model | contextMenuVisible = False } ! []
+
+        MapContextMenuFromHere ->
+            { model | contextMenuVisible = False } ! []
+
+        MapContextMenuToHere ->
+            { model | contextMenuVisible = False } ! []
+
 
 flyTo : Position -> Maybe Float -> Bool -> Cmd msg
 flyTo pos zoom animate =
@@ -175,6 +209,11 @@ getMapPermalink model =
         toUrl (RailVizPermalink pos.lat pos.lng zoom simDate)
 
 
+getContextMenuPosition : Model -> Position
+getContextMenuPosition model =
+    { lat = model.contextMenuLat, lng = model.contextMenuLng }
+
+
 
 -- SUBSCRIPTIONS
 
@@ -184,6 +223,8 @@ subscriptions model =
     Sub.batch
         [ mapUpdate MapUpdate
         , mapSetTooltip SetTooltip
+        , mapShowContextMenu MapShowContextMenu
+        , mapCloseContextMenu (always MapCloseContextMenu)
         , Time.every Time.second SetTime
         ]
 
@@ -217,6 +258,7 @@ view locale permalink model =
                 , simulationTimeOverlay locale permalink model
                 ]
             , errorOverlay locale model
+            , contextMenu locale model
             ]
         ]
 
@@ -470,4 +512,40 @@ apiErrorOverlay locale err =
         div [ class "railviz-error-overlay", id "railviz-error-overlay" ]
             [ i [ class "icon" ] [ text "error_outline" ]
             , text errorMsg
+            ]
+
+
+
+-- Context menu
+
+
+contextMenuWidth : number
+contextMenuWidth =
+    200
+
+
+contextMenu : Localization -> Model -> Html Msg
+contextMenu locale model =
+    let
+        x =
+            model.contextMenuX
+
+        y =
+            model.contextMenuY
+    in
+        div
+            [ classList
+                [ "railviz-contextmenu" => True
+                , "visible" => model.contextMenuVisible
+                , "hidden" => not model.contextMenuVisible
+                ]
+            , style
+                [ "top" => (toString y ++ "px")
+                , "left" => (toString x ++ "px")
+                ]
+            ]
+            [ div [ class "item", onClick MapContextMenuFromHere ]
+                [ text locale.t.mapContextMenu.routeFromHere ]
+            , div [ class "item", onClick MapContextMenuToHere ]
+                [ text locale.t.mapContextMenu.routeToHere ]
             ]

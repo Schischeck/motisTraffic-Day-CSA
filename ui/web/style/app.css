@@ -235,6 +235,34 @@
   padding-left: 4px;
 }
 
+.railviz-contextmenu {
+  position: absolute;
+  transition: opacity 100ms;
+  background: #fff;
+  color: #000;
+  border: 1px solid #BBB;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  padding: 2px;
+}
+
+.railviz-contextmenu.hidden {
+  display: none;
+}
+
+.railviz-contextmenu.visible {
+  display: block;
+}
+
+.railviz-contextmenu .item {
+  cursor: pointer;
+  padding: 10px 20px;
+}
+
+.railviz-contextmenu .item:hover {
+  background: #e4eafb;
+}
+
 .map-bottom-overlay {
   position: absolute;
   bottom: 15px;
@@ -440,7 +468,7 @@
 }
 
 #search {
-  height: 230px;
+  height: 200px;
   flex: 0 0 auto;
   padding-bottom: 0;
   transition: filter 1s;

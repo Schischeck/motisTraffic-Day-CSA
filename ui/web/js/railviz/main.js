@@ -1,6 +1,6 @@
 var RailViz = RailViz || {};
 
-RailViz.Main = (function() {
+RailViz.Main = (function () {
 
   var apiEndpoint;
   var mapInfo;
@@ -16,7 +16,12 @@ RailViz.Main = (function() {
   var lastTripsRequest = null;
   var useFpsLimiter = true;
 
-  var hoverInfo = {x: -1, y: -1, pickedTrain: null, pickedStation: null};
+  var hoverInfo = {
+    x: -1,
+    y: -1,
+    pickedTrain: null,
+    pickedStation: null
+  };
 
   var debouncedSendTrainsRequest = debounce(sendTrainsRequest, 200);
 
@@ -67,7 +72,7 @@ RailViz.Main = (function() {
     walks.forEach(walk => {
       RailViz.Preprocessing.prepareWalk(walk);
       const existingWalk =
-          connectionFilter.walks.find(w => isSameWalk(w, walk));
+        connectionFilter.walks.find(w => isSameWalk(w, walk));
       if (existingWalk) {
         existingWalk.polyline = walk.polyline;
         existingWalk.coordinates = walk.coordinates;
@@ -81,7 +86,7 @@ RailViz.Main = (function() {
 
   function isSameWalk(a, b) {
     return isSameStation(a.departureStation, b.departureStation) &&
-        isSameStation(a.arrivalStation, b.arrivalStation);
+      isSameStation(a.arrivalStation, b.arrivalStation);
   }
 
   function isSameStation(a, b) {
@@ -120,9 +125,14 @@ RailViz.Main = (function() {
   function makeTrainsRequest() {
     var bounds = mapInfo.railVizBounds;
     return RailViz.API.makeTrainsRequest(
-        Math.min(mapInfo.zoom + 2, 18), {lat: bounds.north, lng: bounds.west},
-        {lat: bounds.south, lng: bounds.east}, timeOffset + (Date.now() / 1000),
-        timeOffset + (Date.now() / 1000) + 120, 1000);
+      Math.min(mapInfo.zoom + 2, 18), {
+        lat: bounds.north,
+        lng: bounds.west
+      }, {
+        lat: bounds.south,
+        lng: bounds.east
+      }, timeOffset + (Date.now() / 1000),
+      timeOffset + (Date.now() / 1000) + 120, 1000);
   }
 
   function makeTripsRequest() {
@@ -136,10 +146,10 @@ RailViz.Main = (function() {
     trainUpdateTimeoutId = setTimeout(debouncedSendTrainsRequest, 90000);
     toggleLoadingSpinner(true);
     lastTrainsRequest = RailViz.API.sendRequest(
-        apiEndpoint, makeTrainsRequest(),
-        (response, callId, duration) =>
-            dataReceived(response, false, callId, duration),
-        handleApiError);
+      apiEndpoint, makeTrainsRequest(),
+      (response, callId, duration) =>
+      dataReceived(response, false, callId, duration),
+      handleApiError);
   }
 
   function sendTripsRequest() {
@@ -150,10 +160,10 @@ RailViz.Main = (function() {
       tripsUpdateTimeoutId = setTimeout(sendTripsRequest, 90000);
       toggleLoadingSpinner(true);
       lastTripsRequest = RailViz.API.sendRequest(
-          apiEndpoint, makeTripsRequest(),
-          (response, callId, duration) =>
-              dataReceived(response, true, callId, duration),
-          handleApiError);
+        apiEndpoint, makeTripsRequest(),
+        (response, callId, duration) =>
+        dataReceived(response, true, callId, duration),
+        handleApiError);
     }
   }
 
@@ -165,7 +175,7 @@ RailViz.Main = (function() {
   function dataReceived(response, onlyFilteredTrips, callId, duration) {
     var data = response.content;
     const lastRequest =
-        onlyFilteredTrips ? lastTripsRequest : lastTrainsRequest;
+      onlyFilteredTrips ? lastTripsRequest : lastTrainsRequest;
     if (callId != lastRequest) {
       return;
     }
@@ -212,6 +222,7 @@ RailViz.Main = (function() {
       } else if (pickedStation) {
         elmPorts.showStationDetails.send(pickedStation.id);
       }
+      elmPorts.mapCloseContextMenu.send(null);
     } else {
       if (eventType != 'mouseout') {
         setTooltip(x, y, pickedTrain, pickedStation);
@@ -227,8 +238,8 @@ RailViz.Main = (function() {
 
   function setTooltip(x, y, pickedTrain, pickedStation) {
     if (hoverInfo.x == x && hoverInfo.y == y &&
-        hoverInfo.pickedTrain == pickedTrain &&
-        hoverInfo.pickedStation == pickedStation) {
+      hoverInfo.pickedTrain == pickedTrain &&
+      hoverInfo.pickedStation == pickedStation) {
       return;
     }
 
@@ -246,11 +257,11 @@ RailViz.Main = (function() {
         scheduledDepartureTime: pickedTrain.sched_d_time * 1000,
         scheduledArrivalTime: pickedTrain.sched_a_time * 1000,
         hasDepartureDelayInfo:
-            !!(pickedTrain.d_time_reason &&
-               pickedTrain.d_time_reason != 'SCHEDULE'),
+          !!(pickedTrain.d_time_reason &&
+            pickedTrain.d_time_reason != 'SCHEDULE'),
         hasArrivalDelayInfo:
-            !!(pickedTrain.a_time_reason &&
-               pickedTrain.a_time_reason != 'SCHEDULE'),
+          !!(pickedTrain.a_time_reason &&
+            pickedTrain.a_time_reason != 'SCHEDULE'),
         departureStation: pickedTrain.departureStation.name,
         arrivalStation: pickedTrain.arrivalStation.name
       };
@@ -267,10 +278,10 @@ RailViz.Main = (function() {
 
   function debounce(f, t) {
     var timeout;
-    return function() {
+    return function () {
       var context = this;
       var args = arguments;
-      var later = function() {
+      var later = function () {
         timeout = null;
         f.apply(context, args);
       };
@@ -284,7 +295,7 @@ RailViz.Main = (function() {
     debounce: debounce,
     mapUpdate: mapUpdate,
     setTimeOffset: setTimeOffset,
-    getTimeOffset: function() {
+    getTimeOffset: function () {
       return timeOffset;
     },
     setTripFilter: setTripFilter,

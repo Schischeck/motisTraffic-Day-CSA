@@ -1,28 +1,29 @@
 var CanvasOverlay = L.Layer.extend({
-  initialize: function() {
+  initialize: function () {
     L.setOptions(this, {});
   },
 
-  onAdd: function(map) {
+  onAdd: function (map) {
     map._panes.overlayPane.appendChild(this._el);
 
-    setTimeout(function() {
+    setTimeout(function () {
       this._updateSize();
     }.bind(this), 100);
   },
 
-  onRemove: function(map) {
+  onRemove: function (map) {
     map.getPanes().overlayPane.removeChild(this._el);
   },
 
-  getEvents: function() {
+  getEvents: function () {
     var events = {
       dragend: this._dragEnd,
       move: this._updatePosition,
       moveend: this._updatePosition,
       resize: this._updateSize,
       zoom: this._zoom,
-      zoomend: this._zoomEnd
+      zoomend: this._zoomEnd,
+      contextmenu: this._contextMenu
     };
 
     if (this._zoomAnimated) {
@@ -32,37 +33,37 @@ var CanvasOverlay = L.Layer.extend({
     return events;
   },
 
-  _animateZoom: function(e) {
+  _animateZoom: function (e) {
     this._updateTransform(e.center, e.zoom);
   },
 
-  _zoom: function() {
+  _zoom: function () {
     this._updateTransform(this._map.getCenter(), this._map.getZoom());
   },
 
-  _zoomEnd: function() {
+  _zoomEnd: function () {
     this._update();
   },
 
-  _dragEnd: function() {
+  _dragEnd: function () {
     RailViz.Main.dragEnd();
     this._updatePosition();
   },
 
-  _updateTransform: function(center, zoom) {
+  _updateTransform: function (center, zoom) {
     var scale = this._map.getZoomScale(zoom),
-        position = L.DomUtil.getPosition(this._el),
-        viewHalf = this._map.getSize().multiplyBy(0.5),
-        currentCenterPoint = this._map.project(this._map.getCenter(), zoom),
-        destCenterPoint = this._map.project(center, zoom),
-        centerOffset = destCenterPoint.subtract(currentCenterPoint),
-        topLeftOffset =
-            viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(
-                centerOffset);
+      position = L.DomUtil.getPosition(this._el),
+      viewHalf = this._map.getSize().multiplyBy(0.5),
+      currentCenterPoint = this._map.project(this._map.getCenter(), zoom),
+      destCenterPoint = this._map.project(center, zoom),
+      centerOffset = destCenterPoint.subtract(currentCenterPoint),
+      topLeftOffset =
+      viewHalf.multiplyBy(-scale).add(position).add(viewHalf).subtract(
+        centerOffset);
     L.DomUtil.setTransform(this._el, topLeftOffset, scale);
   },
 
-  _update: function() {
+  _update: function () {
     var pixelBounds = this._map.getPixelBounds().min;
     var geoBounds = this._map.getBounds();
     var size = this._map.getSize();
@@ -94,33 +95,51 @@ var CanvasOverlay = L.Layer.extend({
         south: railVizBounds.getSouth(),
         east: railVizBounds.getEast()
       },
-      center: {lat: center.lat, lng: center.lng}
+      center: {
+        lat: center.lat,
+        lng: center.lng
+      }
     };
 
     app.ports.mapUpdate.send(mapInfo);
     RailViz.Main.mapUpdate(mapInfo);
+    app.ports.mapCloseContextMenu.send(null);
 
-    var mapSettings = {lat: center.lat, lng: center.lng, zoom: zoom};
+    var mapSettings = {
+      lat: center.lat,
+      lng: center.lng,
+      zoom: zoom
+    };
     localStorageSet('motis.map', JSON.stringify(mapSettings));
   },
 
-  _updateSize: function() {
+  _updateSize: function () {
     var size = this._map.getSize();
     this._el.style.width = size.x + 'px';
     this._el.style.height = size.y + 'px';
     this._updatePosition();
   },
 
-  _updatePosition: function() {
+  _updatePosition: function () {
     this._update();
     var pos = this._map.containerPointToLayerPoint([0, 0]);
     L.DomUtil.setPosition(this._el, pos);
+  },
+
+  _contextMenu: function (e) {
+    console.log('Context menu:', e);
+    app.ports.mapShowContextMenu.send({
+      mouseX: e.containerPoint.x,
+      mouseY: e.containerPoint.y,
+      lat: e.latlng.lat,
+      lng: e.latlng.lng
+    });
   }
 
 });
 
 function initPorts(app, apiEndpoint) {
-  app.ports.mapInit.subscribe(function(id) {
+  app.ports.mapInit.subscribe(function (id) {
     var mapSettings = localStorage.getItem('motis.map');
     if (mapSettings) {
       mapSettings = JSON.parse(mapSettings);
@@ -129,19 +148,22 @@ function initPorts(app, apiEndpoint) {
     var lng = mapSettings && mapSettings.lng || 8.6512;
     var zoom = mapSettings && mapSettings.zoom || 14;
 
-    var map = L.map('map', {zoomControl: false}).setView([lat, lng], zoom);
+    var map = L.map('map', {
+      zoomControl: false
+    }).setView([lat, lng], zoom);
 
     L.tileLayer(
-         'https://tiles.motis-project.de/osm_light/{z}/{x}/{y}.png?token={accessToken}',
-         {
-           attribution: 'Map data &copy; OpenStreetMap contributors, CC-BY-SA',
-           maxZoom: 18,
-           accessToken:
-               '862bdec137edd4e88029304609458291f0ec760b668c5816ccdd83d0beae76a4'
-         })
-        .addTo(map);
+        'https://tiles.motis-project.de/osm_light/{z}/{x}/{y}.png?token={accessToken}', {
+          attribution: 'Map data &copy; OpenStreetMap contributors, CC-BY-SA',
+          maxZoom: 22,
+          maxNativeZoom: 18,
+          accessToken: '862bdec137edd4e88029304609458291f0ec760b668c5816ccdd83d0beae76a4'
+        })
+      .addTo(map);
 
-    L.control.zoom({position: 'topright'}).addTo(map);
+    L.control.zoom({
+      position: 'topright'
+    }).addTo(map);
 
     window.elmMaps[id] = map;
 
@@ -157,24 +179,31 @@ function initPorts(app, apiEndpoint) {
   app.ports.mapUpdateWalks.subscribe(RailViz.Main.updateWalks);
   app.ports.setTimeOffset.subscribe(RailViz.Main.setTimeOffset);
 
-  app.ports.mapFlyTo.subscribe(function(opt) {
+  app.ports.mapFlyTo.subscribe(function (opt) {
     var map = window.elmMaps[opt.mapId];
     var center = L.latLng(opt.lat, opt.lng);
-    var options = {animate: opt.animate};
+    var options = {
+      animate: opt.animate
+    };
     if (opt.zoom) {
       map.flyTo(center, opt.zoom, options);
     } else {
-      Object.assign(options, {paddingTopLeft: [600, 0], maxZoom: 16});
+      Object.assign(options, {
+        paddingTopLeft: [600, 0],
+        maxZoom: 16
+      });
       map.flyToBounds(L.latLngBounds([center]), options);
     }
   });
 
-  app.ports.mapFitBounds.subscribe(function(opt) {
+  app.ports.mapFitBounds.subscribe(function (opt) {
     var map = window.elmMaps[opt.mapId];
     var bounds = L.latLngBounds(opt.coords);
-    map.fitBounds(bounds, {paddingTopLeft: [600, 0]});
+    map.fitBounds(bounds, {
+      paddingTopLeft: [600, 0]
+    });
   });
 
   app.ports.mapUseTrainClassColors.subscribe(
-      RailViz.Trains.setUseCategoryColor);
+    RailViz.Trains.setUseCategoryColor);
 }

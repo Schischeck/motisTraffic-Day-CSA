@@ -232,6 +232,28 @@ update msg model =
                         RailViz.ToggleSimTimePicker ->
                             update (SimTimePickerUpdate (SimTimePicker.Toggle (getCurrentDate model1) (model1.timeOffset /= 0))) model1
 
+                        RailViz.MapContextMenuFromHere ->
+                            update
+                                (RoutingUpdate
+                                    (Routing.FromLocationUpdate
+                                        (Typeahead.setToPosition
+                                            (RailViz.getContextMenuPosition model.railViz)
+                                        )
+                                    )
+                                )
+                                model1
+
+                        RailViz.MapContextMenuToHere ->
+                            update
+                                (RoutingUpdate
+                                    (Routing.ToLocationUpdate
+                                        (Typeahead.setToPosition
+                                            (RailViz.getContextMenuPosition model.railViz)
+                                        )
+                                    )
+                                )
+                                model1
+
                         _ ->
                             model1 ! []
             in
@@ -521,6 +543,9 @@ update msg model =
 
                                 Just (Typeahead.AddressSuggestion address) ->
                                     RailViz.flyTo address.pos Nothing True
+
+                                Just (Typeahead.PositionSuggestion pos) ->
+                                    RailViz.flyTo pos Nothing True
 
                                 Nothing ->
                                     Cmd.none

@@ -88,6 +88,10 @@ deTranslations =
         , classColors = "Kategorie"
         , simActive = "Simulationsmodus aktiv"
         }
+    , mapContextMenu =
+        { routeFromHere = "Routen von hier"
+        , routeToHere = "Routen hierher"
+        }
     , errors =
         { journeyDateNotInSchedule = "Zeitraum nicht im Fahrplan"
         , internalError = \msg -> "Interner Fehler (" ++ msg ++ ")"

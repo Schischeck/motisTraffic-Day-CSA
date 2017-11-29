@@ -87,6 +87,10 @@ enTranslations =
         , classColors = "Category"
         , simActive = "Simulation mode active"
         }
+    , mapContextMenu =
+        { routeFromHere = "Directions from here"
+        , routeToHere = "Directions to here"
+        }
     , errors =
         { journeyDateNotInSchedule = "Date not in schedule"
         , internalError = \msg -> "Internal error (" ++ msg ++ ")"
