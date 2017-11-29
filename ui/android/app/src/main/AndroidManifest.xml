@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.motis_project.app">
+    package="de.motis_project.app2">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".Application"
+        android:name="de.motis_project.app2.Application"
         android:allowBackup="true"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name="de.motis_project.app2.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -24,7 +24,7 @@
                 android:value=".SearchActivity" />
         </activity>
         <activity
-            android:name=".query.guesser.GuesserActivity"
+            android:name="de.motis_project.app2.query.guesser.GuesserActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -35,14 +35,14 @@
                 android:resource="@xml/searchable" />
         </activity>
         <activity
-            android:name=".detail.DetailActivity"
+            android:name="de.motis_project.app2.detail.DetailActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_journey_detail"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName="de.motis_project.app2.MainActivity"
             android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="de.motis_project.app.MainActivity" />
+                android:value="de.motis_project.app2.MainActivity" />
         </activity>
     </application>
 
