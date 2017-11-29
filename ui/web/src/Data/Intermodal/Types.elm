@@ -45,6 +45,7 @@ type IntermodalDestination
 type Mode
     = Foot FootModeInfo
     | Bike BikeModeInfo
+    | Car CarModeInfo
 
 
 type alias FootModeInfo =
@@ -52,4 +53,8 @@ type alias FootModeInfo =
 
 
 type alias BikeModeInfo =
+    { maxDuration : Int }
+
+
+type alias CarModeInfo =
     { maxDuration : Int }

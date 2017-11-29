@@ -284,3 +284,9 @@ encodeMode mode =
                     => Encode.object
                         [ "max_duration" => Encode.int info.maxDuration ]
                 ]
+
+        Car info ->
+            Encode.object
+                [ "mode_type" => Encode.string "Car"
+                , "mode" => Encode.object [ "max_duration" => Encode.int info.maxDuration ]
+                ]

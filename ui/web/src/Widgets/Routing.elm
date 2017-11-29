@@ -90,7 +90,7 @@ init flags locale =
             , currentRoutingRequest = Nothing
             , debounce = Debounce.init
             , connectionListScrollPos = 0
-            , optionsVisible = False
+            , optionsVisible = True
             }
     in
         initialModel
@@ -378,7 +378,7 @@ buildRoutingRequest model =
                     Just (Intermodal.Bike { maxDuration = o.maxDuration })
 
                 CarTag o ->
-                    Nothing
+                    Just (Intermodal.Car { maxDuration = o.maxDuration })
 
         fromLocation =
             toIntermodalLocation model.fromLocation
@@ -540,19 +540,6 @@ searchView locale model =
             , div
                 [ class "pure-u-1 pure-u-sm-3-24 time-option" ]
                 (searchDirectionView locale model)
-            ]
-        , div [ class "search-options-toggle" ]
-            [ div
-                [ class "search-options-btn gb-button gb-button-small gb-button-outline gb-button-PRIMARY_COLOR disable-select"
-                , onClick (ShowOptions (not model.optionsVisible))
-                ]
-                [ i [ class "icon" ]
-                    [ if model.optionsVisible then
-                        text "expand_less"
-                      else
-                        text "expand_more"
-                    ]
-                ]
             ]
         ]
     , optionsView locale model

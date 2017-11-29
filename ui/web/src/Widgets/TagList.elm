@@ -57,6 +57,7 @@ init storedSelections =
     { tags =
         [ WalkTag { maxDuration = defaultMaxDuration }
         , BikeTag { maxDuration = defaultMaxDuration }
+        , CarTag { maxDuration = defaultMaxDuration }
         ]
     , selected =
         storedSelections

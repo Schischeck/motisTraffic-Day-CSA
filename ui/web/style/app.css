@@ -468,7 +468,7 @@
 }
 
 #search {
-  height: 230px;
+  height: 200px;
   flex: 0 0 auto;
   padding-bottom: 0;
   transition: filter 1s;
