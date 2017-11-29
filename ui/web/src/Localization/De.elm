@@ -69,9 +69,11 @@ deTranslations =
                         "Fahrt " ++ (toString count) ++ " Stationen"
         , tripWalk = \duration -> "Fußweg (" ++ duration ++ ")"
         , tripBike = \duration -> "Fahrrad (" ++ duration ++ ")"
+        , tripCar = \duration -> "Auto (" ++ duration ++ ")"
         , provider = "Betreiber"
         , walk = "Fußweg"
         , bike = "Fahrrad"
+        , car = "Auto"
         , trainNr = "Zugnummer"
         , lineId = "Linie"
         }

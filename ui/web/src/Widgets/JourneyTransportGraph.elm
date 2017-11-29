@@ -243,6 +243,9 @@ partView locale totalWidth tooltipVisible displayPart =
                 "bike" ->
                     locale.t.connections.bike
 
+                "car" ->
+                    locale.t.connections.car
+
                 _ ->
                     part.longName
 
@@ -369,6 +372,9 @@ walkPart walk =
             case walk.mumoType of
                 "bike" ->
                     "bike"
+
+                "car" ->
+                    "car"
 
                 _ ->
                     "walk"

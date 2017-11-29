@@ -165,6 +165,9 @@ walkBox mumoType =
                 "bike" ->
                     "#bike"
 
+                "car" ->
+                    "#car"
+
                 _ ->
                     "#walk"
     in

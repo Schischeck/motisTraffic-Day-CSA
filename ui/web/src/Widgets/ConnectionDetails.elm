@@ -721,6 +721,9 @@ walkDetail selectStationMsg selectWalkMsg locale currentTime walk =
                 "bike" ->
                     locale.t.connections.tripBike durationStr
 
+                "car" ->
+                    locale.t.connections.tripCar durationStr
+
                 _ ->
                     locale.t.connections.tripWalk durationStr
     in
