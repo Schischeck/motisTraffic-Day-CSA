@@ -222,7 +222,6 @@ RailViz.Main = (function () {
       } else if (pickedStation) {
         elmPorts.showStationDetails.send(pickedStation.id);
       }
-      elmPorts.mapCloseContextMenu.send(null);
     } else {
       if (eventType != 'mouseout') {
         setTooltip(x, y, pickedTrain, pickedStation);
