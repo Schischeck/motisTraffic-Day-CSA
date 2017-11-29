@@ -178,13 +178,13 @@ public class QueryFragment extends Fragment
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data == null || data.getExtras() == null ||
                 data.getExtras().getString(GuesserActivity.RESULT_NAME) == null ||
+                data.getExtras().getString(GuesserActivity.RESULT_ID) == null ||
                 resultCode != Activity.RESULT_OK) {
             return;
         }
 
         String name = data.getExtras().getString(GuesserActivity.RESULT_NAME);
         String id = data.getExtras().getString(GuesserActivity.RESULT_ID);
-
         switch (requestCode) {
             case SELECT_START_LOCATION:
                 query.setFrom(id, name);

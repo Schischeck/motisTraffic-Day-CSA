@@ -199,7 +199,7 @@ public class JourneyListView
         final Date searchIntervalBegin = new Date(intervalBegin.getTime() - SEARCH_INTERVAL_MS);
         final Date searchIntervalEnd = new Date(intervalBegin.getTime() - MINUTE_IN_MS);
 
-        route(searchIntervalBegin, searchIntervalEnd, true, false, 3, resObj -> {
+        route(searchIntervalBegin, searchIntervalEnd, true, false, 0, resObj -> {
             RoutingResponse res = (RoutingResponse) resObj;
             logResponse(res, searchIntervalBegin, searchIntervalEnd, "LOAD_BEFORE");
 

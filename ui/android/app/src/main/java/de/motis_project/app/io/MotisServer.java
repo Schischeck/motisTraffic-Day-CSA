@@ -12,7 +12,6 @@ import de.motis_project.app.io.error.UnexpectedMessageTypeException;
 import motis.Message;
 import motis.MotisError;
 import motis.MsgContent;
-import motis.address.AddressResponse;
 import motis.guesser.StationGuesserResponse;
 import motis.lookup.LookupScheduleInfoResponse;
 import motis.routing.RoutingResponse;
@@ -114,21 +113,12 @@ public class MotisServer extends Server {
         super(url, handler);
     }
 
-    public Observable<StationGuesserResponse> guessStation(String input) {
+    public Observable<StationGuesserResponse> guess(String input) {
         final int id = ++nextMsgId;
         return Observable.create(new ResponseSubscription<>(
                 MessageBuilder.guess(id, input),
                 MsgContent.StationGuesserResponse,
                 new StationGuesserResponse(),
-                id));
-    }
-
-    public Observable<AddressResponse> guessAddress(String input) {
-        final int id = ++nextMsgId;
-        return Observable.create(new ResponseSubscription<>(
-                MessageBuilder.address(id, input),
-                MsgContent.AddressResponse,
-                new AddressResponse(),
                 id));
     }
 

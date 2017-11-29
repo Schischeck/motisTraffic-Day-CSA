@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import de.motis_project.app.io.error.DisconnectedException;
 import motis.Message;
@@ -38,22 +37,18 @@ public class Server extends WebSocketAdapter {
     private long lastReceiveTimestamp = System.currentTimeMillis();
     private List<byte[]> sendQueue = new ArrayList<>();
 
-    private AtomicBoolean connecting = new AtomicBoolean(false);
-
     public Server(String url, Handler handler) {
         this.url = url;
         this.handler = handler;
     }
 
     public void connect() throws IOException {
-        if (connecting.compareAndSet(false, true)) {
-            WebSocketFactory factory = new WebSocketFactory();
-            factory.setConnectionTimeout(15000);
+        WebSocketFactory factory = new WebSocketFactory();
+        factory.setConnectionTimeout(15000);
 
-            ws = factory.createSocket(url);
-            ws.addListener(this);
-            ws.connectAsynchronously();
-        }
+        ws = factory.createSocket(url);
+        ws.addListener(this);
+        ws.connectAsynchronously();
     }
 
     public boolean isConnected() {
@@ -85,7 +80,7 @@ public class Server extends WebSocketAdapter {
         listeners.remove(l);
     }
 
-    synchronized private void scheduleConnect() {
+    private void scheduleConnect() {
         System.out.println("Server.scheduleConnect");
         try {
             handler.postDelayed(() -> {
@@ -134,8 +129,6 @@ public class Server extends WebSocketAdapter {
             throws Exception {
         System.out.println("Server.onConnected");
 
-        connecting.set(false);
-
         lastReceiveTimestamp = System.currentTimeMillis();
 
         synchronized (sendQueue) {
@@ -158,9 +151,6 @@ public class Server extends WebSocketAdapter {
                                WebSocketFrame clientCloseFrame,
                                boolean closedByServer) throws Exception {
         System.out.println("Server.onDisconnected");
-
-        connecting.set(false);
-
         synchronized (listeners) {
             for (Listener l : listeners) {
                 l.onDisconnect();
@@ -172,7 +162,6 @@ public class Server extends WebSocketAdapter {
     @Override
     public void onConnectError(WebSocket websocket,
                                WebSocketException exception) throws Exception {
-        connecting.set(false);
         scheduleConnect();
     }
 }
