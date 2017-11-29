@@ -56,9 +56,14 @@ table Bike {
   max_duration: int;
 }
 
+table Car {
+  max_duration: int;
+}
+
 union Mode {
   Foot,
-  Bike
+  Bike,
+  Car
 }
 
 table ModeWrapper {

@@ -93,6 +93,15 @@ void make_edges(Vector<Offset<ModeWrapper>> const* modes, latlng const& pos,
         break;
       }
 
+      case Mode_Car: {
+        auto max_dur =
+            reinterpret_cast<Car const*>(wrapper->mode())->max_duration();
+        auto max_dist = max_dur * CAR_SPEED;
+        osrm_edges(pos, max_dur, max_dist, mumo_type::CAR, osrm_direction,
+                   appender);
+        break;
+      }
+
       default: throw std::system_error(error::unknown_mode);
     }
   }

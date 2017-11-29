@@ -11,14 +11,14 @@
 namespace motis {
 namespace intermodal {
 
-enum class mumo_type : int { FOOT, BIKE };
+enum class mumo_type : int { FOOT, BIKE, CAR };
 
 inline int to_int(mumo_type const type) {
   return static_cast<typename std::underlying_type<mumo_type>::type>(type);
 }
 
 inline std::string to_string(mumo_type const type) {
-  static char const* strs[] = {"foot", "bike"};
+  static char const* strs[] = {"foot", "bike", "car"};
   return strs[to_int(type)];  // NOLINT
 }
 
