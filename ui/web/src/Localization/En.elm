@@ -68,9 +68,11 @@ enTranslations =
                         (toString count) ++ " intermediate stops"
         , tripWalk = \duration -> "Walk (" ++ duration ++ ")"
         , tripBike = \duration -> "Bike (" ++ duration ++ ")"
+        , tripCar = \duration -> "Car (" ++ duration ++ ")"
         , provider = "Provider"
         , walk = "Walk"
         , bike = "Bike"
+        , car = "Car"
         , trainNr = "Train number"
         , lineId = "Line"
         }
