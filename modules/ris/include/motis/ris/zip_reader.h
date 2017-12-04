@@ -24,6 +24,7 @@ struct zip_reader {
   zip_reader& operator=(zip_reader const&) = delete;
 
   std::optional<std::string_view> read();
+  float progress() const;
 
   struct impl;
   std::unique_ptr<impl> impl_;

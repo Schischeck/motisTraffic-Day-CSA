@@ -18,6 +18,9 @@ if (MSVC)
   add_definitions(/D_HAS_AUTO_PTR_ETC)
 endif()
 
+# add_definitions(-DBOOST_USE_UCONTEXT=1)
+# add_definitions(-DBOOST_USE_ASAN=1)
+
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
 option(MOTIS_COV "enable coverage (coverage) target" OFF)
 

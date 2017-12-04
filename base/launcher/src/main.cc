@@ -6,7 +6,6 @@
 #include "boost/asio/io_service.hpp"
 #include "boost/asio/signal_set.hpp"
 #include "boost/filesystem.hpp"
-#include "boost/thread.hpp"
 
 #include "utl/to_vec.h"
 
@@ -37,21 +36,6 @@ using net::http::server::shutdown_handler;
 
 template <typename T>
 using shutd_hdr_ptr = std::unique_ptr<shutdown_handler<T>>;
-
-auto run(boost::asio::io_service& ios) {
-  return [&ios]() {
-    while (true) {
-      try {
-        ios.run();
-        break;
-      } catch (std::exception const& e) {
-        LOG(emrg) << "unhandled error: " << e.what();
-      } catch (...) {
-        LOG(emrg) << "unhandled unknown error";
-      }
-    }
-  };
-}
 
 int main(int argc, char** argv) {
   motis_instance instance;
@@ -126,14 +110,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  boost::asio::io_service::work work{instance.ios_};
   net::http::server::io_service_shutdown shutd(ios);
   shutdown_handler<net::http::server::io_service_shutdown> shutdown(ios, shutd);
-
-  boost::asio::io_service::work work(instance.ios_);
-  std::vector<boost::thread> threads(launcher_opt.num_threads_);
-  for (auto& t : threads) {
-    t = boost::thread(run(instance.ios_));
-  }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;
   if (launcher_opt.mode_ == launcher_settings::motis_mode_t::TEST) {
@@ -148,7 +127,5 @@ int main(int argc, char** argv) {
   LOG(info) << "system boot finished";
   run(ios)();
   instance.ios_.stop();
-  std::for_each(begin(threads), end(threads),
-                [](boost::thread& t) { t.join(); });
   LOG(info) << "shutdown";
 }

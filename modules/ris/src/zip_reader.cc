@@ -66,6 +66,10 @@ struct zip_reader::impl {
     }
   }
 
+  float progress() const {
+    return static_cast<float>(curr_file_index_) / num_files_;
+  }
+
   std::unique_ptr<mmap_reader> mmap_;
   char const* ptr_{nullptr};
   size_t size_{0};
@@ -86,6 +90,8 @@ zip_reader::zip_reader(char const* ptr, size_t size)
 zip_reader::~zip_reader() = default;
 
 std::optional<std::string_view> zip_reader::read() { return impl_->read(); }
+
+float zip_reader::progress() const { return impl_->progress(); }
 
 }  // namespace ris
 }  // namespace motis

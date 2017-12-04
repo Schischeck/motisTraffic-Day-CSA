@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <string_view>
 #include <vector>
 
 #include "motis/ris/ris_message.h"
