@@ -70,9 +70,10 @@ struct ris::impl {
     t.dbi_open(MAX_DAY_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
     t.commit();
 
-    if (!fs::is_directory(input_folder_)) {
-      LOG(warn) << input_folder_ << " is not a directory, skipping";
+    if (fs::is_directory(input_folder_)) {
       parse_folder(input_folder_);
+    } else {
+      LOG(warn) << input_folder_ << " is not a directory, skipping";
     }
     env_.force_sync();
     // forward(new_time=init_time_) TODO(felix)
