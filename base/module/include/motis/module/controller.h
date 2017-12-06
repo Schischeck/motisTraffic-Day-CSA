@@ -23,7 +23,7 @@ struct controller : public dispatcher, public registry {
     decltype(f()) result;
     scheduler_.enqueue(ctx_data(this, sched_), [&]() { result = f(); },
                        ctx::op_id(CTX_LOCATION));
-    module::run_parallel(ios_, num_threads);
+    run_parallel(ios_, num_threads);
     return result;
   }
 
@@ -32,7 +32,7 @@ struct controller : public dispatcher, public registry {
       typename std::enable_if_t<std::is_same_v<void, decltype(f())>> {
     scheduler_.enqueue(ctx_data(this, sched_), [&]() { f(); },
                        ctx::op_id(CTX_LOCATION));
-    module::run_parallel(ios_, num_threads);
+    run_parallel(ios_, num_threads);
   }
 
   boost::asio::io_service ios_;
