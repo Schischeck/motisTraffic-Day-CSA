@@ -14,6 +14,7 @@
 
 #include "lmdb/lmdb.hpp"
 
+#include "motis/core/common/logging.h"
 #include "motis/module/context/motis_spawn.h"
 #include "motis/ris/risml/risml_parser.h"
 #include "motis/ris/zip_reader.h"
@@ -21,6 +22,7 @@
 namespace fs = boost::filesystem;
 namespace db = lmdb;
 using namespace motis::module;
+using namespace motis::logging;
 using motis::ris::risml::xml_to_ris_message;
 using tar::file_reader;
 using tar::tar_reader;
@@ -68,7 +70,10 @@ struct ris::impl {
     t.dbi_open(MAX_DAY_DB, db::dbi_flags::CREATE | db::dbi_flags::INTEGERKEY);
     t.commit();
 
-    parse_folder(input_folder_);
+    if (!fs::is_directory(input_folder_)) {
+      LOG(warn) << input_folder_ << " is not a directory, skipping";
+      parse_folder(input_folder_);
+    }
     env_.force_sync();
     // forward(new_time=init_time_) TODO(felix)
   }
