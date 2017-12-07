@@ -60,8 +60,8 @@ struct dispatcher : public receiver {
           } catch (std::system_error const& e) {
             return cb(nullptr, e.code());
           } catch (std::out_of_range const&) {
-            LOG(logging::log_level::error)
-                << "target \"" << id.name << "\" not found";
+            LOG(logging::log_level::error) << "target \"" << id.name
+                                           << "\" not found";
             return cb(nullptr, error::target_not_found);
           } catch (...) {
             return cb(nullptr, error::unknown_error);
@@ -92,10 +92,10 @@ struct dispatcher : public receiver {
     fbb.create_and_finish(
         MsgContent_ApiDescription,
         CreateApiDescription(
-            fbb,
-            fbb.CreateVector(utl::to_vec(
-                fbs_def,
-                [&fbb](char const* str) { return fbb.CreateString(str); })),
+            fbb, fbb.CreateVector(utl::to_vec(fbs_def,
+                                              [&fbb](char const* str) {
+                                                return fbb.CreateString(str);
+                                              })),
             fbb.CreateVector(utl::to_vec(methods,
                                          [&fbb](method const& m) {
                                            return CreateMethod(

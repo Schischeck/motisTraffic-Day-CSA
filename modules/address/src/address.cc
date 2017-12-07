@@ -1,11 +1,14 @@
 #include "motis/address/address.h"
 
+#include "boost/filesystem.hpp"
+
 #include "utl/to_vec.h"
 
 #include "address-typeahead/typeahead.h"
 
 #include "motis/core/common/logging.h"
 
+namespace fs = boost::filesystem;
 using namespace motis::module;
 using namespace address_typeahead;
 
@@ -54,6 +57,11 @@ address::address() : module("Address Typeahead", "address") {
 address::~address() = default;
 
 void address::init(motis::module::registry& reg) {
+  if (!fs::is_directory(db_path_)) {
+    LOG(logging::warn) << db_path_ << " is not a not a directory, skipping";
+    return;
+  }
+
   try {
     impl_ = std::make_unique<impl>(db_path_);
     reg.register_op("/address", std::bind(&impl::get_guesses, impl_.get(),

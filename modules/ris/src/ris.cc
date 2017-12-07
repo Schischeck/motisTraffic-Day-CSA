@@ -57,7 +57,7 @@ constexpr auto const MAX_DAY_DB = "MAX_DAY_DB";
 struct ris::impl {
   void init() {
     env_.set_maxdbs(4);
-    env_.set_mapsize(static_cast<uint64_t>(1024) * 1024 * 1024 * 512);
+    env_.set_mapsize(static_cast<uint64_t>(1024) * 1024 * 1024 * 10);
     env_.open(db_path_.c_str(),
               db::env_open_flags::NOMEMINIT | lmdb::env_open_flags::NOSUBDIR);
 
@@ -70,10 +70,10 @@ struct ris::impl {
 
     if (fs::is_directory(input_folder_)) {
       parse_folder(input_folder_);
+      env_.force_sync();
     } else {
       LOG(warn) << input_folder_ << " is not a directory, skipping";
     }
-    env_.force_sync();
     // forward(new_time=init_time_) TODO(felix)
   }
 
