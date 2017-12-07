@@ -14,6 +14,7 @@ target_link_libraries(motis-cli
   zstd
   conf
   motis-module
+  motis-core
   net-tcp_client
 )
 
