@@ -6,6 +6,12 @@
 #include <iostream>
 #include <string>
 
+#ifdef _MSC_VER
+#define gmt gmtime_s
+#else
+#define gmt gmtime_r
+#endif
+
 #define FILE_NAME \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
@@ -28,7 +34,8 @@ inline std::string time() {
   time_t now;
   std::time(&now);
   char buf[sizeof "2011-10-08t07:07:09z-0430"];
-  strftime(buf, sizeof buf, "%FT%TZ%z", gmtime(&now));
+  struct tm result;
+  strftime(buf, sizeof buf, "%FT%TZ%z", gmt(&now, &result));
   return buf;
 }
 
