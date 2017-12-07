@@ -19,6 +19,6 @@ build_flatbuffers(
 file(GLOB_RECURSE motis-loader-files src/*.cc)
 add_library(motis-loader STATIC ${motis-loader-files})
 add_dependencies(motis-loader generated-schedule-headers)
-target_link_libraries(motis-loader ${Boost_FILESYSTEM_LIBRARY} flatbuffers64)
+target_link_libraries(motis-loader ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} flatbuffers64)
 set_target_properties(motis-loader PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})
 target_compile_definitions(motis-loader PRIVATE FLATBUFFERS_64=1)
