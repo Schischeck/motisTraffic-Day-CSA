@@ -15,15 +15,26 @@
 #define FILE_NAME \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define LOG(lvl)                                          \
-  std::cerr << "\n"                                       \
-            << "[" << motis::logging::str[lvl] << "]"     \
-            << "[" << motis::logging::time() << "]"       \
-            << "[" << FILE_NAME << ":" << __LINE__ << "]" \
-            << " "
+#define LOG(lvl)                                                      \
+  motis::logging::log() << "\n"                                       \
+                        << "[" << motis::logging::str[lvl] << "]"     \
+                        << "[" << motis::logging::time() << "]"       \
+                        << "[" << FILE_NAME << ":" << __LINE__ << "]" \
+                        << " "
 
 namespace motis {
 namespace logging {
+
+struct log {
+  template <typename T>
+  friend log&& operator<<(log&& l, T&& t) {
+    std::lock_guard<std::mutex> lock{log_mutex_};
+    std::cerr << std::forward<T&&>(t);
+    return std::move(l);
+  }
+
+  static std::mutex log_mutex_;
+};
 
 enum log_level { emrg, alrt, crit, error, warn, notice, info, debug };
 

@@ -58,10 +58,8 @@ struct ris::impl {
   void init() {
     env_.set_maxdbs(4);
     env_.set_mapsize(static_cast<uint64_t>(1024) * 1024 * 1024 * 512);
-    env_.open(db_path_.c_str(), db::env_open_flags::WRITEMAP |
-                                    db::env_open_flags::MAPASYNC |
-                                    db::env_open_flags::NOMEMINIT |
-                                    lmdb::env_open_flags::NOSUBDIR);
+    env_.open(db_path_.c_str(),
+              db::env_open_flags::NOMEMINIT | lmdb::env_open_flags::NOSUBDIR);
 
     db::txn t{env_};
     t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
