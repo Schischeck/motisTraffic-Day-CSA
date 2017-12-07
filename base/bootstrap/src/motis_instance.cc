@@ -84,8 +84,6 @@ msg_ptr motis_instance::call(msg_ptr const& msg) {
       e = std::current_exception();
     }
   });
-  ios_.run();
-  ios_.reset();
 
   if (e) {
     std::rethrow_exception(e);
@@ -108,8 +106,6 @@ void motis_instance::publish(msg_ptr const& msg) {
       e = std::current_exception();
     }
   });
-  ios_.run();
-  ios_.reset();
 
   if (e) {
     std::rethrow_exception(e);
