@@ -31,6 +31,9 @@ struct log {
   log(log const&) = delete;
   log& operator=(log const&) = delete;
 
+  log(log&&) = default;
+  log& operator=(log&&) = default;
+
   template <typename T>
   friend log&& operator<<(log&& l, T&& t) {
     std::cout << std::forward<T&&>(t);
