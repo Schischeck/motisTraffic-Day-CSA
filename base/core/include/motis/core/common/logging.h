@@ -8,9 +8,9 @@
 #include <string>
 
 #ifdef _MSC_VER
-#define gmt gmtime_s
+#define gmt(a, b) gmtime_s(b, a)
 #else
-#define gmt gmtime_r
+#define gmt(a, b) gmtime_r(a, b)
 #endif
 
 #define FILE_NAME \
@@ -47,7 +47,8 @@ inline std::string time() {
   std::time(&now);
   char buf[sizeof "2011-10-08t07:07:09z-0430"];
   struct tm result;
-  strftime(buf, sizeof buf, "%FT%TZ%z", gmt(&now, &result));
+  gmt(&now, &result);
+  strftime(buf, sizeof buf, "%FT%TZ%z", &result);
   return buf;
 }
 
