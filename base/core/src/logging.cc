@@ -1,7 +1,9 @@
 #include "motis/core/common/logging.h"
 
-namespace motis::logging {
+namespace motis {
+namespace logging {
 
 std::mutex log::log_mutex_;
 
-}  // namespace motis::logging
+}  // namespace logging
+}  // namespace motis

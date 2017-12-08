@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
   shutd_hdr_ptr<socket_server> tcp_shutdown_handler;
   try {
     instance.init_schedule(dataset_opt);
-    instance.init_modules(module_opt.modules_);
+    instance.init_modules(module_opt.modules_, launcher_opt.num_threads_);
 
     if (listener_opt.listen_ws_) {
       websocket.set_api_key(listener_opt.api_key_);
@@ -114,6 +114,11 @@ int main(int argc, char** argv) {
   net::http::server::io_service_shutdown shutd(ios);
   shutdown_handler<net::http::server::io_service_shutdown> shutdown(ios, shutd);
 
+  std::vector<std::thread> threads(launcher_opt.num_threads_);
+  for (auto& t : threads) {
+    t = std::thread(run(ios));
+  }
+
   std::unique_ptr<boost::asio::deadline_timer> timer;
   if (launcher_opt.mode_ == launcher_settings::motis_mode_t::TEST) {
     timer = std::make_unique<boost::asio::deadline_timer>(
@@ -127,5 +132,6 @@ int main(int argc, char** argv) {
   LOG(info) << "system boot finished";
   run(ios)();
   instance.ios_.stop();
+  std::for_each(begin(threads), end(threads), [](std::thread& t) { t.join(); });
   LOG(info) << "shutdown";
 }

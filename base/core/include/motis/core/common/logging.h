@@ -17,8 +17,7 @@
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #define LOG(lvl)                                                      \
-  motis::logging::log() << "\n"                                       \
-                        << "[" << motis::logging::str[lvl] << "]"     \
+  motis::logging::log() << "[" << motis::logging::str[lvl] << "]"     \
                         << "[" << motis::logging::time() << "]"       \
                         << "[" << FILE_NAME << ":" << __LINE__ << "]" \
                         << " "
@@ -27,13 +26,20 @@ namespace motis {
 namespace logging {
 
 struct log {
+  log() : lock_{log_mutex_} {}
+
+  log(log const&) = delete;
+  log& operator=(log const&) = delete;
+
   template <typename T>
   friend log&& operator<<(log&& l, T&& t) {
-    std::lock_guard<std::mutex> lock{log_mutex_};
-    std::cerr << std::forward<T&&>(t);
+    std::cout << std::forward<T&&>(t);
     return std::move(l);
   }
 
+  ~log() { std::cout << std::endl; }
+
+  std::unique_lock<std::mutex> lock_;
   static std::mutex log_mutex_;
 };
 
