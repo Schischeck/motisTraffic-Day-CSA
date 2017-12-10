@@ -54,11 +54,17 @@ constexpr auto const MIN_DAY_DB = "MIN_DAY_DB";
 //        earliest <= day.begin && latest >= day.end
 constexpr auto const MAX_DAY_DB = "MAX_DAY_DB";
 
+inline bool is_same_bucket(time_t const t1, time_t const t2) {
+  constexpr auto const BUCKET_SIZE = 60 * 10;  // ten minutes
+  return t1 / BUCKET_SIZE == t2 / BUCKET_SIZE;
+}
+
 struct ris::impl {
   void init() {
     env_.set_maxdbs(4);
-    env_.set_mapsize(static_cast<uint64_t>(1024) * 1024 * 1024 * 10);
-    env_.open(db_path_.c_str(), lmdb::env_open_flags::NOSUBDIR);
+    env_.set_mapsize(static_cast<uint64_t>(1024) * 1024 * 1024 * 64);
+    env_.open(db_path_.c_str(),
+              lmdb::env_open_flags::NOSUBDIR | lmdb::env_open_flags::NOSYNC);
 
     db::txn t{env_};
     t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
@@ -157,7 +163,6 @@ private:
   void write_to_db(fs::path const& p, file_type const type) {
     using tar_zst_reader = tar_reader<zstd_reader>;
 
-    auto first = false;
     auto curr_timestamp = time_t{0};
     auto buf = std::vector<char>{};
     auto flush_to_db = [&]() {
@@ -166,7 +171,7 @@ private:
       auto c = db::cursor{t, db};
 
       auto const v = c.get(lmdb::cursor_op::SET_RANGE, curr_timestamp);
-      if (v && v->first == curr_timestamp) {
+      if (v && is_same_bucket(v->first, curr_timestamp)) {
         buf.insert(end(buf), begin(v->second), end(v->second));
       }
       c.put(curr_timestamp, std::string_view{&buf[0], buf.size()});
@@ -176,8 +181,9 @@ private:
       buf.clear();
     };
 
+    auto first = false;
     auto write = [&](ris_message&& m) {
-      if (!first && m.timestamp_ != curr_timestamp) {
+      if (!first && !is_same_bucket(m.timestamp_, curr_timestamp)) {
         flush_to_db();
       }
 
@@ -194,17 +200,11 @@ private:
       first = false;
     };
 
-    printf("\n");
     auto parse = [&](auto&& reader) {
       std::optional<std::string_view> xml;
       unsigned print = 0;
       while ((xml = reader.read())) {
         xml_to_ris_message(*xml, [&](ris_message&& m) { write(std::move(m)); });
-        if (++print % 1000) {
-          printf("\r%s: %d%%", p.c_str(),
-                 static_cast<int>(100 * reader.progress()));
-          fflush(stdout);
-        }
       }
     };
 
