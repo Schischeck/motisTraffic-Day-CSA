@@ -62,7 +62,7 @@ inline bool is_same_bucket(time_t const t1, time_t const t2) {
 struct ris::impl {
   void init() {
     env_.set_maxdbs(4);
-    env_.set_mapsize(static_cast<uint64_t>(1024) * 1024 * 1024 * 64);
+    env_.set_mapsize(db_max_size_);
     env_.open(db_path_.c_str(),
               lmdb::env_open_flags::NOSUBDIR | lmdb::env_open_flags::NOSYNC);
 
@@ -109,6 +109,7 @@ struct ris::impl {
   std::string db_path_;
   std::string input_folder_;
   conf::holder<std::time_t> init_time_{0};
+  uint64_t db_max_size_{static_cast<uint64_t>(1024) * 1024 * 1024 * 512};
 
 private:
   enum class file_type { NONE, ZST, ZIP, XML };
@@ -202,7 +203,6 @@ private:
 
     auto parse = [&](auto&& reader) {
       std::optional<std::string_view> xml;
-      unsigned print = 0;
       while ((xml = reader.read())) {
         xml_to_ris_message(*xml, [&](ris_message&& m) { write(std::move(m)); });
       }
@@ -226,8 +226,8 @@ private:
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
   string_param(impl_->db_path_, "ris.mdb", "db", "ris database path");
   string_param(impl_->input_folder_, "ris", "input_folder", "ris input folder");
-  template_param(impl_->init_time_, {0l}, "init_time",
-                 "'forward' the simulation clock (expects Unix timestamp)");
+  size_t_param(impl_->db_max_size_, "db_max_size", "virtual memory map size");
+  template_param(impl_->init_time_, "init_time", "initial forward time");
 }
 
 ris::~ris() = default;

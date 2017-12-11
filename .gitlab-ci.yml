@@ -42,31 +42,6 @@ clang-debug-asan:
     - ./motis-test
     - ./motis-itest
 
-
-# Clang 5 debug with thread sanitizer
-# Currently crashing somewhere in tsan code :(
-# TODO(felix) re-enable with new tsan version
-#clang-debug-tsan:
-#  tags:
-#    - artful
-#  script:
-#    - export CXXFLAGS="-stdlib=libc++ -fsanitize=thread -fno-omit-frame-pointer"
-#    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
-#    - export CXX=clang++
-#    - export CC=clang
-#    - git submodule update --init --recursive
-#    - mkdir -p build-tsan
-#    - cd build-tsan
-#    - cmake -DCMAKE_BUILD_TYPE=Debug ..
-#    - make -j8 motis-test motis-itest motis motis-eval motis-cli
-#    - ./motis --mode test
-#              --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
-#              --dataset.begin 20151111
-#              --dataset.write_serialized false
-#              --listen.ws false
-#    - ./motis-test
-#    - ./motis-itest
-
 # GCC 7 debug valgrind
 gcc-7-debug-valgrind:
   tags:
@@ -84,6 +59,7 @@ gcc-7-debug-valgrind:
               --dataset.begin 20151111
               --dataset.write_serialized false
               --listen.ws false
+              --ris.db_max_size 1048576
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
