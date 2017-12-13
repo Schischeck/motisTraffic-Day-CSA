@@ -45,18 +45,38 @@ constexpr auto const MSG_DB = "MSG_DB";
 // index for every day referenced by any message
 // key: day.begin (unix timestamp)
 // value: smallest message timestamp from MSG_DB that has
-//        earliest <= day.begin && latest >= day.end
+//        earliest <= day.end && latest >= day.begin
 constexpr auto const MIN_DAY_DB = "MIN_DAY_DB";
 
 // index for every day referenced by any message
 // key: day.begin (unix timestamp)
 // value: largest message timestamp from MSG_DB that has
-//        earliest <= day.begin && latest >= day.end
+//        earliest <= day.end && latest >= day.begin
 constexpr auto const MAX_DAY_DB = "MAX_DAY_DB";
 
-inline bool is_same_bucket(time_t const t1, time_t const t2) {
+constexpr bool is_same_bucket(time_t const t1, time_t const t2) {
   constexpr auto const BUCKET_SIZE = 60 * 10;  // ten minutes
   return t1 / BUCKET_SIZE == t2 / BUCKET_SIZE;
+}
+
+constexpr auto const SECONDS_A_DAY = 24 * 60 * 60;
+constexpr time_t day(time_t t) { return (t / SECONDS_A_DAY) * SECONDS_A_DAY; }
+constexpr time_t next_day(time_t t) { return day(t) + SECONDS_A_DAY; }
+
+template <typename Fn>
+inline void for_each_day(ris_message const& m, Fn&& f) {
+  auto const last = next_day(m.latest_);
+  for (auto d = day(m.earliest_); d != last; d += SECONDS_A_DAY) {
+    f(d);
+  }
+}
+
+time_t to_time_t(std::string_view s) {
+  return *reinterpret_cast<time_t const*>(s.data());
+}
+
+std::string_view from_time_t(time_t const t) {
+  return {reinterpret_cast<char const*>(&t), sizeof(t)};
 }
 
 struct ris::impl {
@@ -109,7 +129,7 @@ struct ris::impl {
   std::string db_path_;
   std::string input_folder_;
   conf::holder<std::time_t> init_time_{0};
-  uint64_t db_max_size_{static_cast<uint64_t>(1024) * 1024 * 1024 * 512};
+  size_t db_max_size_{static_cast<size_t>(1024) * 1024 * 1024 * 512};
 
 private:
   enum class file_type { NONE, ZST, ZIP, XML };
@@ -164,6 +184,8 @@ private:
   void write_to_db(fs::path const& p, file_type const type) {
     using tar_zst_reader = tar_reader<zstd_reader>;
 
+    std::map<time_t /* d.b */, time_t /* min(t) : e <= d.e && l >= d.b */> min;
+    std::map<time_t /* d.b */, time_t /* max(t) : e <= d.e && l >= d.b */> max;
     auto curr_timestamp = time_t{0};
     auto buf = std::vector<char>{};
     auto flush_to_db = [&]() {
@@ -172,7 +194,7 @@ private:
       auto c = db::cursor{t, db};
 
       auto const v = c.get(lmdb::cursor_op::SET_RANGE, curr_timestamp);
-      if (v && is_same_bucket(v->first, curr_timestamp)) {
+      if (v && v->first == curr_timestamp) {
         buf.insert(end(buf), begin(v->second), end(v->second));
       }
       c.put(curr_timestamp, std::string_view{&buf[0], buf.size()});
@@ -199,6 +221,20 @@ private:
       std::memcpy(&buf[0] + base + size_type_size, m.data(), m.size());
       curr_timestamp = m.timestamp_;
       first = false;
+
+      for_each_day(m, [&](time const d) {
+        if (auto it = min.lower_bound(d); it != end(min) && it->first == d) {
+          it->second = std::min(it->second, m.timestamp_);
+        } else {
+          min.emplace_hint(it, d, m.timestamp_);
+        }
+
+        if (auto it = max.lower_bound(d); it != end(max) && it->first == d) {
+          it->second = std::max(it->second, m.timestamp_);
+        } else {
+          max.emplace_hint(it, d, m.timestamp_);
+        }
+      });
     };
 
     auto parse = [&](auto&& reader) {
@@ -216,11 +252,38 @@ private:
       default: assert(false);
     }
 
+    update_min_max(min, max);
     add_to_known_files(p);
+  }
+
+  void update_min_max(std::map<time_t, time_t> const& min,
+                      std::map<time_t, time_t> const& max) {
+    std::lock_guard<std::mutex> lock{min_max_mutex_};
+
+    auto t = db::txn{env_};
+    auto min_db = t.dbi_open(MIN_DAY_DB);
+    auto max_db = t.dbi_open(MAX_DAY_DB);
+
+    for (auto const[day, min_timestamp] : min) {
+      auto smallest = min_timestamp;
+      if (auto entry = t.get(min_db, day); entry) {
+        smallest = std::min(smallest, to_time_t(*entry));
+      }
+      t.put(min_db, day, from_time_t(smallest));
+    }
+
+    for (auto const[day, max_timestamp] : max) {
+      auto largest = max_timestamp;
+      if (auto entry = t.get(max_db, day); entry) {
+        largest = std::max(largest, to_time_t(*entry));
+      }
+      t.put(max_db, day, from_time_t(largest));
+    }
   }
 
   db::env env_;
   std::atomic<uint64_t> next_msg_id_{0};
+  std::mutex min_max_mutex_;
 };
 
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
