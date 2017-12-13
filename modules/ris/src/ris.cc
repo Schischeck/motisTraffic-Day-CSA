@@ -16,6 +16,7 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/module/context/motis_spawn.h"
+#include "motis/module/context/get_schedule.h"
 #include "motis/ris/risml/risml_parser.h"
 #include "motis/ris/zip_reader.h"
 
@@ -110,19 +111,8 @@ struct ris::impl {
     return {};
   }
 
-  msg_ptr forward(msg_ptr const&) {
-    // TODO(felix)
-    /*
-      cursor c;
-      std::vector<parser::buffer> blobs;
-      for (auto const& m : c) {
-        if (m->timstamp() > batch_to) {
-          publish(blobs);
-          blobs.clear();
-        }
-        blobs.emplace_back(m);
-      }
-    */
+  msg_ptr forward(msg_ptr const& msg) {
+    forward(motis_content(RISForwardTimeRequest, msg)->new_time());
     return {};
   }
 
@@ -132,6 +122,15 @@ struct ris::impl {
   size_t db_max_size_{static_cast<size_t>(1024) * 1024 * 1024 * 512};
 
 private:
+  void forward(time_t const t) {
+    std::lock_guard<std::mutex> lock{forward_mutex_};
+
+    auto const& sched = get_schedule();
+    auto const prev_timestamp = sched.system_time_;
+
+    // upper bound on database buckets!
+  }
+
   enum class file_type { NONE, ZST, ZIP, XML };
 
   static file_type get_file_type(fs::path const& p) {
@@ -284,6 +283,7 @@ private:
   db::env env_;
   std::atomic<uint64_t> next_msg_id_{0};
   std::mutex min_max_mutex_;
+  std::mutex forward_mutex_;
 };
 
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
