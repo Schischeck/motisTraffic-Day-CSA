@@ -51,14 +51,18 @@ enum log_level { emrg, alrt, crit, error, warn, notice, info, debug };
 static const char* const str[]{"emrg", "alrt", "crit", "erro",
                                "warn", "note", "info", "debg"};
 
+inline std::string time(time_t const t) {
+  char buf[sizeof "2011-10-08t07:07:09z-0430"];
+  struct tm result {};
+  gmt(&t, &result);
+  strftime(buf, sizeof buf, "%FT%TZ%z", &result);
+  return buf;
+}
+
 inline std::string time() {
   time_t now;
   std::time(&now);
-  char buf[sizeof "2011-10-08t07:07:09z-0430"];
-  struct tm result {};
-  gmt(&now, &result);
-  strftime(buf, sizeof buf, "%FT%TZ%z", &result);
-  return buf;
+  return time(now);
 }
 
 struct scoped_timer final {

@@ -15,8 +15,9 @@
 #include "lmdb/lmdb.hpp"
 
 #include "motis/core/common/logging.h"
-#include "motis/module/context/motis_spawn.h"
 #include "motis/module/context/get_schedule.h"
+#include "motis/module/context/motis_publish.h"
+#include "motis/module/context/motis_spawn.h"
 #include "motis/ris/risml/risml_parser.h"
 #include "motis/ris/zip_reader.h"
 
@@ -55,12 +56,18 @@ constexpr auto const MIN_DAY_DB = "MIN_DAY_DB";
 //        earliest <= day.end && latest >= day.begin
 constexpr auto const MAX_DAY_DB = "MAX_DAY_DB";
 
+constexpr auto const BATCH_SIZE = time_t{3600};
+
+constexpr auto const BUCKET_SIZE = time_t{60 * 10};
+
 constexpr bool is_same_bucket(time_t const t1, time_t const t2) {
-  constexpr auto const BUCKET_SIZE = 60 * 10;  // ten minutes
   return t1 / BUCKET_SIZE == t2 / BUCKET_SIZE;
 }
 
-constexpr auto const SECONDS_A_DAY = 24 * 60 * 60;
+using size_type = uint16_t;
+constexpr auto const SIZE_TYPE_SIZE = sizeof(size_type);
+
+constexpr auto const SECONDS_A_DAY = time_t{24 * 60 * 60};
 constexpr time_t day(time_t t) { return (t / SECONDS_A_DAY) * SECONDS_A_DAY; }
 constexpr time_t next_day(time_t t) { return day(t) + SECONDS_A_DAY; }
 
@@ -70,6 +77,16 @@ inline void for_each_day(ris_message const& m, Fn&& f) {
   for (auto d = day(m.earliest_); d != last; d += SECONDS_A_DAY) {
     f(d);
   }
+}
+
+template <typename T>
+constexpr T floor(T const i, T const multiple) {
+  return (i / multiple) * multiple;
+}
+
+template <typename T>
+constexpr T ceil(T const i, T const multiple) {
+  return ((i - 1) / multiple) * multiple + multiple;
 }
 
 time_t to_time_t(std::string_view s) {
@@ -122,13 +139,95 @@ struct ris::impl {
   size_t db_max_size_{static_cast<size_t>(1024) * 1024 * 1024 * 512};
 
 private:
-  void forward(time_t const t) {
+  void forward(time_t const to) {
     std::lock_guard<std::mutex> lock{forward_mutex_};
-
     auto const& sched = get_schedule();
-    auto const prev_timestamp = sched.system_time_;
+    auto const first_schedule_event_day =
+        floor(sched.first_event_schedule_time_, SECONDS_A_DAY);
+    auto const min_timestamp =
+        get_min_timestamp(first_schedule_event_day, sched.schedule_end_);
+    if (min_timestamp) {
+      forward(std::max(*min_timestamp, sched.system_time_), to);
+    }
+  }
 
-    // upper bound on database buckets!
+  void forward(time_t const from, time_t const to) {
+    LOG(logging::info) << "forwarding from " << logging::time(from) << " to "
+                       << logging::time(to);
+
+    message_creator fbb;
+    std::vector<flatbuffers::Offset<MessageHolder>> offsets;
+    auto flush = [&]() {
+      fbb.create_and_finish(
+          MsgContent_RISBatch,
+          CreateRISBatch(fbb, fbb.CreateVector(offsets)).Union(),
+          "/ris/messages");
+
+      ctx::await_all(motis_publish(make_msg(fbb)));
+
+      fbb.Clear();
+      offsets.clear();
+    };
+
+    auto const from_bucket = floor(from, BUCKET_SIZE);
+    auto const to_bucket = ceil(to, BUCKET_SIZE);
+
+    auto t = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = t.dbi_open(MSG_DB);
+    auto c = db::cursor{t, db};
+
+    auto bucket = c.get(db::cursor_op::SET_RANGE, from_bucket);
+    auto batch_begin = bucket ? bucket->first : 0;
+    while (true) {
+      if (!bucket) {
+        break;
+      }
+
+      auto const & [ timestamp, msgs ] = *bucket;
+      if (timestamp >= to_bucket) {
+        break;
+      }
+
+      auto ptr = msgs.data();
+      auto const end = ptr + msgs.size();
+      while (ptr != end) {
+        size_type size;
+        std::memcpy(&size, ptr, SIZE_TYPE_SIZE);
+        ptr += SIZE_TYPE_SIZE;
+
+        offsets.push_back(CreateMessageHolder(
+            fbb,
+            fbb.CreateVector(reinterpret_cast<uint8_t const*>(ptr), size)));
+        ptr += size;
+      }
+
+      if (timestamp - batch_begin > BATCH_SIZE) {
+        flush();
+        batch_begin = timestamp;
+      }
+
+      bucket = c.get(db::cursor_op::NEXT, 0);
+    }
+  }
+
+  std::optional<time_t> get_min_timestamp(time_t const from_day,
+                                          time_t const to_day) {
+    verify(from_day % MINUTES_A_DAY == 0, "from not a day");
+    verify(to_day % MINUTES_A_DAY == 0, "to not a day");
+
+    constexpr auto const max = std::numeric_limits<time_t>::max();
+
+    auto min = max;
+    auto t = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = t.dbi_open(MIN_DAY_DB);
+    for (auto d = from_day; d != to_day; d += SECONDS_A_DAY) {
+      auto const r = t.get(db, d);
+      if (r) {
+        min = std::min(min, to_time_t(*r));
+      }
+    }
+
+    return min != max ? std::make_optional(min) : std::nullopt;
   }
 
   enum class file_type { NONE, ZST, ZIP, XML };
@@ -209,15 +308,12 @@ private:
         flush_to_db();
       }
 
-      using size_type = uint16_t;
-      constexpr auto const size_type_size = sizeof(size_type);
-
       auto const base = buf.size();
       buf.resize(buf.size() + 2 + m.size());
 
       auto const msg_size = static_cast<size_type>(m.size());
-      std::memcpy(&buf[0] + base, &msg_size, size_type_size);
-      std::memcpy(&buf[0] + base + size_type_size, m.data(), m.size());
+      std::memcpy(&buf[0] + base, &msg_size, SIZE_TYPE_SIZE);
+      std::memcpy(&buf[0] + base + SIZE_TYPE_SIZE, m.data(), m.size());
       curr_timestamp = m.timestamp_;
       first = false;
 
@@ -278,6 +374,8 @@ private:
       }
       t.put(max_db, day, from_time_t(largest));
     }
+
+    t.commit();
   }
 
   db::env env_;

@@ -14,6 +14,7 @@
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/price.h"
+#include "motis/core/access/time_access.h"
 #include "motis/loader/classes.h"
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/rule_service_graph_builder.h"
@@ -454,6 +455,11 @@ light_connection graph_builder::section_to_connection(
   // Count events.
   ++from.dep_class_events_.at(con_.clasz_);
   ++to.arr_class_events_.at(con_.clasz_);
+
+  // Track first event.
+  sched_.first_event_schedule_time_ =
+      std::min(sched_.first_event_schedule_time_,
+               motis_to_unixtime(sched_, dep_motis_time));
 
   return light_connection(
       dep_motis_time, arr_motis_time,

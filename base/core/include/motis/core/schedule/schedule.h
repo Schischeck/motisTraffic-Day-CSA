@@ -21,12 +21,13 @@ namespace motis {
 
 struct schedule {
   schedule()
-      : schedule_begin_(0),
-        schedule_end_(0),
-        node_count_(0),
-        route_count_(0),
-        system_time_(0),
-        last_update_timestamp_(0) {
+      : first_event_schedule_time_{std::numeric_limits<time_t>::max()},
+        schedule_begin_{0},
+        schedule_end_{0},
+        node_count_{0},
+        route_count_{0},
+        system_time_{0},
+        last_update_timestamp_{0} {
     graph_to_delay_info_.set_empty_key({nullptr, 0, event_type::DEP});
   }
 
@@ -36,6 +37,7 @@ struct schedule {
   schedule& operator=(schedule&&) = delete;
   ~schedule() = default;
 
+  std::time_t first_event_schedule_time_;
   std::time_t schedule_begin_, schedule_end_;
   std::string name_;
 
