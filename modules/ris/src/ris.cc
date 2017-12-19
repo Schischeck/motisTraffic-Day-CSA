@@ -117,7 +117,8 @@ struct ris::impl {
     } else {
       LOG(warn) << input_folder_ << " is not a directory, skipping";
     }
-    // forward(new_time=init_time_) TODO(felix)
+
+    forward(init_time_);
   }
 
   msg_ptr upload(msg_ptr const&) {
@@ -144,16 +145,20 @@ private:
     auto const& sched = get_schedule();
     auto const first_schedule_event_day =
         floor(sched.first_event_schedule_time_, SECONDS_A_DAY);
+    auto const last_schedule_event_day =
+        ceil(sched.last_event_schedule_time_, SECONDS_A_DAY);
     auto const min_timestamp =
-        get_min_timestamp(first_schedule_event_day, sched.schedule_end_);
+        get_min_timestamp(first_schedule_event_day, last_schedule_event_day);
     if (min_timestamp) {
       forward(std::max(*min_timestamp, sched.system_time_), to);
+    } else {
+      LOG(info) << "ris database has no relevant data";
     }
   }
 
   void forward(time_t const from, time_t const to) {
-    LOG(logging::info) << "forwarding from " << logging::time(from) << " to "
-                       << logging::time(to);
+    LOG(info) << "forwarding from " << logging::time(from) << " to "
+              << logging::time(to);
 
     message_creator fbb;
     std::vector<flatbuffers::Offset<MessageHolder>> offsets;
@@ -190,7 +195,7 @@ private:
 
       auto ptr = msgs.data();
       auto const end = ptr + msgs.size();
-      while (ptr != end) {
+      while (ptr < end) {
         size_type size;
         std::memcpy(&size, ptr, SIZE_TYPE_SIZE);
         ptr += SIZE_TYPE_SIZE;

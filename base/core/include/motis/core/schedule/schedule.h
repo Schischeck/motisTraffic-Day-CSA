@@ -22,6 +22,7 @@ namespace motis {
 struct schedule {
   schedule()
       : first_event_schedule_time_{std::numeric_limits<time_t>::max()},
+        last_event_schedule_time_{std::numeric_limits<time_t>::min()},
         schedule_begin_{0},
         schedule_end_{0},
         node_count_{0},
@@ -38,6 +39,7 @@ struct schedule {
   ~schedule() = default;
 
   std::time_t first_event_schedule_time_;
+  std::time_t last_event_schedule_time_;
   std::time_t schedule_begin_, schedule_end_;
   std::string name_;
 

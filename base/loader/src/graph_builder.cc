@@ -457,9 +457,12 @@ light_connection graph_builder::section_to_connection(
   ++to.arr_class_events_.at(con_.clasz_);
 
   // Track first event.
-  sched_.first_event_schedule_time_ =
-      std::min(sched_.first_event_schedule_time_,
-               motis_to_unixtime(sched_, dep_motis_time));
+  sched_.first_event_schedule_time_ = std::min(
+      sched_.first_event_schedule_time_,
+      motis_to_unixtime(sched_, dep_motis_time) - SCHEDULE_OFFSET_MINUTES * 60);
+  sched_.last_event_schedule_time_ = std::max(
+      sched_.last_event_schedule_time_,
+      motis_to_unixtime(sched_, arr_motis_time) - SCHEDULE_OFFSET_MINUTES * 60);
 
   return light_connection(
       dep_motis_time, arr_motis_time,
