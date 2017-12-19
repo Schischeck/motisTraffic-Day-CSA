@@ -217,8 +217,8 @@ private:
 
   std::optional<time_t> get_min_timestamp(time_t const from_day,
                                           time_t const to_day) {
-    verify(from_day % MINUTES_A_DAY == 0, "from not a day");
-    verify(to_day % MINUTES_A_DAY == 0, "to not a day");
+    verify(from_day % SECONDS_A_DAY == 0, "from not a day");
+    verify(to_day % SECONDS_A_DAY == 0, "to not a day");
 
     constexpr auto const max = std::numeric_limits<time_t>::max();
 
