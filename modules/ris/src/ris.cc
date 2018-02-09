@@ -121,11 +121,19 @@ struct ris::impl {
     forward(init_time_);
   }
 
-  msg_ptr upload(msg_ptr const&) {
-    // TODO(felix)
-    // write to folder()
-    // parse_folder()
-    // forward()
+  msg_ptr upload(msg_ptr const& msg) {
+    auto const req = motis_content(HTTPRequest, msg);
+
+    std::optional<std::string_view> xml;
+    zip_reader reader{req->content()->c_str(), req->content()->size()};
+    while ((xml = reader.read())) {
+      xml_to_ris_message(*xml, [&](ris_message&& m) {
+        // TODO(felix) write to db
+        // TODO(felix) publish
+        // TODO(felix) update timestamps in schedule
+      });
+    }
+
     return {};
   }
 
