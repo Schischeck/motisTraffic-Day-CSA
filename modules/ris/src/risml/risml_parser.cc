@@ -90,7 +90,8 @@ Offset<Message> parse_delay_msg(context& ctx, xml_node const& msg,
       });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b_, MessageUnion_DelayMessage,
+      ctx.b_, ctx.earliest_, ctx.latest_, ctx.timestamp_,
+      MessageUnion_DelayMessage,
       CreateDelayMessage(ctx.b_, trip_id, type, ctx.b_.CreateVector(events))
           .Union());
 }
@@ -102,7 +103,8 @@ Offset<Message> parse_cancel_msg(context& ctx, xml_node const& msg) {
                     xml_node const&) { events.push_back(event); });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b_, MessageUnion_CancelMessage,
+      ctx.b_, ctx.earliest_, ctx.latest_, ctx.timestamp_,
+      MessageUnion_CancelMessage,
       CreateCancelMessage(ctx.b_, trip_id, ctx.b_.CreateVector(events))
           .Union());
 }
@@ -117,7 +119,8 @@ Offset<Message> parse_addition_msg(context& ctx, xml_node const& msg) {
       });
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b_, MessageUnion_AdditionMessage,
+      ctx.b_, ctx.earliest_, ctx.latest_, ctx.timestamp_,
+      MessageUnion_AdditionMessage,
       CreateAdditionMessage(ctx.b_, trip_id, ctx.b_.CreateVector(events))
           .Union());
 }
@@ -143,7 +146,8 @@ Offset<Message> parse_reroute_msg(context& ctx, xml_node const& msg) {
 
   auto trip_id = parse_trip_id(ctx, msg);
   return CreateMessage(
-      ctx.b_, MessageUnion_RerouteMessage,
+      ctx.b_, ctx.earliest_, ctx.latest_, ctx.timestamp_,
+      MessageUnion_RerouteMessage,
       CreateRerouteMessage(ctx.b_, trip_id,
                            ctx.b_.CreateVector(cancelled_events),
                            ctx.b_.CreateVector(new_events))
@@ -178,7 +182,8 @@ Offset<Message> parse_conn_decision_msg(context& ctx, xml_node const& msg) {
   }
 
   return CreateMessage(
-      ctx.b_, MessageUnion_ConnectionDecisionMessage,
+      ctx.b_, ctx.earliest_, ctx.latest_, ctx.timestamp_,
+      MessageUnion_ConnectionDecisionMessage,
       CreateConnectionDecisionMessage(ctx.b_, from_trip_id, *from,
                                       ctx.b_.CreateVector(decisions))
           .Union());
@@ -212,7 +217,8 @@ Offset<Message> parse_conn_assessment_msg(context& ctx, xml_node const& msg) {
   }
 
   return CreateMessage(
-      ctx.b_, MessageUnion_ConnectionAssessmentMessage,
+      ctx.b_, ctx.earliest_, ctx.latest_, ctx.timestamp_,
+      MessageUnion_ConnectionAssessmentMessage,
       CreateConnectionAssessmentMessage(ctx.b_, from_trip_id, *from,
                                         ctx.b_.CreateVector(assessments))
           .Union());
@@ -244,9 +250,9 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
     return boost::none;
   }
 
-  context ctx;
+  context ctx{t_out};
   ctx.b_.Finish(it->second(ctx, payload));
-  return {{ctx.earliest_, ctx.latest_, t_out, std::move(ctx.b_)}};
+  return {{ctx.earliest_, ctx.latest_, ctx.timestamp_, std::move(ctx.b_)}};
 }
 
 void xml_to_ris_message(std::string_view s,

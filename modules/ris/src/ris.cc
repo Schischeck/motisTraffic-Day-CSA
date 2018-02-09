@@ -221,6 +221,8 @@ private:
 
       bucket = c.get(db::cursor_op::NEXT, 0);
     }
+
+    get_schedule().system_time_ = to;
   }
 
   std::optional<time_t> get_min_timestamp(time_t const from_day,
@@ -273,10 +275,7 @@ private:
         parse_folder(rel_path);
       }
     }
-
-    for (auto& f : futures) {
-      f->val();
-    }
+    ctx::await_all(futures);
   }
 
   bool is_known_file(fs::path const& p) {
@@ -300,6 +299,8 @@ private:
     auto curr_timestamp = time_t{0};
     auto buf = std::vector<char>{};
     auto flush_to_db = [&]() {
+      std::lock_guard<std::mutex> lock{merge_mutex_};
+
       auto t = db::txn{env_};
       auto db = t.dbi_open(MSG_DB);
       auto c = db::cursor{t, db};
@@ -330,7 +331,7 @@ private:
       curr_timestamp = m.timestamp_;
       first = false;
 
-      for_each_day(m, [&](time const d) {
+      for_each_day(m, [&](time_t const d) {
         if (auto it = min.lower_bound(d); it != end(min) && it->first == d) {
           it->second = std::min(it->second, m.timestamp_);
         } else {
@@ -395,6 +396,7 @@ private:
   std::atomic<uint64_t> next_msg_id_{0};
   std::mutex min_max_mutex_;
   std::mutex forward_mutex_;
+  std::mutex merge_mutex_;
 };
 
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
