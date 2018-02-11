@@ -307,9 +307,9 @@ private:
     using tar_zst_reader = tar_reader<zstd_reader>;
     auto cp = p.c_str();
     switch (type) {
-      case file_type::ZST: write_to_db(tar_zst_reader{zstd_reader{cp}}); break;
-      case file_type::ZIP: write_to_db(zip_reader{cp}); break;
-      case file_type::XML: write_to_db(file_reader{cp}); break;
+      case file_type::ZST: write_to_db(tar_zst_reader(zstd_reader{cp})); break;
+      case file_type::ZIP: write_to_db(zip_reader(cp)); break;
+      case file_type::XML: write_to_db(file_reader(cp)); break;
       default: assert(false);
     }
     add_to_known_files(p);
