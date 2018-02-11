@@ -304,20 +304,20 @@ private:
   }
 
   void write_to_db(fs::path const& p, file_type const type) {
-    char const* cp = p.c_str();
+    auto cp = p.generic_string();
     switch (type) {
       case file_type::ZST: {
-        tar_reader<zstd_reader> reader((zstd_reader(cp)));
+        tar_reader<zstd_reader> reader((zstd_reader(cp.c_str())));
         write_to_db(reader);
         break;
       }
       case file_type::ZIP: {
-        zip_reader reader(cp);
+        zip_reader reader(cp.c_str());
         write_to_db(reader);
         break;
       }
       case file_type::XML: {
-        file_reader reader(cp);
+        file_reader reader(cp.c_str());
         write_to_db(reader);
         break;
       }
