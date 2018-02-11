@@ -12,7 +12,6 @@ using namespace motis::rt;
 using namespace motis::test;
 using namespace motis::module;
 using motis::test::schedule::invalid_realtime::dataset_opt;
-using motis::test::schedule::invalid_realtime::get_additional_ris_message;
 
 struct rt_additional_service_test : public motis_instance_test {
   rt_additional_service_test()

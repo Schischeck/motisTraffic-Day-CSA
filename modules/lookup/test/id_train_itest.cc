@@ -10,7 +10,6 @@ using namespace motis::module;
 using namespace motis::test;
 using namespace motis::lookup;
 using motis::test::schedule::simple_realtime::dataset_opt;
-using motis::test::schedule::simple_realtime::get_ris_message;
 
 constexpr auto kIdTrainICERequest = R""(
 {

@@ -16,7 +16,6 @@ using namespace motis::rt;
 using namespace motis::test;
 using namespace motis::test::schedule;
 using motis::test::schedule::invalid_realtime::dataset_opt;
-using motis::test::schedule::invalid_realtime::get_reroute_ris_message;
 
 struct rt_reroute_test : public motis_instance_test {
   rt_reroute_test()

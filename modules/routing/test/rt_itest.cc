@@ -18,7 +18,6 @@ using namespace motis::test::schedule;
 using namespace motis::module;
 using namespace motis::routing;
 using motis::test::schedule::simple_realtime::dataset_opt;
-using motis::test::schedule::simple_realtime::get_ris_message;
 
 namespace motis {
 namespace routing {

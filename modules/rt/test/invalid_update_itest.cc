@@ -16,8 +16,6 @@ using namespace motis::rt;
 using namespace motis::test;
 using namespace motis::test::schedule;
 using motis::test::schedule::invalid_realtime::dataset_opt;
-using motis::test::schedule::invalid_realtime::get_trip_conflict_ris_message;
-using motis::test::schedule::invalid_realtime::get_ts_conflict_ris_message;
 
 struct rt_invalid_update_test : public motis_instance_test {
   struct stop_times {
