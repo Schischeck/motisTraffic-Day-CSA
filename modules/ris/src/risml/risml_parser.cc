@@ -17,6 +17,10 @@
 #include "motis/ris/risml/parse_time.h"
 #include "motis/ris/risml/parse_type.h"
 
+#ifdef CreateEvent
+#undef CreateEvent
+#endif
+
 using namespace std::placeholders;
 using namespace flatbuffers;
 using namespace pugi;
