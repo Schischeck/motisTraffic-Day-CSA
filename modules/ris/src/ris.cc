@@ -304,7 +304,7 @@ private:
   }
 
   void write_to_db(fs::path const& p, file_type const type) {
-    auto cp = p.c_str();
+    char const* cp = p.c_str();
     switch (type) {
       case file_type::ZST: {
         tar_reader<zstd_reader> reader((zstd_reader(cp)));
