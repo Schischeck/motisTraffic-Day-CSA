@@ -171,6 +171,7 @@ list(REMOVE_ITEM modules
   "reliability"
   "path"
   "bikesharing"
+  "address"
 )
 
 set(module-targets "")

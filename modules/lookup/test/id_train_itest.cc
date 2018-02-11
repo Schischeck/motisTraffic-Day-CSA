@@ -37,7 +37,7 @@ struct lookup_id_train_test : public motis_instance_test {
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_id_train_test, DISABLED_id_train) {
-  call(get_ris_message(sched()));
+  call(get_ris_message());
 
   auto msg = call(make_msg(kIdTrainICERequest));
   auto resp = motis_content(LookupIdTrainResponse, msg);

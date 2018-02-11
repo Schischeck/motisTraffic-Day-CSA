@@ -7,41 +7,41 @@ namespace motis {
 namespace ris {
 namespace risml {
 
-// clang-format off
-char const* addition_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
- <Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007001025011\" KNr=\"123869635\">\
-  <ListNachricht>\
-   <Nachricht>\
-    <Zusatzzug>\
-     <Service Id=\"-787135\" IdZNr=\"2941\" IdZGattung=\"IC\" IdBf=\"NPA\" \
-IdBfEvaNr=\"8000298\" IdZeit=\"20151007102000\" RegSta=\"Sonderzug\" \
-ZielBfCode=\"KFKB\" ZielBfEvaNr=\"8003330\" Zielzeit=\"20151007182500\" \
-IdVerwaltung=\"80\" IdZGattungInt=\"IRX\" SourceZNr=\"EFZ\">\
-      <ListZug>\
-       <Zug Nr=\"2941\" Gattung=\"IC\" GattungInt=\"IRX\" Verwaltung=\"80\">\
-        <ListZE>\
-         <ZE Typ=\"Start\">\
-          <Bf Code=\"NPA\" EvaNr=\"8000298\" Name=\"Passau Hbf\"/>\
-          <Zeit Soll=\"20151007102000\"/>\
-         </ZE>\
-         <ZE Typ=\"Ziel\">\
-          <Bf Code=\"KFKB\" EvaNr=\"8003330\" Name=\"Koln/Bonn Flughafen\"/>\
-          <Zeit Soll=\"20151007182500\"/>\
-         </ZE>\
-        </ListZE>\
-       </Zug>\
-      </ListZug>\
-      <ListZusZug/>\
-     </Service>\
-    </Zusatzzug>\
-    <ListQuelle>\
-     <Quelle Sender=\"ZENTRAL\" Typ=\"Zusatzzug\" KNr=\"19178\" \
-TIn=\"20151007001015680\" TOutSnd=\"20151007001023691\"/>\
-    </ListQuelle>\
-   </Nachricht>\
-  </ListNachricht>\
- </Paket>";
-// clang-format on
+char const* addition_fixture_1 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151007001025011" KNr="123869635">
+ <ListNachricht>
+  <Nachricht>
+   <Zusatzzug>
+    <Service Id="-787135" IdZNr="2941" IdZGattung="IC" IdBf="NPA"
+             IdBfEvaNr="8000298" IdZeit="20151007102000" RegSta="Sonderzug"
+             ZielBfCode="KFKB" ZielBfEvaNr="8003330" Zielzeit="20151007182500"
+             IdVerwaltung="80" IdZGattungInt="IRX" SourceZNr="EFZ">
+     <ListZug>
+      <Zug Nr="2941" Gattung="IC" GattungInt="IRX" Verwaltung="80">
+       <ListZE>
+        <ZE Typ="Start">
+         <Bf Code="NPA" EvaNr="8000298" Name="Passau Hbf"/>
+         <Zeit Soll="20151007102000"/>
+        </ZE>
+        <ZE Typ="Ziel">
+         <Bf Code="KFKB" EvaNr="8003330" Name="Koln/Bonn Flughafen"/>
+         <Zeit Soll="20151007182500"/>
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+     <ListZusZug/>
+    </Service>
+   </Zusatzzug>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL" Typ="Zusatzzug" KNr="19178"
+            TIn="20151007001015680" TOutSnd="20151007001023691"/>
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_addition_message, message_1) {
   auto const messages = parse_xml(addition_fixture_1);
@@ -86,61 +86,62 @@ TEST(ris_addition_message, message_1) {
   EXPECT_EQ("", e1->track()->str());
 }
 
-// clang-format off
-char const* addition_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
- <Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007043812499\" KNr=\"123928646\">\
-  <ListNachricht>\
-   <Nachricht>\
-    <Zusatzzug>\
-     <Service Id=\"-787137\" IdZNr=\"2570\" IdZGattung=\"EC\" IdBf=\"MH\" \
-IdBfEvaNr=\"8000261\" IdZeit=\"20151008144800\" RegSta=\"Ersatzzug\" ZielBfCode=\"TS\" \
-ZielBfEvaNr=\"8000096\" Zielzeit=\"20151008170400\" IdVerwaltung=\"80\" \
-IdZGattungInt=\"ECW\" SourceZNr=\"EFZ\">\
-      <ListZug>\
-       <Zug Nr=\"2570\" Gattung=\"EC\" GattungInt=\"ECW\" Verwaltung=\"80\">\
-        <ListZE>\
-         <ZE Typ=\"Start\">\
-          <Bf Code=\"MH\" EvaNr=\"8000261\" Name=\"Munchen Hbf\"/>\
-          <Zeit Soll=\"20151008144800\"/>\
-          <Gleis Soll=\"19\"/>\
-         </ZE>\
-         <ZE Typ=\"An\">\
-          <Bf Code=\"MP\" EvaNr=\"8004158\" Name=\"Munchen-Pasing\"/>\
-          <Zeit Soll=\"20151008145400\"/>\
-         </ZE>\
-         <ZE Typ=\"Ab\">\
-          <Bf Code=\"MP\" EvaNr=\"8004158\" Name=\"Munchen-Pasing\"/>\
-          <Zeit Soll=\"20151008145600\"/>\
-         </ZE>\
-         <ZE Typ=\"Ziel\">\
-          <Bf Code=\"TS\" EvaNr=\"8000096\" Name=\"Stuttgart Hbf\"/>\
-          <Zeit Soll=\"20151008170400\"/>\
-          <Gleis Soll=\"9\"/>\
-         </ZE>\
-        </ListZE>\
-       </Zug>\
-      </ListZug>\
-      <ListZusZug>\
-       <ZusZug Bez=\"Referenzzug\">\
-        <Service Id=\"86087470\" IdZNr=\"2362\" IdZGattung=\"IC\" IdBf=\"MH\" \
-IdBfEvaNr=\"8000261\" IdZeit=\"20151008144800\" ZielBfCode=\"RK\" ZielBfEvaNr=\"8000191\" \
-Zielzeit=\"20151008180100\" IdVerwaltung=\"80\" IdZGattungInt=\"IC\" SourceZNr=\"EFZ\">\
-         <ListZug>\
-          <Zug Nr=\"2362\"/>\
-         </ListZug>\
-        </Service>\
-       </ZusZug>\
-      </ListZusZug>\
-     </Service>\
-    </Zusatzzug>\
-    <ListQuelle>\
-     <Quelle Sender=\"ZENTRAL\" Typ=\"Zusatzzug\" KNr=\"26425\" \
-TIn=\"20151007043809952\" TOutSnd=\"20151007043811898\"/>\
-    </ListQuelle>\
-   </Nachricht>\
-  </ListNachricht>\
- </Paket>";
-// clang-format on
+char const* addition_fixture_2 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151007043812499" KNr="123928646">
+ <ListNachricht>
+  <Nachricht>
+   <Zusatzzug>
+    <Service Id="-787137" IdZNr="2570" IdZGattung="EC" IdBf="MH"
+             IdBfEvaNr="8000261" IdZeit="20151008144800" RegSta="Ersatzzug" ZielBfCode="TS"
+             ZielBfEvaNr="8000096" Zielzeit="20151008170400" IdVerwaltung="80"
+             IdZGattungInt="ECW" SourceZNr="EFZ">
+     <ListZug>
+      <Zug Nr="2570" Gattung="EC" GattungInt="ECW" Verwaltung="80">
+       <ListZE>
+        <ZE Typ="Start">
+         <Bf Code="MH" EvaNr="8000261" Name="Munchen Hbf"/>
+         <Zeit Soll="20151008144800"/>
+         <Gleis Soll="19"/>
+        </ZE>
+        <ZE Typ="An">
+         <Bf Code="MP" EvaNr="8004158" Name="Munchen-Pasing"/>
+         <Zeit Soll="20151008145400"/>
+        </ZE>
+        <ZE Typ="Ab">
+         <Bf Code="MP" EvaNr="8004158" Name="Munchen-Pasing"/>
+         <Zeit Soll="20151008145600"/>
+        </ZE>
+        <ZE Typ="Ziel">
+         <Bf Code="TS" EvaNr="8000096" Name="Stuttgart Hbf"/>
+         <Zeit Soll="20151008170400"/>
+         <Gleis Soll="9"/>
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+     <ListZusZug>
+      <ZusZug Bez="Referenzzug">
+       <Service Id="86087470" IdZNr="2362" IdZGattung="IC" IdBf="MH"
+                IdBfEvaNr="8000261" IdZeit="20151008144800" ZielBfCode="RK"
+                ZielBfEvaNr="8000191" Zielzeit="20151008180100"
+                IdVerwaltung="80" IdZGattungInt="IC" SourceZNr="EFZ">
+        <ListZug>
+         <Zug Nr="2362"/>
+        </ListZug>
+       </Service>
+      </ZusZug>
+     </ListZusZug>
+    </Service>
+   </Zusatzzug>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL" Typ="Zusatzzug" KNr="26425"
+            TIn="20151007043809952" TOutSnd="20151007043811898"/>
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_addition_message, message_2) {
   auto const messages = parse_xml(addition_fixture_2);

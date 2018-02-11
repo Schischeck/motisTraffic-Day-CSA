@@ -28,7 +28,7 @@ struct rt_invalid_update_test : public motis_instance_test {
 };
 
 TEST_F(rt_invalid_update_test, trip_conflict_test) {
-  publish(get_trip_conflict_ris_message(sched()));
+  publish(get_trip_conflict_ris_message());
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto ev1 = get_trip_event_info(
@@ -55,7 +55,7 @@ TEST_F(rt_invalid_update_test, trip_conflict_test) {
 }
 
 TEST_F(rt_invalid_update_test, ts_conflict_test) {
-  publish(get_ts_conflict_ris_message(sched()));
+  publish(get_ts_conflict_ris_message());
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto ev1 = get_trip_event_info(

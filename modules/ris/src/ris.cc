@@ -124,15 +124,26 @@ struct ris::impl {
   msg_ptr upload(msg_ptr const& msg) {
     auto const req = motis_content(HTTPRequest, msg);
 
-    std::optional<std::string_view> xml;
+    write_to_db(zip_reader{req->content()->c_str(), req->content()->size()});
+
+    message_creator fbb;
+    std::vector<flatbuffers::Offset<MessageHolder>> offsets;
+
     zip_reader reader{req->content()->c_str(), req->content()->size()};
+    std::optional<std::string_view> xml;
     while ((xml = reader.read())) {
       xml_to_ris_message(*xml, [&](ris_message&& m) {
-        // TODO(felix) write to db
-        // TODO(felix) publish
-        // TODO(felix) update timestamps in schedule
+        offsets.push_back(
+            CreateMessageHolder(fbb, fbb.CreateVector(m.data(), m.size())));
       });
     }
+
+    fbb.create_and_finish(
+        MsgContent_RISBatch,
+        CreateRISBatch(fbb, fbb.CreateVector(offsets)).Union(),
+        "/ris/messages");
+
+    ctx::await_all(motis_publish(make_msg(fbb)));
 
     return {};
   }
@@ -293,7 +304,18 @@ private:
 
   void write_to_db(fs::path const& p, file_type const type) {
     using tar_zst_reader = tar_reader<zstd_reader>;
+    auto cp = p.c_str();
+    switch (type) {
+      case file_type::ZST: write_to_db(tar_zst_reader{zstd_reader{cp}}); break;
+      case file_type::ZIP: write_to_db(zip_reader{cp}); break;
+      case file_type::XML: write_to_db(file_reader{cp}); break;
+      default: assert(false);
+    }
+    add_to_known_files(p);
+  }
 
+  template <typename Reader>
+  void write_to_db(Reader&& reader) {
     std::map<time_t /* d.b */, time_t /* min(t) : e <= d.e && l >= d.b */> min;
     std::map<time_t /* d.b */, time_t /* max(t) : e <= d.e && l >= d.b */> max;
     auto curr_timestamp = time_t{0};
@@ -346,23 +368,12 @@ private:
       });
     };
 
-    auto parse = [&](auto&& reader) {
-      std::optional<std::string_view> xml;
-      while ((xml = reader.read())) {
-        xml_to_ris_message(*xml, [&](ris_message&& m) { write(std::move(m)); });
-      }
-    };
-
-    auto cp = p.c_str();
-    switch (type) {
-      case file_type::ZST: parse(tar_zst_reader{zstd_reader{cp}}); break;
-      case file_type::ZIP: parse(zip_reader{cp}); break;
-      case file_type::XML: parse(file_reader{cp}); break;
-      default: assert(false);
+    std::optional<std::string_view> xml;
+    while ((xml = reader.read())) {
+      xml_to_ris_message(*xml, [&](ris_message&& m) { write(std::move(m)); });
     }
 
     update_min_max(min, max);
-    add_to_known_files(p);
   }
 
   void update_min_max(std::map<time_t, time_t> const& min,

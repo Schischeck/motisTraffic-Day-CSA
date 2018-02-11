@@ -40,7 +40,7 @@ std::vector<motis::time> get_times(trip const* trp) {
 }
 
 TEST_F(rt_additional_service_test, simple) {
-  publish(get_additional_ris_message(sched()));
+  publish(get_additional_ris_message());
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto trp = get_trip(sched(), "0000001", 77, unix_time(2200), "0000004",

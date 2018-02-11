@@ -60,7 +60,7 @@ struct lookup_station_events_test : public motis_instance_test {
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_station_events_test, DISABLED_station_events) {
-  call(get_ris_message(sched()));
+  call(get_ris_message());
 
   ASSERT_ANY_THROW(call(make_msg(kNotInPeriod)));
 

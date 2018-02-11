@@ -7,42 +7,43 @@ namespace motis {
 namespace ris {
 namespace risml {
 
-// clang-format off
-char const* connection_decision_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007161458249\" KNr=\"125683791\">\
- <ListNachricht>\
-  <Nachricht>\
-   <Anschluss>\
-    <ZE Typ=\"An\">\
-     <Zug Nr=\"75\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\"/>\
-     <Bf Code=\"RF\" EvaNr=\"8000107\" Name=\"Freiburg(Breisgau) Hbf\"/>\
-     <Zeit Soll=\"20151007161000\" Prog=\"20151007164900\"/>\
-     <Service Id=\"85943497\" IdZNr=\"75\" IdZGattung=\"ICE\" IdBf=\"AA\" \
-IdBfEvaNr=\"8002553\" IdZeit=\"20151007100900\" ZielBfCode=\"XSZH\" \
-ZielBfEvaNr=\"8503000\" Zielzeit=\"20151007180000\" IdVerwaltung=\"80\" \
-IdZGattungInt=\"ICE\" SourceZNr=\"EFZ\"/>\
-     <ListAnschl>\
-      <Anschl Status=\"NichtGehalten\">\
-       <ZE Typ=\"Start\">\
-        <Zug Nr=\"87488\" Gattung=\"IRE\" GattungInt=\"IRE\" Verwaltung=\"06\"/>\
-        <Zeit Soll=\"20151007164500\"/>\
-        <Service Id=\"86039657\" IdZNr=\"87488\" IdZGattung=\"IRE\" IdBf=\"RF\" \
-IdBfEvaNr=\"8000107\" IdZeit=\"20151007164500\" ZielBfCode=\"XFMV\" \
-ZielBfEvaNr=\"8700031\" Zielzeit=\"20151007173000\" IdVerwaltung=\"06\" \
-IdZGattungInt=\"IRE\" SourceZNr=\"EFZ\"/>\
-        <ListAltAnschl/>\
-       </ZE>\
-      </Anschl>\
-     </ListAnschl>\
-    </ZE>\
-   </Anschluss>\
-   <ListQuelle>\
-    <Quelle Sender=\"ZENTRAL\" Typ=\"Anschluss\" KNr=\"19378\" TIn=\"20151007161456317\" TOutSnd=\"20151007161457915\"/>\
-   </ListQuelle>\
-  </Nachricht>\
- </ListNachricht>\
-</Paket>";
-// clang-format on
+char const* connection_decision_fixture_1 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151007161458249" KNr="125683791">
+ <ListNachricht>
+  <Nachricht>
+   <Anschluss>
+    <ZE Typ="An">
+     <Zug Nr="75" Gattung="ICE" GattungInt="ICE" Verwaltung="80"/>
+     <Bf Code="RF" EvaNr="8000107" Name="Freiburg(Breisgau) Hbf"/>
+     <Zeit Soll="20151007161000" Prog="20151007164900"/>
+     <Service Id="85943497" IdZNr="75" IdZGattung="ICE" IdBf="AA"
+              IdBfEvaNr="8002553" IdZeit="20151007100900" ZielBfCode="XSZH"
+              ZielBfEvaNr="8503000" Zielzeit="20151007180000" IdVerwaltung="80"
+              IdZGattungInt="ICE" SourceZNr="EFZ"/>
+     <ListAnschl>
+      <Anschl Status="NichtGehalten">
+       <ZE Typ="Start">
+        <Zug Nr="87488" Gattung="IRE" GattungInt="IRE" Verwaltung="06"/>
+        <Zeit Soll="20151007164500"/>
+        <Service Id="86039657" IdZNr="87488" IdZGattung="IRE" IdBf="RF"
+                 IdBfEvaNr="8000107" IdZeit="20151007164500" ZielBfCode="XFMV"
+                 ZielBfEvaNr="8700031" Zielzeit="20151007173000" IdVerwaltung="06"
+                 IdZGattungInt="IRE" SourceZNr="EFZ"/>
+        <ListAltAnschl/>
+       </ZE>
+      </Anschl>
+     </ListAnschl>
+    </ZE>
+   </Anschluss>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL" Typ="Anschluss" KNr="19378" TIn="20151007161456317"
+            TOutSnd="20151007161457915"/>
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_connection_decision_message, message_1) {
   auto const messages = parse_xml(connection_decision_fixture_1);
@@ -88,43 +89,43 @@ TEST(ris_connection_decision_message, message_1) {
   EXPECT_EQ(1444229100, e0_id->schedule_time());
 }
 
-// clang-format off
-char const* connection_decision_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007161453864\" KNr=\"125683640\">\
- <ListNachricht>\
-  <Nachricht>\
-   <Anschluss>\
-    <ZE Typ=\"An\">\
-     <Zug Nr=\"1004\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\" Linie=\"1337\"/>\
-     <Bf Code=\"NN\" EvaNr=\"8000284\" Name=\"N<FC>\rnberg Hbf\"/>\
-     <Zeit Soll=\"20151007162800\" Prog=\"20151007163000\"/>\
-     <Service Id=\"85904967\" IdZNr=\"1004\" IdZGattung=\"ICE\" IdBf=\"MH\" \
-IdBfEvaNr=\"8000261\" IdZeit=\"20151007151600\" ZielBfCode=\"BGS\" \
-ZielBfEvaNr=\"8011102\" Zielzeit=\"20151007212700\" IdVerwaltung=\"80\" \
-IdZGattungInt=\"ICE\" SourceZNr=\"EFZ\"/>\
-     <ListAnschl>\
-      <Anschl Status=\"Gehalten\">\
-       <ZE Typ=\"Ab\">\
-        <Zug Nr=\"584\" Gattung=\"ICE\" GattungInt=\"ICE\" Verwaltung=\"80\" Linie=\"FOO\"/>\
-        <Zeit Soll=\"20151007163400\"/>\
-        <Service Id=\"85691162\" IdZNr=\"584\" IdZGattung=\"ICE\" IdBf=\"MH\" \
-IdBfEvaNr=\"8000261\" IdZeit=\"20151007152000\" ZielBfCode=\"AL\" \
-ZielBfEvaNr=\"8000237\" Zielzeit=\"20151007214200\" IdVerwaltung=\"80\" \
-IdZGattungInt=\"ICE\" SourceZNr=\"EFZ\"/>\
-        <ListAltAnschl/>\
-       </ZE>\
-      </Anschl>\
-     </ListAnschl>\
-    </ZE>\
-   </Anschluss>\
-   <ListQuelle>\
-    <Quelle Sender=\"ZENTRAL\" Typ=\"Anschluss\" KNr=\"19373\" \
-TIn=\"20151007161451761\" TOutSnd=\"20151007161453636\"/>\
-   </ListQuelle>\
-  </Nachricht>\
- </ListNachricht>\
-</Paket>";
-// clang-format on
+char const* connection_decision_fixture_2 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151007161453864" KNr="125683640">
+ <ListNachricht>
+  <Nachricht>
+   <Anschluss>
+    <ZE Typ="An">
+     <Zug Nr="1004" Gattung="ICE" GattungInt="ICE" Verwaltung="80" Linie="1337"/>
+     <Bf Code="NN" EvaNr="8000284" Name="N<FC>rnberg Hbf"/>
+     <Zeit Soll="20151007162800" Prog="20151007163000"/>
+     <Service Id="85904967" IdZNr="1004" IdZGattung="ICE" IdBf="MH"
+              IdBfEvaNr="8000261" IdZeit="20151007151600" ZielBfCode="BGS"
+              ZielBfEvaNr="8011102" Zielzeit="20151007212700" IdVerwaltung="80"
+              IdZGattungInt="ICE" SourceZNr="EFZ"/>
+     <ListAnschl>
+      <Anschl Status="Gehalten">
+       <ZE Typ="Ab">
+        <Zug Nr="584" Gattung="ICE" GattungInt="ICE" Verwaltung="80" Linie="FOO"/>
+        <Zeit Soll="20151007163400"/>
+        <Service Id="85691162" IdZNr="584" IdZGattung="ICE" IdBf="MH"
+                 IdBfEvaNr="8000261" IdZeit="20151007152000" ZielBfCode="AL"
+                 ZielBfEvaNr="8000237" Zielzeit="20151007214200" IdVerwaltung="80"
+                 IdZGattungInt="ICE" SourceZNr="EFZ"/>
+        <ListAltAnschl/>
+       </ZE>
+      </Anschl>
+     </ListAnschl>
+    </ZE>
+   </Anschluss>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL" Typ="Anschluss" KNr="19373"
+            TIn="20151007161451761" TOutSnd="20151007161453636"/>
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_connection_decision_message, message_2) {
   auto const messages = parse_xml(connection_decision_fixture_2);

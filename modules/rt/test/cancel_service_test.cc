@@ -19,7 +19,7 @@ struct rt_cancel_service_test : public motis_instance_test {
 };
 
 TEST_F(rt_cancel_service_test, simple) {
-  publish(get_cancel_ris_message(sched()));
+  publish(get_cancel_ris_message());
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto trp = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",

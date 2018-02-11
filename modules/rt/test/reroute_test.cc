@@ -28,7 +28,7 @@ struct rt_reroute_test : public motis_instance_test {
   }
 
   void SetUp() override {
-    publish(get_reroute_ris_message(sched()));
+    publish(get_reroute_ris_message());
     publish(make_no_msg("/ris/system_time_changed"));
   }
 };
@@ -37,20 +37,20 @@ TEST_F(rt_reroute_test, reroute_with_delay_times) {
   auto evs = get_trip_event_info(
       sched(), get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                         unix_time(1400), "381"));
-  EXPECT_EQ(motis_time(910), evs["0000005"].dep_);
-  EXPECT_EQ(motis_time(1105), evs["0000002"].arr_);
-  EXPECT_EQ(motis_time(1112), evs["0000002"].dep_);
-  EXPECT_EQ(motis_time(1305), evs["0000004"].arr_);
-  EXPECT_EQ(motis_time(1312), evs["0000004"].dep_);
-  EXPECT_EQ(motis_time(1500), evs["0000001"].arr_);
+  EXPECT_EQ(motis_time(910), evs.at("0000005").dep_);
+  EXPECT_EQ(motis_time(1105), evs.at("0000002").arr_);
+  EXPECT_EQ(motis_time(1112), evs.at("0000002").dep_);
+  EXPECT_EQ(motis_time(1305), evs.at("0000004").arr_);
+  EXPECT_EQ(motis_time(1312), evs.at("0000004").dep_);
+  EXPECT_EQ(motis_time(1500), evs.at("0000001").arr_);
 }
 
 TEST_F(rt_reroute_test, reroute_with_delay_in_out) {
   auto ev1 = get_trip_event_info(
       sched(), get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                         unix_time(1400), "381"));
-  EXPECT_EQ(in_out_allowed(true, true), ev1["0000005"].in_out_);
-  EXPECT_EQ(in_out_allowed(true, true), ev1["0000002"].in_out_);
-  EXPECT_EQ(in_out_allowed(false, false), ev1["0000004"].in_out_);
-  EXPECT_EQ(in_out_allowed(true, true), ev1["0000001"].in_out_);
+  EXPECT_EQ(in_out_allowed(true, true), ev1.at("0000005").in_out_);
+  EXPECT_EQ(in_out_allowed(true, true), ev1.at("0000002").in_out_);
+  EXPECT_EQ(in_out_allowed(false, false), ev1.at("0000004").in_out_);
+  EXPECT_EQ(in_out_allowed(true, true), ev1.at("0000001").in_out_);
 }

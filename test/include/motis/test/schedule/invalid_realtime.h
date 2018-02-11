@@ -15,11 +15,11 @@ static loader::loader_options dataset_opt("test/schedule/invalid_realtime",
                                           "20151124", 2, false, true, false,
                                           true);
 
-motis::module::msg_ptr get_trip_conflict_ris_message(motis::schedule const&);
-motis::module::msg_ptr get_ts_conflict_ris_message(motis::schedule const&);
-motis::module::msg_ptr get_additional_ris_message(motis::schedule const&);
-motis::module::msg_ptr get_cancel_ris_message(motis::schedule const&);
-motis::module::msg_ptr get_reroute_ris_message(motis::schedule const&);
+motis::module::msg_ptr get_trip_conflict_ris_message();
+motis::module::msg_ptr get_ts_conflict_ris_message();
+motis::module::msg_ptr get_additional_ris_message();
+motis::module::msg_ptr get_cancel_ris_message();
+motis::module::msg_ptr get_reroute_ris_message();
 
 }  // namespace invalid_realtime
 }  // namespace schedule
