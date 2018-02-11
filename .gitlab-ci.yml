@@ -77,7 +77,7 @@ msvc-release:
     - git submodule update --init --recursive
     - mkdir build-msvc-release
     - cd build-msvc-release
-    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt" ..
+    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
     - jom motis-test motis-itest motis motis-eval motis-cli
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -99,7 +99,7 @@ msvc-debug:
     - git submodule update --init --recursive
     - mkdir build-msvc-debug
     - cd build-msvc-debug
-    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt" ..
+    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
     - jom motis-test motis-itest motis motis-eval motis-cli
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
