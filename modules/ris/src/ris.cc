@@ -304,10 +304,11 @@ private:
   }
 
   void write_to_db(fs::path const& p, file_type const type) {
-    using tar_zst_reader = tar_reader<zstd_reader>;
     auto cp = p.c_str();
     switch (type) {
-      case file_type::ZST: write_to_db(tar_zst_reader(zstd_reader{cp})); break;
+      case file_type::ZST:
+        write_to_db(tar_reader<zstd_reader>(zstd_reader(cp)));
+        break;
       case file_type::ZIP: write_to_db(zip_reader(cp)); break;
       case file_type::XML: write_to_db(file_reader(cp)); break;
       default: assert(false);
