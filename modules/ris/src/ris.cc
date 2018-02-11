@@ -114,11 +114,11 @@ struct ris::impl {
     if (fs::is_directory(input_folder_)) {
       parse_folder(input_folder_);
       env_.force_sync();
+      forward(init_time_);
     } else {
       LOG(warn) << input_folder_ << " is not a directory, skipping";
+      return;
     }
-
-    forward(init_time_);
   }
 
   msg_ptr upload(msg_ptr const& msg) {
@@ -238,6 +238,7 @@ private:
 
   std::optional<time_t> get_min_timestamp(time_t const from_day,
                                           time_t const to_day) {
+    assert(false);
     verify(from_day % SECONDS_A_DAY == 0, "from not a day");
     verify(to_day % SECONDS_A_DAY == 0, "to not a day");
 

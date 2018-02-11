@@ -12,7 +12,7 @@ namespace ris {
 namespace risml {
 
 struct context {
-  context(time_t timestamp)
+  explicit context(time_t timestamp)
       : timestamp_{timestamp},
         earliest_{std::numeric_limits<time_t>::max()},
         latest_{std::numeric_limits<time_t>::min()} {}
