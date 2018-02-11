@@ -2,6 +2,7 @@
 
 #include "motis/core/access/time_access.h"
 #include "motis/core/access/trip_access.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/rt/separate_trip.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
@@ -19,7 +20,8 @@ struct rt_cancel_service_test : public motis_instance_test {
 };
 
 TEST_F(rt_cancel_service_test, simple) {
-  publish(get_cancel_ris_message());
+  publish(motis::ris::risml::file_to_msg(
+      "test/schedule/invalid_realtime/risml/cancel.xml"));
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto trp = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",

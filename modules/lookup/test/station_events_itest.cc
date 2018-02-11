@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/module/message.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
@@ -60,7 +61,8 @@ struct lookup_station_events_test : public motis_instance_test {
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_station_events_test, DISABLED_station_events) {
-  call(get_ris_message());
+  call(motis::ris::risml::file_to_msg(
+      "test/schedule/simple_realtime/risml/delays.xml"));
 
   ASSERT_ANY_THROW(call(make_msg(kNotInPeriod)));
 

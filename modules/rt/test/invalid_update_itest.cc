@@ -4,6 +4,7 @@
 
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/trip_access.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 
@@ -28,7 +29,8 @@ struct rt_invalid_update_test : public motis_instance_test {
 };
 
 TEST_F(rt_invalid_update_test, trip_conflict_test) {
-  publish(get_trip_conflict_ris_message());
+  publish(motis::ris::risml::file_to_msg(
+      "test/schedule/invalid_realtime/risml/trip_conflict.xml"));
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto ev1 = get_trip_event_info(
@@ -55,7 +57,8 @@ TEST_F(rt_invalid_update_test, trip_conflict_test) {
 }
 
 TEST_F(rt_invalid_update_test, ts_conflict_test) {
-  publish(get_ts_conflict_ris_message());
+  publish(motis::ris::risml::file_to_msg(
+      "test/schedule/invalid_realtime/risml/ts_conflict.xml"));
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto ev1 = get_trip_event_info(

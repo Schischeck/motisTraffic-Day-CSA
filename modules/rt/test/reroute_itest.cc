@@ -4,6 +4,7 @@
 
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/trip_access.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 
@@ -28,7 +29,8 @@ struct rt_reroute_test : public motis_instance_test {
   }
 
   void SetUp() override {
-    publish(get_reroute_ris_message());
+    publish(motis::ris::risml::file_to_msg(
+        "test/schedule/invalid_realtime/risml/reroute.xml"));
     publish(make_no_msg("/ris/system_time_changed"));
   }
 };

@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/module/message.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
@@ -37,7 +38,8 @@ struct lookup_id_train_test : public motis_instance_test {
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_id_train_test, DISABLED_id_train) {
-  call(get_ris_message());
+  call(motis::ris::risml::file_to_msg(
+      "test/schedule/simple_realtime/risml/delays.xml"));
 
   auto msg = call(make_msg(kIdTrainICERequest));
   auto resp = motis_content(LookupIdTrainResponse, msg);

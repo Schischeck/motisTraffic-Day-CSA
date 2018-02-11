@@ -8,6 +8,7 @@
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/message_to_journeys.h"
 #include "motis/module/message.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
@@ -51,7 +52,8 @@ struct routing_rt : public motis_instance_test {
 };
 
 TEST_F(routing_rt, finds_annotated_connections) {
-  publish(get_ris_message());
+  publish(motis::ris::risml::file_to_msg(
+      "test/schedule/simple_realtime/risml/delays.xml"));
   publish(make_no_msg("/ris/system_time_changed"));
   auto res = call(routing_request());
   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));

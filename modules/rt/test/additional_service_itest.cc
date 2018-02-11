@@ -2,6 +2,7 @@
 
 #include "motis/core/access/time_access.h"
 #include "motis/core/access/trip_access.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/rt/separate_trip.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
@@ -40,7 +41,8 @@ std::vector<motis::time> get_times(trip const* trp) {
 }
 
 TEST_F(rt_additional_service_test, simple) {
-  publish(get_additional_ris_message());
+  publish(motis::ris::risml::file_to_msg(
+      "test/schedule/invalid_realtime/risml/additional.xml"));
   publish(make_no_msg("/ris/system_time_changed"));
 
   auto trp = get_trip(sched(), "0000001", 77, unix_time(2200), "0000004",
