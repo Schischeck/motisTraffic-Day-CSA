@@ -133,7 +133,7 @@ struct cc_check_routed_connection_test : public motis_instance_test {
                   std::vector<rerouted_event> const& rerouted_events) const {
     FlatBufferBuilder fbb;
     fbb.Finish(ris::CreateMessage(
-        fbb, ris::MessageUnion_RerouteMessage,
+        fbb, 0u, 0u, 0u, ris::MessageUnion_RerouteMessage,
         ris::CreateRerouteMessage(
             fbb, id.to_fbs(sched, fbb),
             fbb.CreateVector(utl::to_vec(
@@ -160,7 +160,7 @@ struct cc_check_routed_connection_test : public motis_instance_test {
                 std::vector<updated_event> const& delays, bool is_message) {
     FlatBufferBuilder fbb;
     fbb.Finish(ris::CreateMessage(
-        fbb, ris::MessageUnion_DelayMessage,
+        fbb, 0u, 0u, 0u, ris::MessageUnion_DelayMessage,
         ris::CreateDelayMessage(
             fbb, id.to_fbs(sched, fbb),
             is_message ? ris::DelayType_Is : ris::DelayType_Forecast,
