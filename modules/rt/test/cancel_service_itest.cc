@@ -15,14 +15,13 @@ using motis::test::schedule::invalid_realtime::dataset_opt;
 
 struct rt_cancel_service_test : public motis_instance_test {
   rt_cancel_service_test()
-      : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
+      : motis::test::motis_instance_test(
+            dataset_opt, {"ris", "rt"},
+            {"--ris.input=test/schedule/invalid_realtime/risml/cancel.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 };
 
 TEST_F(rt_cancel_service_test, simple) {
-  publish(motis::ris::risml::file_to_msg(
-      "test/schedule/invalid_realtime/risml/cancel.xml"));
-  publish(make_no_msg("/ris/system_time_changed"));
-
   auto trp = get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                       unix_time(1400), "381");
 

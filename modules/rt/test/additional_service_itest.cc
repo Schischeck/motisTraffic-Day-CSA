@@ -15,7 +15,10 @@ using motis::test::schedule::invalid_realtime::dataset_opt;
 
 struct rt_additional_service_test : public motis_instance_test {
   rt_additional_service_test()
-      : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
+      : motis::test::motis_instance_test(
+            dataset_opt, {"ris", "rt"},
+            {"--ris.input=test/schedule/invalid_realtime/risml/additional.xml",
+             "--ris.init_time=2015-11-24T22:00:00"}) {}
 };
 
 std::vector<std::string> get_tracks(motis::schedule const& sched,
@@ -40,10 +43,6 @@ std::vector<motis::time> get_times(trip const* trp) {
 }
 
 TEST_F(rt_additional_service_test, simple) {
-  publish(motis::ris::risml::file_to_msg(
-      "test/schedule/invalid_realtime/risml/additional.xml"));
-  publish(make_no_msg("/ris/system_time_changed"));
-
   auto trp = get_trip(sched(), "0000001", 77, unix_time(2200), "0000004",
                       unix_time(2300), "");
 
