@@ -19,9 +19,7 @@ struct ris_db : public motis_instance_test {
   ris_db() : motis::test::motis_instance_test(dataset_opt, {"ris"}) {}
 };
 
-TEST_F(ris_db, no_overlap_before) {
-
-}
+TEST_F(ris_db, no_overlap_before) {}
 
 // TEST_F(ris_db, no_overlap_after) {}
 // TEST_F(ris_db, overlap_begin_short) {}
