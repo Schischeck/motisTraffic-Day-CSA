@@ -4,7 +4,6 @@
 
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/trip_access.h"
-#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 
@@ -19,18 +18,14 @@ using motis::test::schedule::invalid_realtime::dataset_opt;
 
 struct rt_reroute_test : public motis_instance_test {
   rt_reroute_test()
-      : motis::test::motis_instance_test(no_rule_services(dataset_opt),
-                                         {"rt"}) {}
+      : motis::test::motis_instance_test(
+            no_rule_services(dataset_opt), {"ris", "rt"},
+            {"--ris.input=test/schedule/invalid_realtime/risml/reroute.xml",
+             "--ris.init_time=2015-11-24T10:10:00"}) {}
 
   static loader::loader_options no_rule_services(loader::loader_options opt) {
     opt.apply_rules_ = false;
     return opt;
-  }
-
-  void SetUp() override {
-    publish(motis::ris::risml::file_to_msg(
-        "test/schedule/invalid_realtime/risml/reroute.xml"));
-    publish(make_no_msg("/ris/system_time_changed"));
   }
 };
 

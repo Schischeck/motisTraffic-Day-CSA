@@ -24,7 +24,10 @@ namespace routing {
 
 struct routing_rt : public motis_instance_test {
   routing_rt()
-      : motis::test::motis_instance_test(dataset_opt, {"routing", "rt"}) {}
+      : motis::test::motis_instance_test(
+            dataset_opt, {"routing", "ris", "rt"},
+            {"--ris.input=test/schedule/simple_realtime/risml/delays.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 
   msg_ptr routing_request() const {
     auto const interval = Interval(unix_time(1355), unix_time(1355));
@@ -51,9 +54,6 @@ struct routing_rt : public motis_instance_test {
 };
 
 TEST_F(routing_rt, finds_annotated_connections) {
-  publish(motis::ris::risml::file_to_msg(
-      "test/schedule/simple_realtime/risml/delays.xml"));
-  publish(make_no_msg("/ris/system_time_changed"));
   auto res = call(routing_request());
   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
 

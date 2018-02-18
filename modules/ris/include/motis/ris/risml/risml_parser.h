@@ -16,9 +16,6 @@ void xml_to_ris_message(std::string_view,
 
 std::vector<ris_message> parse_xml(std::string_view);
 
-motis::module::msg_ptr xml_to_msg(std::string_view);
-motis::module::msg_ptr file_to_msg(char const* path);
-
 }  // namespace risml
 }  // namespace ris
 }  // namespace motis

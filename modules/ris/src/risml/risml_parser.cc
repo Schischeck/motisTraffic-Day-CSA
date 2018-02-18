@@ -290,24 +290,6 @@ std::vector<ris_message> parse_xml(std::string_view s) {
   return msgs;
 }
 
-module::msg_ptr xml_to_msg(std::string_view s) {
-  module::message_creator fbb;
-  std::vector<flatbuffers::Offset<MessageHolder>> offsets;
-  xml_to_ris_message(s, [&](ris_message&& m) {
-    offsets.push_back(
-        CreateMessageHolder(fbb, fbb.CreateVector(m.data(), m.size())));
-  });
-  fbb.create_and_finish(MsgContent_RISBatch,
-                        CreateRISBatch(fbb, fbb.CreateVector(offsets)).Union(),
-                        "/ris/messages");
-  return make_msg(fbb);
-}
-
-module::msg_ptr file_to_msg(char const* path) {
-  utl::mmap_reader reader{path};
-  return xml_to_msg({reader.m_.ptr(), reader.m_.size()});
-}
-
 }  // namespace risml
 }  // namespace ris
 }  // namespace motis

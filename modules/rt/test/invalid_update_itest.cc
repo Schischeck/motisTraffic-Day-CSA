@@ -4,7 +4,6 @@
 
 #include "motis/core/access/realtime_access.h"
 #include "motis/core/access/trip_access.h"
-#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/invalid_realtime.h"
 
@@ -17,20 +16,16 @@ using namespace motis::test;
 using namespace motis::test::schedule;
 using motis::test::schedule::invalid_realtime::dataset_opt;
 
-struct rt_invalid_update_test : public motis_instance_test {
-  struct stop_times {
-    motis::time arr_, dep_;
-  };
-
-  rt_invalid_update_test()
-      : motis::test::motis_instance_test(dataset_opt, {"rt"}) {}
+struct rt_invalid_trip_update_test : public motis_instance_test {
+  rt_invalid_trip_update_test()
+      : motis::test::motis_instance_test(
+            dataset_opt, {"ris", "rt"},
+            {"--ris.input=test/schedule/invalid_realtime/risml/"
+             "trip_conflict.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 };
 
-TEST_F(rt_invalid_update_test, trip_conflict_test) {
-  publish(motis::ris::risml::file_to_msg(
-      "test/schedule/invalid_realtime/risml/trip_conflict.xml"));
-  publish(make_no_msg("/ris/system_time_changed"));
-
+TEST_F(rt_invalid_trip_update_test, trip_conflict_test) {
   auto ev1 = get_trip_event_info(
       sched(), get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                         unix_time(1400), "381"));
@@ -54,11 +49,15 @@ TEST_F(rt_invalid_update_test, trip_conflict_test) {
   EXPECT_EQ(motis_time(1300), ev2["0000004"].arr_);
 }
 
-TEST_F(rt_invalid_update_test, ts_conflict_test) {
-  publish(motis::ris::risml::file_to_msg(
-      "test/schedule/invalid_realtime/risml/ts_conflict.xml"));
-  publish(make_no_msg("/ris/system_time_changed"));
+struct rt_invalid_ts_update_test : public motis_instance_test {
+  rt_invalid_ts_update_test()
+      : motis::test::motis_instance_test(
+            dataset_opt, {"ris", "rt"},
+            {"--ris.input=test/schedule/invalid_realtime/risml/ts_conflict.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
+};
 
+TEST_F(rt_invalid_ts_update_test, ts_conflict_test) {
   auto ev1 = get_trip_event_info(
       sched(), get_trip(sched(), "0000001", 1, unix_time(1010), "0000005",
                         unix_time(1400), "381"));
