@@ -323,11 +323,11 @@ private:
 
   void write_to_db(fs::path const& p, file_type const type) {
     using tar_zst_reader = tar_reader<zstd_reader>;
-    auto const cp = p.generic_string().c_str();
+    auto const cp = p.generic_string();
     switch (type) {
-      case file_type::ZST: write_to_db(tar_zst_reader(zstd_reader(cp))); break;
-      case file_type::ZIP: write_to_db(zip_reader(cp)); break;
-      case file_type::XML: write_to_db(file_reader(cp)); break;
+      case file_type::ZST: write_to_db(tar_zst_reader(zstd_reader(cp.c_str()))); break;
+      case file_type::ZIP: write_to_db(zip_reader(cp.c_str())); break;
+      case file_type::XML: write_to_db(file_reader(cp.c_str())); break;
       default: assert(false);
     }
     add_to_known_files(p);
