@@ -55,14 +55,14 @@ constexpr auto kFrankfurtRequest = R""(
 
 struct lookup_station_events_test : public motis_instance_test {
   lookup_station_events_test()
-      : motis_instance_test(dataset_opt, {"lookup", "rt"}) {}
+      : motis_instance_test(
+            dataset_opt, {"lookup", "rt"},
+            {"--ris.input=test/schedule/simple_realtime/risml/delays.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 };
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_station_events_test, DISABLED_station_events) {
-  call(motis::ris::risml::file_to_msg(
-      "test/schedule/simple_realtime/risml/delays.xml"));
-
   ASSERT_ANY_THROW(call(make_msg(kNotInPeriod)));
 
   {

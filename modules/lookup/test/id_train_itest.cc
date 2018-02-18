@@ -32,14 +32,15 @@ constexpr auto kIdTrainICERequest = R""(
 )"";
 
 struct lookup_id_train_test : public motis_instance_test {
-  lookup_id_train_test() : motis_instance_test(dataset_opt, {"lookup", "rt"}) {}
+  lookup_id_train_test()
+      : motis_instance_test(
+            dataset_opt, {"lookup", "rt"},
+            {"--ris.input=test/schedule/simple_realtime/risml/delays.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 };
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_id_train_test, DISABLED_id_train) {
-  call(motis::ris::risml::file_to_msg(
-      "test/schedule/simple_realtime/risml/delays.xml"));
-
   auto msg = call(make_msg(kIdTrainICERequest));
   auto resp = motis_content(LookupIdTrainResponse, msg);
 
