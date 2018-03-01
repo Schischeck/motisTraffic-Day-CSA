@@ -292,7 +292,7 @@ private:
       }
     } else if (fs::is_directory(p)) {
       std::vector<std::pair<fs::path, file_type>> files;
-      for (auto const& entry : p) {
+      for (auto const& entry : fs::directory_iterator(p)) {
         utl::concat(files, collect_files(entry));
       }
       return files;
