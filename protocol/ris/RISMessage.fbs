@@ -106,9 +106,9 @@ union MessageUnion {
 }
 
 table Message {
-  earliest:ulong;
-  latest:ulong;
-  timestamp:ulong;
+  earliest:long;
+  latest:long;
+  timestamp:long;
   content:MessageUnion;
 }
 

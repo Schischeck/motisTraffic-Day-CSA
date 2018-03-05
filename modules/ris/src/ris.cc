@@ -206,6 +206,8 @@ private:
       offsets.clear();
     };
 
+    auto const& sched = get_schedule();
+
     auto const from_bucket = floor(from, BUCKET_SIZE);
     auto const to_bucket = ceil(to, BUCKET_SIZE);
 
@@ -231,9 +233,15 @@ private:
         std::memcpy(&size, ptr, SIZE_TYPE_SIZE);
         ptr += SIZE_TYPE_SIZE;
 
-        offsets.push_back(CreateMessageHolder(
-            fbb,
-            fbb.CreateVector(reinterpret_cast<uint8_t const*>(ptr), size)));
+        if (auto const msg = GetMessage(ptr);
+            msg->timestamp() < to && msg->timestamp() >= from &&
+            msg->earliest() <= sched.last_event_schedule_time_ &&
+            msg->latest() >= sched.first_event_schedule_time_) {
+          offsets.push_back(CreateMessageHolder(
+              fbb,
+              fbb.CreateVector(reinterpret_cast<uint8_t const*>(ptr), size)));
+        }
+
         ptr += size;
       }
 
