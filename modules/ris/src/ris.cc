@@ -178,7 +178,7 @@ private:
     auto const min_timestamp =
         get_min_timestamp(first_schedule_event_day, last_schedule_event_day);
     if (min_timestamp) {
-      forward(std::max(*min_timestamp, sched.system_time_), to);
+      forward(std::max(*min_timestamp, sched.system_time_ + 1), to);
     } else {
       LOG(info) << "ris database has no relevant data";
     }
@@ -222,7 +222,7 @@ private:
       }
 
       auto const & [ timestamp, msgs ] = *bucket;
-      if (timestamp >= to_bucket) {
+      if (timestamp > to_bucket) {
         break;
       }
 
@@ -234,7 +234,7 @@ private:
         ptr += SIZE_TYPE_SIZE;
 
         if (auto const msg = GetMessage(ptr);
-            msg->timestamp() < to && msg->timestamp() >= from &&
+            msg->timestamp() <= to && msg->timestamp() >= from &&
             msg->earliest() <= sched.last_event_schedule_time_ &&
             msg->latest() >= sched.first_event_schedule_time_) {
           offsets.push_back(CreateMessageHolder(

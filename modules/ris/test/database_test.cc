@@ -35,7 +35,7 @@ TEST_F(ris_db_order, order_all_at_once) {
   std::vector<msg_ptr> msgs;
   subscribe("/ris/messages", msg_sink(&msgs));
   subscribe("/ris/system_time_changed", msg_sink(&msgs));
-  call(forward(unix_time(1207)));
+  call(forward(unix_time(1206)));
 
   ASSERT_EQ(2, msgs.size());
   ASSERT_EQ(2, motis_content(RISBatch, msgs[0])->messages()->size());
@@ -54,7 +54,7 @@ TEST_F(ris_db_order, order_all_at_once) {
 
   msgs.clear();
 
-  call(forward(unix_time(1208)));
+  call(forward(unix_time(1207)));
   ASSERT_EQ(2, msgs.size());
   ASSERT_EQ(1, motis_content(RISBatch, msgs[0])->messages()->size());
   EXPECT_EQ(unix_time(1207), motis_content(RISBatch, msgs[0])
