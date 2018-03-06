@@ -437,7 +437,7 @@ private:
   std::mutex min_max_mutex_;
   std::mutex forward_mutex_;
   std::mutex merge_mutex_;
-};  // namespace ris
+};
 
 ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
   string_param(impl_->db_path_, "ris.mdb", "db", "ris database path");
