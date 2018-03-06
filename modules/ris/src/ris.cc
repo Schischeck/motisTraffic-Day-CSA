@@ -60,10 +60,16 @@ constexpr auto const MAX_DAY_DB = "MAX_DAY_DB";
 
 constexpr auto const BATCH_SIZE = time_t{3600};
 
-constexpr auto const BUCKET_SIZE = time_t{60 * 10};
+constexpr auto const WRITE_MSG_BUF_MAX_SIZE = 50000;
 
-constexpr bool is_same_bucket(time_t const t1, time_t const t2) {
-  return t1 / BUCKET_SIZE == t2 / BUCKET_SIZE;
+template <typename T>
+constexpr T floor(T const i, T const multiple) {
+  return (i / multiple) * multiple;
+}
+
+template <typename T>
+constexpr T ceil(T const i, T const multiple) {
+  return ((i - 1) / multiple) * multiple + multiple;
 }
 
 using size_type = uint16_t;
@@ -79,16 +85,6 @@ inline void for_each_day(ris_message const& m, Fn&& f) {
   for (auto d = day(m.earliest_); d != last; d += SECONDS_A_DAY) {
     f(d);
   }
-}
-
-template <typename T>
-constexpr T floor(T const i, T const multiple) {
-  return (i / multiple) * multiple;
-}
-
-template <typename T>
-constexpr T ceil(T const i, T const multiple) {
-  return ((i - 1) / multiple) * multiple + multiple;
 }
 
 time_t to_time_t(std::string_view s) {
@@ -207,22 +203,19 @@ private:
     };
 
     auto const& sched = get_schedule();
-
-    auto const from_bucket = floor(from, BUCKET_SIZE);
-    auto const to_bucket = ceil(to, BUCKET_SIZE);
-
     auto t = db::txn{env_, db::txn_flags::RDONLY};
     auto db = t.dbi_open(MSG_DB);
     auto c = db::cursor{t, db};
-    auto bucket = c.get(db::cursor_op::SET_RANGE, from_bucket);
+    auto bucket = c.get(db::cursor_op::SET_RANGE, from);
     auto batch_begin = bucket ? bucket->first : 0;
     while (true) {
       if (!bucket) {
+        LOG(info) << "end of db reached";
         break;
       }
 
       auto const & [ timestamp, msgs ] = *bucket;
-      if (timestamp > to_bucket) {
+      if (timestamp > to) {
         break;
       }
 
@@ -303,17 +296,22 @@ private:
       for (auto const& entry : fs::directory_iterator(p)) {
         utl::concat(files, collect_files(entry));
       }
+      std::sort(begin(files), end(files));
       return files;
     }
     return {};
   }
 
   void parse(fs::path const& p) {
-    ctx::await_all(utl::to_vec(
-        collect_files(fs::canonical(p, p.root_path())), [&](auto&& e) {
-          return spawn_job_void(
-              [e, this]() { write_to_db(e.first, e.second); });
-        }));
+    for (auto const& e : collect_files(fs::canonical(p, p.root_path()))) {
+      write_to_db(e.first, e.second);
+    }
+
+    // ctx::await_all(utl::to_vec(
+    //     collect_files(fs::canonical(p, p.root_path())), [&](auto&& e) {
+    //       return spawn_job_void(
+    //           [e, this]() { write_to_db(e.first, e.second); });
+    //     }));
   }
 
   bool is_known_file(fs::path const& p) {
@@ -330,6 +328,7 @@ private:
   }
 
   void write_to_db(fs::path const& p, file_type const type) {
+    LOG(info) << "writing " << p;
     using tar_zst = tar_reader<zstd_reader>;
     auto const& cp = p.generic_string();
     switch (type) {
@@ -345,8 +344,9 @@ private:
   void write_to_db(Reader&& reader) {
     std::map<time_t /* d.b */, time_t /* min(t) : e <= d.e && l >= d.b */> min;
     std::map<time_t /* d.b */, time_t /* max(t) : e <= d.e && l >= d.b */> max;
-    auto curr_timestamp = time_t{0};
-    auto buf = std::vector<char>{};
+    std::map<time_t /* tout */, std::vector<char>> buf;
+    auto buf_msg_count = 0u;
+
     auto flush_to_db = [&]() {
       if (buf.empty()) {
         return;
@@ -358,31 +358,32 @@ private:
       auto db = t.dbi_open(MSG_DB);
       auto c = db::cursor{t, db};
 
-      auto const v = c.get(lmdb::cursor_op::SET_RANGE, curr_timestamp);
-      if (v && v->first == curr_timestamp) {
-        buf.insert(end(buf), begin(v->second), end(v->second));
+      for (auto & [ timestamp, entry ] : buf) {
+        if (auto const v = c.get(lmdb::cursor_op::SET_RANGE, timestamp);
+            v && v->first == timestamp) {
+          entry.insert(end(entry), begin(v->second), end(v->second));
+        }
+        c.put(timestamp, std::string_view{&entry[0], entry.size()});
       }
-      c.put(curr_timestamp, std::string_view{&buf[0], buf.size()});
+
       c.commit();
       t.commit();
 
       buf.clear();
     };
 
-    auto first = false;
     auto write = [&](ris_message&& m) {
-      if (!first && !is_same_bucket(m.timestamp_, curr_timestamp)) {
+      if (buf_msg_count++ > WRITE_MSG_BUF_MAX_SIZE) {
         flush_to_db();
       }
 
-      auto const base = buf.size();
-      buf.resize(buf.size() + 2 + m.size());
+      auto& buf_val = buf[m.timestamp_];
+      auto const base = buf_val.size();
+      buf_val.resize(buf_val.size() + SIZE_TYPE_SIZE + m.size());
 
       auto const msg_size = static_cast<size_type>(m.size());
-      std::memcpy(&buf[0] + base, &msg_size, SIZE_TYPE_SIZE);
-      std::memcpy(&buf[0] + base + SIZE_TYPE_SIZE, m.data(), m.size());
-      curr_timestamp = m.timestamp_;
-      first = false;
+      std::memcpy(&buf_val[0] + base, &msg_size, SIZE_TYPE_SIZE);
+      std::memcpy(&buf_val[0] + base + SIZE_TYPE_SIZE, m.data(), m.size());
 
       for_each_day(m, [&](time_t const d) {
         if (auto it = min.lower_bound(d); it != end(min) && it->first == d) {
