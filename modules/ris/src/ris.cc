@@ -303,15 +303,11 @@ private:
   }
 
   void parse(fs::path const& p) {
-    for (auto const& e : collect_files(fs::canonical(p, p.root_path()))) {
-      write_to_db(e.first, e.second);
-    }
-
-    // ctx::await_all(utl::to_vec(
-    //     collect_files(fs::canonical(p, p.root_path())), [&](auto&& e) {
-    //       return spawn_job_void(
-    //           [e, this]() { write_to_db(e.first, e.second); });
-    //     }));
+    ctx::await_all(utl::to_vec(
+        collect_files(fs::canonical(p, p.root_path())), [&](auto&& e) {
+          return spawn_job_void(
+              [e, this]() { write_to_db(e.first, e.second); });
+        }));
   }
 
   bool is_known_file(fs::path const& p) {
