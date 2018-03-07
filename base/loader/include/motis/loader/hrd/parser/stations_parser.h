@@ -17,9 +17,11 @@ struct intermediate_station {
   std::vector<std::string> ds100_;
 };
 
+template <typename T>
 std::map<int, intermediate_station> parse_stations(
     loaded_file const& station_names_file,
-    loaded_file const& station_coordinates_file, station_meta_data const&);
+    loaded_file const& station_coordinates_file, station_meta_data const&,
+    T const&);
 
 }  // namespace hrd
 }  // namespace loader

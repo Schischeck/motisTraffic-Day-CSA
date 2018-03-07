@@ -12,9 +12,10 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+template <typename T>
 void parse_merge_split_service_rules(loaded_file const&,
                                      std::map<int, bitfield> const&,
-                                     service_rules&);
+                                     service_rules&, T const&);
 
 }  // namespace hrd
 }  // namespace loader

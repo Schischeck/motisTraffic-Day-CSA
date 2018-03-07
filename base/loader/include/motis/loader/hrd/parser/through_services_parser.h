@@ -10,9 +10,10 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
+template <typename T>
 void parse_through_service_rules(loaded_file const&,
-                                 std::map<int, bitfield> const&,
-                                 service_rules&);
+                                 std::map<int, bitfield> const&, service_rules&,
+                                 T const&);
 
 }  // namespace hrd
 }  // namespace loader

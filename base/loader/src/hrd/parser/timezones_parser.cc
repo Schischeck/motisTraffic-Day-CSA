@@ -26,20 +26,23 @@ int bitfield_idx(cstr ddmmyyyy, date const& first_schedule_date) {
   return (season_begin_date - first_schedule_date).days();
 }
 
+template <typename T>
 timezones parse_timezones(loaded_file const& timezones_file,
-                          loaded_file const& basic_data_file) {
+                          loaded_file const& basic_data_file, T const& config) {
   auto const first_schedule_date = get_first_schedule_date(basic_data_file);
 
   timezones tz;
   for_each_line(timezones_file.content(), [&](cstr line) {
     if (line.length() == 15) {
-      auto first_valid_eva_number = eva_number(line.substr(8, size(7)));
+      auto first_valid_eva_number =
+          eva_number(parse_field(line, config.timezones.type1_first_valid_eva));
       auto it = tz.eva_to_tze_.find(first_valid_eva_number);
       verify(it != end(tz.eva_to_tze_),
              "missing timezone information for eva number: %d",
              first_valid_eva_number);
 
-      tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] = it->second;
+      tz.eva_to_tze_[eva_number(
+          parse_field(line, config.timezones.type1_eva))] = it->second;
       return;
     }
 
@@ -47,17 +50,27 @@ timezones parse_timezones(loaded_file const& timezones_file,
       boost::optional<season_entry> opt_season_entry;
       if (!line.substr(14, size(33)).trim().empty()) {
         opt_season_entry.emplace(
-            distance_to_midnight(line.substr(14, size(5))),
-            bitfield_idx(line.substr(20, size(8)), first_schedule_date),
-            bitfield_idx(line.substr(34, size(8)), first_schedule_date),
-            distance_to_midnight(line.substr(29, size(4))),
-            distance_to_midnight(line.substr(43, size(4))));
+            distance_to_midnight(
+                parse_field(line, config.timezones.type3_dst_to_midnight1)),
+            bitfield_idx(
+                parse_field(line, config.timezones.type3_bitfield_idx1),
+                first_schedule_date),
+            bitfield_idx(
+                parse_field(line, config.timezones.type3_bitfield_idx2),
+                first_schedule_date),
+            distance_to_midnight(
+                parse_field(line, config.timezones.type3_dst_to_midnight2)),
+            distance_to_midnight(
+                parse_field(line, config.timezones.type3_dst_to_midnight3)));
       }
 
       tz.timezone_entries_.push_back(std::make_unique<timezone_entry>(
-          distance_to_midnight(line.substr(8, size(5))), opt_season_entry));
+          distance_to_midnight(
+              parse_field(line, config.timezones.type2_dst_to_midnight)),
+          opt_season_entry));
 
-      tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] =
+      tz.eva_to_tze_[eva_number(
+          parse_field(line, config.timezones.type2_eva))] =
           tz.timezone_entries_.back().get();
     }
   });

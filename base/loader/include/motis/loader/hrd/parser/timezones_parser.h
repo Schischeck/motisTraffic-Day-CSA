@@ -7,7 +7,8 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-timezones parse_timezones(loaded_file const&, loaded_file const&);
+template <typename T>
+timezones parse_timezones(loaded_file const&, loaded_file const&, T const&);
 
 }  // namespace hrd
 }  // namespace loader

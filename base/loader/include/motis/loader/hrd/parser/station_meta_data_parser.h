@@ -35,10 +35,11 @@ struct station_meta_data {
   std::map<parser::cstr, int> ds100_to_eva_num_;
 };
 
+template <typename T>
 void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_file,
                              loaded_file const& metabhf_zusatz_file,
-                             station_meta_data&);
+                             station_meta_data&, T const&);
 
 }  // namespace hrd
 }  // namespace loader

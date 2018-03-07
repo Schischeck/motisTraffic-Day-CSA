@@ -17,7 +17,8 @@ constexpr int ALL_DAYS_KEY = 0;
 bitfield hex_str_to_bitset(parser::cstr hex, char const* filename,
                            int line_number);
 
-std::map<int, bitfield> parse_bitfields(loaded_file const&);
+template <typename T>
+std::map<int, bitfield> parse_bitfields(loaded_file const&, T const& config);
 
 }  // namespace hrd
 }  // namespace loader

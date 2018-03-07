@@ -14,7 +14,9 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-std::map<uint32_t, category> parse_categories(loaded_file const& file) {
+template <typename T>
+std::map<uint32_t, category> parse_categories(loaded_file const& file,
+                                              T const& config) {
   scoped_timer timer("parsing categories");
   bool ignore = false;
   std::map<uint32_t, category> categories;
@@ -28,9 +30,9 @@ std::map<uint32_t, category> parse_categories(loaded_file const& file) {
       throw parser_error(file.name(), line_number);
     }
 
-    auto const code = raw_to_int<uint32_t>(line.substr(0, size(3)));
-    auto const output_rule = parse<uint8_t>(line.substr(9, size(2)));
-    auto const name = line.substr(12, size(8)).trim();
+    auto const code = raw_to_int<uint32_t>(parse_field(line, config.categories.code)));
+    auto const output_rule = parse<uint8_t>(parse_field(line, config.categories.output_rule)));
+    auto const name = parse_field(line, config.categories.name).trim();
     categories[code] = {std::string(name.c_str(), name.length()), output_rule};
   });
   return categories;

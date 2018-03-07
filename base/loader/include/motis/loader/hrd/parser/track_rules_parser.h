@@ -22,8 +22,9 @@ struct track_rule {
 using track_rule_key = std::tuple<int, int, uint64_t>;
 using track_rules = std::map<track_rule_key, std::vector<track_rule>>;
 
+template <typename T>
 track_rules parse_track_rules(loaded_file const&,
-                              flatbuffers64::FlatBufferBuilder& b);
+                              flatbuffers64::FlatBufferBuilder& b, T const&);
 
 }  // namespace hrd
 }  // namespace loader
