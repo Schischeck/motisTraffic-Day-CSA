@@ -54,7 +54,7 @@ enum filename_key {
   THROUGH_SERVICES,
   MERGE_SPLIT_SERVICES,
   TIMEZONES,
-  FOOTPATHS_REG,
+  FOOTPATHS,
   FOOTPATHS_EXT
 };
 
@@ -70,6 +70,9 @@ bool hrd_parser::applicable(fs::path const& path, config const& c) {
          std::all_of(
              begin(c.files_.required_files_), end(c.files_.required_files_),
              [&core_data_root](std::vector<std::string> const& alternatives) {
+               if (alternatives.empty()) {
+                 return true;
+               }
                return std::any_of(
                    begin(alternatives), end(alternatives),
                    [&core_data_root](std::string const& filename) {
@@ -177,14 +180,20 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
   auto const timezones_file =
       load(core_data_root, TIMEZONES, config.files_.required_files_);
 
-  auto const footp_1_file =
-      load(core_data_root, FOOTPATHS_REG, config.files_.required_files_);
-  auto const footp_2_file =
-      load(core_data_root, FOOTPATHS_EXT, config.files_.required_files_);
-
+  auto const footp_file_1 =
+      load(core_data_root, FOOTPATHS, config.files_.required_files_);
   station_meta_data metas;
-  parse_station_meta_data(infotext_file, footp_1_file, footp_2_file, metas,
-                          config);
+  if (config.version_ == "hrd_5_00_8") {
+    auto const footp_file_2 =
+        load(core_data_root, FOOTPATHS_EXT, config.files_.required_files_);
+    parse_station_meta_data(infotext_file, footp_file_1, footp_file_2, metas,
+                            config);
+  } else {
+    auto const footp_file_2 = loaded_file();
+    parse_station_meta_data(infotext_file, footp_file_1, footp_file_2, metas,
+                            config);
+  }
+
   station_builder stb(
       parse_stations(stations_file, coordinates_file, metas, config),
       parse_timezones(timezones_file, basic_data_file, config));
