@@ -4,9 +4,9 @@
 #include <map>
 #include <string>
 
-#include "motis/schedule-format/Category_generated.h"
-
+#include "motis/loader/hrd/parse_config_inheritance.h"
 #include "motis/loader/loaded_file.h"
+#include "motis/schedule-format/Category_generated.h"
 
 namespace motis {
 namespace loader {
@@ -21,9 +21,8 @@ struct category {
   uint8_t output_rule_{0};
 };
 
-template <typename T>
 std::map<uint32_t, category> parse_categories(loaded_file const& file,
-                                              T const& config);
+                                              parser::config const& config);
 
 }  // namespace hrd
 }  // namespace loader

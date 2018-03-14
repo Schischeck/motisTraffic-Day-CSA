@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 
+#include "motis/loader/hrd/parse_config_inheritance.h"
 #include "motis/loader/loaded_file.h"
 
 namespace motis {
@@ -35,11 +36,10 @@ struct station_meta_data {
   std::map<parser::cstr, int> ds100_to_eva_num_;
 };
 
-template <typename T>
 void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_file,
                              loaded_file const& metabhf_zusatz_file,
-                             station_meta_data&, T const&);
+                             station_meta_data&, parser::config const&);
 
 }  // namespace hrd
 }  // namespace loader

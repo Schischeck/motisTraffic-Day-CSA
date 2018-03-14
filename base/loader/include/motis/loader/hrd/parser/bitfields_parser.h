@@ -6,6 +6,7 @@
 #include "parser/cstr.h"
 
 #include "motis/loader/bitfield.h"
+#include "motis/loader/hrd/parse_config_inheritance.h"
 #include "motis/loader/loaded_file.h"
 
 namespace motis {
@@ -17,8 +18,8 @@ constexpr int ALL_DAYS_KEY = 0;
 bitfield hex_str_to_bitset(parser::cstr hex, char const* filename,
                            int line_number);
 
-template <typename T>
-std::map<int, bitfield> parse_bitfields(loaded_file const&, T const& config);
+std::map<int, bitfield> parse_bitfields(loaded_file const&,
+                                        parser::config const& config);
 
 }  // namespace hrd
 }  // namespace loader

@@ -17,10 +17,9 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-template <typename T>
 track_rules parse_track_rules(loaded_file const& file,
                               flatbuffers64::FlatBufferBuilder& b,
-                              T const& config) {
+                              config const& config) {
   scoped_timer timer("parsing track rules");
   track_rules prs;
   std::map<uint64_t, Offset<String>> track_names;
@@ -32,18 +31,18 @@ track_rules parse_track_rules(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(parse_field(line, config.track_rules.eva_num));
+    auto eva_num = parse<int>(parse_field(line, config.track_rul_.eva_num_));
     auto train_num =
-        parse<int>(parse_field(line, config.track_rules.train_num));
+        parse<int>(parse_field(line, config.track_rul_.train_num_));
     auto train_admin =
-        raw_to_int<uint64_t>(parse_field(line, config.track_rules.train_admin));
+        raw_to_int<uint64_t>(parse_field(line, config.track_rul_.train_admin_));
     auto track_name_str =
-        parse_field(line, config.track_rules.track_name).trim();
+        parse_field(line, config.track_rul_.track_name_).trim();
     auto track_name = raw_to_int<uint64_t>(track_name_str);
     auto time = hhmm_to_min(parse<int>(
-        parse_field(line, config.track_rules.time).trim(), TIME_NOT_SET));
+        parse_field(line, config.track_rul_.time_).trim(), TIME_NOT_SET));
     auto bitfield = parse<int>(
-        parse_field(line, config.track_rules.bitfield).trim(), ALL_DAYS_KEY);
+        parse_field(line, config.track_rul_.bitfield_).trim(), ALL_DAYS_KEY);
 
     // Resolve track name (create it if not found)
     auto track_name_it = track_names.find(track_name);

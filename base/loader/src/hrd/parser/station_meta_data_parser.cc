@@ -89,11 +89,10 @@ int station_meta_data::get_station_change_time(int eva_num) const {
   }
 }
 
-template <typename T>
 void parse_and_add(loaded_file const& metabhf_file,
                    std::set<station_meta_data::footpath>& footpaths,
                    std::set<station_meta_data::meta_station>& meta_stations,
-                   T const& config) {
+                   config const& config) {
   for_each_line(metabhf_file.content(), [&](cstr line) {
     if (line.length() < 19 || line[0] == '%' || line[0] == '*') {
       return;
@@ -101,9 +100,9 @@ void parse_and_add(loaded_file const& metabhf_file,
 
     if (line[7] == ':') {  // equivalent stations
       auto const eva =
-          parse<int>(parse_field(line, config.meta_data.meta_stations.eva));
+          parse<int>(parse_field(line, config.meta_.meta_stations_.eva_));
       std::vector<int> equivalent;
-      if (config.version == "hrd_5_00_8") {
+      if (config.version_ == "hrd_5_00_8") {
         for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
           auto const e = parse<int>(token);
           if (e != 0) {
@@ -118,18 +117,17 @@ void parse_and_add(loaded_file const& metabhf_file,
       }
     } else {  // footpaths
       footpaths.insert(
-          {parse<int>(parse_field(line, config.meta_data.footpaths.from)),
-           parse<int>(parse_field(line, config.meta_data.footpaths.to)),
-           parse<int>(parse_field(line, config.meta_data.footpaths.duration))});
+          {parse<int>(parse_field(line, config.meta_.footpaths_.from_)),
+           parse<int>(parse_field(line, config.meta_.footpaths_.to_)),
+           parse<int>(parse_field(line, config.meta_.footpaths_.duration_))});
     }
   });
 }
 
-template <typename T>
 void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_file,
                              loaded_file const& metabhf_zusatz_file,
-                             station_meta_data& metas, T const& config) {
+                             station_meta_data& metas, config const& config) {
   parse_ds100_mappings(infotext_file, metas.ds100_to_eva_num_);
 
   std::vector<minct> records;

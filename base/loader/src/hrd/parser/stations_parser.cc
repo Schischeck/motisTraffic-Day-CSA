@@ -16,10 +16,9 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-template <typename T>
 void parse_station_names(loaded_file const& file,
                          std::map<int, intermediate_station>& stations,
-                         T const& config) {
+                         config const& config) {
   scoped_timer timer("parsing station names");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
@@ -28,8 +27,8 @@ void parse_station_names(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(parse_field(line, config.stations.names.eva));
-    auto name = parse_field(line, config.stations.names.name);
+    auto eva_num = parse<int>(parse_field(line, config.st_.names_.eva_));
+    auto name = parse_field(line, config.st_.names_.name_);
 
     auto it = std::find(begin(name), end(name), '$');
     if (it != end(name)) {
@@ -40,10 +39,9 @@ void parse_station_names(loaded_file const& file,
   });
 }
 
-template <typename T>
 void parse_station_coordinates(loaded_file const& file,
                                std::map<int, intermediate_station>& stations,
-                               T const& config) {
+                               config const& config) {
   scoped_timer timer("parsing station coordinates");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
@@ -52,13 +50,13 @@ void parse_station_coordinates(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(parse_field(line, config.stations.coords.eva));
+    auto eva_num = parse<int>(parse_field(line, config.st_.coords_.eva_));
     auto& station = stations[eva_num];
 
     station.lng_ =
-        parse<double>(parse_field(line, config.stations.coords.lng).trim());
+        parse<double>(parse_field(line, config.st_.coords_.lng_).trim());
     station.lat_ =
-        parse<double>(parse_field(line, config.stations.coords.lat).trim());
+        parse<double>(parse_field(line, config.st_.coords_.lat_).trim());
   });
 }
 
@@ -81,11 +79,10 @@ void set_ds100(station_meta_data const& metas,
   }
 }
 
-template <typename T>
 std::map<int, intermediate_station> parse_stations(
     loaded_file const& station_names_file,
     loaded_file const& station_coordinates_file, station_meta_data const& metas,
-    T const& config) {
+    config const& config) {
   scoped_timer timer("parsing stations");
   std::map<int, intermediate_station> stations;
   parse_station_names(station_names_file, stations, config);

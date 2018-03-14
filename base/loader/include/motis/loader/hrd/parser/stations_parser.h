@@ -2,6 +2,7 @@
 
 #include <map>
 
+#include "motis/loader/hrd/parse_config_inheritance.h"
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 #include "motis/loader/loaded_file.h"
 #include "motis/schedule-format/Station_generated.h"
@@ -17,11 +18,10 @@ struct intermediate_station {
   std::vector<std::string> ds100_;
 };
 
-template <typename T>
 std::map<int, intermediate_station> parse_stations(
     loaded_file const& station_names_file,
     loaded_file const& station_coordinates_file, station_meta_data const&,
-    T const&);
+    parser::config const&);
 
 }  // namespace hrd
 }  // namespace loader

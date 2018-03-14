@@ -6,6 +6,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
+#include "motis/loader/hrd/parse_config_inheritance.h"
 #include "motis/loader/loaded_file.h"
 
 namespace motis {
@@ -22,9 +23,9 @@ struct track_rule {
 using track_rule_key = std::tuple<int, int, uint64_t>;
 using track_rules = std::map<track_rule_key, std::vector<track_rule>>;
 
-template <typename T>
 track_rules parse_track_rules(loaded_file const&,
-                              flatbuffers64::FlatBufferBuilder& b, T const&);
+                              flatbuffers64::FlatBufferBuilder& b,
+                              parser::config const&);
 
 }  // namespace hrd
 }  // namespace loader
