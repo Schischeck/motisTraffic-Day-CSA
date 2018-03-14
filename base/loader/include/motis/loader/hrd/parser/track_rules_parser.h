@@ -25,7 +25,7 @@ using track_rules = std::map<track_rule_key, std::vector<track_rule>>;
 
 track_rules parse_track_rules(loaded_file const&,
                               flatbuffers64::FlatBufferBuilder& b,
-                              parser::config const&);
+                              config const&);
 
 }  // namespace hrd
 }  // namespace loader

@@ -22,7 +22,7 @@ struct category {
 };
 
 std::map<uint32_t, category> parse_categories(loaded_file const& file,
-                                              parser::config const& config);
+                                              config const& config);
 
 }  // namespace hrd
 }  // namespace loader

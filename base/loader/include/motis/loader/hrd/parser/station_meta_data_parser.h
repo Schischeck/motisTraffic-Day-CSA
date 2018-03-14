@@ -39,7 +39,7 @@ struct station_meta_data {
 void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_file,
                              loaded_file const& metabhf_zusatz_file,
-                             station_meta_data&, parser::config const&);
+                             station_meta_data&, config const&);
 
 }  // namespace hrd
 }  // namespace loader

@@ -9,8 +9,6 @@ namespace motis {
 namespace loader {
 namespace hrd {
 
-using namespace parser;
-
 struct hrd_parser : public format_parser {
   bool applicable(boost::filesystem::path const& path) override;
   bool applicable(boost::filesystem::path const& path, config const& c);

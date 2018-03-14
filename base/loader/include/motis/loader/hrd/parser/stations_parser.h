@@ -21,7 +21,7 @@ struct intermediate_station {
 std::map<int, intermediate_station> parse_stations(
     loaded_file const& station_names_file,
     loaded_file const& station_coordinates_file, station_meta_data const&,
-    parser::config const&);
+    config const&);
 
 }  // namespace hrd
 }  // namespace loader

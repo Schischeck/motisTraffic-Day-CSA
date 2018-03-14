@@ -9,7 +9,7 @@ namespace loader {
 namespace hrd {
 
 timezones parse_timezones(loaded_file const&, loaded_file const&,
-                          parser::config const&);
+                          config const&);
 
 }  // namespace hrd
 }  // namespace loader

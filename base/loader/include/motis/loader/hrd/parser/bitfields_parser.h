@@ -19,7 +19,7 @@ bitfield hex_str_to_bitset(parser::cstr hex, char const* filename,
                            int line_number);
 
 std::map<int, bitfield> parse_bitfields(loaded_file const&,
-                                        parser::config const& config);
+                                        config const& config);
 
 }  // namespace hrd
 }  // namespace loader

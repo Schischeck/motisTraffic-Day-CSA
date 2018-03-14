@@ -18,7 +18,7 @@ namespace hrd {
 
 void parse_station_names(loaded_file const& file,
                          std::map<int, intermediate_station>& stations,
-                         config const& config) {
+                         config const& c) {
   scoped_timer timer("parsing station names");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
@@ -27,8 +27,8 @@ void parse_station_names(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(parse_field(line, config.st_.names_.eva_));
-    auto name = parse_field(line, config.st_.names_.name_);
+    auto eva_num = parse<int>(c.parse_field(line, c.st_.names_.eva_));
+    auto name = c.parse_field(line, c.st_.names_.name_);
 
     auto it = std::find(begin(name), end(name), '$');
     if (it != end(name)) {
@@ -41,7 +41,7 @@ void parse_station_names(loaded_file const& file,
 
 void parse_station_coordinates(loaded_file const& file,
                                std::map<int, intermediate_station>& stations,
-                               config const& config) {
+                               config const& c) {
   scoped_timer timer("parsing station coordinates");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
@@ -50,13 +50,13 @@ void parse_station_coordinates(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(parse_field(line, config.st_.coords_.eva_));
+    auto eva_num = parse<int>(c.parse_field(line, c.st_.coords_.eva_));
     auto& station = stations[eva_num];
 
     station.lng_ =
-        parse<double>(parse_field(line, config.st_.coords_.lng_).trim());
+        parse<double>(c.parse_field(line, c.st_.coords_.lng_).trim());
     station.lat_ =
-        parse<double>(parse_field(line, config.st_.coords_.lat_).trim());
+        parse<double>(c.parse_field(line, c.st_.coords_.lat_).trim());
   });
 }
 

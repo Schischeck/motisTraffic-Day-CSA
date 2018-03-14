@@ -27,10 +27,10 @@ std::map<uint16_t, std::string> parse_attributes(loaded_file const& file,
     } else if (line.len < 13 || (is_multiple_spaces(line) && line.len < 22)) {
       throw parser_error(file.name(), line_number);
     }
-    auto code = parse_field(line, c.att_.code_);
+    auto code = c.parse_field(line, c.att_.code_);
     auto text = is_multiple_spaces(line)
-                    ? parse_field(line, c.att_.text_mul_spaces_)
-                    : parse_field(line, c.att_.text_normal_);
+                    ? c.parse_field(line, c.att_.text_mul_spaces_)
+                    : c.parse_field(line, c.att_.text_normal_);
     attributes[raw_to_int<uint16_t>(code)] = std::string(text.str, text.len);
   });
   return attributes;

@@ -4,20 +4,11 @@
 #include <vector>
 #include "parser/cstr.h"
 
-namespace parser {
-
 struct field {
   static const int MAX_SIZE = std::numeric_limits<int>::max();
   int from_, size_;
 };
 
-cstr parse_field(cstr s, field f) {
-  if (f.size_ != f.MAX_SIZE) {
-    return s.substr(f.from_, size(f.size_));
-  } else {
-    return s.substr(f.from_, s.len - 1);
-  }
-}
 struct attribute {
   field code_;
   field text_mul_spaces_;
@@ -39,7 +30,7 @@ struct directions {
 };
 
 struct merge_split_rules {
-  int line_length_;
+  unsigned line_length_;
   field bitfield_;
   field key1_nr_;
   field key1_admin_;
@@ -61,7 +52,6 @@ struct meta_data {
   meta_stations meta_stations_;
   footpaths footpaths_;
 };
-meta_data meta_data_;
 struct names {
   field eva_;
   field name_;
@@ -76,7 +66,6 @@ struct stations {
   names names_;
   coords coords_;
 };
-stations stations_;
 
 struct through_services {
   field bitfield_;
@@ -197,7 +186,15 @@ struct config {
   track track_;
   track_rules track_rul_;
   files files_;
-  cstr version_;
+  parser::cstr version_;
+
+  parser::cstr parse_field(parser::cstr s, field f) const {
+    if (f.size_ != f.MAX_SIZE) {
+      return s.substr(f.from_, parser::size(f.size_));
+    } else {
+      return s.substr(f.from_, s.len - 1);
+    }
+  }
 };
 
 struct hrd_5_00_8 : config {
@@ -248,5 +245,3 @@ struct hrd_5_20_26 : config {
 
 const hrd_5_00_8 hrd_5_00_8_;
 const hrd_5_20_26 hrd_5_20_26_;
-
-}  // namespace parser

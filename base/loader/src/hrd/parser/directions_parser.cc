@@ -8,14 +8,14 @@ namespace loader {
 namespace hrd {
 
 std::map<uint64_t, std::string> parse_directions(loaded_file const& file,
-                                                 config const& config) {
+                                                 config const& c) {
   std::map<uint64_t, std::string> directions;
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.length() < 9 && line[7] == ' ') {
       throw parser_error(file.name(), line_number);
     } else {
-      auto const text = parse_field(line, config.dir_.text_);
-      directions[raw_to_int<uint64_t>(parse_field(line, config.dir_.eva_))] =
+      auto const text = c.parse_field(line, c.dir_.text_);
+      directions[raw_to_int<uint64_t>(c.parse_field(line, c.dir_.eva_))] =
           std::string(text.str, text.len);
     }
   });

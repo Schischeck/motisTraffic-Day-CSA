@@ -14,7 +14,7 @@ namespace hrd {
 
 void parse_merge_split_service_rules(loaded_file const&,
                                      std::map<int, bitfield> const&,
-                                     service_rules&, parser::config const&);
+                                     service_rules&, config const&);
 
 }  // namespace hrd
 }  // namespace loader

@@ -48,8 +48,7 @@ bitfield hex_str_to_bitset(cstr hex, char const* filename, int line_number) {
   return bitfield{bitstring};
 }
 
-std::map<int, bitfield> parse_bitfields(loaded_file const& f,
-                                        config const& config) {
+std::map<int, bitfield> parse_bitfields(loaded_file const& f, config const& c) {
   scoped_timer timer("parsing bitfields");
 
   std::map<int, bitfield> bitfields;
@@ -60,8 +59,8 @@ std::map<int, bitfield> parse_bitfields(loaded_file const& f,
       throw parser_error(f.name(), line_number);
     }
 
-    bitfields[parse<int>(parse_field(line, config.bf_.index_))] =
-        hex_str_to_bitset(parse_field(line, config.bf_.value_), f.name(),
+    bitfields[parse<int>(c.parse_field(line, c.bf_.index_))] =
+        hex_str_to_bitset(c.parse_field(line, c.bf_.value_), f.name(),
                           line_number);
   });
 

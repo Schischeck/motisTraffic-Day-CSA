@@ -92,7 +92,7 @@ int station_meta_data::get_station_change_time(int eva_num) const {
 void parse_and_add(loaded_file const& metabhf_file,
                    std::set<station_meta_data::footpath>& footpaths,
                    std::set<station_meta_data::meta_station>& meta_stations,
-                   config const& config) {
+                   config const& c) {
   for_each_line(metabhf_file.content(), [&](cstr line) {
     if (line.length() < 19 || line[0] == '%' || line[0] == '*') {
       return;
@@ -100,9 +100,9 @@ void parse_and_add(loaded_file const& metabhf_file,
 
     if (line[7] == ':') {  // equivalent stations
       auto const eva =
-          parse<int>(parse_field(line, config.meta_.meta_stations_.eva_));
+          parse<int>(c.parse_field(line, c.meta_.meta_stations_.eva_));
       std::vector<int> equivalent;
-      if (config.version_ == "hrd_5_00_8") {
+      if (c.version_ == "hrd_5_00_8") {
         for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
           auto const e = parse<int>(token);
           if (e != 0) {
@@ -117,9 +117,9 @@ void parse_and_add(loaded_file const& metabhf_file,
       }
     } else {  // footpaths
       footpaths.insert(
-          {parse<int>(parse_field(line, config.meta_.footpaths_.from_)),
-           parse<int>(parse_field(line, config.meta_.footpaths_.to_)),
-           parse<int>(parse_field(line, config.meta_.footpaths_.duration_))});
+          {parse<int>(c.parse_field(line, c.meta_.footpaths_.from_)),
+           parse<int>(c.parse_field(line, c.meta_.footpaths_.to_)),
+           parse<int>(c.parse_field(line, c.meta_.footpaths_.duration_))});
     }
   });
 }

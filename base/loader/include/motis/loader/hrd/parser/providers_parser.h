@@ -16,7 +16,7 @@ struct provider_info {
 };
 
 std::map<uint64_t, provider_info> parse_providers(loaded_file const&,
-                                                  parser::config const&);
+                                                  config const&);
 
 }  // namespace hrd
 }  // namespace loader

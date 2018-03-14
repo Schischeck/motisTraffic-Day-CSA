@@ -13,7 +13,7 @@ namespace hrd {
 
 void parse_through_service_rules(loaded_file const&,
                                  std::map<int, bitfield> const&, service_rules&,
-                                 parser::config const&);
+                                 config const&);
 
 }  // namespace hrd
 }  // namespace loader
