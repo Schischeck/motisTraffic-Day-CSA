@@ -132,7 +132,8 @@ loaded_file load(fs::path const& root, filename_key k,
 void parse_and_build_services(
     fs::path const& hrd_root, std::map<int, bitfield> const& bitfields,
     std::vector<std::unique_ptr<loaded_file>>& schedule_data,
-    std::function<void(hrd_service const&)> const& service_builder_fun) {
+    std::function<void(hrd_service const&)> const& service_builder_fun,
+    config const& c) {
   auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
 
   std::vector<fs::path> files;
@@ -143,7 +144,7 @@ void parse_and_build_services(
     schedule_data.emplace_back(std::make_unique<loaded_file>(file));
     LOG(info) << "parsing " << ++count << "/" << files.size() << " "
               << schedule_data.back()->name();
-    for_each_service(*schedule_data.back(), bitfields, service_builder_fun);
+    for_each_service(*schedule_data.back(), bitfields, service_builder_fun, c);
   }
 }
 
@@ -222,12 +223,14 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
 
   // parse and build services
   std::vector<std::unique_ptr<loaded_file>> schedule_data;
-  parse_and_build_services(
-      hrd_root, bb.hrd_bitfields_, schedule_data, [&](hrd_service const& s) {
-        if (!rsb.add_service(s)) {
-          sb.create_service(s, rb, stb, cb, pb, lb, ab, bb, db, fbb, false);
-        }
-      });
+  parse_and_build_services(hrd_root, bb.hrd_bitfields_, schedule_data,
+                           [&](hrd_service const& s) {
+                             if (!rsb.add_service(s)) {
+                               sb.create_service(s, rb, stb, cb, pb, lb, ab, bb,
+                                                 db, fbb, false);
+                             }
+                           },
+                           config);
 
   // compute and build rule services
   rsb.resolve_rule_services();

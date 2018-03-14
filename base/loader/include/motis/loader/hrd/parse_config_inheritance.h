@@ -172,6 +172,12 @@ struct hrd_5_20_26_files : files {
         {TIMEZONES_FILE},  {FOOTPATHS_REG_FILE},    {}};
   }
 };
+struct range_parse_information {
+  int from_eva_or_idx_start_;
+  int to_eva_or_idx_start_;
+  int from_hhmm_or_idx_start_;
+  int to_hhmm_or_idx_start_;
+};
 
 struct config {
   attribute att_;
@@ -185,6 +191,13 @@ struct config {
   timezones tz_;
   track track_;
   track_rules track_rul_;
+
+  range_parse_information attribute_parse_info_;
+  range_parse_information line_parse_info_;
+  range_parse_information category_parse_info_;
+  range_parse_information traffic_days_parse_info_;
+  range_parse_information direction_parse_info_;
+
   files files_;
   parser::cstr version_;
 
@@ -215,6 +228,13 @@ struct hrd_5_00_8 : config {
     track_ = track{{0, 5}};
     track_rul_ =
         track_rules{{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
+
+    attribute_parse_info_ = {6, 14, 29, 36};
+    line_parse_info_ = {9, 17, 25, 32};
+    category_parse_info_ = {7, 15, 23, 30};
+    traffic_days_parse_info_ = {6, 14, 29, 36};
+    direction_parse_info_ = {13, 21, 29, 36};
+
     files_ = hrd_5_00_8_files();
     version_ = "hrd_5_00_8";
   }
@@ -238,6 +258,13 @@ struct hrd_5_20_26 : config {
     track_ = track{{0, 5}};
     track_rul_ =
         track_rules{{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
+
+    attribute_parse_info_ = {6, 14, 29, 36};
+    line_parse_info_ = {12, 20, 28, 35};
+    category_parse_info_ = {7, 15, 23, 30};
+    traffic_days_parse_info_ = {6, 14, 29, 36};
+    direction_parse_info_ = {13, 21, 29, 36};
+
     files_ = hrd_5_20_26_files();
     version_ = "hrd_5_20_26";
   }

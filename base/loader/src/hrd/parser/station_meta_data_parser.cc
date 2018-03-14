@@ -110,7 +110,11 @@ void parse_and_add(loaded_file const& metabhf_file,
           }
         });
       } else {
-        // 5_20 Meta Stations
+        unsigned i = 9;
+        while (i < line.len) {
+          equivalent.push_back(parse<int>(line.substr(i + 1, size(7))));
+          i = i + 9;
+        }
       }
       if (!equivalent.empty()) {
         meta_stations.insert({eva, equivalent});
