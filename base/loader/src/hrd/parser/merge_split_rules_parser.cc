@@ -132,9 +132,8 @@ struct mss_rule : public service_rule {
         if (intersection.any() &&
             all_ms_events_exist(s1, s2, eva_num_begin_, eva_num_end_)) {
           unordered_pairs.emplace_back(
-              s1, s2,
-              resolved_rule_info{intersection, eva_num_begin_, eva_num_end_,
-                                 RuleType_MERGE_SPLIT});
+              s1, s2, resolved_rule_info{intersection, eva_num_begin_,
+                                         eva_num_end_, RuleType_MERGE_SPLIT});
         }
       }
     }
@@ -153,27 +152,31 @@ struct mss_rule : public service_rule {
 
 void parse_merge_split_service_rules(
     loaded_file const& file, std::map<int, bitfield> const& hrd_bitfields,
-    service_rules& rules) {
+    service_rules& rules, config const& c) {
   scoped_timer timer("parsing merge split rules");
 
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
-    if (line.len < 53) {
+    if (line.len < c.merge_spl_.line_length_) {
       return;
     }
 
-    auto it = hrd_bitfields.find(parse<int>(line.substr(47, size(6))));
+    auto it = hrd_bitfields.find(
+        parse<int>(c.parse_field(line, c.merge_spl_.bitfield_)));
     verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d",
            file.name(), line_number);
 
-    auto key_1 =
-        std::make_pair(parse<int>(line.substr(18, size(5))),
-                       raw_to_int<uint64_t>(line.substr(25, size(6)).trim()));
-    auto key_2 =
-        std::make_pair(parse<int>(line.substr(33, size(5))),
-                       raw_to_int<uint64_t>(line.substr(40, size(6)).trim()));
+    auto key_1 = std::make_pair(
+        parse<int>(c.parse_field(line, c.merge_spl_.key1_nr_)),
+        raw_to_int<uint64_t>(
+            c.parse_field(line, c.merge_spl_.key1_admin_).trim()));
+    auto key_2 = std::make_pair(
+        parse<int>(c.parse_field(line, c.merge_spl_.key2_nr_)),
+        raw_to_int<uint64_t>(
+            c.parse_field(line, c.merge_spl_.key2_admin_).trim()));
 
-    auto eva_num_begin = parse<int>(line.substr(0, size(7)));
-    auto eva_num_end = parse<int>(line.substr(9, size(7)));
+    auto eva_num_begin =
+        parse<int>(c.parse_field(line, c.merge_spl_.eva_begin_));
+    auto eva_num_end = parse<int>(c.parse_field(line, c.merge_spl_.eva_end_));
     std::shared_ptr<service_rule> rule(
         new mss_rule(key_1, key_2, eva_num_begin, eva_num_end, it->second));
 

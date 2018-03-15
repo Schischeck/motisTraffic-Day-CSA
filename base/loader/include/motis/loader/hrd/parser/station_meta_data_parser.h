@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 
+#include "motis/loader/hrd/parse_config_inheritance.h"
 #include "motis/loader/loaded_file.h"
 
 namespace motis {
@@ -38,7 +39,7 @@ struct station_meta_data {
 void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_file,
                              loaded_file const& metabhf_zusatz_file,
-                             station_meta_data&);
+                             station_meta_data&, config const&);
 
 }  // namespace hrd
 }  // namespace loader
