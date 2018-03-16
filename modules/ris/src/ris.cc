@@ -324,7 +324,6 @@ private:
   }
 
   void write_to_db(fs::path const& p, file_type const type) {
-    LOG(info) << "writing " << p;
     using tar_zst = tar_reader<zstd_reader>;
     auto const& cp = p.generic_string();
     switch (type) {
