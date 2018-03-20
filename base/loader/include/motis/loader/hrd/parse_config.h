@@ -109,6 +109,24 @@ struct range_parse_information {
   int to_hhmm_or_idx_start_;
 };
 
+enum filename_key {
+  ATTRIBUTES,
+  STATIONS,
+  COORDINATES,
+  BITFIELDS,
+  TRACKS,
+  INFOTEXT,
+  BASIC_DATA,
+  CATEGORIES,
+  DIRECTIONS,
+  PROVIDERS,
+  THROUGH_SERVICES,
+  MERGE_SPLIT_SERVICES,
+  TIMEZONES,
+  FOOTPATHS,
+  FOOTPATHS_EXT
+};
+
 struct files {
   static constexpr auto const ENCODING = "ISO8859-1";
 
@@ -206,6 +224,10 @@ struct config {
     } else {
       return s.substr(f.from_, s.len - 1);
     }
+  }
+
+  const char* files(filename_key k, int index = 0) const {
+    return files_.required_files_[k][index].c_str();
   }
 
   static config hrd_5_00_8() {

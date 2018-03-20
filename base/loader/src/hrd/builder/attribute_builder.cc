@@ -5,7 +5,7 @@
 
 #include "parser/util.h"
 
-#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parse_config.h"
 
 namespace motis {
 namespace loader {
@@ -44,7 +44,7 @@ Offset<Attribute> attribute_builder::get_or_create_attribute(
 
           auto const fbs_attribute_info = CreateAttributeInfo(
               fbb, to_fbs_string(fbb, attr.code_),
-              to_fbs_string(fbb, stamm_attributes_it->second, ENCODING));
+              to_fbs_string(fbb, stamm_attributes_it->second, files::ENCODING));
 
           fbs_attribute_infos_[attr_info_key] = fbs_attribute_info;
           return fbs_attribute_info;

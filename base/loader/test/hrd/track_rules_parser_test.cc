@@ -7,7 +7,7 @@
 #include "parser/arg_parser.h"
 #include "parser/cstr.h"
 
-#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/hrd/parser/bitfields_parser.h"
 #include "motis/loader/hrd/parser/track_rules_parser.h"
 #include "motis/loader/parser_error.h"
@@ -22,15 +22,15 @@ namespace hrd {
 
 TEST(loader_hrd_track_rules, parse_track_rules_1) {
   flatbuffers64::FlatBufferBuilder b;
-
-  loaded_file bitfields_file = {BITFIELDS_FILE, "000001 EF"};
+  auto const c = hrd_5_00_8_;
+  loaded_file bitfields_file = {c.files(BITFIELDS), "000001 EF"};
   auto track_file_content =
       "8509404 30467 85____ 3             000000\n"
       "8509404 30467 85____ 5             000001";
-  loaded_file track_file = {TRACKS_FILE, track_file_content};
+  loaded_file track_file = {c.files(TRACKS), track_file_content};
 
-  auto bitfields = parse_bitfields(bitfields_file);
-  auto track_rules = parse_track_rules(track_file, b);
+  auto bitfields = parse_bitfields(bitfields_file, c);
+  auto track_rules = parse_track_rules(track_file, b, c);
 
   ASSERT_TRUE(track_rules.size() == 1);
 
@@ -61,13 +61,13 @@ TEST(loader_hrd_track_rules, parse_track_rules_1) {
 
 TEST(loader_hrd_track_rules, parse_track_rules_2) {
   flatbuffers64::FlatBufferBuilder b;
-
-  loaded_file bitfields_file = {BITFIELDS_FILE, "000001 FF"};
+  auto const c = hrd_5_00_8_;
+  loaded_file bitfields_file = {c.files(BITFIELDS), "000001 FF"};
   auto track_file_content = "8000000 00001 80____ 1A       0130 000001";
-  loaded_file track_file = {TRACKS_FILE, track_file_content};
+  loaded_file track_file = {c.files(TRACKS), track_file_content};
 
-  auto bitfields = parse_bitfields(bitfields_file);
-  auto track_rules = parse_track_rules(track_file, b);
+  auto bitfields = parse_bitfields(bitfields_file, c);
+  auto track_rules = parse_track_rules(track_file, b, c);
 
   ASSERT_TRUE(track_rules.size() == 1);
 
@@ -89,21 +89,23 @@ TEST(loader_hrd_track_rules, parse_track_rules_2) {
 
 TEST(loader_hrd_track_rules, parse_track_rules_line_too_short) {
   bool catched = false;
-
-  loaded_file f = {BITFIELDS_FILE, "000001 EF"};
+  auto const c = hrd_5_00_8_;
+  loaded_file f = {c.files(BITFIELDS), "000001 EF"};
   auto track_file_content =
       "8509404 30467 85____ 3             000000\n"
       "8509404 30467 85____ 5             00000";
-  loaded_file track_rules_file = {TRACKS_FILE, track_file_content};
+  loaded_file track_rules_file = {c.files(TRACKS), track_file_content};
 
   try {
     flatbuffers64::FlatBufferBuilder b;
 
-    auto bitfields = parse_bitfields(f);
-    auto track_rules = parse_track_rules(track_rules_file, b);
+    auto bitfields = parse_bitfields(f, c);
+    printf("BITFIELDS PARSED \n");
+    auto track_rules = parse_track_rules(track_rules_file, b, c);
   } catch (parser_error const& e) {
+    printf("Linenumber %d\n", e.line_number_);
     ASSERT_TRUE(e.line_number_ == 2);
-    ASSERT_STREQ(TRACKS_FILE, e.filename_);
+    ASSERT_STREQ(c.files(TRACKS), e.filename_);
     catched = true;
   }
   ASSERT_TRUE(catched);

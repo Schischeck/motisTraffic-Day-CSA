@@ -19,7 +19,7 @@ std::vector<specification> test_spec::get_specs() {
 std::vector<hrd_service> test_spec::get_hrd_services() {
   std::vector<hrd_service> services;
   parse_specification(lf_, [&services](specification const& spec) {
-    services.emplace_back(spec);
+    services.emplace_back(hrd_service(spec, hrd_5_00_8_));
   });
   return services;
 }

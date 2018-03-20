@@ -56,7 +56,8 @@ TEST(loader_hrd_stations_parser, meta_data) {
     loaded_file info_text_file("infotext.101", infotext);
     loaded_file fp_old_file("footpaths_old.101", footpaths_old);
     loaded_file fp_new_file("footpaths_new.101", footpaths_new);
-    parse_station_meta_data(info_text_file, fp_old_file, fp_new_file, metas);
+    parse_station_meta_data(info_text_file, fp_old_file, fp_new_file, metas,
+                            hrd_5_00_8_);
 
     ASSERT_EQ(2, metas.station_change_times_.size());
     ASSERT_EQ(7, metas.get_station_change_time(8000068));
@@ -72,11 +73,12 @@ TEST(loader_hrd_stations_parser, meta_data) {
 TEST(loader_hrd_stations_parser, parse_stations) {
   try {
     station_meta_data metas;
-    parse_station_meta_data({"infotext.101", infotext},
-                            {"metabhf.101", footpaths_old},
-                            {"metabhf_zusatz.101", footpaths_new}, metas);
-    auto stations = parse_stations({"bahnhof.101", stations_data},
-                                   {"dbkoords.101", coordinates_data}, metas);
+    parse_station_meta_data(
+        {"infotext.101", infotext}, {"metabhf.101", footpaths_old},
+        {"metabhf_zusatz.101", footpaths_new}, metas, hrd_5_00_8_);
+    auto stations =
+        parse_stations({"bahnhof.101", stations_data},
+                       {"dbkoords.101", coordinates_data}, metas, hrd_5_00_8_);
 
     ASSERT_EQ(2, stations.size());
 

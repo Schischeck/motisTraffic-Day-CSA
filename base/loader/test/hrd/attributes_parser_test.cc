@@ -3,7 +3,6 @@
 
 #include "gtest/gtest.h"
 
-#include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/parser/attributes_parser.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
@@ -15,8 +14,9 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_attributes, parse_line) {
-  loaded_file f = {ATTRIBUTES_FILE_OLD, ",  0 260 10 Bus mit Fahrradanhänger#"};
-  auto attributes = parse_attributes(f);
+  auto const c = hrd_5_00_8_;
+  loaded_file f = {c.files(ATTRIBUTES), ",  0 260 10 Bus mit Fahrradanhänger#"};
+  auto attributes = parse_attributes(f, c);
   ASSERT_TRUE(attributes.size() == 1);
 
   auto it = attributes.find(raw_to_int<uint16_t>(", "));
@@ -25,9 +25,10 @@ TEST(loader_hrd_attributes, parse_line) {
 }
 
 TEST(loader_hrd_attributes, parse_and_ignore_line) {
-  loaded_file f = {ATTRIBUTES_FILE_OLD,
+  auto const c = hrd_5_00_8_;
+  loaded_file f = {c.files(ATTRIBUTES),
                    "ZZ 0 060 10 zusätzlicher Zug#\n# ,  ,  ,"};
-  auto attributes = parse_attributes(f);
+  auto attributes = parse_attributes(f, c);
   ASSERT_TRUE(attributes.size() == 1);
 
   auto it = attributes.find(raw_to_int<uint16_t>("ZZ"));
@@ -36,13 +37,14 @@ TEST(loader_hrd_attributes, parse_and_ignore_line) {
 }
 
 TEST(loader_hrd_attributes, invalid_line) {
+  auto const c = hrd_5_00_8_;
   bool catched = false;
-  loaded_file f = {ATTRIBUTES_FILE_OLD, ",  0 260 10 "};
+  loaded_file f = {c.files(ATTRIBUTES), ",  0 260 10 "};
   try {
-    parse_attributes(f);
+    parse_attributes(f, c);
   } catch (parser_error const& e) {
     catched = true;
-    ASSERT_STREQ(ATTRIBUTES_FILE_OLD, e.filename_);
+    ASSERT_STREQ(c.files(ATTRIBUTES), e.filename_);
     ASSERT_TRUE(e.line_number_ == 1);
   }
 
@@ -50,8 +52,9 @@ TEST(loader_hrd_attributes, invalid_line) {
 }
 
 TEST(loader_hrd_attributes, ignore_output_rules) {
-  loaded_file f = {ATTRIBUTES_FILE_OLD, "# ,  ,  ,"};
-  ASSERT_TRUE(parse_attributes(f).empty());
+  auto const c = hrd_5_00_8_;
+  loaded_file f = {c.files(ATTRIBUTES), "# ,  ,  ,"};
+  ASSERT_TRUE(parse_attributes(f, c).empty());
 }
 
 }  // namespace hrd

@@ -3,7 +3,7 @@
 #include "utl/get_or_create.h"
 #include "utl/to_vec.h"
 
-#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/util.h"
 
 namespace motis {
@@ -24,7 +24,7 @@ Offset<Station> station_builder::get_or_create_station(int eva_num,
     auto tze = timezones_.find(eva_num);
     return CreateStation(
         fbb, to_fbs_string(fbb, pad_to_7_digits(eva_num)),
-        to_fbs_string(fbb, it->second.name_, ENCODING), it->second.lat_,
+        to_fbs_string(fbb, it->second.name_, files::ENCODING), it->second.lat_,
         it->second.lng_, it->second.change_time_,
         fbb.CreateVector(utl::to_vec(
             begin(it->second.ds100_), end(it->second.ds100_),

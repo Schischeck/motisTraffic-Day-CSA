@@ -17,10 +17,10 @@ namespace hrd {
 
 TEST(loader_hrd_ms, multiple_rules) {
   test_spec b_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "bitfield.101");
-  auto hrd_bitfields = parse_bitfields(b_spec.lf_);
+  auto hrd_bitfields = parse_bitfields(b_spec.lf_, hrd_5_00_8_);
   test_spec ts_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "vereinig_vt.101");
   service_rules rs;
-  parse_merge_split_service_rules(ts_spec.lf_, hrd_bitfields, rs);
+  parse_merge_split_service_rules(ts_spec.lf_, hrd_bitfields, rs, hrd_5_00_8_);
 
   ASSERT_EQ(3, rs.size());
   auto it_1 = rs.find(std::make_pair(3056, raw_to_int<uint64_t>("07____")));

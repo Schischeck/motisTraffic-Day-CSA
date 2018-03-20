@@ -16,7 +16,7 @@ TEST(loader_hrd_providers, simple) {
       "00003 K 'DPN' L 'ag ' V 'agilis'\n"
       "00003 : A9____ XY____\n";
 
-  auto providers = parse_providers({"betrieb.101", file_content});
+  auto providers = parse_providers({"betrieb.101", file_content}, hrd_5_00_8_);
 
   EXPECT_EQ(4u, providers.size());
 

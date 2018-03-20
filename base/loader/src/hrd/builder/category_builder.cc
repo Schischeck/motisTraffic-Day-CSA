@@ -4,7 +4,7 @@
 
 #include "parser/util.h"
 
-#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/util.h"
 
 namespace motis {
@@ -25,7 +25,8 @@ Offset<Category> category_builder::get_or_create_category(
          (int)category_str.length(), category_str.c_str());
 
   return utl::get_or_create(fbs_categories_, category_key, [&]() {
-    return CreateCategory(fbb, to_fbs_string(fbb, it->second.name_, ENCODING),
+    return CreateCategory(fbb,
+                          to_fbs_string(fbb, it->second.name_, files::ENCODING),
                           it->second.output_rule_);
   });
 }

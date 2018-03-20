@@ -70,7 +70,7 @@ struct hrd_service {
         traffic_days_(std::move(traffic_days)),
         initial_train_num_(initial_train_num) {}
 
-  explicit hrd_service(specification const& spec, config const& c);
+  hrd_service(specification const& spec, config const& c);
 
   void verify_service();
 
