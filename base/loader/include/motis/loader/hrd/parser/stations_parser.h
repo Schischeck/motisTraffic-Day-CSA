@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "motis/loader/hrd/parse_config_inheritance.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/hrd/parser/station_meta_data_parser.h"
 #include "motis/loader/loaded_file.h"
 #include "motis/schedule-format/Station_generated.h"

@@ -7,6 +7,7 @@
 
 #include "motis/loader/hrd/model/hrd_service.h"
 #include "motis/loader/hrd/model/specification.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/loaded_file.h"
 
 namespace motis {

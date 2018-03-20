@@ -1,5 +1,5 @@
 #include "motis/loader/hrd/hrd_parser.h"
-#include "boost/variant.hpp"
+
 #include "motis/core/common/logging.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
@@ -31,6 +31,7 @@
 #include "motis/loader/hrd/parser/track_rules_parser.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
+
 namespace motis {
 namespace loader {
 namespace hrd {
@@ -122,7 +123,7 @@ std::vector<std::string> hrd_parser::missing_files(fs::path const& hrd_root,
 }
 
 loaded_file load(fs::path const& root, filename_key k,
-                 std::vector<std::vector<std::string>> const required_files) {
+                 std::vector<std::vector<std::string>> const& required_files) {
   auto it = std::find_if(begin(required_files[k]), end(required_files[k]),
                          [&root](std::string const& filename) {
                            return fs::is_regular_file(root / filename);
@@ -162,72 +163,68 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
-                       config const& config) {
+                       config const& c) {
   auto const core_data_root = hrd_root / CORE_DATA;
-  auto const basic_data_file =
-      load(core_data_root, BASIC_DATA, config.files_.required_files_);
-  auto schedule_name = parse_schedule_name(basic_data_file);
   auto const bitfields_file =
-      load(core_data_root, BITFIELDS, config.files_.required_files_);
-  bitfield_builder bb(parse_bitfields(bitfields_file, config));
-
+      load(core_data_root, BITFIELDS, c.files_.required_files_);
+  bitfield_builder bb(parse_bitfields(bitfields_file, c));
   auto const infotext_file =
-      load(core_data_root, INFOTEXT, config.files_.required_files_);
+      load(core_data_root, INFOTEXT, c.files_.required_files_);
   auto const stations_file =
-      load(core_data_root, STATIONS, config.files_.required_files_);
+      load(core_data_root, STATIONS, c.files_.required_files_);
   auto const coordinates_file =
-      load(core_data_root, COORDINATES, config.files_.required_files_);
+      load(core_data_root, COORDINATES, c.files_.required_files_);
   auto const timezones_file =
-      load(core_data_root, TIMEZONES, config.files_.required_files_);
-
+      load(core_data_root, TIMEZONES, c.files_.required_files_);
+  auto const basic_data_file =
+      load(core_data_root, BASIC_DATA, c.files_.required_files_);
   auto const footp_file_1 =
-      load(core_data_root, FOOTPATHS, config.files_.required_files_);
+      load(core_data_root, FOOTPATHS, c.files_.required_files_);
   station_meta_data metas;
-  if (config.version_ == "hrd_5_00_8") {
+  if (c.version_ == "hrd_5_00_8") {
     auto const footp_file_2 =
-        load(core_data_root, FOOTPATHS_EXT, config.files_.required_files_);
+        load(core_data_root, FOOTPATHS_EXT, c.files_.required_files_);
     parse_station_meta_data(infotext_file, footp_file_1, footp_file_2, metas,
-                            config);
+                            c);
   } else {
     auto const footp_file_2 = loaded_file();
     parse_station_meta_data(infotext_file, footp_file_1, footp_file_2, metas,
-                            config);
+                            c);
   }
 
-  station_builder stb(
-      parse_stations(stations_file, coordinates_file, metas, config),
-      parse_timezones(timezones_file, basic_data_file, config));
+  station_builder stb(parse_stations(stations_file, coordinates_file, metas, c),
+                      parse_timezones(timezones_file, basic_data_file, c));
 
   auto const categories_file =
-      load(core_data_root, CATEGORIES, config.files_.required_files_);
-  category_builder cb(parse_categories(categories_file, config));
+      load(core_data_root, CATEGORIES, c.files_.required_files_);
+  category_builder cb(parse_categories(categories_file, c));
 
   auto const providers_file =
-      load(core_data_root, PROVIDERS, config.files_.required_files_);
-  provider_builder pb(parse_providers(providers_file, config));
+      load(core_data_root, PROVIDERS, c.files_.required_files_);
+  provider_builder pb(parse_providers(providers_file, c));
 
   auto const attributes_file =
-      load(core_data_root, ATTRIBUTES, config.files_.required_files_);
-  attribute_builder ab(parse_attributes(attributes_file, config));
+      load(core_data_root, ATTRIBUTES, c.files_.required_files_);
+  attribute_builder ab(parse_attributes(attributes_file, c));
 
   auto const directions_file =
-      load(core_data_root, DIRECTIONS, config.files_.required_files_);
-  direction_builder db(parse_directions(directions_file, config));
+      load(core_data_root, DIRECTIONS, c.files_.required_files_);
+  direction_builder db(parse_directions(directions_file, c));
 
   auto const tracks_file =
-      load(core_data_root, TRACKS, config.files_.required_files_);
-  service_builder sb(parse_track_rules(tracks_file, fbb, config));
+      load(core_data_root, TRACKS, c.files_.required_files_);
+  service_builder sb(parse_track_rules(tracks_file, fbb, c));
 
   line_builder lb;
   route_builder rb;
 
   auto const ts_file =
-      load(core_data_root, THROUGH_SERVICES, config.files_.required_files_);
+      load(core_data_root, THROUGH_SERVICES, c.files_.required_files_);
   auto const mss_file =
-      load(core_data_root, MERGE_SPLIT_SERVICES, config.files_.required_files_);
+      load(core_data_root, MERGE_SPLIT_SERVICES, c.files_.required_files_);
   service_rules rules;
-  parse_through_service_rules(ts_file, bb.hrd_bitfields_, rules, config);
-  parse_merge_split_service_rules(mss_file, bb.hrd_bitfields_, rules, config);
+  parse_through_service_rules(ts_file, bb.hrd_bitfields_, rules, c);
+  parse_merge_split_service_rules(mss_file, bb.hrd_bitfields_, rules, c);
   rule_service_builder rsb(rules);
 
   // parse and build services
@@ -239,7 +236,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
                                                  db, fbb, false);
                              }
                            },
-                           config);
+                           c);
 
   // compute and build rule services
   rsb.resolve_rule_services();
@@ -251,7 +248,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
       stb, fbb);
 
   auto interval = parse_interval(basic_data_file);
-
+  auto schedule_name = parse_schedule_name(basic_data_file);
   auto footpaths = create_footpaths(metas.footpaths_, stb, fbb);
   fbb.Finish(CreateSchedule(
       fbb, fbb.CreateVectorOfSortedTables(&sb.fbs_services_),

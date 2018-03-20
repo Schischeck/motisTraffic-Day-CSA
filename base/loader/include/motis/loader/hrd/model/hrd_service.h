@@ -6,7 +6,7 @@
 
 #include "motis/loader/bitfield.h"
 #include "motis/loader/hrd/model/specification.h"
-#include "motis/loader/hrd/parse_config_inheritance.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/util.h"
 
 namespace motis {

@@ -3,7 +3,7 @@
 #include <map>
 #include <set>
 
-#include "motis/loader/hrd/parse_config_inheritance.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/loaded_file.h"
 
 namespace motis {

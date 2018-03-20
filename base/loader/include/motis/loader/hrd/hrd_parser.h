@@ -1,9 +1,8 @@
-#include "motis/loader/parser.h"
-
 #include "boost/filesystem.hpp"
-#include "motis/loader/hrd/parse_config_inheritance.h"
-
 #include "flatbuffers/flatbuffers.h"
+
+#include "motis/loader/hrd/parse_config.h"
+#include "motis/loader/parser.h"
 
 namespace motis {
 namespace loader {
@@ -24,6 +23,7 @@ struct hrd_parser : public format_parser {
   void parse(boost::filesystem::path const& hrd_root,
              flatbuffers64::FlatBufferBuilder&, config const& c);
 };
+
 }  // namespace hrd
 }  // namespace loader
 }  // namespace motis
