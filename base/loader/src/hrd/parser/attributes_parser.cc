@@ -31,7 +31,8 @@ std::map<uint16_t, std::string> parse_attributes(loaded_file const& file,
     auto text = is_multiple_spaces(line)
                     ? c.parse_field(line, c.att_.text_mul_spaces_)
                     : c.parse_field(line, c.att_.text_normal_);
-    attributes[raw_to_int<uint16_t>(code)] = std::string(text.str, text.len);
+    attributes[raw_to_int<uint16_t>(code)] =
+        std::string(text.str, text.len - 1);
   });
   return attributes;
 }

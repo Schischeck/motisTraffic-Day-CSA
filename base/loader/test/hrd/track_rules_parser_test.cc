@@ -98,12 +98,9 @@ TEST(loader_hrd_track_rules, parse_track_rules_line_too_short) {
 
   try {
     flatbuffers64::FlatBufferBuilder b;
-
     auto bitfields = parse_bitfields(f, c);
-    printf("BITFIELDS PARSED \n");
     auto track_rules = parse_track_rules(track_rules_file, b, c);
   } catch (parser_error const& e) {
-    printf("Linenumber %d\n", e.line_number_);
     ASSERT_TRUE(e.line_number_ == 2);
     ASSERT_STREQ(c.files(TRACKS), e.filename_);
     catched = true;

@@ -20,6 +20,7 @@ TEST(loader_hrd_attributes, parse_line) {
   ASSERT_TRUE(attributes.size() == 1);
 
   auto it = attributes.find(raw_to_int<uint16_t>(", "));
+  printf("\nIT %s", it->second.c_str());
   ASSERT_TRUE(it != end(attributes));
   ASSERT_TRUE(it->second == "Bus mit Fahrradanhänger");
 }

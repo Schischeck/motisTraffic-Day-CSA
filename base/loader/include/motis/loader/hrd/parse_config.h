@@ -222,7 +222,7 @@ struct config {
     if (f.size_ != f.MAX_SIZE) {
       return s.substr(f.from_, parser::size(f.size_));
     } else {
-      return s.substr(f.from_, s.len - 1);
+      return s.substr(f.from_);
     }
   }
 
@@ -237,10 +237,10 @@ struct config {
     c.cat_ = categories{{0, 3}, {9, 2}, {12, 8}};
     c.dir_ = directions{{0, 7}, {8, field::MAX_SIZE}};
     c.merge_spl_ = merge_split_rules{53,      {47, 6}, {18, 5}, {25, 6},
-                                     {33, 5}, {48, 6}, {0, 7},  {9, 7}};
+                                     {33, 5}, {40, 6}, {0, 7},  {9, 7}};
     c.meta_ = meta_data{{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
     c.st_ =
-        stations{{{0, 2}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
+        stations{{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
     c.th_s_ =
         through_services{{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
     c.tz_ = timezones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
@@ -266,10 +266,10 @@ struct config {
     c.cat_ = categories{{0, 3}, {9, 2}, {12, 8}};
     c.dir_ = directions{{0, 7}, {8, field::MAX_SIZE}};
     c.merge_spl_ = merge_split_rules{50,      {44, 6}, {18, 6}, {23, 6},
-                                     {30, 6}, {47, 6}, {0, 7},  {8, 7}};
+                                     {30, 6}, {37, 6}, {0, 7},  {8, 7}};
     c.meta_ = meta_data{{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
     c.st_ =
-        stations{{{0, 2}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
+        stations{{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
     c.th_s_ =
         through_services{{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
     c.tz_ = timezones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
