@@ -36,8 +36,8 @@ TEST(loader_hrd_config, config_detection_test) {
   auto const missing_new = p.missing_files(root_new_incomplete);
   auto const missing_both = p.missing_files(root_both_incomplete);
 
-  EXPECT_EQ(15, missing_old.size());
-  EXPECT_EQ(13, missing_new.size());
+  EXPECT_EQ(16, missing_old.size());
+  EXPECT_EQ(14, missing_new.size());
   EXPECT_EQ("eckdaten.*", missing_both[0]);
 }
 

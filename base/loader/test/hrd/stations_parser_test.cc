@@ -40,7 +40,7 @@ constexpr char const* footpaths_new = R"(%
 0663370: F0651591  0663370
 )";
 
-constexpr char const* footpaths_new_2 = R"(%
+constexpr char const* footpaths_hrd_20_26 = R"(%
 8003919 0721747 015
 8003935 0651301 003
 8089221:  0122662
@@ -62,7 +62,7 @@ TEST(loader_hrd_stations_parser, meta_data) {
     loaded_file info_text_file("infotext.101", infotext);
     loaded_file fp_old_file("footpaths_old.101", footpaths_old);
     loaded_file fp_new_file("footpaths_new.101", footpaths_new);
-    loaded_file fp_new_file_2("footpats_new_2.101", footpaths_new_2);
+    loaded_file fp_new_file_2("footpats_new_2.101", footpaths_hrd_20_26);
 
     station_meta_data meta_old;
     parse_station_meta_data(info_text_file, fp_old_file, fp_new_file, meta_old,
@@ -85,69 +85,70 @@ TEST(loader_hrd_stations_parser, meta_data) {
 }
 
 TEST(loader_hrd_stations_parser, parse_stations) {
-  try {
-    station_meta_data meta_old;
-    station_meta_data meta_new;
+  station_meta_data meta_old;
+  station_meta_data meta_new;
 
-    parse_station_meta_data(
-        {"infotext.101", infotext}, {"metabhf.101", footpaths_old},
-        {"metabhf_zusatz.101", footpaths_new}, meta_old, hrd_5_00_8_);
-    parse_station_meta_data(
-        {"infotext.101", infotext}, {"metabhf.101", footpaths_new_2},
-        {"metabhf_zusatz.101", footpaths_new}, meta_new, hrd_5_20_26_);
-    auto stations_old = parse_stations({"bahnhof.101", stations_data},
-                                       {"dbkoords.101", coordinates_data},
-                                       meta_old, hrd_5_00_8_);
-    auto stations_new = parse_stations({"bahnhof.101", stations_data},
-                                       {"dbkoords.101", coordinates_data},
-                                       meta_new, hrd_5_20_26_);
-    for (auto stations : {stations_old, stations_new}) {
-      ASSERT_EQ(2, stations.size());
+  auto const infotext_file = loaded_file{"infotext.101", infotext};
+  auto const metabhf_file = loaded_file{"metabhf.101", footpaths_old};
+  auto const meta_zusatz_file =
+      loaded_file{"metabhf_zusatz.101", footpaths_new};
+  auto const meta_hrd_20_26_file =
+      loaded_file{"metabhf.101", footpaths_hrd_20_26};
 
-      auto it = stations.find(100001);
-      ASSERT_TRUE(it != end(stations));
+  parse_station_meta_data(infotext_file, metabhf_file, meta_zusatz_file,
+                          meta_old, hrd_5_00_8_);
+  parse_station_meta_data(infotext_file, meta_hrd_20_26_file, meta_zusatz_file,
+                          meta_new, hrd_5_20_26_);
 
-      auto station = it->second;
-      ASSERT_STREQ("Hauptwache, Frankfurt am Main", station.name_.c_str());
-      ASSERT_TRUE(std::abs(station.lng_ - 8.679296) <= 0.001);
-      ASSERT_TRUE(std::abs(station.lat_ - 50.113963) <= 0.001);
-      ASSERT_EQ(2, station.change_time_);
+  auto const bahnhof = loaded_file{"bahnhof.101", stations_data};
+  auto const koords = loaded_file{"dbkoords.101", coordinates_data};
+  auto stations_old = parse_stations(bahnhof, koords, meta_old, hrd_5_00_8_);
+  auto stations_new = parse_stations(bahnhof, koords, meta_new, hrd_5_20_26_);
 
-      it = stations.find(100002);
-      ASSERT_TRUE(it != end(stations));
+  for (auto stations : {stations_old, stations_new}) {
+    ASSERT_EQ(2, stations.size());
 
-      station = it->second;
-      ASSERT_STREQ("Roemer/Paulskirche, Frankfurt am Main",
-                   station.name_.c_str());
-      ASSERT_TRUE(std::abs(station.lng_ - 8.681793) <= 0.001);
-      ASSERT_TRUE(std::abs(station.lat_ - 50.110902) <= 0.001);
-      ASSERT_EQ(2, station.change_time_);
-    }
-    for (auto metas : {meta_old, meta_new}) {
-      auto const& meta_stations = metas.meta_stations_;
-      ASSERT_EQ(3, meta_stations.size());
-      for (auto const& meta_station : meta_stations) {
-        if (meta_station.eva_ == 8089221) {
-          ASSERT_EQ(1, meta_station.equivalent_.size());
-          EXPECT_EQ(122662, meta_station.equivalent_[0]);
-        }
+    auto it = stations.find(100001);
+    ASSERT_TRUE(it != end(stations));
 
-        if (meta_station.eva_ == 8006552) {
-          ASSERT_EQ(2, meta_station.equivalent_.size());
-          EXPECT_EQ(8006552, meta_station.equivalent_[0]);
-          EXPECT_EQ(8089222, meta_station.equivalent_[1]);
-        }
+    auto station = it->second;
+    ASSERT_STREQ("Hauptwache, Frankfurt am Main", station.name_.c_str());
+    ASSERT_TRUE(std::abs(station.lng_ - 8.679296) <= 0.001);
+    ASSERT_TRUE(std::abs(station.lat_ - 50.113963) <= 0.001);
+    ASSERT_EQ(2, station.change_time_);
 
-        if (meta_station.eva_ == 0663370) {
-          ASSERT_EQ(2, meta_station.equivalent_.size());
-          EXPECT_EQ(651591, meta_station.equivalent_[0]);
-          EXPECT_EQ(663370, meta_station.equivalent_[1]);
-        }
+    it = stations.find(100002);
+    ASSERT_TRUE(it != end(stations));
+
+    station = it->second;
+    ASSERT_STREQ("Roemer/Paulskirche, Frankfurt am Main",
+                 station.name_.c_str());
+    ASSERT_TRUE(std::abs(station.lng_ - 8.681793) <= 0.001);
+    ASSERT_TRUE(std::abs(station.lat_ - 50.110902) <= 0.001);
+    ASSERT_EQ(2, station.change_time_);
+  }
+
+  for (auto metas : {meta_old, meta_new}) {
+    auto const& meta_stations = meta_old.meta_stations_;
+    ASSERT_EQ(3, meta_stations.size());
+    for (auto const& meta_station : meta_stations) {
+      if (meta_station.eva_ == 8089221) {
+        ASSERT_EQ(1, meta_station.equivalent_.size());
+        EXPECT_EQ(122662, meta_station.equivalent_[0]);
+      }
+
+      if (meta_station.eva_ == 8006552) {
+        ASSERT_EQ(2, meta_station.equivalent_.size());
+        EXPECT_EQ(8006552, meta_station.equivalent_[0]);
+        EXPECT_EQ(8089222, meta_station.equivalent_[1]);
+      }
+
+      if (meta_station.eva_ == 0663370) {
+        ASSERT_EQ(2, meta_station.equivalent_.size());
+        EXPECT_EQ(651591, meta_station.equivalent_[0]);
+        EXPECT_EQ(663370, meta_station.equivalent_[1]);
       }
     }
-  } catch (parser_error const& pe) {
-    pe.print_what();
-    ASSERT_TRUE(false);
   }
 }
 
