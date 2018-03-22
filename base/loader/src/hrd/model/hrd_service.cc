@@ -108,37 +108,40 @@ hrd_service::hrd_service(specification const& spec, config const& c)
           std::vector<section>({parse_initial_section(spec)}), parse_section)),
       initial_train_num_(initial_train_num(spec)) {
   parse_range(spec.attributes_, c.attribute_parse_info_, stops_, sections_,
-              &section::attributes_, [](cstr line, range const&) {
-                return attribute{parse<int>(line.substr(22, size(6))),
-                                 line.substr(3, size(2))};
+              &section::attributes_, [&c](cstr line, range const&) {
+                return attribute{
+                    parse<int>(c.parse_field(line, c.s_info_.att_eva_)),
+                    c.parse_field(line, c.s_info_.att_code_)};
               });
 
   parse_range(spec.categories_, c.category_parse_info_, stops_, sections_,
-              &section::category_,
-              [](cstr line, range const&) { return line.substr(3, size(3)); });
+              &section::category_, [&c](cstr line, range const&) {
+                return c.parse_field(line, c.s_info_.cat_);
+              });
 
   parse_range(spec.line_information_, c.line_parse_info_, stops_, sections_,
-              &section::line_information_, [](cstr line, range const&) {
-                return line.substr(3, size(5)).trim();
+              &section::line_information_, [&c](cstr line, range const&) {
+                return c.parse_field(line, c.s_info_.line_).trim();
               });
 
   parse_range(spec.traffic_days_, c.traffic_days_parse_info_, stops_, sections_,
-              &section::traffic_days_, [](cstr line, range const&) {
-                return parse<int>(line.substr(22, size(6)));
+              &section::traffic_days_, [&c](cstr line, range const&) {
+                return parse<int>(c.parse_field(line, c.s_info_.traff_days_));
               });
 
   parse_range(
       spec.directions_, c.direction_parse_info_, stops_, sections_,
       &section::directions_, [&](cstr line, range const& r) {
         if (isdigit(line[5])) {
-          return std::make_pair(parse<uint64_t>(line.substr(5, size(7))),
-                                EVA_NUMBER);
+          return std::make_pair(
+              parse<uint64_t>(c.parse_field(line, c.s_info_.dir_)), EVA_NUMBER);
         } else if (line[5] == ' ') {
           return std::make_pair(
               static_cast<uint64_t>(stops_[r.to_idx_].eva_num_), EVA_NUMBER);
         } else {
-          return std::make_pair(raw_to_int<uint64_t>(line.substr(5, size(7))),
-                                DIRECTION_CODE);
+          return std::make_pair(
+              raw_to_int<uint64_t>(c.parse_field(line, c.s_info_.dir_)),
+              DIRECTION_CODE);
         }
       });
 

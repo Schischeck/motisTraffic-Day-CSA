@@ -103,6 +103,7 @@ void parse_through_service_rules(loaded_file const& file,
 
     auto it =
         hrd_bitfields.find(parse<int>(c.parse_field(line, c.th_s_.bitfield_)));
+
     verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d",
            file.name(), line_number);
 

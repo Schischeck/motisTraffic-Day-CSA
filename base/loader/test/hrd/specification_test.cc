@@ -38,7 +38,9 @@ TEST(loader_hrd_specification, parse_hrd_service_invalid_traffic_days) {
   bool catched = false;
   try {
     test_spec(SCHEDULES / "hand-crafted" / "fahrten", "services-3.101")
-        .get_hrd_services();
+        .get_hrd_services(hrd_5_00_8_);
+    test_spec(SCHEDULES / "hand-crafted_new" / "fahrten", "services-3.txt")
+        .get_hrd_services(hrd_5_20_26_);
   } catch (std::runtime_error const& e) {
     catched = true;
   }

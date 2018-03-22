@@ -94,7 +94,7 @@ void parse_and_add(loaded_file const& metabhf_file,
                    std::set<station_meta_data::meta_station>& meta_stations,
                    config const& c) {
   for_each_line(metabhf_file.content(), [&](cstr line) {
-    if (line.length() < 19 || line[0] == '%' || line[0] == '*') {
+    if (line.length() < 16 || line[0] == '%' || line[0] == '*') {
       return;
     }
 
@@ -102,20 +102,13 @@ void parse_and_add(loaded_file const& metabhf_file,
       auto const eva =
           parse<int>(c.parse_field(line, c.meta_.meta_stations_.eva_));
       std::vector<int> equivalent;
-      if (c.version_ == "hrd_5_00_8") {
-        for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
-          auto const e = parse<int>(token);
-          if (e != 0) {
-            equivalent.push_back(e);
-          }
-        });
-      } else {
-        unsigned i = 9;
-        while (i < line.len) {
-          equivalent.push_back(parse<int>(line.substr(i + 1, size(7))));
-          i = i + 9;
+      for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
+        auto const e = parse<int>(token);
+        if (e != 0) {
+          equivalent.push_back(e);
         }
-      }
+      });
+
       if (!equivalent.empty()) {
         meta_stations.insert({eva, equivalent});
       }

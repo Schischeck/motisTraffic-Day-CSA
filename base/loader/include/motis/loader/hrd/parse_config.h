@@ -77,7 +77,7 @@ struct through_services {
   field eva_;
 };
 
-struct timezones {
+struct time_zones {
   field type1_eva_;
   field type1_first_valid_eva_;
 
@@ -107,6 +107,15 @@ struct range_parse_information {
   int to_eva_or_idx_start_;
   int from_hhmm_or_idx_start_;
   int to_hhmm_or_idx_start_;
+};
+
+struct basic_service_info {
+  field att_eva_;
+  field att_code_;
+  field cat_;
+  field line_;
+  field traff_days_;
+  field dir_;
 };
 
 enum filename_key {
@@ -205,9 +214,10 @@ struct config {
   meta_data meta_;
   stations st_;
   through_services th_s_;
-  timezones tz_;
+  time_zones tz_;
   track track_;
   track_rules track_rul_;
+  basic_service_info s_info_;
 
   range_parse_information attribute_parse_info_;
   range_parse_information line_parse_info_;
@@ -243,8 +253,8 @@ struct config {
         stations{{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
     c.th_s_ =
         through_services{{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
-    c.tz_ = timezones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
-                      {20, 8}, {34, 8}, {29, 4}, {43, 4}};
+    c.tz_ = time_zones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
+                       {20, 8}, {34, 8}, {29, 4}, {43, 4}};
     c.track_ = track{{0, 5}};
     c.track_rul_ =
         track_rules{{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
@@ -254,6 +264,9 @@ struct config {
     c.category_parse_info_ = {7, 15, 23, 30};
     c.traffic_days_parse_info_ = {6, 14, 29, 36};
     c.direction_parse_info_ = {13, 21, 29, 36};
+
+    c.s_info_ =
+        basic_service_info{{22, 6}, {3, 2}, {3, 3}, {3, 5}, {22, 6}, {5, 7}};
 
     c.files_ = files::hrd_5_00_8_files();
     c.version_ = "hrd_5_00_8";
@@ -272,8 +285,8 @@ struct config {
         stations{{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
     c.th_s_ =
         through_services{{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
-    c.tz_ = timezones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
-                      {20, 8}, {34, 8}, {29, 4}, {43, 4}};
+    c.tz_ = time_zones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
+                       {20, 8}, {34, 8}, {29, 4}, {43, 4}};
     c.track_ = track{{0, 5}};
     c.track_rul_ =
         track_rules{{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
@@ -284,6 +297,9 @@ struct config {
     c.traffic_days_parse_info_ = {6, 14, 29, 36};
     c.direction_parse_info_ = {13, 21, 29, 36};
 
+    c.s_info_ =
+        basic_service_info{{22, 6}, {3, 2}, {3, 3}, {3, 8}, {22, 6}, {5, 7}};
+
     c.files_ = files::hrd_5_20_26_files();
     c.version_ = "hrd_5_20_26";
     return c;
@@ -292,3 +308,4 @@ struct config {
 
 const config hrd_5_00_8_ = config::hrd_5_00_8();
 const config hrd_5_20_26_ = config::hrd_5_20_26();
+const std::vector<config> configs_ = {hrd_5_00_8_, hrd_5_20_26_};
