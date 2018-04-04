@@ -4,102 +4,9 @@
 #include <vector>
 
 #include "parser/cstr.h"
-
 struct field {
-  static const int MAX_SIZE = std::numeric_limits<int>::max();
   int from_, size_;
-};
-
-struct attribute {
-  field code_;
-  field text_mul_spaces_;
-  field text_normal_;
-};
-struct bitfield {
-  field index_;
-  field value_;
-};
-struct categories {
-  field code_;
-  field output_rule_;
-  field name_;
-};
-
-struct directions {
-  field eva_;
-  field text_;
-};
-
-struct merge_split_rules {
-  unsigned line_length_;
-  field bitfield_;
-  field key1_nr_;
-  field key1_admin_;
-  field key2_nr_;
-  field key2_admin_;
-  field eva_begin_;
-  field eva_end_;
-};
-
-struct meta_stations {
-  field eva_;
-};
-struct footpaths {
-  field from_;
-  field to_;
-  field duration_;
-};
-struct meta_data {
-  meta_stations meta_stations_;
-  footpaths footpaths_;
-};
-struct names {
-  field eva_;
-  field name_;
-};
-struct coords {
-  field eva_;
-  field lng_;
-  field lat_;
-};
-
-struct stations {
-  names names_;
-  coords coords_;
-};
-
-struct through_services {
-  field bitfield_;
-  field key1_nr_;
-  field key1_admin_;
-  field key2_nr_;
-  field key2_admin_;
-  field eva_;
-};
-
-struct time_zones {
-  field type1_eva_;
-  field type1_first_valid_eva_;
-
-  field type2_eva_ = {0, 7};
-  field type2_dst_to_midnight_;
-
-  field type3_dst_to_midnight1_;
-  field type3_bitfield_idx1_;
-  field type3_bitfield_idx2_;
-  field type3_dst_to_midnight2_;
-  field type3_dst_to_midnight3_;
-};
-struct track {
-  field prov_nr_;
-};
-struct track_rules {
-  field eva_num_;
-  field train_num_;
-  field train_admin_;
-  field track_name_;
-  field time_;
-  field bitfield_;
+  static const int MAX_SIZE = std::numeric_limits<int>::max();
 };
 
 struct range_parse_information {
@@ -107,15 +14,6 @@ struct range_parse_information {
   int to_eva_or_idx_start_;
   int from_hhmm_or_idx_start_;
   int to_hhmm_or_idx_start_;
-};
-
-struct basic_service_info {
-  field att_eva_;
-  field att_code_;
-  field cat_;
-  field line_;
-  field traff_days_;
-  field dir_;
 };
 
 enum filename_key {
@@ -206,18 +104,95 @@ struct files {
 };
 
 struct config {
-  attribute att_;
-  bitfield bf_;
-  categories cat_;
-  directions dir_;
-  merge_split_rules merge_spl_;
-  meta_data meta_;
-  stations st_;
-  through_services th_s_;
-  time_zones tz_;
-  track track_;
-  track_rules track_rul_;
-  basic_service_info s_info_;
+  struct {
+    field code_;
+    field text_mul_spaces_;
+    field text_normal_;
+  } att_;
+  struct {
+    field index_;
+    field value_;
+  } bf_;
+  struct {
+    field code_;
+    field output_rule_;
+    field name_;
+  } cat_;
+  struct {
+    field eva_;
+    field text_;
+  } dir_;
+  struct {
+    unsigned line_length_;
+    field bitfield_;
+    field key1_nr_;
+    field key1_admin_;
+    field key2_nr_;
+    field key2_admin_;
+    field eva_begin_;
+    field eva_end_;
+  } merge_spl_;
+  struct {
+    struct {
+      field eva_;
+    } meta_stations_;
+    struct {
+      field from_;
+      field to_;
+      field duration_;
+    } footpaths_;
+  } meta_;
+  struct {
+    struct {
+      field eva_;
+      field name_;
+    } names_;
+    struct {
+      field eva_;
+      field lng_;
+      field lat_;
+    } coords_;
+  } st_;
+  struct {
+    field bitfield_;
+    field key1_nr_;
+    field key1_admin_;
+    field key2_nr_;
+    field key2_admin_;
+    field eva_;
+  } th_s_;
+  struct {
+    field type1_eva_;
+    field type1_first_valid_eva_;
+
+    field type2_eva_ = {0, 7};
+    field type2_dst_to_midnight_;
+
+    field type3_dst_to_midnight1_;
+    field type3_bitfield_idx1_;
+    field type3_bitfield_idx2_;
+    field type3_dst_to_midnight2_;
+    field type3_dst_to_midnight3_;
+  } tz_;
+  struct {
+    field prov_nr_;
+  } track_;
+  struct {
+    field eva_num_;
+    field train_num_;
+    field train_admin_;
+    field track_name_;
+    field time_;
+    field bitfield_;
+  } track_rul_;
+  struct {
+    field att_eva_;
+    field att_code_;
+    field cat_;
+    field line_;
+    field traff_days_;
+    field dir_;
+  } s_info_;
 
   range_parse_information attribute_parse_info_;
   range_parse_information line_parse_info_;
@@ -228,36 +203,33 @@ struct config {
   files files_;
   parser::cstr version_;
 
-  parser::cstr parse_field(parser::cstr s, field f) const {
-    if (f.size_ != f.MAX_SIZE) {
-      return s.substr(f.from_, parser::size(f.size_));
-    } else {
-      return s.substr(f.from_);
-    }
-  }
-
   const char* files(filename_key k, int index = 0) const {
     return files_.required_files_[k][index].c_str();
   }
 
+  parser::cstr substr(parser::cstr line, field f) {
+    if (f.size_ == field::MAX_SIZE) {
+      return line.substr(f.from_);
+    } else {
+      return line.substr(f.from_, f.size_);
+    }
+  }
+
   static config hrd_5_00_8() {
     config c;
-    c.att_ = attribute{{0, 2}, {21, field::MAX_SIZE}, {12, field::MAX_SIZE}};
-    c.bf_ = bitfield{{0, 6}, {7, field::MAX_SIZE}};
-    c.cat_ = categories{{0, 3}, {9, 2}, {12, 8}};
-    c.dir_ = directions{{0, 7}, {8, field::MAX_SIZE}};
-    c.merge_spl_ = merge_split_rules{53,      {47, 6}, {18, 5}, {25, 6},
-                                     {33, 5}, {40, 6}, {0, 7},  {9, 7}};
-    c.meta_ = meta_data{{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
-    c.st_ =
-        stations{{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
-    c.th_s_ =
-        through_services{{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
-    c.tz_ = time_zones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
-                       {20, 8}, {34, 8}, {29, 4}, {43, 4}};
-    c.track_ = track{{0, 5}};
-    c.track_rul_ =
-        track_rules{{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
+    c.att_ = {{0, 2}, {21, field::MAX_SIZE}, {12, field::MAX_SIZE}};
+    c.bf_ = {{0, 6}, {7, field::MAX_SIZE}};
+    c.cat_ = {{0, 3}, {9, 2}, {12, 8}};
+    c.dir_ = {{0, 7}, {8, field::MAX_SIZE}};
+    c.merge_spl_ = {53,      {47, 6}, {18, 5}, {25, 6},
+                    {33, 5}, {40, 6}, {0, 7},  {9, 7}};
+    c.meta_ = {{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
+    c.st_ = {{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
+    c.th_s_ = {{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
+    c.tz_ = {{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
+             {20, 8}, {34, 8}, {29, 4}, {43, 4}};
+    c.track_ = {{0, 5}};
+    c.track_rul_ = {{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
 
     c.attribute_parse_info_ = {6, 14, 29, 36};
     c.line_parse_info_ = {9, 17, 25, 32};
@@ -265,8 +237,7 @@ struct config {
     c.traffic_days_parse_info_ = {6, 14, 29, 36};
     c.direction_parse_info_ = {13, 21, 29, 36};
 
-    c.s_info_ =
-        basic_service_info{{22, 6}, {3, 2}, {3, 3}, {3, 5}, {22, 6}, {5, 7}};
+    c.s_info_ = {{22, 6}, {3, 2}, {3, 3}, {3, 5}, {22, 6}, {5, 7}};
 
     c.files_ = files::hrd_5_00_8_files();
     c.version_ = "hrd_5_00_8";
@@ -274,22 +245,19 @@ struct config {
   }
   static config hrd_5_20_26() {
     config c;
-    c.att_ = attribute{{0, 2}, {21, field::MAX_SIZE}, {12, field::MAX_SIZE}};
-    c.bf_ = bitfield{{0, 6}, {7, field::MAX_SIZE}};
-    c.cat_ = categories{{0, 3}, {9, 2}, {12, 8}};
-    c.dir_ = directions{{0, 7}, {8, field::MAX_SIZE}};
-    c.merge_spl_ = merge_split_rules{50,      {44, 6}, {18, 6}, {23, 6},
-                                     {30, 6}, {37, 6}, {0, 7},  {8, 7}};
-    c.meta_ = meta_data{{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
-    c.st_ =
-        stations{{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
-    c.th_s_ =
-        through_services{{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
-    c.tz_ = time_zones{{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
-                       {20, 8}, {34, 8}, {29, 4}, {43, 4}};
-    c.track_ = track{{0, 5}};
-    c.track_rul_ =
-        track_rules{{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
+    c.att_ = {{0, 2}, {21, field::MAX_SIZE}, {12, field::MAX_SIZE}};
+    c.bf_ = {{0, 6}, {7, field::MAX_SIZE}};
+    c.cat_ = {{0, 3}, {9, 2}, {12, 8}};
+    c.dir_ = {{0, 7}, {8, field::MAX_SIZE}};
+    c.merge_spl_ = {50,      {44, 6}, {18, 6}, {23, 6},
+                    {30, 6}, {37, 6}, {0, 7},  {8, 7}};
+    c.meta_ = {{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
+    c.st_ = {{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
+    c.th_s_ = {{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
+    c.tz_ = {{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
+             {20, 8}, {34, 8}, {29, 4}, {43, 4}};
+    c.track_ = {{0, 5}};
+    c.track_rul_ = {{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
 
     c.attribute_parse_info_ = {6, 14, 29, 36};
     c.line_parse_info_ = {12, 20, 28, 35};
@@ -297,8 +265,7 @@ struct config {
     c.traffic_days_parse_info_ = {6, 14, 29, 36};
     c.direction_parse_info_ = {13, 21, 29, 36};
 
-    c.s_info_ =
-        basic_service_info{{22, 6}, {3, 2}, {3, 3}, {3, 8}, {22, 6}, {5, 7}};
+    c.s_info_ = {{22, 6}, {3, 2}, {3, 3}, {3, 8}, {22, 6}, {5, 7}};
 
     c.files_ = files::hrd_5_20_26_files();
     c.version_ = "hrd_5_20_26";
@@ -306,6 +273,6 @@ struct config {
   }
 };
 
-const config hrd_5_00_8_ = config::hrd_5_00_8();
-const config hrd_5_20_26_ = config::hrd_5_20_26();
-const std::vector<config> configs_ = {hrd_5_00_8_, hrd_5_20_26_};
+const config hrd_5_00_8 = config::hrd_5_00_8();
+const config hrd_5_20_26 = config::hrd_5_20_26();
+const std::vector<config> configs = {hrd_5_00_8, hrd_5_20_26};

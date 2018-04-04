@@ -41,7 +41,6 @@ using namespace motis::logging;
 namespace fs = boost::filesystem;
 
 bool hrd_parser::applicable(fs::path const& path) {
-  std::vector<config> configs = {hrd_5_00_8_, hrd_5_20_26_};
   return std::any_of(begin(configs), end(configs),
                      [&path, this](config c) { return applicable(path, c); });
 }
@@ -67,10 +66,10 @@ std::vector<std::string> hrd_parser::missing_files(
     fs::path const& hrd_root) const {
   auto const core_data_root = hrd_root / files::CORE_DATA;
   if (fs::is_regular_file(core_data_root / "eckdaten.101")) {
-    return missing_files(hrd_root, hrd_5_00_8_);
+    return missing_files(hrd_root, hrd_5_00_8);
   }
   if (fs::is_regular_file(core_data_root / "eckdaten.txt")) {
-    return missing_files(hrd_root, hrd_5_20_26_);
+    return missing_files(hrd_root, hrd_5_20_26);
   }
   return {"eckdaten.*"};
 }
@@ -136,10 +135,10 @@ void parse_and_build_services(
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
   auto const core_data_root = hrd_root / files::CORE_DATA;
   if (fs::is_regular_file(core_data_root / "eckdaten.101")) {
-    parse(hrd_root, fbb, hrd_5_00_8_);
+    parse(hrd_root, fbb, hrd_5_00_8);
   }
   if (fs::is_regular_file(core_data_root / "eckdaten.txt")) {
-    parse(hrd_root, fbb, hrd_5_20_26_);
+    parse(hrd_root, fbb, hrd_5_20_26);
   }
 }
 

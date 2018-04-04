@@ -21,8 +21,8 @@ struct category {
   uint8_t output_rule_{0};
 };
 
-std::map<uint32_t, category> parse_categories(loaded_file const& file,
-                                              config const& config);
+std::map<uint32_t, category> parse_categories(loaded_file const&,
+                                              config const&);
 
 }  // namespace hrd
 }  // namespace loader

@@ -18,7 +18,7 @@ void parse_specification(loaded_file const&,
                          std::function<void(specification const&)>);
 
 void for_each_service(loaded_file const&, std::map<int, bitfield> const&,
-                      std::function<void(hrd_service const&)>, config const& c);
+                      std::function<void(hrd_service const&)>, config const&);
 
 }  // namespace hrd
 }  // namespace loader
