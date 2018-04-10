@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
 
   std::vector<std::thread> threads(launcher_opt.num_threads_);
   for (auto& t : threads) {
-    t = std::thread(run(ios));
+    t = std::thread(run(instance.ios_));
   }
 
   std::unique_ptr<boost::asio::deadline_timer> timer;

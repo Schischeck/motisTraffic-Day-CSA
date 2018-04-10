@@ -243,10 +243,10 @@ boost::optional<ris_message> parse_message(xml_node const& msg,
         [](auto&& c, auto&& m) { return parse_addition_msg(c, m); }},
        {"Umleitung",
         [](auto&& c, auto&& m) { return parse_reroute_msg(c, m); }},
-       {"Anschluss",
+       /*{"Anschluss",
         [](auto&& c, auto&& m) { return parse_conn_decision_msg(c, m); }},
        {"Anschlussbewertung",
-        [](auto&& c, auto&& m) { return parse_conn_assessment_msg(c, m); }}});
+        [](auto&& c, auto&& m) { return parse_conn_assessment_msg(c, m); }}*/});
 
   auto const& payload = msg.first_child();
   auto it = map.find(payload.name());
