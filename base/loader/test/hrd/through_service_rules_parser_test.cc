@@ -17,18 +17,18 @@ namespace hrd {
 
 TEST(loader_hrd_ts, multiple_rules) {
   test_spec b_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "bitfield.101");
-  auto hrd_bitfields = parse_bitfields(b_spec.lf_, hrd_5_00_8_);
+  auto hrd_bitfields = parse_bitfields(b_spec.lf_, hrd_5_00_8);
   test_spec ts_spec(SCHEDULES / "ts-mss-hrd" / "stamm", "durchbi.101");
 
   test_spec b_spec_new(SCHEDULES / "ts-mss-hrd_new" / "stamm", "bitfield.txt");
-  auto hrd_bitfields_new = parse_bitfields(b_spec_new.lf_, hrd_5_20_26_);
+  auto hrd_bitfields_new = parse_bitfields(b_spec_new.lf_, hrd_5_20_26);
   test_spec ts_spec_new(SCHEDULES / "ts-mss-hrd_new" / "stamm", "durchbi.txt");
 
   service_rules rs_old;
-  parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs_old, hrd_5_00_8_);
+  parse_through_service_rules(ts_spec.lf_, hrd_bitfields, rs_old, hrd_5_00_8);
   service_rules rs_new;
   parse_through_service_rules(ts_spec_new.lf_, hrd_bitfields_new, rs_new,
-                              hrd_5_20_26_);
+                              hrd_5_20_26);
 
   for (auto rs : {rs_old, rs_new}) {
     ASSERT_EQ(4, rs.size());

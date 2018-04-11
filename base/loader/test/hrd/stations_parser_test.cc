@@ -66,10 +66,10 @@ TEST(loader_hrd_stations_parser, meta_data) {
 
     station_meta_data meta_old;
     parse_station_meta_data(info_text_file, fp_old_file, fp_new_file, meta_old,
-                            hrd_5_00_8_);
+                            hrd_5_00_8);
     station_meta_data meta_new;
     parse_station_meta_data(info_text_file, fp_new_file_2, fp_new_file,
-                            meta_new, hrd_5_20_26_);
+                            meta_new, hrd_5_20_26);
 
     for (auto m : {meta_old, meta_new}) {
       ASSERT_EQ(2, m.station_change_times_.size());
@@ -96,14 +96,14 @@ TEST(loader_hrd_stations_parser, parse_stations) {
       loaded_file{"metabhf.101", footpaths_hrd_20_26};
 
   parse_station_meta_data(infotext_file, metabhf_file, meta_zusatz_file,
-                          meta_old, hrd_5_00_8_);
+                          meta_old, hrd_5_00_8);
   parse_station_meta_data(infotext_file, meta_hrd_20_26_file, meta_zusatz_file,
-                          meta_new, hrd_5_20_26_);
+                          meta_new, hrd_5_20_26);
 
   auto const bahnhof = loaded_file{"bahnhof.101", stations_data};
   auto const koords = loaded_file{"dbkoords.101", coordinates_data};
-  auto stations_old = parse_stations(bahnhof, koords, meta_old, hrd_5_00_8_);
-  auto stations_new = parse_stations(bahnhof, koords, meta_new, hrd_5_20_26_);
+  auto stations_old = parse_stations(bahnhof, koords, meta_old, hrd_5_00_8);
+  auto stations_new = parse_stations(bahnhof, koords, meta_new, hrd_5_20_26);
 
   for (auto stations : {stations_old, stations_new}) {
     ASSERT_EQ(2, stations.size());

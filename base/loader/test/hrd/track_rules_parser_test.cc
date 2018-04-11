@@ -22,7 +22,7 @@ namespace hrd {
 
 TEST(loader_hrd_track_rules, parse_track_rules_1) {
   flatbuffers64::FlatBufferBuilder b;
-  for (auto const c : configs_) {
+  for (auto const c : configs) {
     loaded_file bitfields_file = {c.files(BITFIELDS), "000001 EF"};
     auto track_file_content =
         "8509404 30467 85____ 3             000000\n"
@@ -62,7 +62,7 @@ TEST(loader_hrd_track_rules, parse_track_rules_1) {
 
 TEST(loader_hrd_track_rules, parse_track_rules_2) {
   flatbuffers64::FlatBufferBuilder b;
-  for (auto const c : configs_) {
+  for (auto const c : configs) {
     loaded_file bitfields_file = {c.files(BITFIELDS), "000001 FF"};
     auto track_file_content = "8000000 00001 80____ 1A       0130 000001";
     loaded_file track_file = {c.files(TRACKS), track_file_content};
@@ -90,7 +90,7 @@ TEST(loader_hrd_track_rules, parse_track_rules_2) {
 }
 
 TEST(loader_hrd_track_rules, parse_track_rules_line_too_short) {
-  for (auto const c : configs_) {
+  for (auto const c : configs) {
     bool catched = false;
     loaded_file f = {c.files(BITFIELDS), "000001 EF"};
     auto track_file_content =

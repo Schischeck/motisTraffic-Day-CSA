@@ -13,12 +13,12 @@ TEST(loader_hrd_config, config_detection_test) {
   auto const root_old_complete = SCHEDULES / "hand-crafted";
   auto const root_new_complete = SCHEDULES / "hand-crafted_new";
 
-  ASSERT_TRUE(p.applicable(root_old_complete, hrd_5_00_8_));
-  ASSERT_FALSE(p.applicable(root_old_complete, hrd_5_20_26_));
+  ASSERT_TRUE(p.applicable(root_old_complete, hrd_5_00_8));
+  ASSERT_FALSE(p.applicable(root_old_complete, hrd_5_20_26));
   ASSERT_TRUE(p.applicable(root_old_complete));
 
-  ASSERT_TRUE(p.applicable(root_new_complete, hrd_5_20_26_));
-  ASSERT_FALSE(p.applicable(root_new_complete, hrd_5_00_8_));
+  ASSERT_TRUE(p.applicable(root_new_complete, hrd_5_20_26));
+  ASSERT_FALSE(p.applicable(root_new_complete, hrd_5_00_8));
   ASSERT_TRUE(p.applicable(root_new_complete));
 
   auto const root_old_incomplete =

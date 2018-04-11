@@ -23,8 +23,8 @@ TEST(loader_hrd_hrd_services, simple_ranges) {
                           "services-1.101");
   test_spec services_file_new(SCHEDULES / "hand-crafted_new" / "fahrten",
                               "services-1.txt");
-  auto services_old = services_file.get_hrd_services(hrd_5_00_8_);
-  auto services_new = services_file_new.get_hrd_services(hrd_5_20_26_);
+  auto services_old = services_file.get_hrd_services(hrd_5_00_8);
+  auto services_new = services_file_new.get_hrd_services(hrd_5_20_26);
   for (auto const services : {services_old, services_new}) {
     ASSERT_TRUE(services.size() == 1);
     auto const& service = services[0];
@@ -92,8 +92,8 @@ TEST(loader_hrd_hrd_services, complex_ranges) {
   test_spec services_file_new(SCHEDULES / "hand-crafted_new" / "fahrten",
                               "services-2.txt");
 
-  auto services_old = services_file.get_hrd_services(hrd_5_00_8_);
-  auto services_new = services_file_new.get_hrd_services(hrd_5_20_26_);
+  auto services_old = services_file.get_hrd_services(hrd_5_00_8);
+  auto services_new = services_file_new.get_hrd_services(hrd_5_20_26);
 
   for (auto const services : {services_old, services_new}) {
     ASSERT_TRUE(services.size() == 1);
@@ -147,7 +147,7 @@ TEST(loader_hrd_hrd_services, complex_ranges) {
 TEST(loader_hrd_hrd_services, new_line_format) {
   test_spec services_file(SCHEDULES / "hand-crafted_new" / "fahrten",
                           "services-4.txt");
-  auto services = services_file.get_hrd_services(hrd_5_20_26_);
+  auto services = services_file.get_hrd_services(hrd_5_20_26);
   ASSERT_TRUE(services.size() == 1);
   auto const& service = services[0];
   ASSERT_TRUE(service.sections_.size() == 2);
@@ -161,7 +161,7 @@ TEST(loader_hrd_hrd_services, indices) {
   test_spec services_file(SCHEDULES / "single-index-bus" / "fahrten",
                           "services.101");
 
-  auto services = services_file.get_hrd_services(hrd_5_00_8_);
+  auto services = services_file.get_hrd_services(hrd_5_00_8);
   ASSERT_TRUE(services.size() == 1);
 
   auto const& service = services[0];
@@ -185,7 +185,7 @@ TEST(loader_hrd_hrd_services, time_prefixes) {
   test_spec services_file(SCHEDULES / "complex-ranges" / "fahrten",
                           "services.101");
 
-  auto services = services_file.get_hrd_services(hrd_5_00_8_);
+  auto services = services_file.get_hrd_services(hrd_5_00_8);
   ASSERT_TRUE(services.size() == 1);
 
   auto const& service = services[0];

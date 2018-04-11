@@ -76,8 +76,8 @@ protected:
   void SetUp() override {
     data_.emplace_back("zeitvs.101", zeitvs_);
     data_.emplace_back("eckdaten.101", eckdaten_);
-    tz_ = parse_timezones(data_[0], data_[1], hrd_5_00_8_);
-    tz_new_ = parse_timezones(data_[0], data_[1], hrd_5_20_26_);
+    tz_ = parse_timezones(data_[0], data_[1], hrd_5_00_8);
+    tz_new_ = parse_timezones(data_[0], data_[1], hrd_5_20_26);
   }
 
 public:
