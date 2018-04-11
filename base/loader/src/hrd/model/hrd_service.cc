@@ -107,14 +107,11 @@ hrd_service::hrd_service(specification const& spec, config const& c)
           std::next(begin(spec.stops_), spec.stops_.size() - 1),
           std::vector<section>({parse_initial_section(spec)}), parse_section)),
       initial_train_num_(initial_train_num(spec)) {
-  parse_range(
-      spec.attributes_, c.attribute_parse_info_, stops_, sections_,
-      &section::attributes_, [&c](cstr line, range const&) {
-        return attribute{
-            parse<int>(line.substr(c.s_info_.att_eva_.from_,
-                                   c.s_info_.att_eva_.size_)),
-            line.substr(c.s_info_.att_code_.from_, c.s_info_.att_code_.size_)};
-      });
+  parse_range(spec.attributes_, c.attribute_parse_info_, stops_, sections_,
+              &section::attributes_, [&c](cstr line, range const&) {
+                return attribute{parse<int>(line.substr(c.s_info_.att_eva_)),
+                                 line.substr(c.s_info_.att_code_)};
+              });
 
   parse_range(spec.categories_, c.category_parse_info_, stops_, sections_,
               &section::category_, [&c](cstr line, range const&) {

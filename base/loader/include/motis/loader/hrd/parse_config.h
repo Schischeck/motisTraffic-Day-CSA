@@ -202,69 +202,171 @@ struct config {
   const char* files(filename_key k, int index = 0) const {
     return files_.required_files_[k][index].c_str();
   }
-
-  static config hrd_5_00_8() {
-    config c;
-    c.att_ = {
-        {0, 2}, {21, parser::field::MAX_SIZE}, {12, parser::field::MAX_SIZE}};
-    c.bf_ = {{0, 6}, {7, parser::field::MAX_SIZE}};
-    c.cat_ = {{0, 3}, {9, 2}, {12, 8}};
-    c.dir_ = {{0, 7}, {8, parser::field::MAX_SIZE}};
-    c.merge_spl_ = {53,      {47, 6}, {18, 5}, {25, 6},
-                    {33, 5}, {40, 6}, {0, 7},  {9, 7}};
-    c.meta_ = {{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
-    c.st_ = {{{0, 7}, {12, parser::field::MAX_SIZE}},
-             {{0, 7}, {8, 10}, {19, 10}}};
-    c.th_s_ = {{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
-    c.tz_ = {{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
-             {20, 8}, {34, 8}, {29, 4}, {43, 4}};
-    c.track_ = {{0, 5}};
-    c.track_rul_ = {{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
-
-    c.attribute_parse_info_ = {6, 14, 29, 36};
-    c.line_parse_info_ = {9, 17, 25, 32};
-    c.category_parse_info_ = {7, 15, 23, 30};
-    c.traffic_days_parse_info_ = {6, 14, 29, 36};
-    c.direction_parse_info_ = {13, 21, 29, 36};
-
-    c.s_info_ = {{22, 6}, {3, 2}, {3, 3}, {3, 5}, {22, 6}, {5, 7}};
-
-    c.files_ = files::hrd_5_00_8_files();
-    c.version_ = "hrd_5_00_8";
-    return c;
-  }
-  static config hrd_5_20_26() {
-    config c;
-    c.att_ = {
-        {0, 2}, {21, parser::field::MAX_SIZE}, {12, parser::field::MAX_SIZE}};
-    c.bf_ = {{0, 6}, {7, parser::field::MAX_SIZE}};
-    c.cat_ = {{0, 3}, {9, 2}, {12, 8}};
-    c.dir_ = {{0, 7}, {8, parser::field::MAX_SIZE}};
-    c.merge_spl_ = {50,      {44, 6}, {18, 6}, {23, 6},
-                    {30, 6}, {37, 6}, {0, 7},  {8, 7}};
-    c.meta_ = {{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
-    c.st_ = {{{0, 7}, {12, parser::field::MAX_SIZE}},
-             {{0, 7}, {8, 10}, {19, 10}}};
-    c.th_s_ = {{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
-    c.tz_ = {{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
-             {20, 8}, {34, 8}, {29, 4}, {43, 4}};
-    c.track_ = {{0, 5}};
-    c.track_rul_ = {{0, 7}, {8, 5}, {14, 6}, {21, 8}, {30, 4}, {35, 6}};
-
-    c.attribute_parse_info_ = {6, 14, 29, 36};
-    c.line_parse_info_ = {12, 20, 28, 35};
-    c.category_parse_info_ = {7, 15, 23, 30};
-    c.traffic_days_parse_info_ = {6, 14, 29, 36};
-    c.direction_parse_info_ = {13, 21, 29, 36};
-
-    c.s_info_ = {{22, 6}, {3, 2}, {3, 3}, {3, 8}, {22, 6}, {5, 7}};
-
-    c.files_ = files::hrd_5_20_26_files();
-    c.version_ = "hrd_5_20_26";
-    return c;
-  }
 };
 
-const config hrd_5_00_8 = config::hrd_5_00_8();
-const config hrd_5_20_26 = config::hrd_5_20_26();
+const config hrd_5_00_8 = {
+    .att_ = {.code_ = {0, 2},
+             .text_mul_spaces_ = {21, parser::field::MAX_SIZE},
+             .text_normal_ = {12, parser::field::MAX_SIZE}},
+    .bf_ = {.index_ = {0, 6}, .value_ = {7, parser::field::MAX_SIZE}},
+    .cat_ = {.code_ = {0, 3}, .output_rule_ = {9, 2}, .name_ = {12, 8}},
+    .dir_ = {.eva_ = {0, 7}, .text_ = {8, parser::field::MAX_SIZE}},
+    .merge_spl_ =
+        {
+            .line_length_ = 53,
+            .bitfield_ = {47, 6},
+            .key1_nr_ = {18, 5},
+            .key1_admin_ = {25, 6},
+            .key2_nr_ = {33, 5},
+            .key2_admin_ = {40, 6},
+            .eva_begin_ = {0, 7},
+            .eva_end_ = {9, 7},
+        },
+    .meta_ = {.meta_stations_ = {.eva_ = {0, 7}},
+              .footpaths_ = {.from_ = {0, 7},
+                             .to_ = {8, 7},
+                             .duration_ = {16, 3}}},
+    .st_ =
+        {
+            .names_ = {.eva_ = {0, 7}, .name_ = {12, parser::field::MAX_SIZE}},
+            .coords_ = {.eva_ = {0, 7}, .lng_ = {8, 10}, .lat_ = {19, 10}},
+        },
+    .th_s_ = {.bitfield_ = {34, 6},
+              .key1_nr_ = {0, 5},
+              .key1_admin_ = {6, 6},
+              .key2_nr_ = {21, 5},
+              .key2_admin_ = {27, 6},
+              .eva_ = {13, 7}},
+    .tz_ = {.type1_eva_ = {0, 7},
+            .type1_first_valid_eva_ = {8, 7},
+
+            .type2_eva_ = {0, 7},
+            .type2_dst_to_midnight_ = {8, 5},
+
+            .type3_dst_to_midnight1_ = {14, 5},
+            .type3_bitfield_idx1_ = {20, 8},
+            .type3_bitfield_idx2_ = {34, 8},
+            .type3_dst_to_midnight2_ = {29, 4},
+            .type3_dst_to_midnight3_ = {43, 4}
+
+    },
+    .track_ = {.prov_nr_ = {0, 5}},
+    .track_rul_ = {.eva_num_ = {0, 7},
+                   .train_num_ = {8, 5},
+                   .train_admin_ = {14, 6},
+                   .track_name_ = {21, 8},
+                   .time_ = {30, 4},
+                   .bitfield_ = {35, 6}},
+
+    .s_info_ = {.att_eva_ = {22, 6},
+                .att_code_ = {3, 2},
+                .cat_ = {3, 3},
+                .line_ = {3, 5},
+                .traff_days_ = {22, 6},
+                .dir_ = {5, 7}},
+    .attribute_parse_info_ = {.from_eva_or_idx_start_ = 6,
+                              .to_eva_or_idx_start_ = 14,
+                              .from_hhmm_or_idx_start_ = 29,
+                              .to_hhmm_or_idx_start_ = 36},
+    .line_parse_info_ = {.from_eva_or_idx_start_ = 9,
+                         .to_eva_or_idx_start_ = 17,
+                         .from_hhmm_or_idx_start_ = 25,
+                         .to_hhmm_or_idx_start_ = 32},
+    .category_parse_info_ = {.from_eva_or_idx_start_ = 7,
+                             .to_eva_or_idx_start_ = 15,
+                             .from_hhmm_or_idx_start_ = 23,
+                             .to_hhmm_or_idx_start_ = 30},
+    .traffic_days_parse_info_ = {.from_eva_or_idx_start_ = 6,
+                                 .to_eva_or_idx_start_ = 14,
+                                 .from_hhmm_or_idx_start_ = 29,
+                                 .to_hhmm_or_idx_start_ = 36},
+    .direction_parse_info_ = {.from_eva_or_idx_start_ = 13,
+                              .to_eva_or_idx_start_ = 21,
+                              .from_hhmm_or_idx_start_ = 29,
+                              .to_hhmm_or_idx_start_ = 36},
+    .files_ = files::hrd_5_00_8_files(),
+    .version_ = "hrd_5_00_8"};
+
+const config hrd_5_20_26 = {
+    .att_ = {.code_ = {0, 2},
+             .text_mul_spaces_ = {21, parser::field::MAX_SIZE},
+             .text_normal_ = {12, parser::field::MAX_SIZE}},
+    .bf_ = {.index_ = {0, 6}, .value_ = {7, parser::field::MAX_SIZE}},
+    .cat_ = {.code_ = {0, 3}, .output_rule_ = {9, 2}, .name_ = {12, 8}},
+    .dir_ = {.eva_ = {0, 7}, .text_ = {8, parser::field::MAX_SIZE}},
+    .merge_spl_ =
+        {
+            .line_length_ = 50,
+            .bitfield_ = {44, 6},
+            .key1_nr_ = {18, 6},
+            .key1_admin_ = {23, 6},
+            .key2_nr_ = {30, 6},
+            .key2_admin_ = {37, 6},
+            .eva_begin_ = {0, 7},
+            .eva_end_ = {8, 7},
+        },
+    .meta_ = {.meta_stations_ = {.eva_ = {0, 7}},
+              .footpaths_ = {.from_ = {0, 7},
+                             .to_ = {8, 7},
+                             .duration_ = {16, 3}}},
+    .st_ =
+        {
+            .names_ = {.eva_ = {0, 7}, .name_ = {12, parser::field::MAX_SIZE}},
+            .coords_ = {.eva_ = {0, 7}, .lng_ = {8, 10}, .lat_ = {19, 10}},
+        },
+    .th_s_ = {.bitfield_ = {34, 6},
+              .key1_nr_ = {0, 5},
+              .key1_admin_ = {6, 6},
+              .key2_nr_ = {21, 5},
+              .key2_admin_ = {27, 6},
+              .eva_ = {13, 7}},
+    .tz_ = {.type1_eva_ = {0, 7},
+            .type1_first_valid_eva_ = {8, 7},
+
+            .type2_eva_ = {0, 7},
+            .type2_dst_to_midnight_ = {8, 5},
+
+            .type3_dst_to_midnight1_ = {14, 5},
+            .type3_bitfield_idx1_ = {20, 8},
+            .type3_bitfield_idx2_ = {34, 8},
+            .type3_dst_to_midnight2_ = {29, 4},
+            .type3_dst_to_midnight3_ = {43, 4}
+
+    },
+    .track_ = {.prov_nr_ = {0, 5}},
+    .track_rul_ = {.eva_num_ = {0, 7},
+                   .train_num_ = {8, 5},
+                   .train_admin_ = {14, 6},
+                   .track_name_ = {21, 8},
+                   .time_ = {30, 4},
+                   .bitfield_ = {35, 6}},
+
+    .s_info_ = {.att_eva_ = {22, 6},
+                .att_code_ = {3, 2},
+                .cat_ = {3, 3},
+                .line_ = {3, 8},
+                .traff_days_ = {22, 6},
+                .dir_ = {5, 7}},
+    .attribute_parse_info_ = {.from_eva_or_idx_start_ = 6,
+                              .to_eva_or_idx_start_ = 14,
+                              .from_hhmm_or_idx_start_ = 29,
+                              .to_hhmm_or_idx_start_ = 36},
+    .line_parse_info_ = {.from_eva_or_idx_start_ = 12,
+                         .to_eva_or_idx_start_ = 20,
+                         .from_hhmm_or_idx_start_ = 28,
+                         .to_hhmm_or_idx_start_ = 35},
+    .category_parse_info_ = {.from_eva_or_idx_start_ = 7,
+                             .to_eva_or_idx_start_ = 15,
+                             .from_hhmm_or_idx_start_ = 23,
+                             .to_hhmm_or_idx_start_ = 30},
+    .traffic_days_parse_info_ = {.from_eva_or_idx_start_ = 6,
+                                 .to_eva_or_idx_start_ = 14,
+                                 .from_hhmm_or_idx_start_ = 29,
+                                 .to_hhmm_or_idx_start_ = 36},
+    .direction_parse_info_ = {.from_eva_or_idx_start_ = 13,
+                              .to_eva_or_idx_start_ = 21,
+                              .from_hhmm_or_idx_start_ = 29,
+                              .to_hhmm_or_idx_start_ = 36},
+    .files_ = files::hrd_5_20_26_files(),
+    .version_ = "hrd_5_20_26"};
 const std::vector<config> configs = {hrd_5_00_8, hrd_5_20_26};
