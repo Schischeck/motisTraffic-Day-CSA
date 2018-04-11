@@ -14,8 +14,8 @@ std::map<uint64_t, std::string> parse_directions(loaded_file const& file,
     if (line.length() < 9 && line[7] == ' ') {
       throw parser_error(file.name(), line_number);
     } else {
-      auto const text = c.parse_field(line, c.dir_.text_);
-      directions[raw_to_int<uint64_t>(c.parse_field(line, c.dir_.eva_))] =
+      auto const text = line.substr(c.dir_.text_);
+      directions[raw_to_int<uint64_t>(line.substr(c.dir_.eva_))] =
           std::string(text.str, text.len);
     }
   });

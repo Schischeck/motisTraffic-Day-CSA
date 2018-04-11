@@ -59,9 +59,8 @@ std::map<int, bitfield> parse_bitfields(loaded_file const& f, config const& c) {
       throw parser_error(f.name(), line_number);
     }
 
-    bitfields[parse<int>(c.parse_field(line, c.bf_.index_))] =
-        hex_str_to_bitset(c.parse_field(line, c.bf_.value_), f.name(),
-                          line_number);
+    bitfields[parse<int>(line.substr(c.bf_.index_))] =
+        hex_str_to_bitset(line.substr(c.bf_.value_), f.name(), line_number);
   });
 
   bitfields[ALL_DAYS_KEY] = create_uniform_bitfield<BIT_COUNT>('1');

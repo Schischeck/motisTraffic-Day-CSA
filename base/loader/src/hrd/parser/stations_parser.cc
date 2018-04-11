@@ -26,8 +26,8 @@ void parse_station_names(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(c.parse_field(line, c.st_.names_.eva_));
-    auto name = c.parse_field(line, c.st_.names_.name_);
+    auto eva_num = parse<int>(line.substr(c.st_.names_.eva_));
+    auto name = line.substr(c.st_.names_.name_);
 
     auto it = std::find(begin(name), end(name), '$');
     if (it != end(name)) {
@@ -49,13 +49,13 @@ void parse_station_coordinates(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(c.parse_field(line, c.st_.coords_.eva_));
+    auto eva_num = parse<int>(line.substr(c.st_.coords_.eva_));
     auto& station = stations[eva_num];
 
     station.lng_ =
-        parse<double>(c.parse_field(line, c.st_.coords_.lng_).trim());
+        parse<double>(line.substr(c.st_.coords_.lng_).trim());
     station.lat_ =
-        parse<double>(c.parse_field(line, c.st_.coords_.lat_).trim());
+        parse<double>(line.substr(c.st_.coords_.lat_).trim());
   });
 }
 

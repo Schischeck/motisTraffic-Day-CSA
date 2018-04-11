@@ -102,19 +102,19 @@ void parse_through_service_rules(loaded_file const& file,
     }
 
     auto it =
-        hrd_bitfields.find(parse<int>(c.parse_field(line, c.th_s_.bitfield_)));
+        hrd_bitfields.find(parse<int>(line.substr(c.th_s_.bitfield_)));
 
     verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d",
            file.name(), line_number);
 
     auto key_1 = std::make_pair(
-        parse<int>(c.parse_field(line, c.th_s_.key1_nr_)),
-        raw_to_int<uint64_t>(c.parse_field(line, c.th_s_.key1_admin_)));
+        parse<int>(line.substr(c.th_s_.key1_nr_)),
+        raw_to_int<uint64_t>(line.substr(c.th_s_.key1_admin_)));
     auto key_2 = std::make_pair(
-        parse<int>(c.parse_field(line, c.th_s_.key2_nr_)),
-        raw_to_int<uint64_t>(c.parse_field(line, c.th_s_.key2_admin_)));
+        parse<int>(line.substr(c.th_s_.key2_nr_)),
+        raw_to_int<uint64_t>(line.substr(c.th_s_.key2_admin_)));
     std::shared_ptr<service_rule> rule(
-        new ts_rule(key_1, key_2, parse<int>(c.parse_field(line, c.th_s_.eva_)),
+        new ts_rule(key_1, key_2, parse<int>(line.substr(c.th_s_.eva_)),
                     it->second));
 
     rules[key_1].push_back(rule);

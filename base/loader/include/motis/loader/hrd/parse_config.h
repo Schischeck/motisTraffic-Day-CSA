@@ -4,10 +4,6 @@
 #include <vector>
 
 #include "parser/cstr.h"
-struct field {
-  int from_, size_;
-  static const int MAX_SIZE = std::numeric_limits<int>::max();
-};
 
 struct range_parse_information {
   int from_eva_or_idx_start_;
@@ -105,93 +101,93 @@ struct files {
 
 struct config {
   struct {
-    field code_;
-    field text_mul_spaces_;
-    field text_normal_;
+    parser::field code_;
+    parser::field text_mul_spaces_;
+    parser::field text_normal_;
   } att_;
   struct {
-    field index_;
-    field value_;
+    parser::field index_;
+    parser::field value_;
   } bf_;
   struct {
-    field code_;
-    field output_rule_;
-    field name_;
+    parser::field code_;
+    parser::field output_rule_;
+    parser::field name_;
   } cat_;
   struct {
-    field eva_;
-    field text_;
+    parser::field eva_;
+    parser::field text_;
   } dir_;
   struct {
     unsigned line_length_;
-    field bitfield_;
-    field key1_nr_;
-    field key1_admin_;
-    field key2_nr_;
-    field key2_admin_;
-    field eva_begin_;
-    field eva_end_;
+    parser::field bitfield_;
+    parser::field key1_nr_;
+    parser::field key1_admin_;
+    parser::field key2_nr_;
+    parser::field key2_admin_;
+    parser::field eva_begin_;
+    parser::field eva_end_;
   } merge_spl_;
   struct {
     struct {
-      field eva_;
+      parser::field eva_;
     } meta_stations_;
     struct {
-      field from_;
-      field to_;
-      field duration_;
+      parser::field from_;
+      parser::field to_;
+      parser::field duration_;
     } footpaths_;
   } meta_;
   struct {
     struct {
-      field eva_;
-      field name_;
+      parser::field eva_;
+      parser::field name_;
     } names_;
     struct {
-      field eva_;
-      field lng_;
-      field lat_;
+      parser::field eva_;
+      parser::field lng_;
+      parser::field lat_;
     } coords_;
   } st_;
   struct {
-    field bitfield_;
-    field key1_nr_;
-    field key1_admin_;
-    field key2_nr_;
-    field key2_admin_;
-    field eva_;
+    parser::field bitfield_;
+    parser::field key1_nr_;
+    parser::field key1_admin_;
+    parser::field key2_nr_;
+    parser::field key2_admin_;
+    parser::field eva_;
   } th_s_;
   struct {
-    field type1_eva_;
-    field type1_first_valid_eva_;
+    parser::field type1_eva_;
+    parser::field type1_first_valid_eva_;
 
-    field type2_eva_ = {0, 7};
-    field type2_dst_to_midnight_;
+    parser::field type2_eva_ = {0, 7};
+    parser::field type2_dst_to_midnight_;
 
-    field type3_dst_to_midnight1_;
-    field type3_bitfield_idx1_;
-    field type3_bitfield_idx2_;
-    field type3_dst_to_midnight2_;
-    field type3_dst_to_midnight3_;
+    parser::field type3_dst_to_midnight1_;
+    parser::field type3_bitfield_idx1_;
+    parser::field type3_bitfield_idx2_;
+    parser::field type3_dst_to_midnight2_;
+    parser::field type3_dst_to_midnight3_;
   } tz_;
   struct {
-    field prov_nr_;
+    parser::field prov_nr_;
   } track_;
   struct {
-    field eva_num_;
-    field train_num_;
-    field train_admin_;
-    field track_name_;
-    field time_;
-    field bitfield_;
+    parser::field eva_num_;
+    parser::field train_num_;
+    parser::field train_admin_;
+    parser::field track_name_;
+    parser::field time_;
+    parser::field bitfield_;
   } track_rul_;
   struct {
-    field att_eva_;
-    field att_code_;
-    field cat_;
-    field line_;
-    field traff_days_;
-    field dir_;
+    parser::field att_eva_;
+    parser::field att_code_;
+    parser::field cat_;
+    parser::field line_;
+    parser::field traff_days_;
+    parser::field dir_;
   } s_info_;
 
   range_parse_information attribute_parse_info_;
@@ -207,24 +203,18 @@ struct config {
     return files_.required_files_[k][index].c_str();
   }
 
-  parser::cstr substr(parser::cstr line, field f) {
-    if (f.size_ == field::MAX_SIZE) {
-      return line.substr(f.from_);
-    } else {
-      return line.substr(f.from_, f.size_);
-    }
-  }
-
   static config hrd_5_00_8() {
     config c;
-    c.att_ = {{0, 2}, {21, field::MAX_SIZE}, {12, field::MAX_SIZE}};
-    c.bf_ = {{0, 6}, {7, field::MAX_SIZE}};
+    c.att_ = {
+        {0, 2}, {21, parser::field::MAX_SIZE}, {12, parser::field::MAX_SIZE}};
+    c.bf_ = {{0, 6}, {7, parser::field::MAX_SIZE}};
     c.cat_ = {{0, 3}, {9, 2}, {12, 8}};
-    c.dir_ = {{0, 7}, {8, field::MAX_SIZE}};
+    c.dir_ = {{0, 7}, {8, parser::field::MAX_SIZE}};
     c.merge_spl_ = {53,      {47, 6}, {18, 5}, {25, 6},
                     {33, 5}, {40, 6}, {0, 7},  {9, 7}};
     c.meta_ = {{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
-    c.st_ = {{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
+    c.st_ = {{{0, 7}, {12, parser::field::MAX_SIZE}},
+             {{0, 7}, {8, 10}, {19, 10}}};
     c.th_s_ = {{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
     c.tz_ = {{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
              {20, 8}, {34, 8}, {29, 4}, {43, 4}};
@@ -245,14 +235,16 @@ struct config {
   }
   static config hrd_5_20_26() {
     config c;
-    c.att_ = {{0, 2}, {21, field::MAX_SIZE}, {12, field::MAX_SIZE}};
-    c.bf_ = {{0, 6}, {7, field::MAX_SIZE}};
+    c.att_ = {
+        {0, 2}, {21, parser::field::MAX_SIZE}, {12, parser::field::MAX_SIZE}};
+    c.bf_ = {{0, 6}, {7, parser::field::MAX_SIZE}};
     c.cat_ = {{0, 3}, {9, 2}, {12, 8}};
-    c.dir_ = {{0, 7}, {8, field::MAX_SIZE}};
+    c.dir_ = {{0, 7}, {8, parser::field::MAX_SIZE}};
     c.merge_spl_ = {50,      {44, 6}, {18, 6}, {23, 6},
                     {30, 6}, {37, 6}, {0, 7},  {8, 7}};
     c.meta_ = {{{0, 7}}, {{0, 7}, {8, 7}, {16, 3}}};
-    c.st_ = {{{0, 7}, {12, field::MAX_SIZE}}, {{0, 7}, {8, 10}, {19, 10}}};
+    c.st_ = {{{0, 7}, {12, parser::field::MAX_SIZE}},
+             {{0, 7}, {8, 10}, {19, 10}}};
     c.th_s_ = {{34, 6}, {0, 5}, {6, 6}, {21, 5}, {27, 6}, {13, 7}};
     c.tz_ = {{0, 7},  {8, 7},  {0, 7},  {8, 5}, {14, 5},
              {20, 8}, {34, 8}, {29, 4}, {43, 4}};

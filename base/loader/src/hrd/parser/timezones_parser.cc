@@ -34,13 +34,13 @@ timezones parse_timezones(loaded_file const& timezones_file,
   for_each_line(timezones_file.content(), [&](cstr line) {
     if (line.length() == 15) {
       auto first_valid_eva_number =
-          eva_number(c.parse_field(line, c.tz_.type1_first_valid_eva_));
+          eva_number(line.substr(c.tz_.type1_first_valid_eva_));
       auto it = tz.eva_to_tze_.find(first_valid_eva_number);
       verify(it != end(tz.eva_to_tze_),
              "missing timezone information for eva number: %d",
              first_valid_eva_number);
 
-      tz.eva_to_tze_[eva_number(c.parse_field(line, c.tz_.type1_eva_))] =
+      tz.eva_to_tze_[eva_number(line.substr(c.tz_.type1_eva_))] =
           it->second;
       return;
     }
@@ -50,23 +50,23 @@ timezones parse_timezones(loaded_file const& timezones_file,
       if (!line.substr(14, size(33)).trim().empty()) {
         opt_season_entry.emplace(
             distance_to_midnight(
-                c.parse_field(line, c.tz_.type3_dst_to_midnight1_)),
-            bitfield_idx(c.parse_field(line, c.tz_.type3_bitfield_idx1_),
+            		line.substr(c.tz_.type3_dst_to_midnight1_)),
+            bitfield_idx(line.substr(c.tz_.type3_bitfield_idx1_),
                          first_schedule_date),
-            bitfield_idx(c.parse_field(line, c.tz_.type3_bitfield_idx2_),
+            bitfield_idx(line.substr(c.tz_.type3_bitfield_idx2_),
                          first_schedule_date),
             distance_to_midnight(
-                c.parse_field(line, c.tz_.type3_dst_to_midnight2_)),
+            		line.substr(c.tz_.type3_dst_to_midnight2_)),
             distance_to_midnight(
-                c.parse_field(line, c.tz_.type3_dst_to_midnight3_)));
+            		line.substr(c.tz_.type3_dst_to_midnight3_)));
       }
 
       tz.timezone_entries_.push_back(std::make_unique<timezone_entry>(
           distance_to_midnight(
-              c.parse_field(line, c.tz_.type2_dst_to_midnight_)),
+          		line.substr(c.tz_.type2_dst_to_midnight_)),
           opt_season_entry));
 
-      tz.eva_to_tze_[eva_number(c.parse_field(line, c.tz_.type2_eva_))] =
+      tz.eva_to_tze_[eva_number(line.substr(c.tz_.type2_eva_))] =
           tz.timezone_entries_.back().get();
     }
   });

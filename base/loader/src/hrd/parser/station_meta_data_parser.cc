@@ -100,7 +100,7 @@ void parse_and_add(loaded_file const& metabhf_file,
 
     if (line[7] == ':') {  // equivalent stations
       auto const eva =
-          parse<int>(c.parse_field(line, c.meta_.meta_stations_.eva_));
+          parse<int>(line.substr(c.meta_.meta_stations_.eva_));
       std::vector<int> equivalent;
       for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
         auto const e = parse<int>(token);
@@ -114,9 +114,9 @@ void parse_and_add(loaded_file const& metabhf_file,
       }
     } else {  // footpaths
       footpaths.insert(
-          {parse<int>(c.parse_field(line, c.meta_.footpaths_.from_)),
-           parse<int>(c.parse_field(line, c.meta_.footpaths_.to_)),
-           parse<int>(c.parse_field(line, c.meta_.footpaths_.duration_))});
+          {parse<int>(line.substr(c.meta_.footpaths_.from_)),
+           parse<int>(line.substr(c.meta_.footpaths_.to_)),
+           parse<int>(line.substr(c.meta_.footpaths_.duration_))});
     }
   });
 }
