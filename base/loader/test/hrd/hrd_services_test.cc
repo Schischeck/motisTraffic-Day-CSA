@@ -25,7 +25,7 @@ TEST(loader_hrd_hrd_services, simple_ranges) {
                               "services-1.txt");
   auto services_old = services_file.get_hrd_services(hrd_5_00_8);
   auto services_new = services_file_new.get_hrd_services(hrd_5_20_26);
-  for (auto const services : {services_old, services_new}) {
+  for (auto const& services : {services_old, services_new}) {
     ASSERT_TRUE(services.size() == 1);
     auto const& service = services[0];
     ASSERT_TRUE(service.sections_.size() == 5);
@@ -95,7 +95,7 @@ TEST(loader_hrd_hrd_services, complex_ranges) {
   auto services_old = services_file.get_hrd_services(hrd_5_00_8);
   auto services_new = services_file_new.get_hrd_services(hrd_5_20_26);
 
-  for (auto const services : {services_old, services_new}) {
+  for (auto const& services : {services_old, services_new}) {
     ASSERT_TRUE(services.size() == 1);
 
     auto const& service = services[0];
