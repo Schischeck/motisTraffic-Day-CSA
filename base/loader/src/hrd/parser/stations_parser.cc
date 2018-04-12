@@ -52,10 +52,8 @@ void parse_station_coordinates(loaded_file const& file,
     auto eva_num = parse<int>(line.substr(c.st_.coords_.eva_));
     auto& station = stations[eva_num];
 
-    station.lng_ =
-        parse<double>(line.substr(c.st_.coords_.lng_).trim());
-    station.lat_ =
-        parse<double>(line.substr(c.st_.coords_.lat_).trim());
+    station.lng_ = parse<double>(line.substr(c.st_.coords_.lng_).trim());
+    station.lat_ = parse<double>(line.substr(c.st_.coords_.lat_).trim());
   });
 }
 

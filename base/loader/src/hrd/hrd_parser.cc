@@ -148,18 +148,15 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
   auto const bitfields_file =
       load(core_data_root, BITFIELDS, c.required_files_);
   bitfield_builder bb(parse_bitfields(bitfields_file, c));
-  auto const infotext_file =
-      load(core_data_root, INFOTEXT, c.required_files_);
-  auto const stations_file =
-      load(core_data_root, STATIONS, c.required_files_);
+  auto const infotext_file = load(core_data_root, INFOTEXT, c.required_files_);
+  auto const stations_file = load(core_data_root, STATIONS, c.required_files_);
   auto const coordinates_file =
       load(core_data_root, COORDINATES, c.required_files_);
   auto const timezones_file =
       load(core_data_root, TIMEZONES, c.required_files_);
   auto const basic_data_file =
       load(core_data_root, BASIC_DATA, c.required_files_);
-  auto const footp_file_1 =
-      load(core_data_root, FOOTPATHS, c.required_files_);
+  auto const footp_file_1 = load(core_data_root, FOOTPATHS, c.required_files_);
   station_meta_data metas;
   if (c.version_ == "hrd_5_00_8") {
     auto const footp_file_2 =
@@ -191,8 +188,7 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
       load(core_data_root, DIRECTIONS, c.required_files_);
   direction_builder db(parse_directions(directions_file, c));
 
-  auto const tracks_file =
-      load(core_data_root, TRACKS, c.required_files_);
+  auto const tracks_file = load(core_data_root, TRACKS, c.required_files_);
   service_builder sb(parse_track_rules(tracks_file, fbb, c));
 
   line_builder lb;
