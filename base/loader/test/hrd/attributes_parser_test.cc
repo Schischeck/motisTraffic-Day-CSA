@@ -14,7 +14,7 @@ namespace loader {
 namespace hrd {
 
 TEST(loader_hrd_attributes, parse_line) {
-  for (auto const c : configs) {
+  for (auto const& c : configs) {
     loaded_file f = {c.files(ATTRIBUTES),
                      ",  0 260 10 Bus mit Fahrradanhänger#"};
     auto attributes = parse_attributes(f, c);
@@ -27,7 +27,7 @@ TEST(loader_hrd_attributes, parse_line) {
 }
 
 TEST(loader_hrd_attributes, parse_and_ignore_line) {
-  for (auto const c : configs) {
+  for (auto const& c : configs) {
     loaded_file f = {c.files(ATTRIBUTES),
                      "ZZ 0 060 10 zusätzlicher Zug#\n# ,  ,  ,"};
     auto attributes = parse_attributes(f, c);
@@ -40,7 +40,7 @@ TEST(loader_hrd_attributes, parse_and_ignore_line) {
 }
 
 TEST(loader_hrd_attributes, invalid_line) {
-  for (auto const c : configs) {
+  for (auto const& c : configs) {
     bool catched = false;
     loaded_file f = {c.files(ATTRIBUTES), ",  0 260 10 "};
     try {
@@ -56,7 +56,7 @@ TEST(loader_hrd_attributes, invalid_line) {
 }
 
 TEST(loader_hrd_attributes, ignore_output_rules) {
-  for (auto const c : configs) {
+  for (auto const& c : configs) {
     loaded_file f = {c.files(ATTRIBUTES), "# ,  ,  ,"};
     ASSERT_TRUE(parse_attributes(f, c).empty());
   }
