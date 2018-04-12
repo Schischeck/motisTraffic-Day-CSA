@@ -10,10 +10,10 @@ namespace loader {
 namespace hrd {
 
 struct range_parse_information {
-  field from_eva_or_idx_;
-  field to_eva_or_idx_;
-  field from_hhmm_or_idx_;
-  field to_hhmm_or_idx_;
+  parser::field from_eva_or_idx_;
+  parser::field to_eva_or_idx_;
+  parser::field from_hhmm_or_idx_;
+  parser::field to_hhmm_or_idx_;
 };
 
 enum filename_key {

@@ -46,10 +46,10 @@ bool hrd_parser::applicable(fs::path const& path) {
 }
 
 bool hrd_parser::applicable(fs::path const& path, config const& c) {
-  auto const core_data_root = path / files::CORE_DATA;
-  return fs::is_directory(path / files::SCHEDULE_DATA) &&
+  auto const core_data_root = path / CORE_DATA;
+  return fs::is_directory(path / SCHEDULE_DATA) &&
          std::all_of(
-             begin(c.files_.required_files_), end(c.files_.required_files_),
+             begin(c.required_files_), end(c.required_files_),
              [&core_data_root](std::vector<std::string> const& alternatives) {
                if (alternatives.empty()) {
                  return true;
@@ -64,7 +64,7 @@ bool hrd_parser::applicable(fs::path const& path, config const& c) {
 
 std::vector<std::string> hrd_parser::missing_files(
     fs::path const& hrd_root) const {
-  auto const core_data_root = hrd_root / files::CORE_DATA;
+  auto const core_data_root = hrd_root / CORE_DATA;
   if (fs::is_regular_file(core_data_root / "eckdaten.101")) {
     return missing_files(hrd_root, hrd_5_00_8);
   }
@@ -77,12 +77,12 @@ std::vector<std::string> hrd_parser::missing_files(
 std::vector<std::string> hrd_parser::missing_files(fs::path const& hrd_root,
                                                    config const& c) const {
   std::vector<std::string> missing_files;
-  auto const schedule_data_root = hrd_root / files::SCHEDULE_DATA;
+  auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
   if (!fs::is_directory(schedule_data_root)) {
     missing_files.push_back(schedule_data_root.string());
   }
-  auto const core_data_root = hrd_root / files::CORE_DATA;
-  for (auto const& alternatives : c.files_.required_files_) {
+  auto const core_data_root = hrd_root / CORE_DATA;
+  for (auto const& alternatives : c.required_files_) {
     std::vector<int> missing_indices;
     int pos = 0;
     for (auto const& alternative : alternatives) {
@@ -118,7 +118,7 @@ void parse_and_build_services(
     std::vector<std::unique_ptr<loaded_file>>& schedule_data,
     std::function<void(hrd_service const&)> const& service_builder_fun,
     config const& c) {
-  auto const schedule_data_root = hrd_root / files::SCHEDULE_DATA;
+  auto const schedule_data_root = hrd_root / SCHEDULE_DATA;
 
   std::vector<fs::path> files;
   collect_files(schedule_data_root, files);
@@ -133,7 +133,7 @@ void parse_and_build_services(
 }
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
-  auto const core_data_root = hrd_root / files::CORE_DATA;
+  auto const core_data_root = hrd_root / CORE_DATA;
   if (fs::is_regular_file(core_data_root / "eckdaten.101")) {
     parse(hrd_root, fbb, hrd_5_00_8);
   }
@@ -144,26 +144,26 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb) {
 
 void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
                        config const& c) {
-  auto const core_data_root = hrd_root / files::CORE_DATA;
+  auto const core_data_root = hrd_root / CORE_DATA;
   auto const bitfields_file =
-      load(core_data_root, BITFIELDS, c.files_.required_files_);
+      load(core_data_root, BITFIELDS, c.required_files_);
   bitfield_builder bb(parse_bitfields(bitfields_file, c));
   auto const infotext_file =
-      load(core_data_root, INFOTEXT, c.files_.required_files_);
+      load(core_data_root, INFOTEXT, c.required_files_);
   auto const stations_file =
-      load(core_data_root, STATIONS, c.files_.required_files_);
+      load(core_data_root, STATIONS, c.required_files_);
   auto const coordinates_file =
-      load(core_data_root, COORDINATES, c.files_.required_files_);
+      load(core_data_root, COORDINATES, c.required_files_);
   auto const timezones_file =
-      load(core_data_root, TIMEZONES, c.files_.required_files_);
+      load(core_data_root, TIMEZONES, c.required_files_);
   auto const basic_data_file =
-      load(core_data_root, BASIC_DATA, c.files_.required_files_);
+      load(core_data_root, BASIC_DATA, c.required_files_);
   auto const footp_file_1 =
-      load(core_data_root, FOOTPATHS, c.files_.required_files_);
+      load(core_data_root, FOOTPATHS, c.required_files_);
   station_meta_data metas;
   if (c.version_ == "hrd_5_00_8") {
     auto const footp_file_2 =
-        load(core_data_root, FOOTPATHS_EXT, c.files_.required_files_);
+        load(core_data_root, FOOTPATHS_EXT, c.required_files_);
     parse_station_meta_data(infotext_file, footp_file_1, footp_file_2, metas,
                             c);
   } else {
@@ -176,32 +176,32 @@ void hrd_parser::parse(fs::path const& hrd_root, FlatBufferBuilder& fbb,
                       parse_timezones(timezones_file, basic_data_file, c));
 
   auto const categories_file =
-      load(core_data_root, CATEGORIES, c.files_.required_files_);
+      load(core_data_root, CATEGORIES, c.required_files_);
   category_builder cb(parse_categories(categories_file, c));
 
   auto const providers_file =
-      load(core_data_root, PROVIDERS, c.files_.required_files_);
+      load(core_data_root, PROVIDERS, c.required_files_);
   provider_builder pb(parse_providers(providers_file, c));
 
   auto const attributes_file =
-      load(core_data_root, ATTRIBUTES, c.files_.required_files_);
+      load(core_data_root, ATTRIBUTES, c.required_files_);
   attribute_builder ab(parse_attributes(attributes_file, c));
 
   auto const directions_file =
-      load(core_data_root, DIRECTIONS, c.files_.required_files_);
+      load(core_data_root, DIRECTIONS, c.required_files_);
   direction_builder db(parse_directions(directions_file, c));
 
   auto const tracks_file =
-      load(core_data_root, TRACKS, c.files_.required_files_);
+      load(core_data_root, TRACKS, c.required_files_);
   service_builder sb(parse_track_rules(tracks_file, fbb, c));
 
   line_builder lb;
   route_builder rb;
 
   auto const ts_file =
-      load(core_data_root, THROUGH_SERVICES, c.files_.required_files_);
+      load(core_data_root, THROUGH_SERVICES, c.required_files_);
   auto const mss_file =
-      load(core_data_root, MERGE_SPLIT_SERVICES, c.files_.required_files_);
+      load(core_data_root, MERGE_SPLIT_SERVICES, c.required_files_);
   service_rules rules;
   parse_through_service_rules(ts_file, bb.hrd_bitfields_, rules, c);
   parse_merge_split_service_rules(mss_file, bb.hrd_bitfields_, rules, c);

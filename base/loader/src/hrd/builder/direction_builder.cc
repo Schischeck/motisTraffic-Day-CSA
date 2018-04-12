@@ -37,7 +37,7 @@ Offset<Direction> direction_builder::get_or_create_direction(
           verify(it != end(hrd_directions_), "missing direction info: %" PRIu64,
                  direction_key.first);
           return CreateDirection(
-              fbb, 0, to_fbs_string(fbb, it->second, files::ENCODING));
+              fbb, 0, to_fbs_string(fbb, it->second, ENCODING));
         }
         default: assert(false); return Offset<Direction>(0);
       }

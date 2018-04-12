@@ -69,12 +69,10 @@ std::vector<std::pair<cstr, range>> compute_ranges(
   std::transform(
       begin(spec_lines), end(spec_lines), begin(parsed), [&](cstr spec) {
         return std::make_pair(
-            spec,
-            range(stops,
-                  spec.substr(parse_info.from_eva_or_idx_start_, size(7)),
-                  spec.substr(parse_info.to_eva_or_idx_start_, size(7)),
-                  spec.substr(parse_info.from_hhmm_or_idx_start_, size(6)),
-                  spec.substr(parse_info.to_hhmm_or_idx_start_, size(6))));
+            spec, range(stops, spec.substr(parse_info.from_eva_or_idx_),
+                        spec.substr(parse_info.to_eva_or_idx_),
+                        spec.substr(parse_info.from_hhmm_or_idx_),
+                        spec.substr(parse_info.to_hhmm_or_idx_)));
       });
   return parsed;
 }

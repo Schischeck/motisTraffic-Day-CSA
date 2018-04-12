@@ -24,9 +24,9 @@ Offset<Provider> provider_builder::get_or_create_provider(
       return 0;
     } else {
       return CreateProvider(
-          fbb, to_fbs_string(fbb, it->second.short_name_, files::ENCODING),
-          to_fbs_string(fbb, it->second.long_name_, files::ENCODING),
-          to_fbs_string(fbb, it->second.full_name_, files::ENCODING));
+          fbb, to_fbs_string(fbb, it->second.short_name_, ENCODING),
+          to_fbs_string(fbb, it->second.long_name_, ENCODING),
+          to_fbs_string(fbb, it->second.full_name_, ENCODING));
     }
   });
 }
