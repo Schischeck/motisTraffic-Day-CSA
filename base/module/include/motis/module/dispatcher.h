@@ -28,7 +28,7 @@ struct dispatcher : public receiver {
       return {};
     }
     return utl::to_vec(it->second, [&](auto&& subscriber) {
-      return scheduler_.post(data, std::bind(subscriber, msg), id);
+      return scheduler_.post(data, std::bind(subscriber.fn_, msg), id);
     });
   }
 
@@ -36,7 +36,7 @@ struct dispatcher : public receiver {
     try {
       id.name = msg->get()->destination()->target()->str();
       return scheduler_.post(
-          data, std::bind(registry_.operations_.at(id.name), msg), id);
+          data, std::bind(registry_.operations_.at(id.name).fn_, msg), id);
     } catch (std::out_of_range const&) {
       throw std::system_error(error::target_not_found);
     }
@@ -55,7 +55,7 @@ struct dispatcher : public receiver {
         ctx_data(this, registry_.sched_),
         [this, id, cb, msg]() {
           try {
-            return cb(registry_.operations_.at(id.name)(msg),
+            return cb(registry_.operations_.at(id.name).fn_(msg),
                       std::error_code());
           } catch (std::system_error const& e) {
             return cb(nullptr, e.code());
