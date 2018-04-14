@@ -50,7 +50,7 @@ char const* connection_assessment_fixture_1 = R"(
 </Nachricht></ListNachricht>
 </Paket>)";
 
-TEST(ris_connection_assessment_message, message_1) {
+TEST(DISABLED_ris_connection_assessment_message, message_1) {
   auto const messages = parse_xml(connection_assessment_fixture_1);
   ASSERT_EQ(1, messages.size());
 
@@ -153,7 +153,7 @@ char const* connection_assessment_fixture_2 = R"(
 </Paket>
 )";
 
-TEST(ris_connection_assessment_message, message_2) {
+TEST(DISABLED_ris_connection_assessment_message, message_2) {
   auto const messages = parse_xml(connection_assessment_fixture_2);
   ASSERT_EQ(1, messages.size());
 
