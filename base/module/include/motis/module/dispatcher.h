@@ -38,6 +38,7 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
 
   future req(msg_ptr const& msg, ctx_data const& data, ctx::op_id id) {
     try {
+      id.name = msg->get()->destination()->target()->str();
       auto const& op = registry_.operations_.at(id.name);
       verify(ctx::current_op<ctx_data>() == nullptr ||
                  ctx::current_op<ctx_data>()->data_.access_ == op.access_,
