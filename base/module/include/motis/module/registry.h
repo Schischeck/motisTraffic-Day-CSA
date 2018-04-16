@@ -2,6 +2,7 @@
 
 #include <map>
 
+#include "motis/module/access_t.h"
 #include "motis/module/message.h"
 
 namespace motis {
@@ -9,8 +10,6 @@ namespace motis {
 struct schedule;
 
 namespace module {
-
-enum class access_t { READ, WRITE };
 
 struct op {
   op(std::function<msg_ptr(msg_ptr const&)> fn, access_t access)

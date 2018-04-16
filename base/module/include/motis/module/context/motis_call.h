@@ -11,9 +11,9 @@ namespace motis {
 namespace module {
 
 inline future motis_call_impl(msg_ptr const& msg, ctx::op_id id) {
-  auto& op = ctx::current_op<ctx_data>();
-  auto& data = op.data_;
-  id.parent_index = op.id_.index;
+  auto const op = ctx::current_op<ctx_data>();
+  auto& data = op->data_;
+  id.parent_index = op->id_.index;
   return data.dispatcher_->req(msg, data, id);
 }
 

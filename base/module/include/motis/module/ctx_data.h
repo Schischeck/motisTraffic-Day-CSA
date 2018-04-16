@@ -6,6 +6,8 @@
 
 #include "ctx/ctx.h"
 
+#include "motis/module/access_t.h"
+
 namespace motis {
 
 struct schedule;
@@ -14,20 +16,18 @@ namespace module {
 
 struct dispatcher;
 
-using env_table = std::shared_ptr<std::map<std::string, std::string>>;
-
 struct ctx_data {
-  ctx_data(dispatcher* d, schedule* sched, env_table e = env_table())
-      : dispatcher_(d), sched_(sched), env_(std::move(e)) {}
-
-  dispatcher* dispatcher_;
-  schedule* sched_;
-  env_table env_;
+  ctx_data(access_t access, dispatcher* d, schedule* sched)
+      : access_{access}, dispatcher_{d}, sched_{sched} {}
 
   void transition(ctx::transition, ctx::op_id const&, ctx::op_id const&) {}
+
+  access_t access_;
+  dispatcher* dispatcher_;
+  schedule* sched_;
 };
 
-inline ctx_data& current_data() { return ctx::current_op<ctx_data>().data_; }
+inline ctx_data& current_data() { return ctx::current_op<ctx_data>()->data_; }
 
 }  // namespace module
 }  // namespace motis

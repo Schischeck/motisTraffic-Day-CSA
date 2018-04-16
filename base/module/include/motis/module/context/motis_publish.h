@@ -12,9 +12,9 @@ namespace module {
 
 inline std::vector<future> motis_publish_impl(msg_ptr const& msg,
                                               ctx::op_id id) {
-  auto& op = ctx::current_op<ctx_data>();
-  auto& data = op.data_;
-  id.parent_index = op.id_.index;
+  auto const op = ctx::current_op<ctx_data>();
+  auto& data = op->data_;
+  id.parent_index = op->id_.index;
   return data.dispatcher_->publish(msg, data, id);
 }
 

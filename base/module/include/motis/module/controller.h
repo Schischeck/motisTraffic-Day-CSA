@@ -17,21 +17,29 @@ struct controller : public dispatcher, public registry {
   controller() : dispatcher(ios_, *this) {}
 
   template <typename Fn>
-  auto run(Fn f, unsigned num_threads = std::thread::hardware_concurrency()) ->
+  auto run(Fn f, unsigned num_threads = std::thread::hardware_concurrency(),
+           access_t const access = access_t::READ) ->
       typename std::enable_if_t<!std::is_same_v<void, decltype(f())>,
                                 decltype(f())> {
     decltype(f()) result;
-    scheduler_.enqueue(ctx_data(this, sched_), [&]() { result = f(); },
-                       ctx::op_id(CTX_LOCATION));
+    access == access_t::READ
+        ? enqueue_read(ctx_data(access, this, sched_), [&]() { result = f(); },
+                       ctx::op_id(CTX_LOCATION))
+        : enqueue_write(ctx_data(access, this, sched_), [&]() { result = f(); },
+                        ctx::op_id(CTX_LOCATION));
     run_parallel(ios_, num_threads);
     return result;
   }
 
   template <typename Fn>
-  auto run(Fn f, unsigned num_threads = std::thread::hardware_concurrency()) ->
+  auto run(Fn f, unsigned num_threads = std::thread::hardware_concurrency(),
+           access_t const access = access_t::READ) ->
       typename std::enable_if_t<std::is_same_v<void, decltype(f())>> {
-    scheduler_.enqueue(ctx_data(this, sched_), [&]() { f(); },
-                       ctx::op_id(CTX_LOCATION));
+    access == access_t::READ
+        ? enqueue_read(ctx_data(access, this, sched_), [&]() { f(); },
+                       ctx::op_id(CTX_LOCATION))
+        : enqueue_write(ctx_data(access, this, sched_), [&]() { f(); },
+                        ctx::op_id(CTX_LOCATION));
     run_parallel(ios_, num_threads);
   }
 
