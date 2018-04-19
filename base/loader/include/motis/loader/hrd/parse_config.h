@@ -5,6 +5,12 @@
 
 #include "parser/cstr.h"
 
+#ifdef HAVE_DESIGNATED_INITIALIZERS
+#define INIT(f, ...) f = __VA_ARGS__
+#else
+#define INIT(f, ...) __VA_ARGS__
+#endif
+
 namespace motis {
 namespace loader {
 namespace hrd {
@@ -142,305 +148,245 @@ struct config {
 };
 
 const config hrd_5_00_8 = {
-    .att_ =
-        {
-            .code_ = {0, 2},
-            .text_mul_spaces_ = {21, parser::field::MAX_SIZE},
-            .text_normal_ = {12, parser::field::MAX_SIZE},
-        },
-    .bf_ =
-        {
-            .index_ = {0, 6},
-            .value_ = {7, parser::field::MAX_SIZE},
-        },
-    .cat_ =
-        {
-            .code_ = {0, 3},
-            .output_rule_ = {9, 2},
-            .name_ = {12, 8},
-        },
-    .dir_ =
-        {
-            .eva_ = {0, 7},
-            .text_ = {8, parser::field::MAX_SIZE},
-        },
-    .merge_spl_ =
-        {
-            .line_length_ = 53,
-            .bitfield_ = {47, 6},
-            .key1_nr_ = {18, 5},
-            .key1_admin_ = {25, 6},
-            .key2_nr_ = {33, 5},
-            .key2_admin_ = {40, 6},
-            .eva_begin_ = {0, 7},
-            .eva_end_ = {9, 7},
-        },
-    .meta_ =
-        {
-            .meta_stations_ = {.eva_ = {0, 7}},
-            .footpaths_ =
-                {
-                    .from_ = {0, 7},
-                    .to_ = {8, 7},
-                    .duration_ = {16, 3},
-                },
-        },
-    .st_ =
-        {
-            .names_ =
-                {
-                    .eva_ = {0, 7},
-                    .name_ = {12, parser::field::MAX_SIZE},
-                },
-            .coords_ =
-                {
-                    .eva_ = {0, 7},
-                    .lng_ = {8, 10},
-                    .lat_ = {19, 10},
-                },
-        },
-    .th_s_ =
-        {
-            .bitfield_ = {34, 6},
-            .key1_nr_ = {0, 5},
-            .key1_admin_ = {6, 6},
-            .key2_nr_ = {21, 5},
-            .key2_admin_ = {27, 6},
-            .eva_ = {13, 7},
-        },
-    .tz_ =
-        {
-            .type1_eva_ = {0, 7},
-            .type1_first_valid_eva_ = {8, 7},
-            .type2_eva_ = {0, 7},
-            .type2_dst_to_midnight_ = {8, 5},
-            .type3_dst_to_midnight1_ = {14, 5},
-            .type3_bitfield_idx1_ = {20, 8},
-            .type3_bitfield_idx2_ = {34, 8},
-            .type3_dst_to_midnight2_ = {29, 4},
-            .type3_dst_to_midnight3_ = {43, 4},
-        },
-    .track_ = {.prov_nr_ = {0, 5}},
-    .track_rul_ =
-        {
-            .eva_num_ = {0, 7},
-            .train_num_ = {8, 5},
-            .train_admin_ = {14, 6},
-            .track_name_ = {21, 8},
-            .time_ = {30, 4},
-            .bitfield_ = {35, 6},
-        },
-    .s_info_ =
-        {
-            .att_eva_ = {22, 6},
-            .att_code_ = {3, 2},
-            .cat_ = {3, 3},
-            .line_ = {3, 5},
-            .traff_days_ = {22, 6},
-            .dir_ = {5, 7},
-        },
-    .attribute_parse_info_ =
-        {
-            .from_eva_or_idx_ = {6, 7},
-            .to_eva_or_idx_ = {14, 7},
-            .from_hhmm_or_idx_ = {29, 6},
-            .to_hhmm_or_idx_ = {36, 6},
-        },
-    .line_parse_info_ =
-        {
-            .from_eva_or_idx_ = {9, 7},
-            .to_eva_or_idx_ = {17, 7},
-            .from_hhmm_or_idx_ = {25, 6},
-            .to_hhmm_or_idx_ = {32, 6},
-        },
-    .category_parse_info_ =
-        {
-            .from_eva_or_idx_ = {7, 7},
-            .to_eva_or_idx_ = {15, 7},
-            .from_hhmm_or_idx_ = {23, 6},
-            .to_hhmm_or_idx_ = {30, 6},
-        },
-    .traffic_days_parse_info_ =
-        {
-            .from_eva_or_idx_ = {6, 7},
-            .to_eva_or_idx_ = {14, 7},
-            .from_hhmm_or_idx_ = {29, 6},
-            .to_hhmm_or_idx_ = {36, 6},
-        },
-    .direction_parse_info_ =
-        {
-            .from_eva_or_idx_ = {13, 7},
-            .to_eva_or_idx_ = {21, 7},
-            .from_hhmm_or_idx_ = {29, 6},
-            .to_hhmm_or_idx_ = {36, 6},
-        },
-    .version_ = "hrd_5_00_8",
-    .required_files_ = {{"attributd_int_int.101", "attributd_int.101"},
-                        {"bahnhof.101"},
-                        {"dbkoord_geo.101"},
-                        {"bitfield.101"},
-                        {"gleise.101"},
-                        {"infotext.101"},
-                        {"eckdaten.101"},
-                        {"zugart_int.101"},
-                        {"richtung.101"},
-                        {"unternehmen_ris.101"},
-                        {"durchbi.101"},
-                        {"vereinig_vt.101"},
-                        {"zeitvs.101"},
-                        {"metabhf.101"},
-                        {"metabhf_zusatz.101"}},
+    INIT(.att_,
+         {
+             INIT(.code_, {0, 2}),
+             INIT(.text_mul_spaces_, {21, parser::field::MAX_SIZE}),
+             INIT(.text_normal_, {12, parser::field::MAX_SIZE}),
+         }),
+    INIT(.bf_,
+         {
+             INIT(.index_, {0, 6}), INIT(.value_, {7, parser::field::MAX_SIZE}),
+         }),
+    INIT(.cat_,
+         {
+             INIT(.code_, {0, 3}), INIT(.output_rule_, {9, 2}),
+             INIT(.name_, {12, 8}),
+         }),
+    INIT(.dir_,
+         {
+             INIT(.eva_, {0, 7}), INIT(.text_, {8, parser::field::MAX_SIZE}),
+         }),
+    INIT(.merge_spl_,
+         {
+             INIT(.line_length_, 53), INIT(.bitfield_, {47, 6}),
+             INIT(.key1_nr_, {18, 5}), INIT(.key1_admin_, {25, 6}),
+             INIT(.key2_nr_, {33, 5}), INIT(.key2_admin_, {40, 6}),
+             INIT(.eva_begin_, {0, 7}), INIT(.eva_end_, {9, 7}),
+         }),
+    INIT(.meta_,
+         {
+             INIT(.meta_stations_, {INIT(.eva_, {0, 7})}),
+             INIT(.footpaths_,
+                  {
+                      INIT(.from_, {0, 7}), INIT(.to_, {8, 7}),
+                      INIT(.duration_, {16, 3}),
+                  }),
+         }),
+    INIT(.st_,
+         {
+             INIT(.names_,
+                  {
+                      INIT(.eva_, {0, 7}),
+                      INIT(.name_, {12, parser::field::MAX_SIZE}),
+                  }),
+             INIT(.coords_,
+                  {
+                      INIT(.eva_, {0, 7}), INIT(.lng_, {8, 10}),
+                      INIT(.lat_, {19, 10}),
+                  }),
+         }),
+    INIT(.th_s_,
+         {
+             INIT(.bitfield_, {34, 6}), INIT(.key1_nr_, {0, 5}),
+             INIT(.key1_admin_, {6, 6}), INIT(.key2_nr_, {21, 5}),
+             INIT(.key2_admin_, {27, 6}), INIT(.eva_, {13, 7}),
+         }),
+    INIT(.tz_,
+         {
+             INIT(.type1_eva_, {0, 7}), INIT(.type1_first_valid_eva_, {8, 7}),
+             INIT(.type2_eva_, {0, 7}), INIT(.type2_dst_to_midnight_, {8, 5}),
+             INIT(.type3_dst_to_midnight1_, {14, 5}),
+             INIT(.type3_bitfield_idx1_, {20, 8}),
+             INIT(.type3_bitfield_idx2_, {34, 8}),
+             INIT(.type3_dst_to_midnight2_, {29, 4}),
+             INIT(.type3_dst_to_midnight3_, {43, 4}),
+         }),
+    INIT(.track_, {INIT(.prov_nr_, {0, 5})}),
+    INIT(.track_rul_,
+         {
+             INIT(.eva_num_, {0, 7}), INIT(.train_num_, {8, 5}),
+             INIT(.train_admin_, {14, 6}), INIT(.track_name_, {21, 8}),
+             INIT(.time_, {30, 4}), INIT(.bitfield_, {35, 6}),
+         }),
+    INIT(.s_info_,
+         {
+             INIT(.att_eva_, {22, 6}), INIT(.att_code_, {3, 2}),
+             INIT(.cat_, {3, 3}), INIT(.line_, {3, 5}),
+             INIT(.traff_days_, {22, 6}), INIT(.dir_, {5, 7}),
+         }),
+    INIT(.attribute_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {6, 7}), INIT(.to_eva_or_idx_, {14, 7}),
+             INIT(.from_hhmm_or_idx_, {29, 6}), INIT(.to_hhmm_or_idx_, {36, 6}),
+         }),
+    INIT(.line_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {9, 7}), INIT(.to_eva_or_idx_, {17, 7}),
+             INIT(.from_hhmm_or_idx_, {25, 6}), INIT(.to_hhmm_or_idx_, {32, 6}),
+         }),
+    INIT(.category_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {7, 7}), INIT(.to_eva_or_idx_, {15, 7}),
+             INIT(.from_hhmm_or_idx_, {23, 6}), INIT(.to_hhmm_or_idx_, {30, 6}),
+         }),
+    INIT(.traffic_days_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {6, 7}), INIT(.to_eva_or_idx_, {14, 7}),
+             INIT(.from_hhmm_or_idx_, {29, 6}), INIT(.to_hhmm_or_idx_, {36, 6}),
+         }),
+    INIT(.direction_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {13, 7}), INIT(.to_eva_or_idx_, {21, 7}),
+             INIT(.from_hhmm_or_idx_, {29, 6}), INIT(.to_hhmm_or_idx_, {36, 6}),
+         }),
+    INIT(.version_, "hrd_5_00_8"),
+    INIT(.required_files_, {{"attributd_int_int.101", "attributd_int.101"},
+                            {"bahnhof.101"},
+                            {"dbkoord_geo.101"},
+                            {"bitfield.101"},
+                            {"gleise.101"},
+                            {"infotext.101"},
+                            {"eckdaten.101"},
+                            {"zugart_int.101"},
+                            {"richtung.101"},
+                            {"unternehmen_ris.101"},
+                            {"durchbi.101"},
+                            {"vereinig_vt.101"},
+                            {"zeitvs.101"},
+                            {"metabhf.101"},
+                            {"metabhf_zusatz.101"}}),
 };
 
 const config hrd_5_20_26 = {
-    .att_ =
-        {
-            .code_ = {0, 2},
-            .text_mul_spaces_ = {21, parser::field::MAX_SIZE},
-            .text_normal_ = {12, parser::field::MAX_SIZE},
-        },
-    .bf_ =
-        {
-            .index_ = {0, 6},
-            .value_ = {7, parser::field::MAX_SIZE},
-        },
-    .cat_ =
-        {
-            .code_ = {0, 3},
-            .output_rule_ = {9, 2},
-            .name_ = {12, 8},
-        },
-    .dir_ =
-        {
-            .eva_ = {0, 7},
-            .text_ = {8, parser::field::MAX_SIZE},
-        },
-    .merge_spl_ =
-        {
-            .line_length_ = 50,
-            .bitfield_ = {44, 6},
-            .key1_nr_ = {18, 6},
-            .key1_admin_ = {23, 6},
-            .key2_nr_ = {30, 6},
-            .key2_admin_ = {37, 6},
-            .eva_begin_ = {0, 7},
-            .eva_end_ = {8, 7},
-        },
-    .meta_ =
-        {
-            .meta_stations_ = {.eva_ = {0, 7}},
-            .footpaths_ =
-                {
-                    .from_ = {0, 7},
-                    .to_ = {8, 7},
-                    .duration_ = {16, 3},
-                },
-        },
-    .st_ =
-        {
-            .names_ =
-                {
-                    .eva_ = {0, 7},
-                    .name_ = {12, parser::field::MAX_SIZE},
-                },
-            .coords_ =
-                {
-                    .eva_ = {0, 7},
-                    .lng_ = {8, 10},
-                    .lat_ = {19, 10},
-                },
-        },
-    .th_s_ =
-        {
-            .bitfield_ = {34, 6},
-            .key1_nr_ = {0, 5},
-            .key1_admin_ = {6, 6},
-            .key2_nr_ = {21, 5},
-            .key2_admin_ = {27, 6},
-            .eva_ = {13, 7},
-        },
-    .tz_ =
-        {
-            .type1_eva_ = {0, 7},
-            .type1_first_valid_eva_ = {8, 7},
-            .type2_eva_ = {0, 7},
-            .type2_dst_to_midnight_ = {8, 5},
-            .type3_dst_to_midnight1_ = {14, 5},
-            .type3_bitfield_idx1_ = {20, 8},
-            .type3_bitfield_idx2_ = {34, 8},
-            .type3_dst_to_midnight2_ = {29, 4},
-            .type3_dst_to_midnight3_ = {43, 4},
-        },
-    .track_ = {.prov_nr_ = {0, 5}},
-    .track_rul_ =
-        {
-            .eva_num_ = {0, 7},
-            .train_num_ = {8, 5},
-            .train_admin_ = {14, 6},
-            .track_name_ = {21, 8},
-            .time_ = {30, 4},
-            .bitfield_ = {35, 6},
-        },
-    .s_info_ =
-        {
-            .att_eva_ = {22, 6},
-            .att_code_ = {3, 2},
-            .cat_ = {3, 3},
-            .line_ = {3, 8},
-            .traff_days_ = {22, 6},
-            .dir_ = {5, 7},
-        },
-    .attribute_parse_info_ =
-        {
-            .from_eva_or_idx_ = {6, 7},
-            .to_eva_or_idx_ = {14, 7},
-            .from_hhmm_or_idx_ = {29, 6},
-            .to_hhmm_or_idx_ = {36, 6},
-        },
-    .line_parse_info_ =
-        {
-            .from_eva_or_idx_ = {12, 7},
-            .to_eva_or_idx_ = {20, 7},
-            .from_hhmm_or_idx_ = {28, 6},
-            .to_hhmm_or_idx_ = {35, 6},
-        },
-    .category_parse_info_ =
-        {
-            .from_eva_or_idx_ = {7, 7},
-            .to_eva_or_idx_ = {15, 7},
-            .from_hhmm_or_idx_ = {23, 6},
-            .to_hhmm_or_idx_ = {30, 6},
-        },
-    .traffic_days_parse_info_ =
-        {
-            .from_eva_or_idx_ = {6, 7},
-            .to_eva_or_idx_ = {14, 7},
-            .from_hhmm_or_idx_ = {29, 6},
-            .to_hhmm_or_idx_ = {36, 6},
-        },
-    .direction_parse_info_ =
-        {
-            .from_eva_or_idx_ = {13, 7},
-            .to_eva_or_idx_ = {21, 7},
-            .from_hhmm_or_idx_ = {29, 6},
-            .to_hhmm_or_idx_ = {36, 6},
-        },
-    .version_ = "hrd_5_20_26",
-    .required_files_ = {{"attributd.txt"},
-                        {"bahnhof.txt"},
-                        {"bfkoord.txt"},
-                        {"bitfield.txt"},
-                        {"gleise.txt"},
-                        {"infotext.txt"},
-                        {"eckdaten.txt"},
-                        {"zugart.txt"},
-                        {"richtung.txt"},
-                        {"unternehmen_ris.txt"},
-                        {"durchbi.txt"},
-                        {"vereinig_vt.txt"},
-                        {"zeitvs.txt"},
-                        {"metabhf.txt"},
-                        {}},
+    INIT(.att_,
+         {
+             INIT(.code_, {0, 2}),
+             INIT(.text_mul_spaces_, {21, parser::field::MAX_SIZE}),
+             INIT(.text_normal_, {12, parser::field::MAX_SIZE}),
+         }),
+    INIT(.bf_,
+         {
+             INIT(.index_, {0, 6}), INIT(.value_, {7, parser::field::MAX_SIZE}),
+         }),
+    INIT(.cat_,
+         {
+             INIT(.code_, {0, 3}), INIT(.output_rule_, {9, 2}),
+             INIT(.name_, {12, 8}),
+         }),
+    INIT(.dir_,
+         {
+             INIT(.eva_, {0, 7}), INIT(.text_, {8, parser::field::MAX_SIZE}),
+         }),
+    INIT(.merge_spl_,
+         {
+             INIT(.line_length_, 50), INIT(.bitfield_, {44, 6}),
+             INIT(.key1_nr_, {18, 6}), INIT(.key1_admin_, {23, 6}),
+             INIT(.key2_nr_, {30, 6}), INIT(.key2_admin_, {37, 6}),
+             INIT(.eva_begin_, {0, 7}), INIT(.eva_end_, {8, 7}),
+         }),
+    INIT(.meta_,
+         {
+             INIT(.meta_stations_, {INIT(.eva_, {0, 7})}),
+             INIT(.footpaths_,
+                  {
+                      INIT(.from_, {0, 7}), INIT(.to_, {8, 7}),
+                      INIT(.duration_, {16, 3}),
+                  }),
+         }),
+    INIT(.st_,
+         {
+             INIT(.names_,
+                  {
+                      INIT(.eva_, {0, 7}),
+                      INIT(.name_, {12, parser::field::MAX_SIZE}),
+                  }),
+             INIT(.coords_,
+                  {
+                      INIT(.eva_, {0, 7}), INIT(.lng_, {8, 10}),
+                      INIT(.lat_, {19, 10}),
+                  }),
+         }),
+    INIT(.th_s_,
+         {
+             INIT(.bitfield_, {34, 6}), INIT(.key1_nr_, {0, 5}),
+             INIT(.key1_admin_, {6, 6}), INIT(.key2_nr_, {21, 5}),
+             INIT(.key2_admin_, {27, 6}), INIT(.eva_, {13, 7}),
+         }),
+    INIT(.tz_,
+         {
+             INIT(.type1_eva_, {0, 7}), INIT(.type1_first_valid_eva_, {8, 7}),
+             INIT(.type2_eva_, {0, 7}), INIT(.type2_dst_to_midnight_, {8, 5}),
+             INIT(.type3_dst_to_midnight1_, {14, 5}),
+             INIT(.type3_bitfield_idx1_, {20, 8}),
+             INIT(.type3_bitfield_idx2_, {34, 8}),
+             INIT(.type3_dst_to_midnight2_, {29, 4}),
+             INIT(.type3_dst_to_midnight3_, {43, 4}),
+         }),
+    INIT(.track_, {INIT(.prov_nr_, {0, 5})}),
+    INIT(.track_rul_,
+         {
+             INIT(.eva_num_, {0, 7}), INIT(.train_num_, {8, 5}),
+             INIT(.train_admin_, {14, 6}), INIT(.track_name_, {21, 8}),
+             INIT(.time_, {30, 4}), INIT(.bitfield_, {35, 6}),
+         }),
+    INIT(.s_info_,
+         {
+             INIT(.att_eva_, {22, 6}), INIT(.att_code_, {3, 2}),
+             INIT(.cat_, {3, 3}), INIT(.line_, {3, 8}),
+             INIT(.traff_days_, {22, 6}), INIT(.dir_, {5, 7}),
+         }),
+    INIT(.attribute_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {6, 7}), INIT(.to_eva_or_idx_, {14, 7}),
+             INIT(.from_hhmm_or_idx_, {29, 6}), INIT(.to_hhmm_or_idx_, {36, 6}),
+         }),
+    INIT(.line_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {12, 7}), INIT(.to_eva_or_idx_, {20, 7}),
+             INIT(.from_hhmm_or_idx_, {28, 6}), INIT(.to_hhmm_or_idx_, {35, 6}),
+         }),
+    INIT(.category_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {7, 7}), INIT(.to_eva_or_idx_, {15, 7}),
+             INIT(.from_hhmm_or_idx_, {23, 6}), INIT(.to_hhmm_or_idx_, {30, 6}),
+         }),
+    INIT(.traffic_days_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {6, 7}), INIT(.to_eva_or_idx_, {14, 7}),
+             INIT(.from_hhmm_or_idx_, {29, 6}), INIT(.to_hhmm_or_idx_, {36, 6}),
+         }),
+    INIT(.direction_parse_info_,
+         {
+             INIT(.from_eva_or_idx_, {13, 7}), INIT(.to_eva_or_idx_, {21, 7}),
+             INIT(.from_hhmm_or_idx_, {29, 6}), INIT(.to_hhmm_or_idx_, {36, 6}),
+         }),
+    INIT(.version_, "hrd_5_20_26"),
+    INIT(.required_files_, {{"attributd.txt"},
+                            {"bahnhof.txt"},
+                            {"bfkoord.txt"},
+                            {"bitfield.txt"},
+                            {"gleise.txt"},
+                            {"infotext.txt"},
+                            {"eckdaten.txt"},
+                            {"zugart.txt"},
+                            {"richtung.txt"},
+                            {"unternehmen_ris.txt"},
+                            {"durchbi.txt"},
+                            {"vereinig_vt.txt"},
+                            {"zeitvs.txt"},
+                            {"metabhf.txt"},
+                            {}}),
 };
 
 const std::vector<config> configs = {hrd_5_00_8, hrd_5_20_26};
