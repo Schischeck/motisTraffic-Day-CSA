@@ -5,7 +5,7 @@
 
 #include "parser/util.h"
 
-#include "motis/loader/hrd/files.h"
+#include "motis/loader/hrd/parse_config.h"
 
 namespace motis {
 namespace loader {

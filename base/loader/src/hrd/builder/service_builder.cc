@@ -5,8 +5,6 @@
 #include "utl/get_or_create.h"
 #include "utl/to_vec.h"
 
-#include "motis/loader/hrd/files.h"
-
 #if defined(_WIN32) && defined(CreateService)
 #undef CreateService
 #endif

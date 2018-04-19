@@ -20,7 +20,7 @@ struct test_spec {
       : lf_(root / filename) {}
 
   std::vector<specification> get_specs();
-  std::vector<hrd_service> get_hrd_services();
+  std::vector<hrd_service> get_hrd_services(config const&);
   loaded_file lf_;
 };
 

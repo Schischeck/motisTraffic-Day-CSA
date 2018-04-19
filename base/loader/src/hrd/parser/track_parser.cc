@@ -53,7 +53,8 @@ provider_info read_provider_names(cstr line, char const* filename,
   return info;
 }
 
-std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
+std::map<uint64_t, provider_info> parse_providers(loaded_file const& file,
+                                                  config const& c) {
   scoped_timer timer("parsing providers");
 
   std::map<uint64_t, provider_info> providers;
@@ -61,7 +62,7 @@ std::map<uint64_t, provider_info> parse_providers(loaded_file const& file) {
   int previous_provider_number = 0;
 
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
-    auto provider_number = parse<int>(line.substr(0, size(5)));
+    auto provider_number = parse<int>(line.substr(c.track_.prov_nr_));
     if (line[6] == 'K') {
       current_info = read_provider_names(line, file.name(), line_number);
       previous_provider_number = provider_number;

@@ -94,23 +94,26 @@ struct ts_rule : public service_rule {
 
 void parse_through_service_rules(loaded_file const& file,
                                  std::map<int, bitfield> const& hrd_bitfields,
-                                 service_rules& rules) {
+                                 service_rules& rules, config const& c) {
   scoped_timer timer("parsing through trains");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len < 40) {
       return;
     }
 
-    auto it = hrd_bitfields.find(parse<int>(line.substr(34, size(6))));
+    auto it = hrd_bitfields.find(parse<int>(line.substr(c.th_s_.bitfield_)));
+
     verify(it != std::end(hrd_bitfields), "missing bitfield: %s:%d",
            file.name(), line_number);
 
-    auto key_1 = std::make_pair(parse<int>(line.substr(0, size(5))),
-                                raw_to_int<uint64_t>(line.substr(6, size(6))));
-    auto key_2 = std::make_pair(parse<int>(line.substr(21, size(5))),
-                                raw_to_int<uint64_t>(line.substr(27, size(6))));
+    auto key_1 =
+        std::make_pair(parse<int>(line.substr(c.th_s_.key1_nr_)),
+                       raw_to_int<uint64_t>(line.substr(c.th_s_.key1_admin_)));
+    auto key_2 =
+        std::make_pair(parse<int>(line.substr(c.th_s_.key2_nr_)),
+                       raw_to_int<uint64_t>(line.substr(c.th_s_.key2_admin_)));
     std::shared_ptr<service_rule> rule(new ts_rule(
-        key_1, key_2, parse<int>(line.substr(13, size(7))), it->second));
+        key_1, key_2, parse<int>(line.substr(c.th_s_.eva_)), it->second));
 
     rules[key_1].push_back(rule);
     rules[key_2].push_back(rule);

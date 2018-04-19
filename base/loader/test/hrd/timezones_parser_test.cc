@@ -76,11 +76,13 @@ protected:
   void SetUp() override {
     data_.emplace_back("zeitvs.101", zeitvs_);
     data_.emplace_back("eckdaten.101", eckdaten_);
-    tz_ = parse_timezones(data_[0], data_[1]);
+    tz_ = parse_timezones(data_[0], data_[1], hrd_5_00_8);
+    tz_new_ = parse_timezones(data_[0], data_[1], hrd_5_20_26);
   }
 
 public:
   timezones tz_;
+  timezones tz_new_;
   std::vector<loaded_file> data_;
   char const* zeitvs_;
   char const* eckdaten_;
@@ -117,15 +119,19 @@ void test_timezone_entry(
 }
 
 TEST_F(loader_timezones_hrd, timezone_entries) {
-  test_timezone_entry(tz_.find(0), 60, {{120, 105, 315, 120, 180}});
-  test_timezone_entry(tz_.find(9999999), 60, {{120, 105, 315, 120, 180}});
-  test_timezone_entry(tz_.find(2000000), 180);
-  test_timezone_entry(tz_.find(9600001), 210, {{270, 98, 282, 60, 0}});
+  for (auto tz : {&tz_, &tz_new_}) {
+    test_timezone_entry(tz->find(0), 60, {{120, 105, 315, 120, 180}});
+    test_timezone_entry(tz->find(9999999), 60, {{120, 105, 315, 120, 180}});
+    test_timezone_entry(tz->find(2000000), 180);
+    test_timezone_entry(tz->find(9600001), 210, {{270, 98, 282, 60, 0}});
+  }
 }
 
 TEST_F(loader_timezones_synthetic, timezone_interval) {
-  test_timezone_entry(tz_.find(0), 60, {{120, 0, 6, 120, 180}});
-  test_timezone_entry(tz_.find(9999999), 60, {{120, 0, 6, 120, 180}});
+  for (auto tz : {&tz_, &tz_new_}) {
+    test_timezone_entry(tz->find(0), 60, {{120, 0, 6, 120, 180}});
+    test_timezone_entry(tz->find(9999999), 60, {{120, 0, 6, 120, 180}});
+  }
 }
 
 }  // namespace hrd
