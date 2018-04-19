@@ -129,7 +129,7 @@ TEST(loader_hrd_stations_parser, parse_stations) {
   }
 
   for (auto const& metas : {meta_old, meta_new}) {
-    auto const& meta_stations = meta_old.meta_stations_;
+    auto const& meta_stations = metas.meta_stations_;
     ASSERT_EQ(3, meta_stations.size());
     for (auto const& meta_station : meta_stations) {
       if (meta_station.eva_ == 8089221) {
