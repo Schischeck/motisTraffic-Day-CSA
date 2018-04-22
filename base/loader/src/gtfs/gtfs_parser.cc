@@ -28,14 +28,6 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-template <std::size_t N>
-struct get_n {
-  template <typename T>
-  auto operator()(T&& t) const -> decltype(std::get<N>(std::forward<T>(t))) {
-    return std::get<N>(std::forward<T>(t));
-  }
-};
-
 auto const required_files = {AGENCY_FILE, STOPS_FILE,      ROUTES_FILE,
                              TRIPS_FILE,  STOP_TIMES_FILE, TRANSFERS_FILE};
 
