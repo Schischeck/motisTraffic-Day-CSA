@@ -30,7 +30,7 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
     }
     return utl::to_vec(it->second, [&](auto&& op) {
       verify(ctx::current_op<ctx_data>() == nullptr ||
-                 ctx::current_op<ctx_data>()->data_.access_ == op.access_,
+                 ctx::current_op<ctx_data>()->data_.access_ <= op.access_,
              "matches the access permissions of parent or be root operation");
       return post(data, std::bind(op.fn_, msg), id);
     });
@@ -41,7 +41,7 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
       id.name = msg->get()->destination()->target()->str();
       auto const& op = registry_.operations_.at(id.name);
       verify(ctx::current_op<ctx_data>() == nullptr ||
-                 ctx::current_op<ctx_data>()->data_.access_ == op.access_,
+                 ctx::current_op<ctx_data>()->data_.access_ <= op.access_,
              "matches the access permissions of parent or be root operation");
       id.name = msg->get()->destination()->target()->str();
       return post(data, std::bind(op.fn_, msg), id);
