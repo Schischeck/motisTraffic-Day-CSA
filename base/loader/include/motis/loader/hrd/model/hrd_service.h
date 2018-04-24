@@ -6,6 +6,7 @@
 
 #include "motis/loader/bitfield.h"
 #include "motis/loader/hrd/model/specification.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/util.h"
 
 namespace motis {
@@ -69,7 +70,7 @@ struct hrd_service {
         traffic_days_(std::move(traffic_days)),
         initial_train_num_(initial_train_num) {}
 
-  explicit hrd_service(specification const& spec);
+  hrd_service(specification const& spec, config const&);
 
   void verify_service();
 

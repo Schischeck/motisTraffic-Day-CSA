@@ -44,14 +44,16 @@ protected:
     // load bitfields
     flatbuffers64::FlatBufferBuilder fbb;
     data_.emplace_back(stamm / "bitfield.101");
-    bitfield_builder bb(parse_bitfields(data_.back()));
+    bitfield_builder bb(parse_bitfields(data_.back(), hrd_5_00_8));
 
     // load service rules
     service_rules rs;
     data_.emplace_back(stamm / "durchbi.101");
-    parse_through_service_rules(data_.back(), bb.hrd_bitfields_, rs);
+    parse_through_service_rules(data_.back(), bb.hrd_bitfields_, rs,
+                                hrd_5_00_8);
     data_.emplace_back(stamm / "vereinig_vt.101");
-    parse_merge_split_service_rules(data_.back(), bb.hrd_bitfields_, rs);
+    parse_merge_split_service_rules(data_.back(), bb.hrd_bitfields_, rs,
+                                    hrd_5_00_8);
 
     // load services and create rule services
     rsb_ = rule_service_builder(rs);
@@ -60,7 +62,8 @@ protected:
     for (auto const& services_file : services_files) {
       data_.emplace_back(services_file);
       for_each_service(data_.back(), bb.hrd_bitfields_,
-                       [&](hrd_service const& s) { rsb_.add_service(s); });
+                       [&](hrd_service const& s) { rsb_.add_service(s); },
+                       hrd_5_00_8);
     }
     rsb_.resolve_rule_services();
 

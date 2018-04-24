@@ -16,10 +16,10 @@ std::vector<specification> test_spec::get_specs() {
   return specs;
 }
 
-std::vector<hrd_service> test_spec::get_hrd_services() {
+std::vector<hrd_service> test_spec::get_hrd_services(config const& c) {
   std::vector<hrd_service> services;
-  parse_specification(lf_, [&services](specification const& spec) {
-    services.emplace_back(spec);
+  parse_specification(lf_, [&services, &c](specification const& spec) {
+    services.emplace_back(hrd_service(spec, c));
   });
   return services;
 }

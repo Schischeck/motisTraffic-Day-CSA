@@ -4,8 +4,8 @@
 
 #include "parser/util.h"
 
-#include "motis/loader/hrd/files.h"
 #include "motis/loader/hrd/model/hrd_service.h"
+#include "motis/loader/hrd/parse_config.h"
 #include "motis/loader/util.h"
 
 namespace motis {

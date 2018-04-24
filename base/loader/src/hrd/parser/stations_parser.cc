@@ -5,7 +5,6 @@
 #include "parser/arg_parser.h"
 
 #include "motis/core/common/logging.h"
-#include "motis/loader/hrd/files.h"
 #include "motis/loader/parser_error.h"
 #include "motis/loader/util.h"
 
@@ -17,7 +16,8 @@ namespace loader {
 namespace hrd {
 
 void parse_station_names(loaded_file const& file,
-                         std::map<int, intermediate_station>& stations) {
+                         std::map<int, intermediate_station>& stations,
+                         config const& c) {
   scoped_timer timer("parsing station names");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
@@ -26,8 +26,8 @@ void parse_station_names(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(line.substr(0, size(7)));
-    auto name = line.substr(12);
+    auto eva_num = parse<int>(line.substr(c.st_.names_.eva_));
+    auto name = line.substr(c.st_.names_.name_);
 
     auto it = std::find(begin(name), end(name), '$');
     if (it != end(name)) {
@@ -39,7 +39,8 @@ void parse_station_names(loaded_file const& file,
 }
 
 void parse_station_coordinates(loaded_file const& file,
-                               std::map<int, intermediate_station>& stations) {
+                               std::map<int, intermediate_station>& stations,
+                               config const& c) {
   scoped_timer timer("parsing station coordinates");
   for_each_line_numbered(file.content(), [&](cstr line, int line_number) {
     if (line.len == 0 || line[0] == '%') {
@@ -48,11 +49,11 @@ void parse_station_coordinates(loaded_file const& file,
       throw parser_error(file.name(), line_number);
     }
 
-    auto eva_num = parse<int>(line.substr(0, size(7)));
+    auto eva_num = parse<int>(line.substr(c.st_.coords_.eva_));
     auto& station = stations[eva_num];
 
-    station.lng_ = parse<double>(line.substr(8, size(10)).trim());
-    station.lat_ = parse<double>(line.substr(19, size(10)).trim());
+    station.lng_ = parse<double>(line.substr(c.st_.coords_.lng_).trim());
+    station.lat_ = parse<double>(line.substr(c.st_.coords_.lat_).trim());
   });
 }
 
@@ -77,12 +78,12 @@ void set_ds100(station_meta_data const& metas,
 
 std::map<int, intermediate_station> parse_stations(
     loaded_file const& station_names_file,
-    loaded_file const& station_coordinates_file,
-    station_meta_data const& metas) {
+    loaded_file const& station_coordinates_file, station_meta_data const& metas,
+    config const& config) {
   scoped_timer timer("parsing stations");
   std::map<int, intermediate_station> stations;
-  parse_station_names(station_names_file, stations);
-  parse_station_coordinates(station_coordinates_file, stations);
+  parse_station_names(station_names_file, stations, config);
+  parse_station_coordinates(station_coordinates_file, stations, config);
   set_change_times(metas, stations);
   set_ds100(metas, stations);
   return stations;

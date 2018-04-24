@@ -68,10 +68,11 @@ void expand_and_consume(
 
 void for_each_service(loaded_file const& file,
                       std::map<int, bitfield> const& bitfields,
-                      std::function<void(hrd_service const&)> consumer) {
+                      std::function<void(hrd_service const&)> consumer,
+                      config const& c) {
   parse_specification(file, [&](specification const& spec) {
     try {
-      expand_and_consume(hrd_service(spec), bitfields, consumer);
+      expand_and_consume(hrd_service(spec, c), bitfields, consumer);
     } catch (parser_error const& e) {
       LOG(error) << "skipping bad service at " << e.filename_ << ":"
                  << e.line_number_;
