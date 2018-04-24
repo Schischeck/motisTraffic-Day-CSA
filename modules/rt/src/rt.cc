@@ -22,9 +22,11 @@ void rt::init(motis::module::registry& reg) {
 
   namespace p = std::placeholders;
   reg.subscribe("/ris/messages",
-                std::bind(&rt_handler::update, handler_.get(), p::_1));
+                std::bind(&rt_handler::update, handler_.get(), p::_1),
+                motis::module::access_t::WRITE);
   reg.subscribe("/ris/system_time_changed",
-                std::bind(&rt_handler::flush, handler_.get(), p::_1));
+                std::bind(&rt_handler::flush, handler_.get(), p::_1),
+                motis::module::access_t::WRITE);
 }
 
 }  // namespace rt

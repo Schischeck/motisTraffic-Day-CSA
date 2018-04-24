@@ -449,9 +449,11 @@ ris::ris() : module("RIS", "ris"), impl_(std::make_unique<impl>()) {
 ris::~ris() = default;
 
 void ris::init(motis::module::registry& r) {
-  r.subscribe_void("/init", [this] { impl_->init(); });
-  r.register_op("/ris/upload", [this](auto&& m) { return impl_->upload(m); });
-  r.register_op("/ris/forward", [this](auto&& m) { return impl_->forward(m); });
+  r.subscribe_void("/init", [this] { impl_->init(); }, access_t::WRITE);
+  r.register_op("/ris/upload", [this](auto&& m) { return impl_->upload(m); },
+                access_t::WRITE);
+  r.register_op("/ris/forward", [this](auto&& m) { return impl_->forward(m); },
+                access_t::WRITE);
 }
 
 }  // namespace ris
