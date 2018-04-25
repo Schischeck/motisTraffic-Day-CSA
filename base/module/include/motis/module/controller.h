@@ -17,8 +17,8 @@ struct controller : public dispatcher, public registry {
   controller() : dispatcher(ios_, *this) {}
 
   template <typename Fn>
-  auto run(Fn f, unsigned num_threads = std::thread::hardware_concurrency(),
-           access_t const access = access_t::READ) ->
+  auto run(Fn f, access_t const access = access_t::READ,
+           unsigned num_threads = std::thread::hardware_concurrency()) ->
       typename std::enable_if_t<!std::is_same_v<void, decltype(f())>,
                                 decltype(f())> {
     decltype(f()) result;
@@ -32,8 +32,8 @@ struct controller : public dispatcher, public registry {
   }
 
   template <typename Fn>
-  auto run(Fn f, unsigned num_threads = std::thread::hardware_concurrency(),
-           access_t const access = access_t::READ) ->
+  auto run(Fn f, access_t const access = access_t::READ,
+           unsigned num_threads = std::thread::hardware_concurrency()) ->
       typename std::enable_if_t<std::is_same_v<void, decltype(f())>> {
     access == access_t::READ
         ? enqueue_read(ctx_data(access, this, sched_), [&]() { f(); },

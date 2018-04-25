@@ -21,6 +21,32 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
   dispatcher(boost::asio::io_service& ios, registry& reg)
       : ctx::access_scheduler<ctx_data>(ios), registry_(reg) {}
 
+  access_t access_of(std::string const& target) {
+    if (auto const it = registry_.topic_subscriptions_.find(target);
+        it != end(registry_.topic_subscriptions_)) {
+      verify(!registry_.topic_subscriptions_.empty(),
+             "empty topic subscriptions");
+      return std::max_element(
+                 begin(it->second), end(it->second),
+                 [](auto const& a, auto const& b) {
+                   return static_cast<std::underlying_type_t<access_t>>(
+                              a.access_) <
+                          static_cast<std::underlying_type_t<access_t>>(
+                              b.access_);
+                 })
+          ->access_;
+    } else if (auto const it = registry_.operations_.find(target);
+               it != end(registry_.operations_)) {
+      return it->second.access_;
+    } else {
+      return access_t::READ;
+    }
+  }
+
+  access_t access_of(msg_ptr const& msg) {
+    return access_of(msg->get()->destination()->target()->str());
+  }
+
   std::vector<future> publish(msg_ptr const& msg, ctx_data const& data,
                               ctx::op_id id) {
     id.name = msg->get()->destination()->target()->str();
@@ -28,6 +54,7 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
     if (it == end(registry_.topic_subscriptions_)) {
       return {};
     }
+
     return utl::to_vec(it->second, [&](auto&& op) {
       verify(ctx::current_op<ctx_data>() == nullptr ||
                  ctx::current_op<ctx_data>()->data_.access_ >= op.access_,

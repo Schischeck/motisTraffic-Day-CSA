@@ -86,7 +86,7 @@ msg_ptr motis_instance::call(msg_ptr const& msg, unsigned num_threads) {
           e = std::current_exception();
         }
       },
-      num_threads);
+      access_of(msg), num_threads);
 
   if (e) {
     std::rethrow_exception(e);
@@ -110,7 +110,7 @@ void motis_instance::publish(msg_ptr const& msg, unsigned num_threads) {
           e = std::current_exception();
         }
       },
-      num_threads);
+      access_of(msg), num_threads);
 
   if (e) {
     std::rethrow_exception(e);
