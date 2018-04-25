@@ -24,7 +24,7 @@ motis_instance_test::motis_instance_test(
     std::vector<std::string> const& modules_cmdline_opt)
     : instance_(std::make_unique<motis_instance>()) {
   auto modules_cmdline_opt_patched = modules_cmdline_opt;
-  modules_cmdline_opt_patched.emplace_back("--ris.max_db_size=1048576");
+  modules_cmdline_opt_patched.emplace_back("--ris.db_max_size=1048576");
   modules_cmdline_opt_patched.emplace_back("--ris.clear_db=true");
 
   std::vector<conf::configuration*> confs;
