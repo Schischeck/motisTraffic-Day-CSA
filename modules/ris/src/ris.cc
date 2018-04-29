@@ -116,8 +116,7 @@ struct ris::impl {
 
     if (fs::exists(input_)) {
       LOG(warn) << "parsing " << input_;
-      parse(input_);
-      env_.force_sync();
+      parse(input_, null_pub_);
       forward(init_time_);
     } else {
       LOG(warn) << input_ << " does not exist";
@@ -126,34 +125,29 @@ struct ris::impl {
   }
 
   msg_ptr upload(msg_ptr const& msg) {
-    auto const req = motis_content(HTTPRequest, msg);
+    auto const content = motis_content(HTTPRequest, msg)->content();
+    publisher pub;
+    write_to_db(zip_reader{content->c_str(), content->size()}, pub);
+    get_schedule().system_time_ = pub.max_timestamp_;
+    get_schedule().last_update_timestamp_ = std::time(nullptr);
+    return {};
+  }
 
-    write_to_db(zip_reader{req->content()->c_str(), req->content()->size()});
-
-    message_creator fbb;
-    std::vector<flatbuffers::Offset<MessageHolder>> offsets;
-
-    zip_reader reader{req->content()->c_str(), req->content()->size()};
-    std::optional<std::string_view> xml;
-    while ((xml = reader.read())) {
-      xml_to_ris_message(*xml, [&](ris_message&& m) {
-        offsets.push_back(
-            CreateMessageHolder(fbb, fbb.CreateVector(m.data(), m.size())));
-      });
-    }
-
-    fbb.create_and_finish(
-        MsgContent_RISBatch,
-        CreateRISBatch(fbb, fbb.CreateVector(offsets)).Union(),
-        "/ris/messages");
-
-    ctx::await_all(motis_publish(make_msg(fbb)));
-
+  msg_ptr read(msg_ptr const&) {
+    // TODO(felix) Reihenfolge?
+    publisher pub;
+    parse(input_, pub);
+    get_schedule().system_time_ = pub.max_timestamp_;
+    get_schedule().last_update_timestamp_ = std::time(nullptr);
     return {};
   }
 
   msg_ptr forward(msg_ptr const& msg) {
     forward(motis_content(RISForwardTimeRequest, msg)->new_time());
+    return {};
+  }
+
+  msg_ptr purge(msg_ptr const& /* msg */) {  // TODO(felix) implement
     return {};
   }
 
@@ -164,6 +158,44 @@ struct ris::impl {
   size_t db_max_size_{static_cast<size_t>(1024) * 1024 * 1024 * 512};
 
 private:
+  struct publisher {
+    ~publisher() { flush(); }
+
+    void flush() {
+      if (offsets_.empty()) {
+        return;
+      }
+
+      fbb_.create_and_finish(
+          MsgContent_RISBatch,
+          CreateRISBatch(fbb_, fbb_.CreateVector(offsets_)).Union(),
+          "/ris/messages");
+
+      ctx::await_all(motis_publish(make_msg(fbb_)));
+
+      fbb_.Clear();
+      offsets_.clear();
+    }
+
+    void add(uint8_t const* ptr, size_t const size) {
+      max_timestamp_ =
+          std::max(max_timestamp_,
+                   static_cast<time_t>(
+                       reinterpret_cast<Message const*>(ptr)->timestamp()));
+      offsets_.push_back(
+          CreateMessageHolder(fbb_, fbb_.CreateVector(ptr, size)));
+    }
+
+    message_creator fbb_;
+    std::vector<flatbuffers::Offset<MessageHolder>> offsets_;
+    time_t max_timestamp_ = 0;
+  };
+
+  struct null_publisher {
+    void flush() {}
+    void add(uint8_t const*, size_t const) {}
+  } null_pub_;
+
   void forward(time_t const to) {
     std::lock_guard<std::mutex> lock{forward_mutex_};
     auto const& sched = get_schedule();
@@ -184,30 +216,13 @@ private:
     LOG(info) << "forwarding from " << logging::time(from) << " to "
               << logging::time(to);
 
-    message_creator fbb;
-    std::vector<flatbuffers::Offset<MessageHolder>> offsets;
-    auto flush = [&]() {
-      if (offsets.empty()) {
-        return;
-      }
-
-      fbb.create_and_finish(
-          MsgContent_RISBatch,
-          CreateRISBatch(fbb, fbb.CreateVector(offsets)).Union(),
-          "/ris/messages");
-
-      ctx::await_all(motis_publish(make_msg(fbb)));
-
-      fbb.Clear();
-      offsets.clear();
-    };
-
-    auto const& sched = get_schedule();
     auto t = db::txn{env_, db::txn_flags::RDONLY};
     auto db = t.dbi_open(MSG_DB);
     auto c = db::cursor{t, db};
     auto bucket = c.get(db::cursor_op::SET_RANGE, from);
     auto batch_begin = bucket ? bucket->first : 0;
+    publisher pub;
+    auto const& sched = get_schedule();
     while (true) {
       if (!bucket) {
         LOG(info) << "end of db reached";
@@ -230,23 +245,21 @@ private:
             msg->timestamp() <= to && msg->timestamp() >= from &&
             msg->earliest() <= sched.last_event_schedule_time_ &&
             msg->latest() >= sched.first_event_schedule_time_) {
-          offsets.push_back(CreateMessageHolder(
-              fbb,
-              fbb.CreateVector(reinterpret_cast<uint8_t const*>(ptr), size)));
+          pub.add(reinterpret_cast<uint8_t const*>(ptr), size);
         }
 
         ptr += size;
       }
 
       if (timestamp - batch_begin > BATCH_SIZE) {
-        flush();
+        pub.flush();
         batch_begin = timestamp;
       }
 
       bucket = c.get(db::cursor_op::NEXT, 0);
     }
 
-    flush();
+    pub.flush();
     get_schedule().system_time_ = to;
     motis_publish(make_no_msg("/ris/system_time_changed"));
   }
@@ -302,12 +315,14 @@ private:
     return {};
   }
 
-  void parse(fs::path const& p) {
+  template <typename Publisher>
+  void parse(fs::path const& p, Publisher& pub) {
     ctx::await_all(utl::to_vec(
         collect_files(fs::canonical(p, p.root_path())), [&](auto&& e) {
           return spawn_job_void(
-              [e, this]() { write_to_db(e.first, e.second); });
+              [e, this, &pub]() { write_to_db(e.first, e.second, pub); });
         }));
+    env_.force_sync();
   }
 
   bool is_known_file(fs::path const& p) {
@@ -323,20 +338,23 @@ private:
     t.commit();
   }
 
-  void write_to_db(fs::path const& p, file_type const type) {
+  template <typename Publisher>
+  void write_to_db(fs::path const& p, file_type const type, Publisher& pub) {
     using tar_zst = tar_reader<zstd_reader>;
     auto const& cp = p.generic_string();
     switch (type) {
-      case file_type::ZST: write_to_db(tar_zst(zstd_reader(cp.c_str()))); break;
-      case file_type::ZIP: write_to_db(zip_reader(cp.c_str())); break;
-      case file_type::XML: write_to_db(file_reader(cp.c_str())); break;
+      case file_type::ZST:
+        write_to_db(tar_zst(zstd_reader(cp.c_str())), pub);
+        break;
+      case file_type::ZIP: write_to_db(zip_reader(cp.c_str()), pub); break;
+      case file_type::XML: write_to_db(file_reader(cp.c_str()), pub); break;
       default: assert(false);
     }
     add_to_known_files(p);
   }
 
-  template <typename Reader>
-  void write_to_db(Reader&& reader) {
+  template <typename Reader, typename Publisher>
+  void write_to_db(Reader&& reader, Publisher& pub) {
     std::map<time_t /* d.b */, time_t /* min(t) : e <= d.e && l >= d.b */> min;
     std::map<time_t /* d.b */, time_t /* max(t) : e <= d.e && l >= d.b */> max;
     std::map<time_t /* tout */, std::vector<char>> buf;
@@ -380,6 +398,8 @@ private:
       std::memcpy(&buf_val[0] + base, &msg_size, SIZE_TYPE_SIZE);
       std::memcpy(&buf_val[0] + base + SIZE_TYPE_SIZE, m.data(), m.size());
 
+      pub.add(m.data(), m.size());
+
       for_each_day(m, [&](time_t const d) {
         if (auto it = min.lower_bound(d); it != end(min) && it->first == d) {
           it->second = std::min(it->second, m.timestamp_);
@@ -402,6 +422,7 @@ private:
 
     flush_to_db();
     update_min_max(min, max);
+    pub.flush();
   }
 
   void update_min_max(std::map<time_t, time_t> const& min,
@@ -454,6 +475,9 @@ void ris::init(motis::module::registry& r) {
                 access_t::WRITE);
   r.register_op("/ris/forward", [this](auto&& m) { return impl_->forward(m); },
                 access_t::WRITE);
+  r.register_op("/ris/read", [this](auto&& m) { return impl_->read(m); },
+                access_t::WRITE);
+  r.register_op("/ris/purge", [this](auto&& m) { return impl_->purge(m); });
 }
 
 }  // namespace ris
