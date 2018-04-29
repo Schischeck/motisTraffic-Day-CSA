@@ -159,6 +159,12 @@ struct ris::impl {
 
 private:
   struct publisher {
+    publisher() = default;
+    publisher(publisher&&) = delete;
+    publisher(publisher const&) = delete;
+    publisher& operator=(publisher&&) = delete;
+    publisher& operator=(publisher const&) = delete;
+
     ~publisher() { flush(); }
 
     void flush() {

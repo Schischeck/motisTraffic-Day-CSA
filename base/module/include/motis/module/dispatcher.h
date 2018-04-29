@@ -17,6 +17,15 @@
 namespace motis {
 namespace module {
 
+/* Concurrency model:
+ *   - multiple reads or one single write at a time
+ *   - parent op needs to have equal or more permissions as child
+ *   - parent op may not quit until all child ops that require
+ *     access permissions have finished
+ *   - (internal) -> child ops do not require own access permissions
+ *   - note: write ops could spawn multiple parallel write child
+ *           ops which leads to (unchecked) data-races!
+ */
 struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
   dispatcher(boost::asio::io_service& ios, registry& reg)
       : ctx::access_scheduler<ctx_data>(ios), registry_(reg) {}
@@ -78,10 +87,6 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
   }
 
   void on_msg(msg_ptr const& msg, callback const& cb) override {
-    if (!std::strcmp("/api", msg->get()->destination()->target()->c_str())) {
-      return cb(api(), std::error_code());
-    }
-
     ctx::op_id id;
     id.created_at = "dispatcher::on_msg";
     id.parent_index = 0;
@@ -111,43 +116,6 @@ struct dispatcher : public receiver, public ctx::access_scheduler<ctx_data> {
     return op_it->second.access_ == access_t::READ
                ? enqueue_read(data, fn, id)
                : enqueue_write(data, fn, id);
-  }
-
-  msg_ptr api() const {
-    message_creator fbb;
-
-    std::vector<char const*> fbs_def;
-    auto def = message::get_fbs_definitions();
-    fbs_def.reserve(def.second);
-    for (auto i = 0u; i < def.second; ++i) {
-      fbs_def.emplace_back(def.first[i]);
-    }
-
-    struct method {
-      method(std::string path, std::string in, std::string out)
-          : path_(std::move(path)), in_(std::move(in)), out_(std::move(out)) {}
-      std::string path_, in_, out_;
-    };
-    std::vector<method> methods = {
-        {"/routing", "RoutingRequest", "RoutingResponse"},
-        {"/guesser", "StationGuesserRequest", "StationGuesserResponse"}};
-
-    fbb.create_and_finish(
-        MsgContent_ApiDescription,
-        CreateApiDescription(
-            fbb,
-            fbb.CreateVector(utl::to_vec(
-                fbs_def,
-                [&fbb](char const* str) { return fbb.CreateString(str); })),
-            fbb.CreateVector(utl::to_vec(methods,
-                                         [&fbb](method const& m) {
-                                           return CreateMethod(
-                                               fbb, fbb.CreateString(m.path_),
-                                               fbb.CreateString(m.in_),
-                                               fbb.CreateString(m.out_));
-                                         })))
-            .Union());
-    return make_msg(fbb);
   }
 
   registry& registry_;
