@@ -147,7 +147,8 @@ struct ris::impl {
     return {};
   }
 
-  msg_ptr purge(msg_ptr const& /* msg */) {  // TODO(felix) implement
+  msg_ptr purge(msg_ptr const& msg) {  // TODO(felix) implement
+    motis_content(RISPurgeRequest, msg)->until();
     return {};
   }
 
