@@ -126,19 +126,20 @@ struct ris::impl {
 
   msg_ptr upload(msg_ptr const& msg) {
     auto const content = motis_content(HTTPRequest, msg)->content();
+    auto& sched = get_schedule();
     publisher pub;
     write_to_db(zip_reader{content->c_str(), content->size()}, pub);
-    get_schedule().system_time_ = pub.max_timestamp_;
-    get_schedule().last_update_timestamp_ = std::time(nullptr);
+    sched.system_time_ = pub.max_timestamp_;
+    sched.last_update_timestamp_ = std::time(nullptr);
     return {};
   }
 
   msg_ptr read(msg_ptr const&) {
-    // TODO(felix) Reihenfolge?
+    auto& sched = get_schedule();
     publisher pub;
     parse(input_, pub);
-    get_schedule().system_time_ = pub.max_timestamp_;
-    get_schedule().last_update_timestamp_ = std::time(nullptr);
+    sched.system_time_ = pub.max_timestamp_;
+    sched.last_update_timestamp_ = std::time(nullptr);
     return {};
   }
 
@@ -147,8 +148,21 @@ struct ris::impl {
     return {};
   }
 
-  msg_ptr purge(msg_ptr const& msg) {  // TODO(felix) implement
-    motis_content(RISPurgeRequest, msg)->until();
+  msg_ptr purge(msg_ptr const& msg) {
+    auto const until =
+        static_cast<time_t>(motis_content(RISPurgeRequest, msg)->until());
+
+    auto t = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = t.dbi_open(MSG_DB);
+    auto c = db::cursor{t, db};
+    auto bucket = c.get(db::cursor_op::SET_RANGE, until);
+    while (bucket) {
+      if (bucket->first <= until) {
+        c.del();
+      }
+      bucket = c.get(db::cursor_op::PREV, 0);
+    }
+
     return {};
   }
 
