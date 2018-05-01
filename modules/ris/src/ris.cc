@@ -116,7 +116,7 @@ struct ris::impl {
 
     if (fs::exists(input_)) {
       LOG(warn) << "parsing " << input_;
-      parse(input_, null_pub_);
+      parse_parallel(input_, null_pub_);
       forward(init_time_);
     } else {
       LOG(warn) << input_ << " does not exist";
@@ -137,7 +137,7 @@ struct ris::impl {
   msg_ptr read(msg_ptr const&) {
     auto& sched = get_schedule();
     publisher pub;
-    parse(input_, pub);
+    parse_sequential(input_, pub);
     sched.system_time_ = pub.max_timestamp_;
     sched.last_update_timestamp_ = std::time(nullptr);
     return {};
@@ -319,14 +319,15 @@ private:
     }
   }
 
-  std::vector<std::pair<fs::path, file_type>> collect_files(fs::path const& p) {
+  std::vector<std::tuple<time_t, fs::path, file_type>> collect_files(
+      fs::path const& p) {
     if (fs::is_regular_file(p)) {
       if (auto const t = get_file_type(p);
           t != file_type::NONE && !is_known_file(p)) {
-        return {std::make_pair(p, t)};
+        return {std::make_tuple(fs::last_write_time(p), p, t)};
       }
     } else if (fs::is_directory(p)) {
-      std::vector<std::pair<fs::path, file_type>> files;
+      std::vector<std::tuple<time_t, fs::path, file_type>> files;
       for (auto const& entry : fs::directory_iterator(p)) {
         utl::concat(files, collect_files(entry));
       }
@@ -337,12 +338,22 @@ private:
   }
 
   template <typename Publisher>
-  void parse(fs::path const& p, Publisher& pub) {
+  void parse_parallel(fs::path const& p, Publisher& pub) {
     ctx::await_all(utl::to_vec(
         collect_files(fs::canonical(p, p.root_path())), [&](auto&& e) {
-          return spawn_job_void(
-              [e, this, &pub]() { write_to_db(e.first, e.second, pub); });
+          return spawn_job_void([e, this, &pub]() {
+            write_to_db(std::get<1>(e), std::get<2>(e), pub);
+          });
         }));
+    env_.force_sync();
+  }
+
+  template <typename Publisher>
+  void parse_sequential(fs::path const& p, Publisher& pub) {
+    for (auto const & [ t, path, type ] :
+         collect_files(fs::canonical(p, p.root_path()))) {
+      write_to_db(path, type, pub);
+    }
     env_.force_sync();
   }
 
