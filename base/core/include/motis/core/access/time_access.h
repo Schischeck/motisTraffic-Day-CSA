@@ -19,7 +19,7 @@ inline std::time_t external_schedule_end(schedule const& sched) {
 }
 
 inline void verify_timestamp(schedule const& sched, time_t t) {
-  if (t < external_schedule_begin(sched) || t >= external_schedule_end(sched)) {
+  if (t < sched.schedule_begin_ || t >= external_schedule_end(sched)) {
     auto const schedule_begin = external_schedule_begin(sched);
     auto const schedule_end = external_schedule_end(sched);
     LOG(logging::error) << "timestamp not in schedule: " << format_unixtime(t)
