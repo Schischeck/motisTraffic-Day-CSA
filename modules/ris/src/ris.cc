@@ -199,10 +199,11 @@ private:
     }
 
     void add(uint8_t const* ptr, size_t const size) {
-      max_timestamp_ =
-          std::max(max_timestamp_,
-                   static_cast<time_t>(
-                       reinterpret_cast<Message const*>(ptr)->timestamp()));
+      max_timestamp_ = std::max(
+          max_timestamp_,
+          static_cast<time_t>(
+              flatbuffers::GetRoot<Message>(reinterpret_cast<void const*>(ptr))
+                  ->timestamp()));
       offsets_.push_back(
           CreateMessageHolder(fbb_, fbb_.CreateVector(ptr, size)));
     }
