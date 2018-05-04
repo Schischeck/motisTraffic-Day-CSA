@@ -147,7 +147,7 @@ struct statistics {
   unsigned total_updates_ = 0;
   unsigned found_updates_ = 0;
   unsigned update_mismatch_sched_time_ = 0;
-  unsigned diff_gt_5_, diff_gt_10_, diff_gt_30_ = 0;
+  unsigned diff_gt_5_ = 0, diff_gt_10_ = 0, diff_gt_30_ = 0;
 
   unsigned conflicting_events_ = 0;
   unsigned conflicting_moved_ = 0;
