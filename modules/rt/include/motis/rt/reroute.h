@@ -15,7 +15,7 @@
 namespace motis {
 namespace rt {
 
-enum class status {
+enum class reroute_result {
   OK,
   TRIP_NOT_FOUND,
   EVENT_COUNT_MISMATCH,
@@ -187,28 +187,28 @@ inline void add_not_deleted_trip_events(
   }
 }
 
-inline status check_events(std::vector<reroute_event> const& events) {
+inline reroute_result check_events(std::vector<reroute_event> const& events) {
   if (events.empty() || events.size() % 2 != 0) {
-    return status::EVENT_COUNT_MISMATCH;
+    return reroute_result::EVENT_COUNT_MISMATCH;
   }
 
   event_type next = event_type::DEP;
   uint32_t arr_station_idx = 0;
   for (auto const& ev : events) {
     if (ev.ev_type_ != next) {
-      return status::EVENT_ORDER_MISMATCH;
+      return reroute_result::EVENT_ORDER_MISMATCH;
     }
 
     if (ev.ev_type_ == event_type::DEP && arr_station_idx != 0 &&
         ev.station_idx_ != arr_station_idx) {
-      return status::STATION_MISMATCH;
+      return reroute_result::STATION_MISMATCH;
     }
 
     next = (next == event_type::DEP) ? event_type::ARR : event_type::DEP;
     arr_station_idx = ev.station_idx_;
   }
 
-  return status::OK;
+  return reroute_result::OK;
 }
 
 inline uint16_t get_track(schedule& sched, reroute_event const& ev) {
@@ -353,13 +353,13 @@ inline void update_trip(schedule& sched, trip* trp,
   trp->lcon_idx_ = 0;
 }
 
-inline std::pair<status, trip const*> reroute(
+inline std::pair<reroute_result, trip const*> reroute(
     schedule& sched, std::map<schedule_event, delay_info*>& cancelled_delays,
     ris::RerouteMessage const* msg) {
   auto const trp =
       const_cast<trip*>(find_trip_fuzzy(sched, msg->trip_id()));  // NOLINT
   if (trp == nullptr) {
-    return {status::TRIP_NOT_FOUND, nullptr};
+    return {reroute_result::TRIP_NOT_FOUND, nullptr};
   }
 
   for (auto const& e : *trp->edges_) {
@@ -370,7 +370,7 @@ inline std::pair<status, trip const*> reroute(
         std::any_of(
             begin(e->to_->edges_), end(e->to_->edges_),
             [](edge const& e) { return e.type() == edge::THROUGH_EDGE; })) {
-      return {status::RULE_SERVICE_REROUTE_NOT_SUPPORTED, nullptr};
+      return {reroute_result::RULE_SERVICE_REROUTE_NOT_SUPPORTED, nullptr};
     }
   }
 
@@ -383,7 +383,7 @@ inline std::pair<status, trip const*> reroute(
   add_not_deleted_trip_events(sched, del_evs, trp, evs);
   std::sort(begin(evs), end(evs));
   auto check_result = check_events(evs);
-  if (check_result != status::OK) {
+  if (check_result != reroute_result::OK) {
     return {check_result, trp};
   }
 
@@ -397,7 +397,7 @@ inline std::pair<status, trip const*> reroute(
   update_trip(sched, trp, trip_edges);
   store_cancelled_delays(sched, trp, del_evs, cancelled_delays);
 
-  return {status::OK, trp};
+  return {reroute_result::OK, trp};
 }
 
 }  // namespace rt

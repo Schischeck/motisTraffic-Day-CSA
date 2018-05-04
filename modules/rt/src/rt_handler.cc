@@ -45,7 +45,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
                                   : timestamp_reason::FORECAST;
 
           auto const resolved = resolve_events(
-              s, msg->trip_id(),
+              stats_, s, msg->trip_id(),
               utl::to_vec(*msg->events(), [](ris::UpdatedEvent const* ev) {
                 return ev->base();
               }));
@@ -53,12 +53,14 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           for (unsigned i = 0; i < resolved.size(); ++i) {
             auto const& resolved_ev = resolved[i];
             if (!resolved_ev) {
+              ++stats_.unresolved_events_;
               continue;
             }
 
             auto const upd_time =
                 unix_to_motistime(s, msg->events()->Get(i)->updated_time());
             if (upd_time == INVALID_TIME) {
+              ++stats_.update_time_out_of_schedule_;
               continue;
             }
 
@@ -88,7 +90,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           seperate_trip(s, trp);
 
           auto const resolved = resolve_events(
-              s, msg->trip_id(),
+              stats_, s, msg->trip_id(),
               utl::to_vec(*msg->events(),
                           [](ris::Event const* ev) { return ev; }));
 
@@ -112,7 +114,9 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
               reroute(s, cancelled_delays_,
                       reinterpret_cast<ris::RerouteMessage const*>(c));
 
-          if (result.first == status::OK) {
+          // stats_.count_reroute(result.first);
+
+          if (result.first == reroute_result::OK) {
             for (auto const& e : *result.second->edges_) {
               propagator_.add_delay(ev_key{e, 0, event_type::DEP});
               propagator_.add_delay(ev_key{e, 0, event_type::ARR});

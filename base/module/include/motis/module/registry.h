@@ -32,7 +32,7 @@ struct registry {
     if (!operations_.emplace(name, op{std::move(call), access}).second) {
       throw std::runtime_error("target already registered");
     }
-  }  // namespace module
+  }
 
   template <typename Fn>
   void subscribe(std::string const& topic, Fn fn,
@@ -61,7 +61,7 @@ struct registry {
   schedule* sched_ = nullptr;
   std::map<std::string, op> operations_;
   std::map<std::string, std::vector<op>> topic_subscriptions_;
-};  // namespace motis
+};
 
 }  // namespace module
 }  // namespace motis

@@ -12,6 +12,7 @@
 #include "motis/core/conv/event_type_conv.h"
 
 #include "motis/rt/find_trip_fuzzy.h"
+#include "motis/rt/statistics.h"
 
 namespace motis {
 namespace rt {
@@ -109,10 +110,11 @@ inline std::vector<boost::optional<ev_key>> resolve_to_ev_keys(
 }
 
 inline std::vector<boost::optional<ev_key>> resolve_events(
-    schedule const& sched, ris::IdEvent const* id,
+    statistics& stats, schedule const& sched, ris::IdEvent const* id,
     std::vector<ris::Event const*> const& evs) {
   auto trp = find_trip_fuzzy(sched, id);
   if (trp == nullptr) {
+    stats.events_not_found_trip_ += evs.size();
     return {};
   }
   return resolve_to_ev_keys(sched, trp, resolve_event_info(sched, evs));
