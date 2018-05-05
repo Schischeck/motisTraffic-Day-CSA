@@ -224,7 +224,7 @@ struct rule_service_route_builder {
       std::map<Service const*, std::vector<service_section*>>& sections,
       unsigned route_id)
       : gb_(gb),
-        traffic_days_(std::move(traffic_days)),
+        traffic_days_(traffic_days),
         first_day_(first_day),
         last_day_(last_day),
         sections_(sections),
@@ -330,7 +330,7 @@ struct rule_service_route_builder {
       auto const& p_sections = sections_.at(p.service_);
       auto const p_succ_from =
           find_from(visited, p_sections, p.section_idx_ + 1);
-      if (p_succ_from) {
+      if (p_succ_from != nullptr) {
         return p_succ_from;
       }
     }
@@ -360,7 +360,7 @@ struct rule_service_route_builder {
     for (participant const& p : s->second) {
       auto const& p_sections = sections_.at(p.service_);
       auto const p_pred_to = find_to(visited, p_sections, p.section_idx_ - 1);
-      if (p_pred_to) {
+      if (p_pred_to != nullptr) {
         return p_pred_to;
       }
     }
@@ -421,8 +421,9 @@ struct rule_service_route_builder {
 
       sections[section_idx]->first = gb_.add_route_section(
           route_id_, build_connections(*sections[section_idx]),
-          stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
-          stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
+          stops->Get(from), in_allowed->Get(from) != 0u,
+          out_allowed->Get(from) != 0u, stops->Get(to),
+          in_allowed->Get(to) != 0u, out_allowed->Get(to) != 0u,
           from_route_node, to_route_node);
     }
 

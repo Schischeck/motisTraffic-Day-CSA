@@ -101,7 +101,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 
             auto mutable_lcon =
                 const_cast<light_connection*>(ev->lcon());  // NOLINT
-            mutable_lcon->valid_ = false;
+            mutable_lcon->valid_ = 0u;
           }
 
           break;

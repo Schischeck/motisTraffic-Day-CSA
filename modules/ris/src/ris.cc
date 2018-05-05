@@ -251,7 +251,7 @@ private:
         break;
       }
 
-      auto const & [ timestamp, msgs ] = *bucket;
+      auto const& [timestamp, msgs] = *bucket;
       if (timestamp > to) {
         break;
       }
@@ -351,7 +351,7 @@ private:
 
   template <typename Publisher>
   void parse_sequential(fs::path const& p, Publisher& pub) {
-    for (auto const & [ t, path, type ] :
+    for (auto const& [t, path, type] :
          collect_files(fs::canonical(p, p.root_path()))) {
       write_to_db(path, type, pub);
     }
@@ -404,7 +404,7 @@ private:
       auto db = t.dbi_open(MSG_DB);
       auto c = db::cursor{t, db};
 
-      for (auto & [ timestamp, entry ] : buf) {
+      for (auto& [timestamp, entry] : buf) {
         if (auto const v = c.get(lmdb::cursor_op::SET_RANGE, timestamp);
             v && v->first == timestamp) {
           entry.insert(end(entry), begin(v->second), end(v->second));
@@ -466,7 +466,7 @@ private:
     auto min_db = t.dbi_open(MIN_DAY_DB);
     auto max_db = t.dbi_open(MAX_DAY_DB);
 
-    for (auto const[day, min_timestamp] : min) {
+    for (auto const [day, min_timestamp] : min) {
       auto smallest = min_timestamp;
       if (auto entry = t.get(min_db, day); entry) {
         smallest = std::min(smallest, to_time_t(*entry));
@@ -474,7 +474,7 @@ private:
       t.put(min_db, day, from_time_t(smallest));
     }
 
-    for (auto const[day, max_timestamp] : max) {
+    for (auto const [day, max_timestamp] : max) {
       auto largest = max_timestamp;
       if (auto entry = t.get(max_db, day); entry) {
         largest = std::max(largest, to_time_t(*entry));

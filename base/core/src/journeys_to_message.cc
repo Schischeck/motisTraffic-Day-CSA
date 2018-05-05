@@ -47,8 +47,8 @@ std::vector<Offset<Stop>> convert_stops(
         CreateStop(b,
                    CreateStation(b, b.CreateString(stop.eva_no_),
                                  b.CreateString(stop.name_), &pos),
-                   arr, dep, static_cast<uint8_t>(stop.exit_),
-                   static_cast<uint8_t>(stop.enter_)));
+                   arr, dep, static_cast<uint8_t>(stop.exit_) != 0u,
+                   static_cast<uint8_t>(stop.enter_) != 0u));
   }
 
   return buf_stops;

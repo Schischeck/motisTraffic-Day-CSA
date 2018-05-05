@@ -27,7 +27,7 @@ enum class reroute_result {
 struct schedule_event {
   schedule_event(primary_trip_id trp_id, uint32_t station_idx,
                  motis::time schedule_time, event_type ev_type)
-      : trp_id_(std::move(trp_id)),
+      : trp_id_(trp_id),
         station_idx_(station_idx),
         schedule_time_(schedule_time),
         ev_type_(ev_type) {}
@@ -63,7 +63,7 @@ struct reroute_event : public event_info {
   // ADDITIONAL
   reroute_event(event_info ev_info, ris::ReroutedEvent const* additional_event,
                 delay_info* di)
-      : event_info(std::move(ev_info)),
+      : event_info(ev_info),
         type_(type::ADDITIONAL),
         in_out_(true, true),
         di_(di),
@@ -91,11 +91,7 @@ struct reroute_event : public event_info {
 struct section {
   section(light_connection lcon, station_node* from, station_node* to,
           reroute_event dep, reroute_event arr)
-      : lcon_(std::move(lcon)),
-        from_(from),
-        to_(to),
-        dep_(std::move(dep)),
-        arr_(std::move(arr)) {}
+      : lcon_(lcon), from_(from), to_(to), dep_(dep), arr_(arr) {}
 
   light_connection lcon_;
   station_node *from_, *to_;
@@ -171,7 +167,7 @@ inline void add_if_not_deleted(
   auto const di_it = sched.graph_to_delay_info_.find(k);
   auto const di =
       di_it == end(sched.graph_to_delay_info_) ? nullptr : di_it->second;
-  auto const schedtime = di ? di->get_schedule_time() : k.get_time();
+  auto const schedtime = di != nullptr ? di->get_schedule_time() : k.get_time();
   events.emplace_back(k, schedtime, di);
 }
 
@@ -243,7 +239,7 @@ inline connection_info const* get_con_info(
 inline std::vector<section> build_trip_from_events(
     schedule& sched, std::vector<reroute_event> const& events) {
   auto const get_time = [](reroute_event const& ev) {
-    return ev.di_ ? ev.di_->get_current_time() : ev.sched_time_;
+    return ev.di_ != nullptr ? ev.di_->get_current_time() : ev.sched_time_;
   };
 
   std::vector<section> sections;
@@ -285,11 +281,12 @@ inline std::vector<trip::route_edge> build_route(
         sched.stations_.at(s.to_->id_)->transfer_time_;
 
     auto const from_route_node =
-        prev_route_node ? prev_route_node
-                        : build_route_node(route_id, sched.node_count_++,
-                                           s.from_, from_station_transfer_time,
-                                           s.dep_.in_out_.in_allowed_,
-                                           s.dep_.in_out_.out_allowed_);
+        prev_route_node != nullptr
+            ? prev_route_node
+            : build_route_node(route_id, sched.node_count_++, s.from_,
+                               from_station_transfer_time,
+                               s.dep_.in_out_.in_allowed_,
+                               s.dep_.in_out_.out_allowed_);
     auto const to_route_node = build_route_node(
         route_id, sched.node_count_++, s.to_, to_station_transfer_time,
         s.arr_.in_out_.in_allowed_, s.arr_.in_out_.out_allowed_);
@@ -337,7 +334,7 @@ inline void update_trip(schedule& sched, trip* trp,
                         std::vector<trip::route_edge> const& trip_edges) {
   for (auto const& trp_e : *trp->edges_) {
     auto const e = trp_e.get_edge();
-    e->m_.route_edge_.conns_[trp->lcon_idx_].valid_ = false;
+    e->m_.route_edge_.conns_[trp->lcon_idx_].valid_ = 0u;
   }
 
   std::vector<trip*> trps = {trp};
@@ -363,7 +360,8 @@ inline std::pair<reroute_result, trip const*> reroute(
   }
 
   for (auto const& e : *trp->edges_) {
-    if (get_lcon(e, trp->lcon_idx_).full_con_->con_info_->merged_with_ ||
+    if ((get_lcon(e, trp->lcon_idx_).full_con_->con_info_->merged_with_ !=
+         nullptr) ||
         std::any_of(
             begin(e->from_->incoming_edges_), end(e->from_->incoming_edges_),
             [](edge const* e) { return e->type() == edge::THROUGH_EDGE; }) ||

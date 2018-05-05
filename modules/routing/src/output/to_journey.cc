@@ -71,9 +71,9 @@ std::vector<journey::transport> generate_journey_transports(
   std::vector<journey::transport> journey_transports;
   interval_map<connection_info const*, con_info_cmp> intervals;
   for (auto const& t : transports) {
-    if (t.con_) {
+    if (t.con_ != nullptr) {
       auto con_info = t.con_->full_con_->con_info_;
-      while (con_info) {
+      while (con_info != nullptr) {
         intervals.add_entry(con_info, t.from_, t.to_);
         con_info = con_info->merged_with_;
       }
@@ -110,7 +110,7 @@ std::vector<journey::trip> generate_journey_trips(
 
   interval_map<trip const*, trp_cmp> intervals;
   for (auto const& t : transports) {
-    if (!t.con_) {
+    if (t.con_ == nullptr) {
       continue;
     }
 

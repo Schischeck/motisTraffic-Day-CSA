@@ -39,7 +39,7 @@ bool specification::read_line(cstr line, char const* filename,
     return false;
   }
 
-  if (std::isdigit(line[0])) {
+  if (std::isdigit(line[0]) != 0) {
     stops_.push_back(line);
     return false;
   }
@@ -51,8 +51,7 @@ bool specification::read_line(cstr line, char const* filename,
   // ignore *I, *GR, *SH, *T, *KW, *KWZ
   bool potential_kurswagen = false;
   switch (line[1]) {
-    case 'K':
-      potential_kurswagen = true;
+    case 'K': potential_kurswagen = true;
     /* no break */
     case 'Z':
     case 'T':

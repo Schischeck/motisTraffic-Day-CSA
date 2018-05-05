@@ -24,8 +24,8 @@ struct registry {
   template <typename Fn>
   void register_op(std::string const& name, Fn fn,
                    access_t const access = access_t::READ) {
-    auto const call =
-        [ fn_rec = std::forward<Fn>(fn), name ](msg_ptr const& m)->msg_ptr {
+    auto const call = [fn_rec = std::forward<Fn>(fn),
+                       name](msg_ptr const& m) -> msg_ptr {
       logging::scoped_timer t{name};
       return fn_rec(m);
     };
@@ -38,7 +38,7 @@ struct registry {
   void subscribe(std::string const& topic, Fn fn,
                  access_t const access = access_t::READ) {
     topic_subscriptions_[topic].emplace_back(
-        [ fn_rec = std::forward<Fn>(fn), topic ](msg_ptr const& m)->msg_ptr {
+        [fn_rec = std::forward<Fn>(fn), topic](msg_ptr const& m) -> msg_ptr {
           logging::scoped_timer t{topic};
           return fn_rec(m);
         },
@@ -50,7 +50,7 @@ struct registry {
                       access_t const access = access_t::READ) {
     subscribe(
         topic,
-        [ fn_rec = std::forward<Fn>(fn), topic ](msg_ptr const&)->msg_ptr {
+        [fn_rec = std::forward<Fn>(fn), topic](msg_ptr const&) -> msg_ptr {
           logging::scoped_timer t{topic};
           fn_rec();
           return nullptr;

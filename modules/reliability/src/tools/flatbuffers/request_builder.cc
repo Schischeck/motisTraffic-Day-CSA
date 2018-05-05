@@ -311,7 +311,6 @@ void request_builder::create_walks(
                            b_.CreateString(head_station), walk.duration_,
                            0 /* price */, id)
                 .Union()));
-
       };
   for (auto const& walk : container.walks_at_start_) {
     create_edge(walk.second, STATION_START, walk.second.station_id_,

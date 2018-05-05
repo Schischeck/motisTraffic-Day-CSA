@@ -44,7 +44,7 @@ timezones parse_timezones(loaded_file const& timezones_file,
       return;
     }
 
-    if (isdigit(line[0]) && line.length() >= 47) {
+    if ((isdigit(line[0]) != 0) && line.length() >= 47) {
       boost::optional<season_entry> opt_season_entry;
       if (!line.substr(14, size(33)).trim().empty()) {
         opt_season_entry.emplace(

@@ -32,7 +32,7 @@ struct zip_reader::impl {
   ~impl() { mz_zip_reader_end(&ar_); }
 
   void init() {
-    if (!mz_zip_reader_init_mem(&ar_, ptr_, size_, 0)) {
+    if (mz_zip_reader_init_mem(&ar_, ptr_, size_, 0) == 0) {
       throw std::runtime_error("invalid zip archive");
     }
     num_files_ = mz_zip_reader_get_num_files(&ar_);

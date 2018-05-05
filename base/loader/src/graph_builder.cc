@@ -96,14 +96,14 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
     s->length_ = input_station->lng();
     s->eva_nr_ = input_station->id()->str();
     s->transfer_time_ = input_station->interchange_time();
-    s->timez_ = input_station->timezone()
+    s->timez_ = input_station->timezone() != nullptr
                     ? get_or_create_timezone(input_station->timezone())
                     : nullptr;
     sched_.eva_to_station_.insert(
         std::make_pair(input_station->id()->str(), s.get()));
 
     // Store DS100.
-    if (input_station->external_ids()) {
+    if (input_station->external_ids() != nullptr) {
       for (auto const& ds100 : *input_station->external_ids()) {
         sched_.ds100_to_station_.insert(std::make_pair(ds100->str(), s.get()));
       }
@@ -133,7 +133,7 @@ timezone const* graph_builder::get_or_create_timezone(
     Timezone const* input_timez) {
   return utl::get_or_create(timezones_, input_timez, [&]() {
     auto const tz =
-        input_timez->season()
+        input_timez->season() != nullptr
             ? create_timezone(
                   input_timez->general_offset(),
                   input_timez->season()->offset(),  //
@@ -171,7 +171,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
 
   auto const train_nr = s->sections()->Get(section_idx)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
-  auto const line_id = line_id_ptr ? line_id_ptr->str() : "";
+  auto const line_id = line_id_ptr != nullptr ? line_id_ptr->str() : "";
 
   full_trip_id id;
   id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
@@ -361,7 +361,7 @@ void graph_builder::add_to_routes(
 connection_info* graph_builder::get_or_create_connection_info(
     Section const* section, int dep_day_index, connection_info* merged_with) {
   con_info_.line_identifier_ =
-      section->line_id() ? section->line_id()->str() : "";
+      section->line_id() != nullptr ? section->line_id()->str() : "";
   con_info_.train_nr_ = section->train_nr();
   con_info_.family_ = get_or_create_category_index(section->category());
   con_info_.dir_ = get_or_create_direction(section->direction());
@@ -427,8 +427,10 @@ light_connection graph_builder::section_to_connection(
       stations_[ref->route()->stations()->Get(section_idx + 1)]->id_);
 
   auto plfs = ref->tracks();
-  auto dep_platf = plfs ? plfs->Get(section_idx)->dep_tracks() : nullptr;
-  auto arr_platf = plfs ? plfs->Get(section_idx + 1)->arr_tracks() : nullptr;
+  auto dep_platf =
+      plfs != nullptr ? plfs->Get(section_idx)->dep_tracks() : nullptr;
+  auto arr_platf =
+      plfs != nullptr ? plfs->Get(section_idx + 1)->arr_tracks() : nullptr;
 
   auto section = ref->sections()->Get(section_idx);
   auto dep_time = ref->times()->Get(section_idx * 2 + 1);
@@ -569,7 +571,7 @@ std::string const* graph_builder::get_or_create_direction(
     Direction const* dir) {
   if (dir == nullptr) {
     return nullptr;
-  } else if (dir->station()) {
+  } else if (dir->station() != nullptr) {
     return &sched_.stations_[stations_[dir->station()]->id_]->name_;
   } else /* direction text */ {
     return utl::get_or_create(directions_, dir->text(), [&]() {
@@ -657,11 +659,12 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
   for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {
     auto from = i;
     auto to = i + 1;
-    route_sections->push_back(add_route_section(
-        route_index, lcons[i],  //
-        stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
-        stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
-        last_route_section.to_route_node_, nullptr));
+    route_sections->push_back(
+        add_route_section(route_index, lcons[i],  //
+                          stops->Get(from), in_allowed->Get(from) != 0u,
+                          out_allowed->Get(from) != 0u, stops->Get(to),
+                          in_allowed->Get(to) != 0u, out_allowed->Get(to) != 0u,
+                          last_route_section.to_route_node_, nullptr));
     last_route_section = route_sections->back();
   }
 

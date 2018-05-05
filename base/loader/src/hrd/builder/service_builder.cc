@@ -117,7 +117,7 @@ Offset<Service> service_builder::create_service(
                                                       s.origin_.filename_);
                                                 }),
                              s.origin_.line_number_from_),
-      static_cast<uint8_t>(is_rule_participant ? 1u : 0u),
+      static_cast<uint8_t>(is_rule_participant ? 1u : 0u) != 0u,
       s.initial_train_num_));
   return fbs_services_.back();
 }

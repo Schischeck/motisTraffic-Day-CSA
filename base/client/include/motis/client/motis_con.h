@@ -31,10 +31,10 @@ protected:
 
   std::size_t copy_content(std::size_t buffer_size);
 
-  int32_t request_size_;
+  uint32_t request_size_;
   std::string request_;
 
-  int32_t response_size_;
+  uint32_t response_size_;
   boost::asio::streambuf buf_;
   std::vector<char> response_;
 };

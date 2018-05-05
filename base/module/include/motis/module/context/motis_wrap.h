@@ -35,12 +35,12 @@ std::function<R(Args...)> motis_wrap_impl(std::function<R(Args...)> fn,
 
   id.parent_index = op.id_.index;
 
-  return [ fn = std::move(fn), &dispatcher, id ](Args... args) {
+  return [fn = std::move(fn), &dispatcher, id](Args... args) {
     auto& scheduler = dispatcher->scheduler_;
     auto& registry = dispatcher->registry_;
     return scheduler.enqueue(
         ctx_data(dispatcher, registry.sched_),
-        [ fn = std::move(fn), args = std::make_tuple(std::move(args)...) ] {
+        [fn = std::move(fn), args = std::make_tuple(std::move(args)...)] {
           return detail::call(fn, args);
         },
         id);

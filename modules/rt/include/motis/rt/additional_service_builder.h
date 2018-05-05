@@ -88,7 +88,7 @@ struct additional_service_builder {
     std::vector<section> sections;
     for (auto it = std::begin(*events); it != std::end(*events);) {
       light_connection lcon{};
-      lcon.valid_ = true;
+      lcon.valid_ = 1u;
 
       // DEP
       auto dep_station =
@@ -140,7 +140,7 @@ struct additional_service_builder {
           sched_.stations_.at(to_station->id_)->transfer_time_;
 
       auto const from_route_node =
-          prev_route_node
+          prev_route_node != nullptr
               ? prev_route_node
               : build_route_node(route_id, sched_.node_count_++, from_station,
                                  from_station_transfer_time, true, true);

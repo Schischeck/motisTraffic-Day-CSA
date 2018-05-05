@@ -128,7 +128,7 @@ hrd_service::hrd_service(specification const& spec, config const& c)
 
   parse_range(spec.directions_, c.direction_parse_info_, stops_, sections_,
               &section::directions_, [&](cstr line, range const& r) {
-                if (isdigit(line[5])) {
+                if (isdigit(line[5]) != 0) {
                   return std::make_pair(
                       parse<uint64_t>(line.substr(c.s_info_.dir_)), EVA_NUMBER);
                 } else if (line[5] == ' ') {

@@ -82,8 +82,8 @@ private:
 
   void on_response(std::shared_ptr<query_injector> self, int id, msg_ptr res,
                    std::error_code ec) {
-    write_response(id, std::move(res), ec);
-    inject_msg(std::move(self));
+    write_response(id, res, ec);
+    inject_msg(self);
   }
 
   void write_response(int id, msg_ptr const& res, std::error_code ec) {
