@@ -59,7 +59,7 @@ void motis_con::transfer(net::tcp::tcp_ptr self, callback cb, error_code ec) {
           asio::buffer(reinterpret_cast<void*>(&response_size_),
                        sizeof(response_size_)),
           re);
-      response_size_ = ntohl(response_size_);
+      response_size_ = ntohl(response_size_);  // NOLINT
 
       // Read response.
       yield asio::async_read(socket_, buf_,

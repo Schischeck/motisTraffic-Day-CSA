@@ -107,7 +107,7 @@ private:
       if (e.get_reason() == timestamp_reason::REPAIR &&
           e.get_repair_time() != k.get_time()) {
         auto di = map_get_or_create(sched_.graph_to_delay_info_, k, [&]() {
-          sched_.delay_mem_.emplace_back(new delay_info(k));
+          sched_.delay_mem_.emplace_back(std::make_unique<delay_info>(k));
           return sched_.delay_mem_.back().get();
         });
         di->set(timestamp_reason::REPAIR, e.get_repair_time());

@@ -7,7 +7,7 @@
 
 #include "flatbuffers/flatbuffers.h"
 
-#define SCHEDULE_FILE ("schedule.raw")
+constexpr auto const SCHEDULE_FILE = "schedule.raw";
 
 namespace motis {
 namespace loader {

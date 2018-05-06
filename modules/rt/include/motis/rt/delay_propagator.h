@@ -54,7 +54,7 @@ struct delay_propagator {
 private:
   delay_info* get_or_create_di(ev_key const& k) {
     auto di = map_get_or_create(sched_.graph_to_delay_info_, k, [&]() {
-      sched_.delay_mem_.emplace_back(new delay_info(k));
+      sched_.delay_mem_.emplace_back(std::make_unique<delay_info>(k));
       return sched_.delay_mem_.back().get();
     });
     events_.insert(di);

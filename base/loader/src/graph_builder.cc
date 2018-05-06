@@ -143,7 +143,7 @@ timezone const* graph_builder::get_or_create_timezone(
                   input_timez->season()->minutes_after_midnight_first_day(),
                   input_timez->season()->minutes_after_midnight_last_day())
             : timezone(input_timez->general_offset());
-    sched_.timezones_.emplace_back(new timezone(tz));
+    sched_.timezones_.emplace_back(std::make_unique<timezone>(tz));
     return sched_.timezones_.back().get();
   });
 }
@@ -186,7 +186,8 @@ merged_trips_idx graph_builder::create_merged_trips(Service const* s,
 }
 
 trip* graph_builder::register_service(Service const* s, int day_idx) {
-  sched_.trip_mem_.emplace_back(new trip(get_full_trip_id(s, day_idx)));
+  sched_.trip_mem_.emplace_back(
+      std::make_unique<trip>(get_full_trip_id(s, day_idx)));
   auto stored = sched_.trip_mem_.back().get();
   sched_.trips_.emplace_back(stored->id_.primary_, stored);
 
@@ -636,7 +637,8 @@ void graph_builder::write_trip_info(route& r) {
     return trip::route_edge(s.get_route_edge());
   });
 
-  sched_.trip_edges_.emplace_back(new std::vector<trip::route_edge>(edges));
+  sched_.trip_edges_.emplace_back(
+      std::make_unique<std::vector<trip::route_edge>>(edges));
   auto edges_ptr = sched_.trip_edges_.back().get();
 
   auto& lcons = edges_ptr->front().get_edge()->m_.route_edge_.conns_;

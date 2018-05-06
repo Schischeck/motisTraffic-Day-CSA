@@ -25,13 +25,13 @@ char get_relation_symbol(T const& u1, T const& u2) {
 }
 
 void print(journey_meta_data const& con) {
-  auto const format_time = [](time_t t) {
+  auto const format_time = [](time_t t) -> std::string {
     tm ts = *localtime(&t);
 
     char buf[6];
     strftime(buf, sizeof(buf), "%H:%M", &ts);
 
-    return std::string(buf);
+    return std::string(buf, 6);
   };
 
   std::cout << std::setw(5) << con.duration_  //

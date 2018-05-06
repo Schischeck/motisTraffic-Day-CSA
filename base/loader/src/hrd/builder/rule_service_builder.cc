@@ -25,7 +25,7 @@ hrd_service* get_or_create(
     std::vector<std::unique_ptr<hrd_service>>& origin_services,
     std::pair<hrd_service const*, hrd_service*>& s) {
   if (s.second == nullptr) {
-    origin_services.emplace_back(new hrd_service(*s.first));
+    origin_services.emplace_back(std::make_unique<hrd_service>(*s.first));
     s.second = origin_services.back().get();
   }
   return s.second;
@@ -73,17 +73,17 @@ void create_rule_and_service_nodes(
 
     auto s1_node = reinterpret_cast<service_node*>(
         utl::get_or_create(service_to_node, s1, [&]() {
-          rg.nodes_.emplace_back(new service_node(s1));
+          rg.nodes_.emplace_back(std::make_unique<service_node>(s1));
           return rg.nodes_.back().get();
         }));
     auto s2_node = reinterpret_cast<service_node*>(
         utl::get_or_create(service_to_node, s2, [&]() {
-          rg.nodes_.emplace_back(new service_node(s2));
+          rg.nodes_.emplace_back(std::make_unique<service_node>(s2));
           return rg.nodes_.back().get();
         }));
 
     auto const& rule = std::get<2>(comb);
-    auto rn = new rule_node(s1_node, s2_node, rule);
+    auto rn = std::make_unique<rule_node>(s1_node, s2_node, rule);
     rg.nodes_.emplace_back(rn);
 
     s1_node->rule_nodes_.push_back(rn);

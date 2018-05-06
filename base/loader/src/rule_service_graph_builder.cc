@@ -143,7 +143,7 @@ struct rule_service_section_builder {
          src_section_idx < src_to_idx;
          ++src_section_idx, ++service_section_idx) {
       if (sections[src_section_idx] == nullptr) {
-        section_mem_.emplace_back(new service_section());
+        section_mem_.emplace_back(std::make_unique<service_section>());
         sections[src_section_idx] = section_mem_.back().get();
       }
       sections_[service][service_section_idx] = sections[src_section_idx];

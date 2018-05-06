@@ -42,7 +42,7 @@ private:
     auto it = std::find_if(begin(mem_pool), end(mem_pool),
                            [](auto&& m) { return !m->in_use_; });
     if (it == end(mem_pool)) {
-      mem_pool.emplace_back(new memory(bytes));
+      mem_pool.emplace_back(std::make_unique<memory>(bytes));
       mem_pool.back()->in_use_ = true;
       return mem_pool.back().get();
     }

@@ -80,8 +80,8 @@ private:
     return true;
   }
 
-  void on_response(std::shared_ptr<query_injector> self, int id, msg_ptr res,
-                   std::error_code ec) {
+  void on_response(std::shared_ptr<query_injector> const& self, int id,
+                   msg_ptr const& res, std::error_code ec) {
     write_response(id, res, ec);
     inject_msg(self);
   }

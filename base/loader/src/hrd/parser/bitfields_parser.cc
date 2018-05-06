@@ -20,7 +20,7 @@ namespace hrd {
 
 std::string hex_to_string(char c) {
   char str[2] = {c, '\0'};
-  auto i = flatbuffers64::StringToInt(str, 16);
+  auto i = flatbuffers64::StringToInt(std::string{str, 2}, 16);
   std::bitset<4> bits(i);
   return bits.to_string();
 }
