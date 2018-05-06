@@ -4,7 +4,7 @@ variables:
 # GCC 7 production
 gcc-7-release:
   tags:
-    - artful
+    - bionic
   script:
     - export BOOST_ROOT=/opt/boost_1_65_1-gcc-7
     - git submodule update --init --recursive
@@ -23,7 +23,7 @@ gcc-7-release:
 # Clang 5 debug with address sanitizer
 clang-debug-asan:
   tags:
-    - artful
+    - bionic
   script:
     - export CXXFLAGS="-stdlib=libc++ -fsanitize=address -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
@@ -45,7 +45,7 @@ clang-debug-asan:
 # GCC 7 debug valgrind
 gcc-7-debug-valgrind:
   tags:
-    - artful
+    - bionic
   script:
     - export BOOST_ROOT=/opt/boost_1_65_1-gcc-7
     #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM 
@@ -113,7 +113,7 @@ msvc-debug:
 # Clang-Tidy
 clang-tidy:
   tags:
-    - artful
+    - bionic
   script:
     - export CXXFLAGS="-stdlib=libc++"
     - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
@@ -128,7 +128,7 @@ clang-tidy:
 # Clang-Format
 clang-format:
   tags:
-    - artful
+    - bionic
   script:
     - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
     - git submodule update --init --recursive
