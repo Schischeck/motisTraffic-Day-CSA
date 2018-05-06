@@ -29,9 +29,9 @@ void print(journey_meta_data const& con) {
     tm ts = *localtime(&t);
 
     char buf[6];
-    strftime(buf, sizeof(buf), "%H:%M", &ts);
+    strftime(static_cast<char*>(buf), sizeof(buf), "%H:%M", &ts);
 
-    return std::string(buf, 6);
+    return std::string(static_cast<char const*>(buf), 6);
   };
 
   std::cout << std::setw(5) << con.duration_  //

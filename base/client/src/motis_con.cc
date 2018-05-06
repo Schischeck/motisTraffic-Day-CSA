@@ -14,7 +14,7 @@ motis_con::motis_con(asio::io_service& ios, std::string host, std::string port,
 
 void motis_con::query(std::string const& req, callback const& cb) {
   request_ = req;
-  request_size_ = htonl(static_cast<uint32_t>(req.size()));
+  request_size_ = htonl(static_cast<uint32_t>(req.size()));  // NOLINT
 
   connect([this, cb](net::tcp::tcp_ptr self, error_code ec) {
     if (ec) {

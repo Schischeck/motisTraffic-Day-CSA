@@ -83,8 +83,10 @@ void create_rule_and_service_nodes(
         }));
 
     auto const& rule = std::get<2>(comb);
-    auto rn = std::make_unique<rule_node>(s1_node, s2_node, rule);
-    rg.nodes_.emplace_back(rn);
+    auto rn = reinterpret_cast<rule_node*>(  // NOLINT
+        rg.nodes_
+            .emplace_back(std::make_unique<rule_node>(s1_node, s2_node, rule))
+            .get());
 
     s1_node->rule_nodes_.push_back(rn);
     s2_node->rule_nodes_.push_back(rn);

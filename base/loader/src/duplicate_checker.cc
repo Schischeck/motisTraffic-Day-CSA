@@ -69,14 +69,17 @@ bool duplicate_checker::is_duplicate_event(
 }
 
 void duplicate_checker::set_new_service_num(light_connection* lc) {
-  schedule_.connection_infos_.emplace_back(
-      new connection_info(*lc->full_con_->con_info_));
-  auto conn_info_cpy = schedule_.connection_infos_.back().get();
+  auto conn_info_cpy = schedule_.connection_infos_
+                           .emplace_back(std::make_unique<connection_info>(
+                               *lc->full_con_->con_info_))
+                           .get();
   conn_info_cpy->original_train_nr_ = conn_info_cpy->train_nr_;
   conn_info_cpy->train_nr_ = --last_service_num_;
 
-  schedule_.full_connections_.emplace_back(new connection(*lc->full_con_));
-  auto full_conn_cpy = schedule_.full_connections_.back().get();
+  auto full_conn_cpy =
+      schedule_.full_connections_
+          .emplace_back(std::make_unique<connection>(*lc->full_con_))
+          .get();
   full_conn_cpy->con_info_ = conn_info_cpy;
 
   lc->full_con_ = full_conn_cpy;
