@@ -353,6 +353,7 @@ private:
   void parse_sequential(fs::path const& p, Publisher& pub) {
     for (auto const& [t, path, type] :
          collect_files(fs::canonical(p, p.root_path()))) {
+      ((void)(t));
       write_to_db(path, type, pub);
     }
     env_.force_sync();
