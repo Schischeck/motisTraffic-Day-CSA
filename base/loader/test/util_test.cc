@@ -26,7 +26,7 @@ TEST(loader_util, bitset_to_string_and_back) {
 }
 
 TEST(loader_util, raw_to_int) {
-  ASSERT_TRUE(raw_to_int<uint16_t>("ab") == 97 + (98 << 8));
+  ASSERT_TRUE(raw_to_int<uint16_t>("ab") == 97 + (98u << 8u));
 }
 
 TEST(loader_util, hhmm_to_int_1) {
