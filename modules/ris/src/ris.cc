@@ -208,6 +208,8 @@ private:
           CreateMessageHolder(fbb_, fbb_.CreateVector(ptr, size)));
     }
 
+    size_t size() const { return offsets_.size(); }
+
     message_creator fbb_;
     std::vector<flatbuffers::Offset<MessageHolder>> offsets_;
     time_t max_timestamp_ = 0;
@@ -216,6 +218,7 @@ private:
   struct null_publisher {
     void flush() {}
     void add(uint8_t const*, size_t const) {}
+    size_t size() const { return 0; }
   } null_pub_;
 
   void forward(time_t const to) {
@@ -274,6 +277,9 @@ private:
       }
 
       if (timestamp - batch_begin > BATCH_SIZE) {
+        LOG(logging::info) << "(" << logging::time(batch_begin) << " - "
+                           << logging::time(batch_begin + BATCH_SIZE)
+                           << ") flushing " << pub.size() << " messages";
         pub.flush();
         batch_begin = timestamp;
       }

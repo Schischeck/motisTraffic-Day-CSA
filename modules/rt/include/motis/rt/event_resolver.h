@@ -35,16 +35,19 @@ struct event_info {
 };
 
 inline std::vector<boost::optional<event_info>> resolve_event_info(
-    schedule const& sched, std::vector<ris::Event const*> const& events) {
+    statistics& stats, schedule const& sched,
+    std::vector<ris::Event const*> const& events) {
   return utl::to_vec(
       events, [&](ris::Event const* ev) -> boost::optional<event_info> {
         auto const station = find_station(sched, ev->station_id()->str());
         if (station == nullptr) {
+          ++stats.ev_station_not_found_;
           return {};
         }
 
         auto const time = unix_to_motistime(sched, ev->schedule_time());
         if (time == INVALID_TIME) {
+          ++stats.ev_invalid_time_;
           return {};
         }
 
@@ -112,18 +115,19 @@ inline std::vector<boost::optional<ev_key>> resolve_to_ev_keys(
 inline std::vector<boost::optional<ev_key>> resolve_events(
     statistics& stats, schedule const& sched, ris::IdEvent const* id,
     std::vector<ris::Event const*> const& evs) {
-  auto trp = find_trip_fuzzy(sched, id);
+  stats.total_evs_ += evs.size();
+  auto trp = find_trip_fuzzy(stats, sched, id);
   if (trp == nullptr) {
-    stats.events_not_found_trip_ += evs.size();
+    stats.ev_trp_not_found_ += evs.size();
     return {};
   }
-  return resolve_to_ev_keys(sched, trp, resolve_event_info(sched, evs));
+  return resolve_to_ev_keys(sched, trp, resolve_event_info(stats, sched, evs));
 }
 
 inline std::vector<boost::optional<ev_key>> resolve_events(
-    schedule const& sched, trip const* trp,
+    statistics& stats, schedule const& sched, trip const* trp,
     std::vector<ris::Event const*> const& evs) {
-  return resolve_to_ev_keys(sched, trp, resolve_event_info(sched, evs));
+  return resolve_to_ev_keys(sched, trp, resolve_event_info(stats, sched, evs));
 }
 
 }  // namespace rt

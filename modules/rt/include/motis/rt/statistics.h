@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iomanip>
-#include <ostream>
+#include <iostream>
 
 #include "motis/rt/additional_service_builder.h"
 #include "motis/rt/reroute.h"
@@ -23,15 +23,20 @@ struct statistics {
     c("cancel", s.cancel_msgs_);
     c("additional", s.additional_msgs_);
     c("reroute", s.reroute_msgs_);
-    c("conn decision", s.con_decision_msgs_);
-    c("conn assessment", s.con_assessment_msgs_);
 
     o << "\nevs:\n";
     c("total", s.total_evs_);
     c("invalid time", s.ev_invalid_time_);
     c("station not found", s.ev_station_not_found_);
     c("trip not found", s.ev_trp_not_found_);
-    c("additional train event", s.additional_not_found_);
+    c("additional train event", s.additional_not_found_);  // TODO(felix) track
+
+    o << "\ntrips:\n";
+    c("total", s.trip_total_);
+    c("station not found", s.trip_station_not_found_);
+    c("time not found", s.trip_time_not_found_);
+    c("primary not found", s.trip_primary_not_found_);
+    c("primary 0 not found", s.trip_primary_0_not_found_);
 
     o << "\nupdates\n";
     c("total", s.total_updates_);
@@ -65,6 +70,8 @@ struct statistics {
 
     return o;
   }
+
+  void print() { std::cout << *this << "\n"; }
 
   void log_sched_time_mismatch(int diff) {
     if (diff != 0) {
@@ -141,8 +148,13 @@ struct statistics {
   unsigned ev_trp_not_found_ = 0;
   unsigned additional_not_found_ = 0;
   unsigned unresolved_events_ = 0;
-  unsigned events_not_found_trip_ = 0;
   unsigned update_time_out_of_schedule_ = 0;
+
+  unsigned trip_total_ = 0;
+  unsigned trip_station_not_found_ = 0;
+  unsigned trip_time_not_found_ = 0;
+  unsigned trip_primary_not_found_ = 0;
+  unsigned trip_primary_0_not_found_ = 0;
 
   unsigned total_updates_ = 0;
   unsigned found_updates_ = 0;

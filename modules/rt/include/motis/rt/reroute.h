@@ -130,14 +130,14 @@ inline void store_cancelled_delays(
 }
 
 inline void add_additional_events(
-    schedule& sched,
+    statistics& stats, schedule& sched,
     std::map<schedule_event, delay_info*> const& cancelled_delays,
     trip const* trp,
     flatbuffers::Vector<flatbuffers::Offset<ris::ReroutedEvent>> const*
         new_events,
     std::vector<reroute_event>& events) {
   auto const new_opt_evs = resolve_event_info(
-      sched, utl::to_vec(*new_events, [](ris::ReroutedEvent const* ev) {
+      stats, sched, utl::to_vec(*new_events, [](ris::ReroutedEvent const* ev) {
         return ev->base()->base();
       }));
 
@@ -351,10 +351,11 @@ inline void update_trip(schedule& sched, trip* trp,
 }
 
 inline std::pair<reroute_result, trip const*> reroute(
-    schedule& sched, std::map<schedule_event, delay_info*>& cancelled_delays,
+    statistics& stats, schedule& sched,
+    std::map<schedule_event, delay_info*>& cancelled_delays,
     ris::RerouteMessage const* msg) {
-  auto const trp =
-      const_cast<trip*>(find_trip_fuzzy(sched, msg->trip_id()));  // NOLINT
+  auto const trp = const_cast<trip*>(  // NOLINT
+      find_trip_fuzzy(stats, sched, msg->trip_id()));
   if (trp == nullptr) {
     return {reroute_result::TRIP_NOT_FOUND, nullptr};
   }
@@ -374,10 +375,11 @@ inline std::pair<reroute_result, trip const*> reroute(
 
   auto evs = std::vector<reroute_event>{};
   auto const del_evs =
-      resolve_events(sched, trp,
+      resolve_events(stats, sched, trp,
                      utl::to_vec(*msg->cancelled_events(),
                                  [](ris::Event const* ev) { return ev; }));
-  add_additional_events(sched, cancelled_delays, trp, msg->new_events(), evs);
+  add_additional_events(stats, sched, cancelled_delays, trp, msg->new_events(),
+                        evs);
   add_not_deleted_trip_events(sched, del_evs, trp, evs);
   std::sort(begin(evs), end(evs));
   auto check_result = check_events(evs);

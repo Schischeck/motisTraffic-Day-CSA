@@ -81,7 +81,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
         case ris::MessageUnion_CancelMessage: {
           auto const msg = reinterpret_cast<ris::CancelMessage const*>(c);
 
-          auto trp = find_trip_fuzzy(s, msg->trip_id());
+          auto trp = find_trip_fuzzy(stats_, s, msg->trip_id());
           if (trp == nullptr) {
             ++stats_.canceled_trp_not_found_;
             break;
@@ -111,7 +111,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           propagate();
 
           auto const result =
-              reroute(s, cancelled_delays_,
+              reroute(stats_, s, cancelled_delays_,
                       reinterpret_cast<ris::RerouteMessage const*>(c));
 
           // stats_.count_reroute(result.first);
@@ -188,6 +188,7 @@ msg_ptr rt_handler::flush(msg_ptr const&) {
   scoped_timer t("flush");
 
   MOTIS_FINALLY([this]() {
+    stats_.print();
     stats_ = statistics();
     propagator_.reset();
   });
