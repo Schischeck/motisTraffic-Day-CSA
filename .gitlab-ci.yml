@@ -115,7 +115,6 @@ clang-tidy:
   tags:
     - bionic
   script:
-    - export CXXFLAGS="-stdlib=libc++"
     - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
     - export CXX=clang++
     - export CC=clang
