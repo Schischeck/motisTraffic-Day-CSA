@@ -18,9 +18,7 @@ class node;
 struct ev_key {
   ev_key() : route_edge_(nullptr), lcon_idx_(0), ev_type_(event_type::DEP) {}
   ev_key(trip::route_edge route_edge, std::size_t lcon_idx, event_type type)
-      : route_edge_(std::move(route_edge)),
-        lcon_idx_(lcon_idx),
-        ev_type_(type) {}
+      : route_edge_(route_edge), lcon_idx_(lcon_idx), ev_type_(type) {}
 
   friend bool operator==(ev_key const& lhs, const ev_key& rhs) {
     return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) ==

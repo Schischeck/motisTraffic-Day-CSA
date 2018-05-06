@@ -23,7 +23,7 @@ struct delay_info {
         propagation_time_{INVALID_TIME} {}
 
   explicit delay_info(ev_key ev)
-      : ev_(std::move(ev)),
+      : ev_(ev),
         repair_time_(0),
         is_time_(0),
         schedule_time_(ev.valid() ? ev.get_time() : INVALID_TIME),

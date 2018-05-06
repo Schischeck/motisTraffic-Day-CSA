@@ -162,7 +162,7 @@ public:
 
     auto it = lc;
     while (it != end(m_.route_edge_.conns_)) {
-      if (skip == 0 && it->valid_) {
+      if (skip == 0 && (it->valid_ != 0u)) {
         return it;
       }
       ++it;
@@ -181,7 +181,7 @@ public:
     auto it = std::reverse_iterator<light_connection const*>(lc);
     --it;
     while (it != m_.route_edge_.conns_.rend()) {
-      if (skip == 0 && it->valid_) {
+      if (skip == 0 && (it->valid_ != 0u)) {
         return &*it;
       }
       ++it;

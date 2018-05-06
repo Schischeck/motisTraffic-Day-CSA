@@ -13,12 +13,12 @@ namespace motis {
 
 inline uint64_t next_power_of_two(uint64_t n) {
   n--;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  n |= n >> 32;
+  n |= n >> 1u;
+  n |= n >> 2u;
+  n |= n >> 4u;
+  n |= n >> 8u;
+  n |= n >> 16u;
+  n |= n >> 32u;
   n++;
   return n;
 }
@@ -216,7 +216,7 @@ struct array final {
           el.~T();
         }
       } catch (...) {
-        assert(false);
+        assert(0);
       }
     }
 

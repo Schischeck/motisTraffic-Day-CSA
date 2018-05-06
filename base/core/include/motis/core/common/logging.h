@@ -55,7 +55,7 @@ inline std::string time(time_t const t) {
   char buf[sizeof "2011-10-08t07:07:09z-0430"];
   struct tm result {};
   gmt(&t, &result);
-  strftime(buf, sizeof buf, "%FT%TZ%z", &result);
+  strftime(static_cast<char*>(buf), sizeof buf, "%FT%TZ%z", &result);
   return buf;
 }
 
