@@ -172,7 +172,6 @@ list(REMOVE_ITEM modules
   "path"
   "bikesharing"
   "address"
-  "osrm"
 )
 
 set(module-targets "")
