@@ -43,7 +43,7 @@ struct service_resolvent {
 struct service_rule_resolvent {
   service_rule_resolvent(resolved_rule_info rule_info, hrd_service* s1,
                          hrd_service* s2)
-      : rule_info_(std::move(rule_info)), s1_(s1), s2_(s2) {}
+      : rule_info_(rule_info), s1_(s1), s2_(s2) {}
 
   resolved_rule_info rule_info_;
   hrd_service* s1_{nullptr};
