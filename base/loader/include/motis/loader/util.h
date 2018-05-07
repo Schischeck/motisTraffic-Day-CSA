@@ -41,8 +41,8 @@ flatbuffers64::Offset<flatbuffers64::String> to_fbs_string(
     if (*in < 128) {
       *out++ = *in++;
     } else {
-      *out++ = 0xc2 + (*in > 0xbf);
-      *out++ = (*in++ & 0x3f) + 0x80u;
+      *out++ = 0xc2 + (*in > 0xbfu);
+      *out++ = (*in++ & 0x3fu) + 0x80u;
     }
   }
   return to_fbs_string(b, parser::cstr(reinterpret_cast<char const*>(out_begin),
