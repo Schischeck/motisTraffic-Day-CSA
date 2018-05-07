@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
                                          boost::posix_time::seconds(30));
   con->query(buf, [&](net::tcp::tcp_ptr, std::string const& response,
                       boost::system::error_code ec) {
-    if (ec) {
+    if (ec.value() != 0) {
       printf("error: %s\n", ec.message().c_str());
       return;
     }

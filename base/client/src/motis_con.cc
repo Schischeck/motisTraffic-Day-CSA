@@ -17,7 +17,7 @@ void motis_con::query(std::string const& req, callback const& cb) {
   request_size_ = htonl(static_cast<uint32_t>(req.size()));  // NOLINT
 
   connect([this, cb](net::tcp::tcp_ptr self, error_code ec) {
-    if (ec) {
+    if (ec.value() != 0) {
       return cb(self, "", ec);
     } else {
       return transfer(self, cb, ec);
@@ -27,7 +27,7 @@ void motis_con::query(std::string const& req, callback const& cb) {
 
 #include "boost/asio/yield.hpp"
 void motis_con::transfer(net::tcp::tcp_ptr self, callback cb, error_code ec) {
-  if (ec) {
+  if (ec.value() != 0) {
     boost::asio::detail::coroutine_ref(this) = 0;
     return respond(cb, self, ec);
   }

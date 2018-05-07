@@ -19,11 +19,13 @@ inline flatbuffers::Offset<Transport> to_fbs(
       output_train_nr(ci->train_nr_, ci->original_train_nr_),
       fbb.CreateString(ci->line_identifier_),
       fbb.CreateString(get_service_name(sched, ci)),
-      fbb.CreateString(ci->provider_ ? ci->provider_->full_name_ : ""),
+      fbb.CreateString(ci->provider_ != nullptr ? ci->provider_->full_name_
+                                                : ""),
       fbb.CreateString(
-          ci->dir_ ? *ci->dir_
-                   : sched.stations_.at(trp->id_.secondary_.target_station_id_)
-                         ->name_));
+          ci->dir_ != nullptr
+              ? *ci->dir_
+              : sched.stations_.at(trp->id_.secondary_.target_station_id_)
+                    ->name_));
 }
 
 }  // namespace motis

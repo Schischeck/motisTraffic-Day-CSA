@@ -34,7 +34,7 @@ struct hrd_service {
 
   struct attribute {
     attribute(int bitfield_num, parser::cstr code)
-        : bitfield_num_(bitfield_num), code_(std::move(code)) {}
+        : bitfield_num_(bitfield_num), code_(code) {}
 
     int bitfield_num_;
     parser::cstr code_;
@@ -48,7 +48,7 @@ struct hrd_service {
   struct section {
     section() = default;
     section(int train_num, parser::cstr admin)
-        : train_num_(train_num), admin_(std::move(admin)) {}
+        : train_num_(train_num), admin_(admin) {}
 
     int train_num_{0};
     parser::cstr admin_;
@@ -62,12 +62,12 @@ struct hrd_service {
   hrd_service(parser_info origin, int num_repetitions, int interval,
               std::vector<stop> stops, std::vector<section> sections,
               bitfield traffic_days, int initial_train_num)
-      : origin_(std::move(origin)),
+      : origin_(origin),
         num_repetitions_(num_repetitions),
         interval_(interval),
         stops_(std::move(stops)),
         sections_(std::move(sections)),
-        traffic_days_(std::move(traffic_days)),
+        traffic_days_(traffic_days),
         initial_train_num_(initial_train_num) {}
 
   hrd_service(specification const& spec, config const&);
