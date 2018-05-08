@@ -79,7 +79,7 @@ msvc-release:
     - mkdir build-msvc-release
     - cd build-msvc-release
     - cmake -GNinja -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
-    - jom motis-test motis-itest motis motis-eval motis-cli
+    - ninja motis-test motis-itest motis motis-eval motis-cli
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
@@ -101,7 +101,7 @@ msvc-debug:
     - mkdir build-msvc-debug
     - cd build-msvc-debug
     - cmake -GNinja -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
-    - jom motis-test motis-itest motis motis-eval motis-cli
+    - ninja motis-test motis-itest motis motis-eval motis-cli
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
