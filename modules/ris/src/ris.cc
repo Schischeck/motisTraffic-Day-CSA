@@ -104,9 +104,9 @@ struct ris::impl {
 
     env_.set_maxdbs(4);
     env_.set_mapsize(db_max_size_);
-    env_.open(db_path_.c_str(), lmdb::env_open_flags::NOSUBDIR |
-                                    lmdb::env_open_flags::NOSYNC |
-                                    lmdb::env_open_flags::NOTLS);
+    env_.open(db_path_.c_str(),
+              lmdb::env_open_flags::NOSUBDIR | lmdb::env_open_flags::NOSYNC |
+                  lmdb::env_open_flags::NOLOCK | lmdb::env_open_flags::NOTLS);
 
     db::txn t{env_};
     t.dbi_open(FILE_DB, db::dbi_flags::CREATE);
@@ -132,6 +132,7 @@ struct ris::impl {
     write_to_db(zip_reader{content->c_str(), content->size()}, pub);
     sched.system_time_ = pub.max_timestamp_;
     sched.last_update_timestamp_ = std::time(nullptr);
+    motis_publish(make_no_msg("/ris/system_time_changed"));
     return {};
   }
 
@@ -141,6 +142,7 @@ struct ris::impl {
     parse_sequential(input_, pub);
     sched.system_time_ = pub.max_timestamp_;
     sched.last_update_timestamp_ = std::time(nullptr);
+    motis_publish(make_no_msg("/ris/system_time_changed"));
     return {};
   }
 
