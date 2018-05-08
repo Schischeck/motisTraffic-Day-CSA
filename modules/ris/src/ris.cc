@@ -225,7 +225,6 @@ private:
   } null_pub_;
 
   void forward(time_t const to) {
-    std::lock_guard<std::mutex> lock{forward_mutex_};
     auto const& sched = get_schedule();
     auto const first_schedule_event_day =
         floor(sched.first_event_schedule_time_, SECONDS_A_DAY);
@@ -498,7 +497,6 @@ private:
   db::env env_;
   std::atomic<uint64_t> next_msg_id_{0};
   std::mutex min_max_mutex_;
-  std::mutex forward_mutex_;
   std::mutex merge_mutex_;
 };
 
