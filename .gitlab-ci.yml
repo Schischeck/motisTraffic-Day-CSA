@@ -10,8 +10,8 @@ gcc-7-release:
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7
     - cd build-gcc-7
-    - cmake -DCMAKE_BUILD_TYPE=Release ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -32,8 +32,8 @@ clang-debug-asan:
     - git submodule update --init --recursive
     - mkdir -p build-asan
     - cd build-asan
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -52,8 +52,8 @@ gcc-7-debug-valgrind:
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7-valgrind
     - cd build-gcc-7-valgrind
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -78,7 +78,7 @@ msvc-release:
     - git submodule update --init --recursive
     - mkdir build-msvc-release
     - cd build-msvc-release
-    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
+    - cmake -GNinja -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
     - jom motis-test motis-itest motis motis-eval motis-cli
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -100,7 +100,7 @@ msvc-debug:
     - git submodule update --init --recursive
     - mkdir build-msvc-debug
     - cd build-msvc-debug
-    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
+    - cmake -GNinja -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
     - jom motis-test motis-itest motis motis-eval motis-cli
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -121,8 +121,8 @@ clang-tidy:
     - git submodule update --init --recursive
     - mkdir build-clang-tidy
     - cd build-clang-tidy
-    - cmake -DMOTIS_LINT=true ..
-    - make -j8 lint
+    - cmake -GNinja -DMOTIS_LINT=true ..
+    - ninja -j8 lint
 
 # Clang-Format
 clang-format:
@@ -133,5 +133,5 @@ clang-format:
     - git submodule update --init --recursive
     - mkdir build-clang-format
     - cd build-clang-format
-    - cmake ..
-    - make format-check
+    - cmake -GNinja ..
+    - ninja format-check
