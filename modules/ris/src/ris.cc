@@ -117,7 +117,7 @@ struct ris::impl {
 
     if (fs::exists(input_)) {
       LOG(warn) << "parsing " << input_;
-      parse_parallel(input_, null_pub_);
+      parse_sequential(input_, null_pub_);
       forward(init_time_);
     } else {
       LOG(warn) << input_ << " does not exist";
