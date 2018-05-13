@@ -3,8 +3,8 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include "motis/path/db/lmdb.h"
 #include "motis/path/db/mapdb.h"
-#include "motis/path/db/rocksdb.h"
 
 namespace motis {
 namespace path {
@@ -15,7 +15,7 @@ std::unique_ptr<kv_database> load_db(std::string const& path,
                                               boost::filesystem::path{path}))) {
     return std::make_unique<map_database>();
   }
-  return std::make_unique<rocksdb_database>(path);
+  return std::make_unique<lmdb_database>(path);
 }
 
 }  // namespace path

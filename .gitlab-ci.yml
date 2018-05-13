@@ -11,7 +11,7 @@ gcc-7-release:
     - mkdir -p build-gcc-7
     - cd build-gcc-7
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
-    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -33,7 +33,7 @@ clang-debug-asan:
     - mkdir -p build-asan
     - cd build-asan
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
-    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -48,12 +48,12 @@ gcc-7-debug-valgrind:
     - bionic
   script:
     - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
-    #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM 
+    #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7-valgrind
     - cd build-gcc-7-valgrind
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
-    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -79,7 +79,7 @@ msvc-release:
     - mkdir build-msvc-release
     - cd build-msvc-release
     - cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
-    - ninja motis-test motis-itest motis motis-eval motis-cli
+    - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
@@ -101,7 +101,7 @@ msvc-debug:
     - mkdir build-msvc-debug
     - cd build-msvc-debug
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
-    - ninja motis-test motis-itest motis motis-eval motis-cli
+    - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
