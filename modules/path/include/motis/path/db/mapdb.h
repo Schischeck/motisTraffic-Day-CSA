@@ -8,6 +8,11 @@ namespace motis {
 namespace path {
 
 struct map_database : public kv_database {
+  map_database() = default;
+  map_database(map_database const&) = default;
+  map_database(map_database&&) = default;
+  map_database& operator=(map_database const&) = default;
+  map_database& operator=(map_database&&) = default;
   ~map_database() override = default;
 
   void put(std::string const& k, std::string const& v) override {

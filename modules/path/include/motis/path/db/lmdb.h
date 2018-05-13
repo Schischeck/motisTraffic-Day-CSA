@@ -11,6 +11,11 @@ struct lmdb_database : public kv_database {
   explicit lmdb_database(std::string path);
   ~lmdb_database() override;
 
+  lmdb_database(lmdb_database const&) = delete;
+  lmdb_database(lmdb_database&&) = default;
+  lmdb_database& operator=(lmdb_database const&) = delete;
+  lmdb_database& operator=(lmdb_database&&) = default;
+
   void put(std::string const& k, std::string const& v) override;
   std::string get(std::string const& k) const override;
   boost::optional<std::string> try_get(std::string const& k) const override;
