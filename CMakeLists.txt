@@ -103,7 +103,7 @@ if (MSVC)
   set(Boost_USE_MULTITHREADED ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost COMPONENTS system filesystem regex program_options thread context REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex program_options thread REQUIRED)
 find_package(Threads)
 
 link_directories(${Boost_LIBRARY_DIRS})
