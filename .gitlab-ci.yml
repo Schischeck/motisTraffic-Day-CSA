@@ -78,7 +78,7 @@ msvc-release:
     - git submodule update --init --recursive
     - mkdir build-msvc-release
     - cd build-msvc-release
-    - cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc path" ..
     - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -100,7 +100,7 @@ msvc-debug:
     - git submodule update --init --recursive
     - mkdir build-msvc-debug
     - cd build-msvc-debug
-    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc path" ..
     - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
