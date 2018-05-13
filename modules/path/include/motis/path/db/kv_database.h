@@ -17,7 +17,7 @@ struct kv_database {
 };
 
 std::unique_ptr<kv_database> load_db(std::string const& path,
-                                     bool const required = false);
+                                     bool required = false);
 
 }  // namespace path
 }  // namespace motis
