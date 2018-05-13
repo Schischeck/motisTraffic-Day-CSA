@@ -1,8 +1,8 @@
 #include "motis/path/prepare/rail/rail_way.h"
 
 #include <algorithm>
-#include <map>
 #include <limits>
+#include <map>
 
 #include "parser/util.h"
 
