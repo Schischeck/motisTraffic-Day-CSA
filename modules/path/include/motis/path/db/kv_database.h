@@ -8,6 +8,12 @@ namespace motis {
 namespace path {
 
 struct kv_database {
+  kv_database() = default;
+  kv_database(kv_database const&) = default;
+  kv_database(kv_database&&) = default;
+  kv_database& operator=(kv_database const&) = default;
+  kv_database& operator=(kv_database&&) = default;
+
   virtual ~kv_database() = default;
 
   virtual void put(std::string const& k, std::string const& v) = 0;
