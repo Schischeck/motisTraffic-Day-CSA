@@ -8,9 +8,9 @@ file(GLOB_RECURSE path-fbs-files ${path-fbs-dir}/*.fbs)
 build_flatbuffers(
   32
   "--everything-required"        # commandline_options
-  "${path-fbs-files}"          # flatbuffers_schemas
-  "${path-fbs-dir}"            # schema_include_dirs
-  generated-path-fbs-headers   # custom_target_name
+  "${path-fbs-files}"            # flatbuffers_schemas
+  "${path-fbs-dir}"              # schema_include_dirs
+  generated-path-fbs-headers     # custom_target_name
   ""                             # additional_dependencies
   "${generated-headers-dir}"     # generated_includes_dir
   ""                             # binary_schemas_dir
@@ -38,7 +38,7 @@ target_link_libraries(motis-path
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   expat
-  rocksdb
+  lmdb
   ${ZLIB_LIBRARIES}
   geo
   osrm
@@ -58,7 +58,7 @@ target_link_libraries(path-prepare
   motis-loader
   conf
   geo
-  rocksdb
+  lmdb
   osrm
 )
 

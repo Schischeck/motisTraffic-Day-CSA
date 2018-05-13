@@ -9,7 +9,7 @@
 #include "motis/core/common/hash_map.h"
 #include "motis/module/message.h"
 
-#include "motis/path/db/rocksdb.h"
+#include "motis/path/db/lmdb.h"
 
 #include "motis/path/fbs/PathIndex_generated.h"
 #include "motis/protocol/PathSeqResponse_generated.h"

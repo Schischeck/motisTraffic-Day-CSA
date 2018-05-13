@@ -14,8 +14,6 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/path/prepare/geojson.h"
-
 using namespace geo;
 using namespace motis::logging;
 

@@ -6,12 +6,12 @@ gcc-7-release:
   tags:
     - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_65_1-gcc-7
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7
     - cd build-gcc-7
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
-    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -26,14 +26,14 @@ clang-debug-asan:
     - bionic
   script:
     - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
-    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - export CXX=clang++
     - export CC=clang
     - git submodule update --init --recursive
     - mkdir -p build-asan
     - cd build-asan
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
-    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -47,13 +47,13 @@ gcc-7-debug-valgrind:
   tags:
     - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_65_1-gcc-7
-    #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM 
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
+    #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM
     - git submodule update --init --recursive
     - mkdir -p build-gcc-7-valgrind
     - cd build-gcc-7-valgrind
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
-    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
@@ -78,8 +78,8 @@ msvc-release:
     - git submodule update --init --recursive
     - mkdir build-msvc-release
     - cd build-msvc-release
-    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
-    - ninja motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc path" ..
+    - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
@@ -100,8 +100,8 @@ msvc-debug:
     - git submodule update --init --recursive
     - mkdir build-msvc-debug
     - cd build-msvc-debug
-    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc" ..
-    - ninja motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt ris cc path" ..
+    - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
@@ -115,7 +115,7 @@ clang-tidy:
   tags:
     - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - export CXX=clang++
     - export CC=clang
     - git submodule update --init --recursive
@@ -129,7 +129,7 @@ clang-format:
   tags:
     - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_65_1-clang-5
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - git submodule update --init --recursive
     - mkdir build-clang-format
     - cd build-clang-format
