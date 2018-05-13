@@ -28,9 +28,6 @@
 [submodule "external_lib/ctx"]
 	path = external_lib/ctx
 	url = git@git.motis-project.de:lib/ctx.git
-[submodule "external_lib/osmium"]
-	path = external_lib/osmium
-	url = git@git.motis-project.de:lib/osmium.git
 [submodule "external_lib/geo"]
 	path = external_lib/geo
 	url = git@git.motis-project.de:lib/geo.git

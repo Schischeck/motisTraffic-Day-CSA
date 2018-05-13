@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <map>
+#include <limits>
 
 #include "parser/util.h"
 
