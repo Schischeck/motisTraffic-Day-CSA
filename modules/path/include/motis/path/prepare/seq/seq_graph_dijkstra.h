@@ -87,7 +87,7 @@ struct seq_graph_dijkstra {
   size_t get_distance(size_t const goal) const { return dists_[goal]; }
 
   seq_graph const& graph_;
-  std::priority_queue<label, std::vector<label>, std::greater<label>> pq_;
+  std::priority_queue<label, std::vector<label>, std::greater<>> pq_;
 
   std::vector<size_t> dists_;
   std::vector<seq_edge const*> links_;
