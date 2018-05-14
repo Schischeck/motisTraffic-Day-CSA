@@ -25,6 +25,11 @@ struct rail_strategy : public routing_strategy {
     print_rail_graph_stats(graph_);
   }
 
+  rail_strategy(rail_strategy const&) = default;
+  rail_strategy(rail_strategy&&) = default;
+  rail_strategy& operator=(rail_strategy const&) = default;
+  rail_strategy& operator=(rail_strategy&&) = default;
+
   ~rail_strategy() override = default;
 
   std::vector<node_ref> close_nodes(
