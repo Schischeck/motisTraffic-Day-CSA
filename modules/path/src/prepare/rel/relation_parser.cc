@@ -18,8 +18,8 @@ parsed_relations parse_relations(std::string const& osm_file) {
 
   parsed_relations result;
 
-  std::map<int64_t, way*> pending_ways_;
-  std::map<int64_t, std::vector<node*>> pending_nodes_;
+  std::map<int64_t, way*> pending_ways;
+  std::map<int64_t, std::vector<node*>> pending_nodes;
 
   std::vector<std::string> types{"route", "public_transport"};
   std::vector<std::string> rail_routes{"railway", "train"};
@@ -54,7 +54,7 @@ parsed_relations parse_relations(std::string const& osm_file) {
         continue;
       }
 
-      ways.push_back(utl::get_or_create(pending_ways_, member.ref(), [&]() {
+      ways.push_back(utl::get_or_create(pending_ways, member.ref(), [&]() {
         result.way_mem_.push_back(std::make_unique<way>(member.ref()));
         return result.way_mem_.back().get();
       }));
@@ -72,8 +72,8 @@ parsed_relations parse_relations(std::string const& osm_file) {
   std::string stop = "stop";
 
   foreach_osm_way(osm_file, [&](auto&& way) {
-    auto w = pending_ways_.find(way.id());
-    if (w == end(pending_ways_) ||
+    auto w = pending_ways.find(way.id());
+    if (w == end(pending_ways) ||
         platform == way.get_value_by_key("highway", "") ||
         platform == way.get_value_by_key("public_transport", "") ||
         stop == way.get_value_by_key("role", "")) {
@@ -86,13 +86,13 @@ parsed_relations parse_relations(std::string const& osm_file) {
                     [](auto&& n) { return node{n.ref()}; });
 
     for (auto& n : w->second->nodes_) {
-      pending_nodes_[n.id_].push_back(&n);
+      pending_nodes[n.id_].push_back(&n);
     }
   });
 
   foreach_osm_node(osm_file, [&](auto&& node) {
-    auto it = pending_nodes_.find(node.id());
-    if (it != end(pending_nodes_)) {
+    auto it = pending_nodes.find(node.id());
+    if (it != end(pending_nodes)) {
       for (auto& n : it->second) {
         n->resolved_ = true;
         n->pos_ = {node.location().lat(), node.location().lon()};

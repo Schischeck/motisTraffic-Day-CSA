@@ -46,7 +46,7 @@ struct rail_edge {
         from_(from),
         to_(to) {}
 
-  bool is_forward() const { return forward_; }
+  bool is_forward() const { return forward_ != 0; }
 
   uint64_t polyline_idx_ : 63;
   uint64_t forward_ : 1;
@@ -63,7 +63,7 @@ inline void print_rail_graph_stats(rail_graph const& graph) {
 
   auto vec =
       utl::to_vec(graph.nodes_, [](auto const& n) { return n->edges_.size(); });
-  auto const count = std::accumulate(begin(vec), end(vec), 0);
+  auto const count = std::accumulate(begin(vec), end(vec), size_t{0});
   auto const avg = count / vec.size();
 
   LOG(ml::info) << "- edges: " << count;

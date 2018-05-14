@@ -63,6 +63,7 @@ struct routing_result_matrix {
   using raw_results_t = std::vector<std::vector<routing_result>>;
 
   routing_result_matrix() = default;
+  ~routing_result_matrix() = default;
 
   explicit routing_result_matrix(raw_results_t const* ptr,
                                  bool is_transposed = false)

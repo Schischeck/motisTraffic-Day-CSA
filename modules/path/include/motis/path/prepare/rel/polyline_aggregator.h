@@ -9,7 +9,7 @@ namespace path {
 
 struct aggregated_polyline {
   aggregated_polyline(source_spec source, geo::polyline p)
-      : source_(source), polyline_(p) {}
+      : source_(source), polyline_(std::move(p)) {}
   source_spec source_;
   geo::polyline polyline_;
 };
