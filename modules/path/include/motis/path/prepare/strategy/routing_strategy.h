@@ -45,7 +45,6 @@ struct node_ref {
 struct routing_result {
   routing_result()
       : strategy_id_(kInvalidStrategyId),
-        source_(),
         weight_(std::numeric_limits<double>::infinity()) {}
 
   routing_result(size_t strategy_id, source_spec source, double weight)
