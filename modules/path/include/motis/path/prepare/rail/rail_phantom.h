@@ -17,7 +17,7 @@ struct rail_node_phantom {
       : id_(id), pos_(pos) {}
 
   std::vector<size_t> way_idx_;
-  int64_t id_;
+  int64_t id_ = 0;
   geo::latlng pos_;
 };
 

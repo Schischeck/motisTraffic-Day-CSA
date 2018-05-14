@@ -9,8 +9,12 @@ namespace motis {
 namespace path {
 
 struct osrm_strategy : public routing_strategy {
-  osrm_strategy(strategy_id_t const, std::vector<station> const&,
+  osrm_strategy(strategy_id_t, std::vector<station> const&,
                 std::string const& osrm_path);
+  osrm_strategy(osrm_strategy const&) = default;
+  osrm_strategy(osrm_strategy&&) = default;
+  osrm_strategy& operator=(osrm_strategy const&) = default;
+  osrm_strategy& operator=(osrm_strategy&&) = default;
   ~osrm_strategy() override;
 
   std::vector<node_ref> close_nodes(

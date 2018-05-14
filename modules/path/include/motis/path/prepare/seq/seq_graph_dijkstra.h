@@ -21,7 +21,7 @@ struct seq_graph_dijkstra {
   };
 
   seq_graph_dijkstra(seq_graph const& graph, std::vector<size_t> initial,
-                     std::vector<size_t> goals)
+                     std::vector<size_t> const& goals)
       : graph_(graph), goals_(goals), open_goals_(goals) {
 
     dists_.resize(graph_.nodes_.size(), std::numeric_limits<size_t>::max());

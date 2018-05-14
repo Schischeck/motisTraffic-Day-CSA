@@ -20,7 +20,7 @@ struct seq_node {
       : idx_(idx),
         incomming_edges_count_(0),
         station_idx_(station_idx),
-        ref_(std::move(ref)) {}
+        ref_(ref) {}
 
   size_t strategy_id() const { return ref_.strategy_id_; }
 
@@ -35,7 +35,7 @@ struct seq_node {
 
 struct seq_edge {
   seq_edge(seq_node* from, seq_node* to, routing_result routing)
-      : from_(from), to_(to), routing_(std::move(routing)) {}
+      : from_(from), to_(to), routing_(routing) {}
 
   double weight() const { return routing_.weight_; }
   size_t strategy_id() const { return routing_.strategy_id_; }
