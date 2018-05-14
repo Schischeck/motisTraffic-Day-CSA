@@ -19,7 +19,7 @@ struct path_routing {
   path_routing(path_routing const&) = delete;
   path_routing& operator=(path_routing const&) = delete;
 
-  std::vector<routing_strategy*> strategies_for(source_spec::category const);
+  std::vector<routing_strategy*> strategies_for(source_spec::category);
 
   struct strategies;
   std::unique_ptr<strategies> strategies_;
