@@ -26,9 +26,9 @@ struct source_spec {
     }
   }
 
-  int64_t id_;
-  category category_;
-  type type_;
+  int64_t id_ = 0;
+  category category_ = category::UNKNOWN;
+  type type_ = type::RELATION;
 };
 
 inline bool operator==(source_spec::category const t, int const category) {
