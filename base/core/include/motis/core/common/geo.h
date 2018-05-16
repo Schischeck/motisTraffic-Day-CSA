@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 
+#include "boost/geometry/algorithms/distance.hpp"
 #include "boost/geometry/geometries/box.hpp"
 #include "boost/geometry/geometries/point.hpp"
 #include "boost/geometry/index/rtree.hpp"
