@@ -28,6 +28,10 @@ struct typed_flatbuffer {
       std::string const& s)
       : typed_flatbuffer(s.size(), s.data()) {}
 
+  explicit typed_flatbuffer(  // NOLINT (delegating member init)
+      std::string_view s)
+      : typed_flatbuffer(s.size(), s.data()) {}
+
   typed_flatbuffer(typed_flatbuffer const&) = delete;
   typed_flatbuffer& operator=(typed_flatbuffer const&) = delete;
 

@@ -29,5 +29,5 @@ target_link_libraries(motis-bikesharing
   motis-module
   pugixml
   geo
-  rocksdb
+  lmdb
 )

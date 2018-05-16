@@ -1,13 +1,12 @@
 #include "motis/bikesharing/database.h"
 
-#include "rocksdb/db.h"
-#include "rocksdb/utilities/leveldb_options.h"
+#include "lmdb/lmdb.hpp"
 
 #include "motis/bikesharing/error.h"
 
 using std::system_error;
 
-using namespace rocksdb;
+namespace db = lmdb;
 using namespace flatbuffers;
 
 namespace motis {
@@ -19,69 +18,59 @@ struct database::database_impl {
   database_impl() = default;
 
   explicit database_impl(std::string const& path) {
-    DB* db;
-    LevelDBOptions options;
-    options.create_if_missing = true;
-    Status s = DB::Open(ConvertOptions(options), path, &db);
-
-    if (!s.ok()) {
-      throw system_error(error::database_error);
-    }
-
-    db_.reset(db);
+    env_.set_maxdbs(1);
+    env_.set_mapsize(static_cast<size_t>(1024) * 1024 * 1024 * 512);
+    env_.open(path.c_str(), db::env_open_flags::NOSUBDIR |
+                                db::env_open_flags::NOLOCK |
+                                db::env_open_flags::NOTLS);
   }
 
   virtual ~database_impl() = default;
 
   virtual bool is_initialized() const {
-    std::string value;
-    Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
-
-    return s.ok() && !s.IsNotFound();
+    auto txn = db::txn{env_};
+    auto db = txn.dbi_open();
+    return txn.get(db, kSummaryKey).has_value();
   }
 
   virtual persistable_terminal get(std::string const& id) const {
-    std::string value;
-    Status s = db_->Get(ReadOptions(), id, &value);
-
-    if (s.IsNotFound()) {
+    auto txn = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = txn.dbi_open();
+    if (auto const r = txn.get(db, id); !r.has_value()) {
       throw system_error(error::terminal_not_found);
-    } else if (!s.ok()) {
-      throw system_error(error::database_error);
+    } else {
+      return persistable_terminal(*r);
     }
-
-    return persistable_terminal(value);
   }
 
   virtual void put(std::vector<persistable_terminal> const& terminals) {
+    auto txn = db::txn{env_};
+    auto db = txn.dbi_open();
     for (auto const& t : terminals) {
-      Status s = db_->Put(WriteOptions(), t.get()->id()->str(), t.to_string());
-      if (!s.ok()) {
-        throw system_error(error::database_error);
-      }
+      txn.put(db, t.get()->id()->str(), t.to_string());
     }
+    txn.commit();
   }
 
   virtual bikesharing_summary get_summary() const {
-    std::string value;
-    Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
-
-    if (s.IsNotFound() || !s.ok()) {
+    auto txn = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = txn.dbi_open();
+    if (auto const r = txn.get(db, kSummaryKey); !r.has_value()) {
       throw system_error(error::database_error);
+    } else {
+      return bikesharing_summary(*r);
     }
-
-    return bikesharing_summary(value);
   }
 
   virtual void put_summary(bikesharing_summary const& summary) {
-    Status s = db_->Put(WriteOptions(), kSummaryKey, summary.to_string());
-    if (!s.ok()) {
-      throw system_error(error::database_error);
-    }
+    auto txn = db::txn{env_};
+    auto db = txn.dbi_open();
+    txn.put(db, kSummaryKey, summary.to_string());
+    txn.commit();
   }
 
-  std::unique_ptr<DB> db_;
-};
+  db::env mutable env_;
+};  // namespace bikesharing
 
 struct inmemory_database : public database::database_impl {
 

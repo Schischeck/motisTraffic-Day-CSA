@@ -34,7 +34,7 @@ struct lmdb_database::impl {
   }
 
   boost::optional<std::string> try_get(std::string const& k) const {
-    auto txn = db::txn{env_};
+    auto txn = db::txn{env_, db::txn_flags::RDONLY};
     auto db = txn.dbi_open();
     if (auto const r = txn.get(db, k); r.has_value()) {
       return std::string{*r};
