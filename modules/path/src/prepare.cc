@@ -132,9 +132,8 @@ int main(int argc, char** argv) {
   }
 
   if (!opt.check_.empty()) {
-    verify(opt.check_.size() == 2,
-           "check expects exactly two database paths") auto const expected =
-        std::make_unique<lmdb_database>(opt.check_[0]);
+    verify(opt.check_.size() == 2, "check expects exactly two database paths");
+    auto const expected = std::make_unique<lmdb_database>(opt.check_[0]);
     auto const actual = std::make_unique<lmdb_database>(opt.check_[1]);
     check_databases(*expected, *actual);
     return 0;

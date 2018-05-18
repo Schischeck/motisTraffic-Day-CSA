@@ -8,7 +8,8 @@ namespace motis {
 namespace path {
 
 struct lmdb_database : public kv_database {
-  explicit lmdb_database(std::string path, size_t max_db_size);
+  explicit lmdb_database(std::string path,
+                         size_t max_db_size = 10485760 /* 10M */);
   ~lmdb_database() override;
 
   lmdb_database(lmdb_database const&) = delete;
