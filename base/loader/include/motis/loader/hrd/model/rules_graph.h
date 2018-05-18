@@ -13,6 +13,11 @@ namespace hrd {
 struct rule_node;
 
 struct node {
+  node() = default;
+  node(node const&) = default;
+  node(node&&) = default;
+  node& operator=(node const&) = default;
+  node& operator=(node&&) = default;
   virtual ~node() = default;
 };
 
@@ -20,7 +25,7 @@ struct service_node : public node {
   explicit service_node(hrd_service*);
 
   std::vector<rule_node*> rule_nodes_;
-  hrd_service* service_;
+  hrd_service* service_{nullptr};
 };
 
 struct rule_node : public node {

@@ -14,6 +14,7 @@
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/price.h"
+#include "motis/core/access/time_access.h"
 #include "motis/loader/classes.h"
 #include "motis/loader/duplicate_checker.h"
 #include "motis/loader/rule_service_graph_builder.h"
@@ -95,14 +96,14 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
     s->length_ = input_station->lng();
     s->eva_nr_ = input_station->id()->str();
     s->transfer_time_ = input_station->interchange_time();
-    s->timez_ = input_station->timezone()
+    s->timez_ = input_station->timezone() != nullptr
                     ? get_or_create_timezone(input_station->timezone())
                     : nullptr;
     sched_.eva_to_station_.insert(
         std::make_pair(input_station->id()->str(), s.get()));
 
     // Store DS100.
-    if (input_station->external_ids()) {
+    if (input_station->external_ids() != nullptr) {
       for (auto const& ds100 : *input_station->external_ids()) {
         sched_.ds100_to_station_.insert(std::make_pair(ds100->str(), s.get()));
       }
@@ -123,7 +124,7 @@ void graph_builder::link_meta_stations(
     for (auto const& fbs_equivalent : *meta->equivalent()) {
       auto equivalent =
           sched_.eva_to_station_.find(fbs_equivalent->id()->str());
-      station->second->equivalent_.push_back(equivalent->second);
+      station->second->equivalent_.emplace_back(equivalent->second);
     }
   }
 }
@@ -132,7 +133,7 @@ timezone const* graph_builder::get_or_create_timezone(
     Timezone const* input_timez) {
   return utl::get_or_create(timezones_, input_timez, [&]() {
     auto const tz =
-        input_timez->season()
+        input_timez->season() != nullptr
             ? create_timezone(
                   input_timez->general_offset(),
                   input_timez->season()->offset(),  //
@@ -142,7 +143,7 @@ timezone const* graph_builder::get_or_create_timezone(
                   input_timez->season()->minutes_after_midnight_first_day(),
                   input_timez->season()->minutes_after_midnight_last_day())
             : timezone(input_timez->general_offset());
-    sched_.timezones_.emplace_back(new timezone(tz));
+    sched_.timezones_.emplace_back(std::make_unique<timezone>(tz));
     return sched_.timezones_.back().get();
   });
 }
@@ -170,7 +171,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
 
   auto const train_nr = s->sections()->Get(section_idx)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
-  auto const line_id = line_id_ptr ? line_id_ptr->str() : "";
+  auto const line_id = line_id_ptr != nullptr ? line_id_ptr->str() : "";
 
   full_trip_id id;
   id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
@@ -185,7 +186,8 @@ merged_trips_idx graph_builder::create_merged_trips(Service const* s,
 }
 
 trip* graph_builder::register_service(Service const* s, int day_idx) {
-  sched_.trip_mem_.emplace_back(new trip(get_full_trip_id(s, day_idx)));
+  sched_.trip_mem_.emplace_back(
+      std::make_unique<trip>(get_full_trip_id(s, day_idx)));
   auto stored = sched_.trip_mem_.back().get();
   sched_.trips_.emplace_back(stored->id_.primary_, stored);
 
@@ -353,15 +355,14 @@ void graph_builder::add_to_routes(
     return;
   }
 
-  alt_routes.push_back(
-      std::vector<std::vector<light_connection>>(sections.size()));
+  alt_routes.emplace_back(sections.size());
   add_to_route(alt_routes.back(), sections, 0);
 }
 
 connection_info* graph_builder::get_or_create_connection_info(
     Section const* section, int dep_day_index, connection_info* merged_with) {
   con_info_.line_identifier_ =
-      section->line_id() ? section->line_id()->str() : "";
+      section->line_id() != nullptr ? section->line_id()->str() : "";
   con_info_.train_nr_ = section->train_nr();
   con_info_.family_ = get_or_create_category_index(section->category());
   con_info_.dir_ = get_or_create_direction(section->direction());
@@ -427,8 +428,10 @@ light_connection graph_builder::section_to_connection(
       stations_[ref->route()->stations()->Get(section_idx + 1)]->id_);
 
   auto plfs = ref->tracks();
-  auto dep_platf = plfs ? plfs->Get(section_idx)->dep_tracks() : nullptr;
-  auto arr_platf = plfs ? plfs->Get(section_idx + 1)->arr_tracks() : nullptr;
+  auto dep_platf =
+      plfs != nullptr ? plfs->Get(section_idx)->dep_tracks() : nullptr;
+  auto arr_platf =
+      plfs != nullptr ? plfs->Get(section_idx + 1)->arr_tracks() : nullptr;
 
   auto section = ref->sections()->Get(section_idx);
   auto dep_time = ref->times()->Get(section_idx * 2 + 1);
@@ -455,6 +458,14 @@ light_connection graph_builder::section_to_connection(
   // Count events.
   ++from.dep_class_events_.at(con_.clasz_);
   ++to.arr_class_events_.at(con_.clasz_);
+
+  // Track first event.
+  sched_.first_event_schedule_time_ = std::min(
+      sched_.first_event_schedule_time_,
+      motis_to_unixtime(sched_, dep_motis_time) - SCHEDULE_OFFSET_MINUTES * 60);
+  sched_.last_event_schedule_time_ = std::max(
+      sched_.last_event_schedule_time_,
+      motis_to_unixtime(sched_, arr_motis_time) - SCHEDULE_OFFSET_MINUTES * 60);
 
   return light_connection(
       dep_motis_time, arr_motis_time,
@@ -561,7 +572,7 @@ std::string const* graph_builder::get_or_create_direction(
     Direction const* dir) {
   if (dir == nullptr) {
     return nullptr;
-  } else if (dir->station()) {
+  } else if (dir->station() != nullptr) {
     return &sched_.stations_[stations_[dir->station()]->id_]->name_;
   } else /* direction text */ {
     return utl::get_or_create(directions_, dir->text(), [&]() {
@@ -598,7 +609,7 @@ int graph_builder::get_or_create_track(int day,
                                        Vector<Offset<Track>> const* tracks) {
   static constexpr int no_track = 0;
   if (sched_.tracks_.empty()) {
-    sched_.tracks_.push_back("");
+    sched_.tracks_.emplace_back("");
   }
 
   if (tracks == nullptr) {
@@ -615,7 +626,7 @@ int graph_builder::get_or_create_track(int day,
     auto name = track_it->name()->str();
     return utl::get_or_create(tracks_, name, [&]() {
       int index = sched_.tracks_.size();
-      sched_.tracks_.push_back(name);
+      sched_.tracks_.emplace_back(name);
       return index;
     });
   }
@@ -626,7 +637,8 @@ void graph_builder::write_trip_info(route& r) {
     return trip::route_edge(s.get_route_edge());
   });
 
-  sched_.trip_edges_.emplace_back(new std::vector<trip::route_edge>(edges));
+  sched_.trip_edges_.emplace_back(
+      std::make_unique<std::vector<trip::route_edge>>(edges));
   auto edges_ptr = sched_.trip_edges_.back().get();
 
   auto& lcons = edges_ptr->front().get_edge()->m_.route_edge_.conns_;
@@ -649,11 +661,12 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
   for (unsigned i = 0; i < r->stations()->size() - 1; ++i) {
     auto from = i;
     auto to = i + 1;
-    route_sections->push_back(add_route_section(
-        route_index, lcons[i],  //
-        stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
-        stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
-        last_route_section.to_route_node_, nullptr));
+    route_sections->push_back(
+        add_route_section(route_index, lcons[i],  //
+                          stops->Get(from), in_allowed->Get(from) != 0u,
+                          out_allowed->Get(from) != 0u, stops->Get(to),
+                          in_allowed->Get(to) != 0u, out_allowed->Get(to) != 0u,
+                          last_route_section.to_route_node_, nullptr));
     last_route_section = route_sections->back();
   }
 

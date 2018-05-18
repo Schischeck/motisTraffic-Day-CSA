@@ -27,7 +27,7 @@ struct transfer {
   int type_;
 };
 
-typedef std::pair<stop const*, stop const*> stop_pair;
+using stop_pair = std::pair<stop const*, stop const*>;
 std::map<stop_pair, transfer> read_transfers(loaded_file, stop_map const&);
 
 }  // namespace gtfs

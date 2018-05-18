@@ -17,8 +17,9 @@ struct lower_bounds {
       schedule const& sched,  //
       constant_graph const& travel_time_graph,
       constant_graph const& transfers_graph,  //
-      int goal, hash_map<int, std::vector<simple_edge>> const&
-                    additional_travel_time_edges,
+      int goal,
+      hash_map<int, std::vector<simple_edge>> const&
+          additional_travel_time_edges,
       hash_map<int, std::vector<simple_edge>> const& additional_transfers_edges)
       : travel_time_(travel_time_graph, goal, additional_travel_time_edges),
         transfers_(transfers_graph, goal, additional_transfers_edges,

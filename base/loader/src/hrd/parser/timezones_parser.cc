@@ -27,37 +27,41 @@ int bitfield_idx(cstr ddmmyyyy, date const& first_schedule_date) {
 }
 
 timezones parse_timezones(loaded_file const& timezones_file,
-                          loaded_file const& basic_data_file) {
+                          loaded_file const& basic_data_file, config const& c) {
   auto const first_schedule_date = get_first_schedule_date(basic_data_file);
 
   timezones tz;
   for_each_line(timezones_file.content(), [&](cstr line) {
     if (line.length() == 15) {
-      auto first_valid_eva_number = eva_number(line.substr(8, size(7)));
+      auto first_valid_eva_number =
+          eva_number(line.substr(c.tz_.type1_first_valid_eva_));
       auto it = tz.eva_to_tze_.find(first_valid_eva_number);
       verify(it != end(tz.eva_to_tze_),
              "missing timezone information for eva number: %d",
              first_valid_eva_number);
 
-      tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] = it->second;
+      tz.eva_to_tze_[eva_number(line.substr(c.tz_.type1_eva_))] = it->second;
       return;
     }
 
-    if (isdigit(line[0]) && line.length() >= 47) {
+    if ((isdigit(line[0]) != 0) && line.length() >= 47) {
       boost::optional<season_entry> opt_season_entry;
       if (!line.substr(14, size(33)).trim().empty()) {
         opt_season_entry.emplace(
-            distance_to_midnight(line.substr(14, size(5))),
-            bitfield_idx(line.substr(20, size(8)), first_schedule_date),
-            bitfield_idx(line.substr(34, size(8)), first_schedule_date),
-            distance_to_midnight(line.substr(29, size(4))),
-            distance_to_midnight(line.substr(43, size(4))));
+            distance_to_midnight(line.substr(c.tz_.type3_dst_to_midnight1_)),
+            bitfield_idx(line.substr(c.tz_.type3_bitfield_idx1_),
+                         first_schedule_date),
+            bitfield_idx(line.substr(c.tz_.type3_bitfield_idx2_),
+                         first_schedule_date),
+            distance_to_midnight(line.substr(c.tz_.type3_dst_to_midnight2_)),
+            distance_to_midnight(line.substr(c.tz_.type3_dst_to_midnight3_)));
       }
 
       tz.timezone_entries_.push_back(std::make_unique<timezone_entry>(
-          distance_to_midnight(line.substr(8, size(5))), opt_season_entry));
+          distance_to_midnight(line.substr(c.tz_.type2_dst_to_midnight_)),
+          opt_season_entry));
 
-      tz.eva_to_tze_[eva_number(line.substr(0, size(7)))] =
+      tz.eva_to_tze_[eva_number(line.substr(c.tz_.type2_eva_))] =
           tz.timezone_entries_.back().get();
     }
   });

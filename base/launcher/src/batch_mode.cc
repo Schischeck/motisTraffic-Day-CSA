@@ -32,6 +32,12 @@ public:
     out_.exceptions(std::ifstream::failbit | std::ifstream::badbit);
   }
 
+  query_injector(query_injector const&) = delete;
+  query_injector& operator=(query_injector const&) = delete;
+
+  query_injector(query_injector&&) = delete;
+  query_injector& operator=(query_injector&&) = delete;
+
   ~query_injector() { ios_.stop(); }
 
   void start() {
@@ -56,7 +62,7 @@ private:
     return make_msg(json);
   }
 
-  bool inject_msg(std::shared_ptr<query_injector>) {
+  bool inject_msg(std::shared_ptr<query_injector> const&) {
     msg_ptr next;
     try {
       next = next_query();
@@ -74,13 +80,13 @@ private:
     return true;
   }
 
-  void on_response(std::shared_ptr<query_injector> self, int id, msg_ptr res,
-                   std::error_code ec) {
+  void on_response(std::shared_ptr<query_injector> const& self, int id,
+                   msg_ptr const& res, std::error_code ec) {
     write_response(id, res, ec);
     inject_msg(self);
   }
 
-  void write_response(int id, msg_ptr res, std::error_code ec) {
+  void write_response(int id, msg_ptr const& res, std::error_code ec) {
     msg_ptr response;
 
     if (ec) {

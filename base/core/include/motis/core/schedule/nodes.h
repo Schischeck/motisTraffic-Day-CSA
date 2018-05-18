@@ -90,14 +90,16 @@ public:
   explicit station_node(int node_id)
       : node(nullptr, node_id), foot_node_(nullptr) {}
 
+  station_node(station_node const&) = delete;
+  station_node(station_node&&) = delete;
+  station_node& operator=(station_node const&) = delete;
+  station_node& operator=(station_node&&) = delete;
+
   ~station_node() {
     for (auto& route_node : get_route_nodes()) {
       delete route_node;
     }
-
-    if (foot_node_ != nullptr) {
-      delete foot_node_;
-    }
+    delete foot_node_;
   }
 
   std::vector<node const*> get_route_nodes() const {
@@ -152,6 +154,6 @@ public:
   node* foot_node_;
 };
 
-typedef std::unique_ptr<station_node> station_node_ptr;
+using station_node_ptr = std::unique_ptr<station_node>;
 
 }  // namespace motis

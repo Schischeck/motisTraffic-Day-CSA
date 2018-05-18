@@ -26,14 +26,18 @@ struct stop_restrictions {
     } else if (rhs.eva_num_ > lhs.eva_num_) {
       return false;
     }
-    if (rhs.entering_allowed_ < lhs.entering_allowed_) {
+    if (static_cast<int>(rhs.entering_allowed_) <
+        static_cast<int>(lhs.entering_allowed_)) {
       return true;
-    } else if (rhs.entering_allowed_ > lhs.entering_allowed_) {
+    } else if (static_cast<int>(rhs.entering_allowed_) >
+               static_cast<int>(lhs.entering_allowed_)) {
       return false;
     }
-    if (rhs.leaving_allowed_ < lhs.leaving_allowed_) {
+    if (static_cast<int>(rhs.leaving_allowed_) <
+        static_cast<int>(lhs.leaving_allowed_)) {
       return true;
-    } else if (rhs.entering_allowed_ > lhs.entering_allowed_) {
+    } else if (static_cast<int>(rhs.entering_allowed_) >
+               static_cast<int>(lhs.entering_allowed_)) {
       return false;
     }
     return false;

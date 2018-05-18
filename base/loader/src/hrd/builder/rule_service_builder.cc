@@ -25,7 +25,7 @@ hrd_service* get_or_create(
     std::vector<std::unique_ptr<hrd_service>>& origin_services,
     std::pair<hrd_service const*, hrd_service*>& s) {
   if (s.second == nullptr) {
-    origin_services.emplace_back(new hrd_service(*s.first));
+    origin_services.emplace_back(std::make_unique<hrd_service>(*s.first));
     s.second = origin_services.back().get();
   }
   return s.second;
@@ -73,18 +73,20 @@ void create_rule_and_service_nodes(
 
     auto s1_node = reinterpret_cast<service_node*>(
         utl::get_or_create(service_to_node, s1, [&]() {
-          rg.nodes_.emplace_back(new service_node(s1));
+          rg.nodes_.emplace_back(std::make_unique<service_node>(s1));
           return rg.nodes_.back().get();
         }));
     auto s2_node = reinterpret_cast<service_node*>(
         utl::get_or_create(service_to_node, s2, [&]() {
-          rg.nodes_.emplace_back(new service_node(s2));
+          rg.nodes_.emplace_back(std::make_unique<service_node>(s2));
           return rg.nodes_.back().get();
         }));
 
     auto const& rule = std::get<2>(comb);
-    auto rn = new rule_node(s1_node, s2_node, rule);
-    rg.nodes_.emplace_back(rn);
+    auto rn = reinterpret_cast<rule_node*>(  // NOLINT
+        rg.nodes_
+            .emplace_back(std::make_unique<rule_node>(s1_node, s2_node, rule))
+            .get());
 
     s1_node->rule_nodes_.push_back(rn);
     s2_node->rule_nodes_.push_back(rn);
@@ -135,8 +137,8 @@ void rule_service_builder::resolve_rule_services() {
 }
 
 void create_rule_service(
-    rule_service const& rs, rule_service_builder::service_builder_fun sbf,
-    station_builder& sb,
+    rule_service const& rs,
+    rule_service_builder::service_builder_fun const& sbf, station_builder& sb,
     std::vector<flatbuffers64::Offset<RuleService>>& fbs_rule_services,
     FlatBufferBuilder& fbb) {
   std::map<hrd_service const*, Offset<Service>> services;
@@ -157,7 +159,7 @@ void create_rule_service(
       CreateRuleService(fbb, fbb.CreateVector(fbb_rules)));
 }
 
-void rule_service_builder::create_rule_services(service_builder_fun sbf,
+void rule_service_builder::create_rule_services(service_builder_fun const& sbf,
                                                 station_builder& sb,
                                                 FlatBufferBuilder& fbb) {
   scoped_timer timer("create rule and remaining services");

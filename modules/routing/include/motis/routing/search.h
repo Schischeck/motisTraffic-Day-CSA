@@ -13,27 +13,16 @@ namespace motis {
 namespace routing {
 
 struct search_query {
-  search_query()
-      : sched_(nullptr),
-        mem_(nullptr),
-        from_(nullptr),
-        to_(nullptr),
-        interval_begin_(0),
-        interval_end_(0),
-        extend_interval_earlier_(0),
-        extend_interval_later_(0),
-        min_journey_count_(0) {}
-
-  schedule const* sched_;
-  mem_manager* mem_;
-  node const* from_;
-  station_node const* to_;
-  time interval_begin_;
-  time interval_end_;
-  bool extend_interval_earlier_;
-  bool extend_interval_later_;
+  schedule const* sched_{nullptr};
+  mem_manager* mem_{nullptr};
+  node const* from_{nullptr};
+  station_node const* to_{nullptr};
+  time interval_begin_{0};
+  time interval_end_{0};
+  bool extend_interval_earlier_{false};
+  bool extend_interval_later_{false};
   std::vector<edge> query_edges_;
-  unsigned min_journey_count_;
+  unsigned min_journey_count_{0};
 };
 
 struct search_result {
@@ -47,8 +36,8 @@ struct search_result {
   explicit search_result(unsigned travel_time_lb) : stats_(travel_time_lb) {}
   statistics stats_;
   std::vector<journey> journeys_;
-  time interval_begin_;
-  time interval_end_;
+  time interval_begin_{INVALID_TIME};
+  time interval_end_{INVALID_TIME};
 };
 
 template <search_dir Dir, typename StartLabelGenerator, typename Label>
@@ -160,11 +149,12 @@ struct search {
     stats.transfers_lb_ = MOTIS_TIMING_MS(transfers_lb_timing);
     stats.pareto_dijkstra_ = MOTIS_TIMING_MS(pareto_dijkstra_timing);
 
-    return search_result(stats, utl::to_vec(pd.get_results(),
-                                            [&q](Label* label) {
-                                              return output::labels_to_journey(
-                                                  *q.sched_, label, Dir);
-                                            }),
+    return search_result(stats,
+                         utl::to_vec(pd.get_results(),
+                                     [&q](Label* label) {
+                                       return output::labels_to_journey(
+                                           *q.sched_, label, Dir);
+                                     }),
                          interval_begin, interval_end);
   }
 };

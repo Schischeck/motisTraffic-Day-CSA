@@ -32,7 +32,7 @@ inline station_node* get_station_node(schedule const& sched,
 inline station_node* find_station_node(schedule const& sched,
                                        std::string const& eva_nr) {
   auto const s = find_station(sched, eva_nr);
-  return s ? sched.station_nodes_.at(s->index_).get() : nullptr;
+  return s == nullptr ? nullptr : sched.station_nodes_.at(s->index_).get();
 }
 
 }  // namespace motis

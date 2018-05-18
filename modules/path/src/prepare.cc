@@ -2,11 +2,9 @@
 #include <map>
 #include <memory>
 
-// #include <valgrind/callgrind.h>
-
+#include "boost/algorithm/string/classification.hpp"
+#include "boost/algorithm/string/split.hpp"
 #include "boost/filesystem.hpp"
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 #include "conf/options_parser.h"
 #include "conf/simple_config.h"
@@ -19,7 +17,7 @@
 
 #include "motis/core/common/logging.h"
 
-#include "motis/path/db/rocksdb.h"
+#include "motis/path/db/lmdb.h"
 #include "motis/path/prepare/db_check.h"
 #include "motis/path/prepare/db_statistics.h"
 #include "motis/path/prepare/path_routing.h"
@@ -134,10 +132,9 @@ int main(int argc, char** argv) {
   }
 
   if (!opt.check_.empty()) {
-    verify(opt.check_.size() == 2,
-           "check expects exactly two database paths") auto const expected =
-        std::make_unique<rocksdb_database>(opt.check_[0]);
-    auto const actual = std::make_unique<rocksdb_database>(opt.check_[1]);
+    verify(opt.check_.size() == 2, "check expects exactly two database paths");
+    auto const expected = std::make_unique<lmdb_database>(opt.check_[0]);
+    auto const actual = std::make_unique<lmdb_database>(opt.check_[1]);
     check_databases(*expected, *actual);
     return 0;
   }
@@ -159,7 +156,7 @@ int main(int argc, char** argv) {
     LOG(motis::logging::info) << "station sequences: " << sequences.size();
 
     auto routing = make_path_routing(stations, opt.osm_, opt.osrm_);
-    db_builder builder(std::make_unique<rocksdb_database>(opt.out_));
+    db_builder builder(std::make_unique<lmdb_database>(opt.out_));
 
     // CALLGRIND_START_INSTRUMENTATION;
     resolve_sequences(sequences, routing, builder);
@@ -170,7 +167,7 @@ int main(int argc, char** argv) {
   }
 
   if (opt.stats_ != "off") {
-    auto const db = std::make_unique<rocksdb_database>(opt.out_);
+    auto const db = std::make_unique<lmdb_database>(opt.out_);
     dump_db_statistics(*db);
   }
   std::cout << std::endl;

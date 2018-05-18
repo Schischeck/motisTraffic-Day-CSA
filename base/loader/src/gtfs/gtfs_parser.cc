@@ -28,14 +28,6 @@ namespace motis {
 namespace loader {
 namespace gtfs {
 
-template <std::size_t N>
-struct get_n {
-  template <typename T>
-  auto operator()(T&& t) const -> decltype(std::get<N>(std::forward<T>(t))) {
-    return std::get<N>(std::forward<T>(t));
-  }
-};
-
 auto const required_files = {AGENCY_FILE, STOPS_FILE,      ROUTES_FILE,
                              TRIPS_FILE,  STOP_TIMES_FILE, TRANSFERS_FILE};
 
@@ -58,7 +50,7 @@ std::vector<std::string> gtfs_parser::missing_files(
     fs::path const& path) const {
   std::vector<std::string> files;
   if (!fs::is_directory(path)) {
-    files.push_back(path.string());
+    files.emplace_back(path.string());
   }
 
   std::copy_if(
@@ -67,8 +59,8 @@ std::vector<std::string> gtfs_parser::missing_files(
 
   if (!fs::is_regular_file(path / CALENDAR_FILE) &&
       !fs::is_regular_file(path / CALENDAR_DATES_FILE)) {
-    files.push_back(CALENDAR_FILE);
-    files.push_back(CALENDAR_DATES_FILE);
+    files.emplace_back(CALENDAR_FILE);
+    files.emplace_back(CALENDAR_DATES_FILE);
   }
 
   return files;
@@ -128,29 +120,30 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
         auto const& t = entry.second;
         auto const stop_seq = t->stops();
         return CreateService(
-            fbb, utl::get_or_create(
-                     fbs_routes, stop_seq,
-                     [&]() {
-                       return CreateRoute(
-                           fbb,  //
-                           fbb.CreateVector(utl::to_vec(
-                               begin(stop_seq), end(stop_seq),
-                               [&](trip::stop_identity const& s) {
-                                 return get_or_create_stop(std::get<0>(s));
-                               })),
-                           fbb.CreateVector(
-                               utl::to_vec(begin(stop_seq), end(stop_seq),
-                                           [](trip::stop_identity const& s) {
-                                             return static_cast<uint8_t>(
-                                                 std::get<1>(s) ? 1u : 0u);
-                                           })),
-                           fbb.CreateVector(
-                               utl::to_vec(begin(stop_seq), end(stop_seq),
-                                           [](trip::stop_identity const& s) {
-                                             return static_cast<uint8_t>(
-                                                 std::get<2>(s) ? 1u : 0u);
-                                           })));
-                     }),
+            fbb,
+            utl::get_or_create(
+                fbs_routes, stop_seq,
+                [&]() {
+                  return CreateRoute(
+                      fbb,  //
+                      fbb.CreateVector(utl::to_vec(
+                          begin(stop_seq), end(stop_seq),
+                          [&](trip::stop_identity const& s) {
+                            return get_or_create_stop(std::get<0>(s));
+                          })),
+                      fbb.CreateVector(utl::to_vec(
+                          begin(stop_seq), end(stop_seq),
+                          [](trip::stop_identity const& s) {
+                            return static_cast<uint8_t>(std::get<1>(s) ? 1u
+                                                                       : 0u);
+                          })),
+                      fbb.CreateVector(utl::to_vec(
+                          begin(stop_seq), end(stop_seq),
+                          [](trip::stop_identity const& s) {
+                            return static_cast<uint8_t>(std::get<2>(s) ? 1u
+                                                                       : 0u);
+                          })));
+                }),
             fbb.CreateString(serialize_bitset(*t->service_)),
             fbb.CreateVector(repeat_n(
                 CreateSection(
@@ -165,8 +158,8 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
                 begin(t->stop_times_), end(t->stop_times_), std::vector<int>(),
                 [](std::vector<int>& times,
                    flat_map<stop_time>::entry_t const& st) {
-                  times.push_back(st.second.arr_.time_);
-                  times.push_back(st.second.dep_.time_);
+                  times.emplace_back(st.second.arr_.time_);
+                  times.emplace_back(st.second.dep_.time_);
                   return times;
                 })));
       }));
@@ -176,7 +169,7 @@ void gtfs_parser::parse(fs::path const& root, FlatBufferBuilder& fbb) {
       [&](std::vector<Offset<Footpath>>& footpaths,
           std::pair<stop_pair, transfer> const& t) {
         if (t.second.type_ == transfer::TIMED_TRANSFER) {
-          footpaths.push_back(CreateFootpath(
+          footpaths.emplace_back(CreateFootpath(
               fbb, get_or_create_stop(t.first.first),
               get_or_create_stop(t.first.second), t.second.minutes_));
         }

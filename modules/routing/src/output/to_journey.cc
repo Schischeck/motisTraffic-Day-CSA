@@ -71,9 +71,9 @@ std::vector<journey::transport> generate_journey_transports(
   std::vector<journey::transport> journey_transports;
   interval_map<connection_info const*, con_info_cmp> intervals;
   for (auto const& t : transports) {
-    if (t.con_) {
+    if (t.con_ != nullptr) {
       auto con_info = t.con_->full_con_->con_info_;
-      while (con_info) {
+      while (con_info != nullptr) {
         intervals.add_entry(con_info, t.from_, t.to_);
         con_info = con_info->merged_with_;
       }
@@ -110,7 +110,7 @@ std::vector<journey::trip> generate_journey_trips(
 
   interval_map<trip const*, trp_cmp> intervals;
   for (auto const& t : transports) {
-    if (!t.con_) {
+    if (t.con_ == nullptr) {
       continue;
     }
 
@@ -150,9 +150,10 @@ std::vector<journey::stop> generate_journey_stops(
         {stop.exit_, stop.enter_, station.name_, station.eva_nr_,
          station.width_, station.length_,
          stop.a_time_ != INVALID_TIME
-             ? journey::stop::event_info{true, motis_to_unixtime(
-                                                   sched.schedule_begin_,
-                                                   stop.a_time_),
+             ? journey::stop::event_info{true,
+                                         motis_to_unixtime(
+                                             sched.schedule_begin_,
+                                             stop.a_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
                                              stop.a_sched_time_),
@@ -161,9 +162,10 @@ std::vector<journey::stop> generate_journey_stops(
              : journey::stop::event_info{false, 0, 0,
                                          timestamp_reason::SCHEDULE, ""},
          stop.d_time_ != INVALID_TIME
-             ? journey::stop::event_info{true, motis_to_unixtime(
-                                                   sched.schedule_begin_,
-                                                   stop.d_time_),
+             ? journey::stop::event_info{true,
+                                         motis_to_unixtime(
+                                             sched.schedule_begin_,
+                                             stop.d_time_),
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
                                              stop.d_sched_time_),

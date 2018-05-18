@@ -43,9 +43,9 @@ void guesser::init(motis::module::registry& reg) {
   station_names.set_empty_key("");
   for (auto const& s : sched.stations_) {
     auto total_events = std::accumulate(begin(s->dep_class_events_),
-                                        end(s->dep_class_events_), 0) +
+                                        end(s->dep_class_events_), size_t{0u}) +
                         std::accumulate(begin(s->arr_class_events_),
-                                        end(s->arr_class_events_), 0);
+                                        end(s->arr_class_events_), size_t{0u});
     if (total_events != 0 && station_names.insert(s->name_).second) {
       station_indices_.push_back(s->index_);
     }
@@ -53,7 +53,7 @@ void guesser::init(motis::module::registry& reg) {
 
   auto stations = utl::to_vec(station_indices_, [&](unsigned i) {
     auto const& s = *sched.stations_[i];
-    double factor = 0;
+    float factor = 0;
     for (unsigned i = 0; i < s.dep_class_events_.size(); ++i) {
       factor += std::pow(10, (9 - i) / 3) * s.dep_class_events_.at(i);
     }
@@ -63,8 +63,8 @@ void guesser::init(motis::module::registry& reg) {
   if (!stations.empty()) {
     auto max_importatance =
         std::max_element(begin(stations), end(stations),
-                         [](std::pair<std::string, double> const& lhs,
-                            std::pair<std::string, double> const& rhs) {
+                         [](std::pair<std::string, float> const& lhs,
+                            std::pair<std::string, float> const& rhs) {
                            return lhs.second < rhs.second;
                          })
             ->second;

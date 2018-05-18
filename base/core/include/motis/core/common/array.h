@@ -13,19 +13,19 @@ namespace motis {
 
 inline uint64_t next_power_of_two(uint64_t n) {
   n--;
-  n |= n >> 1;
-  n |= n >> 2;
-  n |= n >> 4;
-  n |= n >> 8;
-  n |= n >> 16;
-  n |= n >> 32;
+  n |= n >> 1u;
+  n |= n >> 2u;
+  n |= n >> 4u;
+  n |= n >> 8u;
+  n |= n >> 16u;
+  n |= n >> 32u;
   n++;
   return n;
 }
 
 template <typename T, typename TemplateSizeType = uint32_t>
 struct array final {
-  typedef TemplateSizeType size_type;
+  using size_type = TemplateSizeType;
 
   explicit array(TemplateSizeType size = 0)
       : el_(nullptr),
@@ -55,10 +55,11 @@ struct array final {
     set(begin_it, end_it);
   }
 
-  array(array&& arr) noexcept : el_(arr.el_),
-                                used_size_(arr.used_size_),
-                                self_allocated_(arr.self_allocated_),
-                                allocated_size_(arr.allocated_size_) {
+  array(array&& arr) noexcept
+      : el_(arr.el_),
+        used_size_(arr.used_size_),
+        self_allocated_(arr.self_allocated_),
+        allocated_size_(arr.allocated_size_) {
     arr.el_ = nullptr;
     arr.used_size_ = 0;
     arr.self_allocated_ = false;
@@ -105,7 +106,7 @@ struct array final {
       el.~T();
     }
 
-    std::free(el_);
+    std::free(el_);  // NOLINT
     el_ = nullptr;
     used_size_ = 0;
     allocated_size_ = 0;
@@ -147,7 +148,8 @@ struct array final {
   inline bool empty() const { return size() == 0; }
 
   array& operator=(std::string const& str) {
-    return *this = array(str.c_str());
+    *this = array(str.c_str());
+    return *this;
   }
 
   template <typename It>
@@ -197,7 +199,8 @@ struct array final {
     }
 
     auto next_size = next_power_of_two(new_size);
-    T* mem_buf = static_cast<T*>(std::malloc(sizeof(T) * next_size));
+    auto mem_buf =
+        static_cast<T*>(std::malloc(sizeof(T) * next_size));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
     }
@@ -213,14 +216,14 @@ struct array final {
           el.~T();
         }
       } catch (...) {
-        assert(false);
+        assert(0);
       }
     }
 
     auto free_me = el_;
     el_ = mem_buf;
     if (self_allocated_) {
-      std::free(free_me);
+      std::free(free_me);  // NOLINT
     }
 
     self_allocated_ = true;
@@ -242,7 +245,7 @@ struct array final {
 
   std::string to_string() const { return std::string(el_); }
 
-  operator std::string() const { return to_string(); }
+  explicit operator std::string() const { return to_string(); }
 
 #ifdef USE_STANDARD_LAYOUT
   T* el_;
@@ -259,7 +262,7 @@ struct array final {
 
 template <typename T>
 struct offsetarr_ay_view {
-  offsetarr_ay_view(array<T>& arr, char* base)
+  offsetarr_ay_view(array<T>& arr, char const* base)
       : arr_(arr), abs_el_(reinterpret_cast<T*>(base + arr_.el_._offset)) {}
 
   T const* begin() const { return abs_el_; }
@@ -282,7 +285,7 @@ struct offsetarr_ay_view {
 };
 
 template <typename T>
-offsetarr_ay_view<T> make_offsetarr_ay_view(array<T>& arr, char* base) {
+offsetarr_ay_view<T> make_offsetarr_ay_view(array<T>& arr, char const* base) {
   return offsetarr_ay_view<T>(arr, base);
 }
 
@@ -324,8 +327,8 @@ inline bool operator>=(array<T> const& a, array<T> const& b) {
   return !(a < b);
 }
 
-typedef array<char> string;
-typedef offsetarr_ay_view<char> offset_string;
+using string = array<char>;
+using offset_string = offsetarr_ay_view<char>;
 
 inline std::ostream& operator<<(std::ostream& out, string const& a) {
   return out << a.el_;

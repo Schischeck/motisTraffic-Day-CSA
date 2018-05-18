@@ -22,17 +22,17 @@ struct season_entry {
         season_begin_time_(season_begin_time),
         season_end_time_(season_end_time) {}
 
-  int const gmt_offset_;  // in minutes
-  int const first_day_idx_;  // bitfield index (closed)
-  int const last_day_idx_;  // bitfield index (closed)
-  int const season_begin_time_;  // minutes after midnight
-  int const season_end_time_;  // minutes after midnight
+  int gmt_offset_;  // in minutes
+  int first_day_idx_;  // bitfield index (closed)
+  int last_day_idx_;  // bitfield index (closed)
+  int season_begin_time_;  // minutes after midnight
+  int season_end_time_;  // minutes after midnight
 };
 
 struct timezone_entry {
   timezone_entry(int general_gmt_offset, boost::optional<season_entry> season)
       : general_gmt_offset_(general_gmt_offset), season_(std::move(season)) {}
-  int const general_gmt_offset_;  // in minutes
+  int general_gmt_offset_;  // in minutes
   boost::optional<season_entry> season_;
 };
 

@@ -10,7 +10,7 @@ namespace ris {
 namespace risml {
 
 boost::optional<EventType> parse_type(
-    cstr const& raw, boost::optional<EventType> const default_value) {
+    cstr const& raw, boost::optional<EventType> const& default_value) {
   static const std::map<cstr, EventType> map({{"Start", EventType_DEP},
                                               {"Ab", EventType_DEP},
                                               {"An", EventType_ARR},

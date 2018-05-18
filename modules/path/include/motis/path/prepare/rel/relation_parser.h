@@ -16,8 +16,8 @@ struct node {
   node() = default;
   explicit node(int64_t id) : id_(id), resolved_(false) {}
 
-  int64_t id_;
-  bool resolved_;
+  int64_t id_ = 0;
+  bool resolved_ = false;
   geo::latlng pos_;
 };
 
@@ -27,14 +27,14 @@ struct way {
   node const& head() const { return nodes_.back(); }
   node const& tail() const { return nodes_.front(); }
 
-  int64_t id_;
-  bool resolved_;
+  int64_t id_ = 0;
+  bool resolved_ = false;
   std::vector<node> nodes_;
 };
 
 struct relation {
   relation(source_spec source, std::vector<way*> ways)
-      : source_(std::move(source)), ways_(std::move(ways)) {}
+      : source_(source), ways_(std::move(ways)) {}
 
   source_spec source_;
   std::vector<way*> ways_;

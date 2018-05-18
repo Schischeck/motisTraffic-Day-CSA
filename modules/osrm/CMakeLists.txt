@@ -9,8 +9,8 @@ add_library(motis-osrm STATIC ${motis-osrm-files})
 target_link_libraries(motis-osrm
   ${Boost_PROGRAM_OPTIONS_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
-  motis-module
   osrm
+  motis-module
 )
 
 set_target_properties(motis-osrm PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

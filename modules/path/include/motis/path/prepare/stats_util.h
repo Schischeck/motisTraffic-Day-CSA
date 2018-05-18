@@ -10,7 +10,8 @@ namespace path {
 
 inline void dump_stats(std::vector<size_t>& vec) {
   std::sort(begin(vec), end(vec));
-  auto const avg = std::accumulate(begin(vec), end(vec), 0) / vec.size();
+  auto const avg =
+      std::accumulate(begin(vec), end(vec), size_t{0}) / vec.size();
 
   std::sort(begin(vec), end(vec));
   std::cout << " count:" << std::setw(8) << vec.size()  //

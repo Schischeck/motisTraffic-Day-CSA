@@ -20,6 +20,12 @@ public:
                    int num_days, bool write_serialized, bool apply_rules,
                    bool adjust_footpaths, bool unique_check);
 
+  dataset_settings(dataset_settings const&) = default;
+  dataset_settings& operator=(dataset_settings const&) = default;
+
+  dataset_settings(dataset_settings&&) = default;
+  dataset_settings& operator=(dataset_settings&&) = default;
+
   ~dataset_settings() override = default;
 
   boost::program_options::options_description desc() override;

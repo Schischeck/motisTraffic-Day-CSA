@@ -80,9 +80,10 @@ struct rerouted_event {
   Offset<ris::ReroutedEvent> to_fbs(schedule const& sched,
                                     FlatBufferBuilder& fbb) const {
     return ris::CreateReroutedEvent(
-        fbb, ris::CreateAdditionalEvent(fbb, ev_.to_fbs(sched, fbb),
-                                        fbb.CreateString(category_),
-                                        fbb.CreateString(track_)),
+        fbb,
+        ris::CreateAdditionalEvent(fbb, ev_.to_fbs(sched, fbb),
+                                   fbb.CreateString(category_),
+                                   fbb.CreateString(track_)),
         withdrawal_ ? ris::RerouteStatus_Normal : ris::RerouteStatus_UmlNeu);
   }
 
@@ -105,8 +106,9 @@ struct cc_check_routed_connection_test : public motis_instance_test {
         CreateRoutingRequest(
             fbb, Start_OntripStationStart,
             CreateOntripStationStart(
-                fbb, CreateInputStation(fbb, fbb.CreateString(from),
-                                        fbb.CreateString("")),
+                fbb,
+                CreateInputStation(fbb, fbb.CreateString(from),
+                                   fbb.CreateString("")),
                 unix_time(hhmm))
                 .Union(),
             CreateInputStation(fbb, fbb.CreateString(to), fbb.CreateString("")),
@@ -131,7 +133,7 @@ struct cc_check_routed_connection_test : public motis_instance_test {
                   std::vector<rerouted_event> const& rerouted_events) const {
     FlatBufferBuilder fbb;
     fbb.Finish(ris::CreateMessage(
-        fbb, ris::MessageUnion_RerouteMessage,
+        fbb, 0u, 0u, 0u, ris::MessageUnion_RerouteMessage,
         ris::CreateRerouteMessage(
             fbb, id.to_fbs(sched, fbb),
             fbb.CreateVector(utl::to_vec(
@@ -158,7 +160,7 @@ struct cc_check_routed_connection_test : public motis_instance_test {
                 std::vector<updated_event> const& delays, bool is_message) {
     FlatBufferBuilder fbb;
     fbb.Finish(ris::CreateMessage(
-        fbb, ris::MessageUnion_DelayMessage,
+        fbb, 0u, 0u, 0u, ris::MessageUnion_DelayMessage,
         ris::CreateDelayMessage(
             fbb, id.to_fbs(sched, fbb),
             is_message ? ris::DelayType_Is : ris::DelayType_Forecast,

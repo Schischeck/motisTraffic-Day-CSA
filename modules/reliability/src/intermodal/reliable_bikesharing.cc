@@ -20,10 +20,11 @@ namespace detail {
 
 std::vector<bikesharing_info::availability> compress_intervals(
     std::vector<bikesharing_info::availability> orig_intervals) {
-  std::sort(orig_intervals.begin(), orig_intervals.end(), [](auto const& a,
-                                                             auto const& b) {
-    return std::make_pair(a.from_, a.to_) < std::make_pair(b.from_, b.to_);
-  });
+  std::sort(orig_intervals.begin(), orig_intervals.end(),
+            [](auto const& a, auto const& b) {
+              return std::make_pair(a.from_, a.to_) <
+                     std::make_pair(b.from_, b.to_);
+            });
   std::vector<bikesharing_info::availability> compressed;
   for (auto const& i : orig_intervals) {
     if (!compressed.empty() && i.rating_ == compressed.back().rating_ &&
@@ -162,8 +163,9 @@ module::msg_ptr to_bikesharing_request(
   fb.create_and_finish(
       MsgContent_BikesharingRequest,
       motis::bikesharing::CreateBikesharingRequest(
-          fb, is_departure_type ? motis::bikesharing::Type_Departure
-                                : motis::bikesharing::Type_Arrival,
+          fb,
+          is_departure_type ? motis::bikesharing::Type_Departure
+                            : motis::bikesharing::Type_Arrival,
           &pos, &window, aggregator)
           .Union(),
       "/bikesharing/search");

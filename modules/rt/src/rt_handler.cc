@@ -45,7 +45,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
                                   : timestamp_reason::FORECAST;
 
           auto const resolved = resolve_events(
-              s, msg->trip_id(),
+              stats_, s, msg->trip_id(),
               utl::to_vec(*msg->events(), [](ris::UpdatedEvent const* ev) {
                 return ev->base();
               }));
@@ -53,12 +53,14 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           for (unsigned i = 0; i < resolved.size(); ++i) {
             auto const& resolved_ev = resolved[i];
             if (!resolved_ev) {
+              ++stats_.unresolved_events_;
               continue;
             }
 
             auto const upd_time =
                 unix_to_motistime(s, msg->events()->Get(i)->updated_time());
             if (upd_time == INVALID_TIME) {
+              ++stats_.update_time_out_of_schedule_;
               continue;
             }
 
@@ -79,7 +81,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
         case ris::MessageUnion_CancelMessage: {
           auto const msg = reinterpret_cast<ris::CancelMessage const*>(c);
 
-          auto trp = find_trip_fuzzy(s, msg->trip_id());
+          auto trp = find_trip_fuzzy(stats_, s, msg->trip_id());
           if (trp == nullptr) {
             ++stats_.canceled_trp_not_found_;
             break;
@@ -88,7 +90,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           seperate_trip(s, trp);
 
           auto const resolved = resolve_events(
-              s, msg->trip_id(),
+              stats_, s, msg->trip_id(),
               utl::to_vec(*msg->events(),
                           [](ris::Event const* ev) { return ev; }));
 
@@ -99,7 +101,7 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
 
             auto mutable_lcon =
                 const_cast<light_connection*>(ev->lcon());  // NOLINT
-            mutable_lcon->valid_ = false;
+            mutable_lcon->valid_ = 0u;
           }
 
           break;
@@ -109,10 +111,12 @@ msg_ptr rt_handler::update(msg_ptr const& msg) {
           propagate();
 
           auto const result =
-              reroute(s, cancelled_delays_,
+              reroute(stats_, s, cancelled_delays_,
                       reinterpret_cast<ris::RerouteMessage const*>(c));
 
-          if (result.first == status::OK) {
+          // stats_.count_reroute(result.first);
+
+          if (result.first == reroute_result::OK) {
             for (auto const& e : *result.second->edges_) {
               propagator_.add_delay(ev_key{e, 0, event_type::DEP});
               propagator_.add_delay(ev_key{e, 0, event_type::ARR});
@@ -184,6 +188,7 @@ msg_ptr rt_handler::flush(msg_ptr const&) {
   scoped_timer t("flush");
 
   MOTIS_FINALLY([this]() {
+    stats_.print();
     stats_ = statistics();
     propagator_.reset();
   });

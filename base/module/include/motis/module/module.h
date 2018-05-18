@@ -22,6 +22,12 @@ struct module : public conf::simple_config {
         schedule_(nullptr),
         ios_(nullptr) {}
 
+  module(module const&) = delete;
+  module& operator=(module const&) = delete;
+
+  module(module&&) = delete;
+  module& operator=(module&&) = delete;
+
   ~module() override = default;
 
   virtual std::string name() const { return prefix_; }

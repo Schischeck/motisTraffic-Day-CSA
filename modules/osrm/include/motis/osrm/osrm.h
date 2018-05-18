@@ -15,6 +15,12 @@ public:
   osrm();
   ~osrm() override;
 
+  osrm(osrm const&) = delete;
+  osrm& operator=(osrm const&) = delete;
+
+  osrm(osrm&&) = delete;
+  osrm& operator=(osrm&&) = delete;
+
   std::string name() const override { return "osrm"; }
   void init(motis::module::registry&) override;
   void init_async();

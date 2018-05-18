@@ -12,7 +12,7 @@ namespace risml {
 
 boost::optional<EventType> parse_type(
     parser::cstr const& raw,
-    boost::optional<EventType> const default_value = boost::none);
+    boost::optional<EventType> const& default_value = boost::none);
 
 }  // namespace risml
 }  // namespace ris

@@ -171,28 +171,32 @@ std::vector<rating::rating_element> compute_test_ratings2(
     ratings.back().departure_distribution_ =
         ride_distributions.get_distribution(
             distributions_container::to_container_key(
-                node_m, graph_accessor::get_departing_route_edge(node_m)
-                            ->m_.route_edge_.conns_.front(),
+                node_m,
+                graph_accessor::get_departing_route_edge(node_m)
+                    ->m_.route_edge_.conns_.front(),
                 event_type::DEP, test_info.reliability_context_->schedule_));
     // arrival RE_M_B_D in Bensheim
     ratings.back().arrival_distribution_ = ride_distributions.get_distribution(
         distributions_container::to_container_key(
-            node_b, graph_accessor::get_departing_route_edge(node_m)
-                        ->m_.route_edge_.conns_.front(),
+            node_b,
+            graph_accessor::get_departing_route_edge(node_m)
+                ->m_.route_edge_.conns_.front(),
             event_type::ARR, test_info.reliability_context_->schedule_));
     ratings.emplace_back(1);
     // departure RE_M_B_D in Bensheim
     ratings.back().departure_distribution_ =
         ride_distributions.get_distribution(
             distributions_container::to_container_key(
-                node_b, graph_accessor::get_departing_route_edge(node_b)
-                            ->m_.route_edge_.conns_.front(),
+                node_b,
+                graph_accessor::get_departing_route_edge(node_b)
+                    ->m_.route_edge_.conns_.front(),
                 event_type::DEP, test_info.reliability_context_->schedule_));
     // arrival RE_M_B_D in Darmstadt
     ratings.back().arrival_distribution_ = ride_distributions.get_distribution(
         distributions_container::to_container_key(
-            node_d1, graph_accessor::get_departing_route_edge(node_b)
-                         ->m_.route_edge_.conns_.front(),
+            node_d1,
+            graph_accessor::get_departing_route_edge(node_b)
+                ->m_.route_edge_.conns_.front(),
             event_type::ARR, test_info.reliability_context_->schedule_));
   }
 

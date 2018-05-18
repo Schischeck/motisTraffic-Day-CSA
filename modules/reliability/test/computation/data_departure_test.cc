@@ -195,9 +195,10 @@ TEST_F(reliability_data_departure, preceding_arrival_feeders) {
       feeder_distributions, route_node, light_connection, {0.1, 0.7, 0.2}, -1,
       sched());
 
-  data_departure data(route_node, light_connection, false, train_distributions,
-                      distribution_node, context(sched(), feeder_distributions,
-                                                 s_t_distributions));
+  data_departure data(
+      route_node, light_connection, false, train_distributions,
+      distribution_node,
+      context(sched(), feeder_distributions, s_t_distributions));
 
   ASSERT_TRUE(sched().stations_[route_node.station_node_->id_]->eva_nr_ ==
               schedule1::DARMSTADT);
@@ -308,10 +309,11 @@ TEST_F(reliability_data_departure, check_train_distributions) {
     }
     probability_distribution train_, fail_;
     distributions_container::container::key const key_;
-  } train_distributions(to_container_key(
-      route_node, graph_accessor::get_arriving_route_edge(route_node)
-                      ->m_.route_edge_.conns_[0],
-      event_type::ARR, sched()));
+  } train_distributions(
+      to_container_key(route_node,
+                       graph_accessor::get_arriving_route_edge(route_node)
+                           ->m_.route_edge_.conns_[0],
+                       event_type::ARR, sched()));
 
   /* route node at Darmstadt of train IC_FH_DA */
   auto const& last_route_node_IC_FH_DA =
@@ -331,9 +333,10 @@ TEST_F(reliability_data_departure, check_train_distributions) {
       feeder_distributions, route_node, light_connection, {0.1, 0.7, 0.2}, -1,
       sched());
 
-  data_departure data(route_node, light_connection, false, train_distributions,
-                      distribution_node, context(sched(), feeder_distributions,
-                                                 s_t_distributions));
+  data_departure data(
+      route_node, light_connection, false, train_distributions,
+      distribution_node,
+      context(sched(), feeder_distributions, s_t_distributions));
 
   ASSERT_EQ(&train_distributions.train_,
             data.train_info_.preceding_arrival_info_.arrival_distribution_);
@@ -418,9 +421,10 @@ TEST_F(reliability_data_departure, check_largest_delay) {
       feeder_distributions, route_node, light_connection, values, first_minute,
       sched());
 
-  data_departure data(route_node, light_connection, false, train_distributions,
-                      distribution_node, context(sched(), feeder_distributions,
-                                                 s_t_distributions));
+  data_departure data(
+      route_node, light_connection, false, train_distributions,
+      distribution_node,
+      context(sched(), feeder_distributions, s_t_distributions));
 
   ASSERT_EQ(3, data.maximum_waiting_time_);
   ASSERT_EQ(4, data.largest_delay());

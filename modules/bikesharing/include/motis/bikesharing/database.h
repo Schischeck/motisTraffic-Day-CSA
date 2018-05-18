@@ -23,8 +23,14 @@ persistable_terminal convert_terminal(
 bikesharing_summary make_summary(std::vector<terminal> const& terminals);
 
 struct database {
-  explicit database(std::string const& path);
+  explicit database(std::string const& path, size_t max_size);
   ~database();
+
+  database(database const&) = delete;
+  database& operator=(database const&) = delete;
+
+  database(database&&) = default;
+  database& operator=(database&&) = default;
 
   bool is_initialized() const;
 

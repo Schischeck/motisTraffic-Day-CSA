@@ -16,9 +16,9 @@ inline uint32_t output_train_nr(uint32_t train_nr, uint32_t original_train_nr) {
 inline std::string get_service_name(schedule const& sched,
                                     connection_info const* info) {
   auto rule = sched.categories_[info->family_]->output_rule_;
-  auto const force_train_nr = (rule & 0b1000) != 0;  // line_id -> train_nr
-  auto const force_provider = (rule & 0b0100) != 0;  // category -> provider
-  auto const base_rule = rule & 0b0011;
+  auto const force_train_nr = (rule & 0b1000u) != 0;  // line_id -> train_nr
+  auto const force_provider = (rule & 0b0100u) != 0;  // category -> provider
+  auto const base_rule = rule & 0b0011u;
 
   auto const& line_identifier = info->line_identifier_;
   auto const train_nr =

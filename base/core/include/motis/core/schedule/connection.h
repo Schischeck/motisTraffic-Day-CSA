@@ -121,7 +121,7 @@ struct connection {
 struct light_connection {
   light_connection() = default;
 
-  explicit light_connection(time d_time) : d_time_(d_time) {}
+  explicit light_connection(time d_time) : d_time_(d_time) {}  // NOLINT
 
   light_connection(time d_time, time a_time,
                    connection const* full_con = nullptr,
@@ -130,7 +130,7 @@ struct light_connection {
         d_time_(d_time),
         a_time_(a_time),
         trips_(trips),
-        valid_(true) {}
+        valid_(1u) {}
 
   time event_time(event_type const t) const {
     return t == event_type::DEP ? d_time_ : a_time_;

@@ -22,42 +22,24 @@
 [submodule "external_lib/osrm-backend"]
 	path = external_lib/osrm-backend
 	url = git@git.motis-project.de:lib/osrm-backend.git
-[submodule "external_lib/sqlpp11-connector-sqlite3"]
-	path = external_lib/sqlpp11-connector-sqlite3
-	url = git@git.motis-project.de:lib/sqlpp11-connector-sqlite3.git
-[submodule "external_lib/sqlpp11"]
-	path = external_lib/sqlpp11
-	url = git@git.motis-project.de:lib/sqlpp11.git
-[submodule "external_lib/sqlite"]
-	path = external_lib/sqlite
-	url = git@git.motis-project.de:lib/sqlite.git
 [submodule "external_lib/miniz"]
 	path = external_lib/miniz
 	url = git@git.motis-project.de:lib/miniz.git
-[submodule "external_lib/snappy-cmake"]
-	path = external_lib/snappy-cmake
-	url = git@git.motis-project.de:lib/snappy.git
-[submodule "external_lib/leveldb"]
-	path = external_lib/leveldb
-	url = git@git.motis-project.de:lib/leveldb.git
 [submodule "external_lib/ctx"]
 	path = external_lib/ctx
 	url = git@git.motis-project.de:lib/ctx.git
-[submodule "external_lib/osmium"]
-	path = external_lib/osmium
-	url = git@git.motis-project.de:lib/osmium.git
-[submodule "external_lib/rocksdb"]
-	path = external_lib/rocksdb
-	url = git@git.motis-project.de:lib/rocksdb-flat.git
 [submodule "external_lib/geo"]
 	path = external_lib/geo
 	url = git@git.motis-project.de:lib/geo.git
 [submodule "external_lib/utl"]
 	path = external_lib/utl
 	url = git@git.motis-project.de:lib/utl.git
-[submodule "external_lib/rapidjson"]
-	path = external_lib/rapidjson
-	url = git@git.motis-project.de:lib/rapidjson.git
 [submodule "external_lib/address-typeahead"]
 	path = external_lib/address-typeahead
 	url = git@git.motis-project.de:lib/address-typeahead.git
+[submodule "external_lib/lmdb"]
+	path = external_lib/lmdb
+	url = git@git.motis-project.de:lib/lmdb.git
+[submodule "external_lib/tar"]
+	path = external_lib/tar
+	url = git@git.motis-project.de:lib/tar.git

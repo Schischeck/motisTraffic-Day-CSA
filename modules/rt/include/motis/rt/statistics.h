@@ -1,9 +1,10 @@
 #pragma once
 
 #include <iomanip>
-#include <ostream>
+#include <iostream>
 
 #include "motis/rt/additional_service_builder.h"
+#include "motis/rt/reroute.h"
 
 #include "motis/protocol/RISMessage_generated.h"
 
@@ -11,40 +12,6 @@ namespace motis {
 namespace rt {
 
 struct statistics {
-  statistics()
-      : delay_msgs_(0),
-        cancel_msgs_(0),
-        additional_msgs_(0),
-        reroute_msgs_(0),
-        con_decision_msgs_(0),
-        con_assessment_msgs_(0),
-        total_evs_(0),
-        ev_invalid_time_(0),
-        ev_station_not_found_(0),
-        ev_trp_not_found_(0),
-        additional_not_found_(0),
-        total_updates_(0),
-        found_updates_(0),
-        update_mismatch_sched_time_(0),
-        diff_gt_5_(0),
-        diff_gt_10_(0),
-        diff_gt_30_(0),
-        conflicting_events_(0),
-        conflicting_moved_(0),
-        route_overtake_(0),
-        propagated_updates_(0),
-        graph_updates_(0),
-        additional_total_(0),
-        additional_ok_(0),
-        additional_trip_id_(0),
-        additional_err_count_(0),
-        additional_err_order_(0),
-        additional_err_station_(0),
-        additional_err_time_(0),
-        additional_decreasing_ev_time_(0),
-        additional_station_mismatch_(0),
-        canceled_trp_not_found_(0) {}
-
   friend std::ostream& operator<<(std::ostream& o, statistics const& s) {
     auto c = [&](char const* desc, unsigned number) {
       o << "  " << std::setw(22) << desc << ": " << std::setw(9) << number
@@ -56,15 +23,20 @@ struct statistics {
     c("cancel", s.cancel_msgs_);
     c("additional", s.additional_msgs_);
     c("reroute", s.reroute_msgs_);
-    c("conn decision", s.con_decision_msgs_);
-    c("conn assessment", s.con_assessment_msgs_);
 
     o << "\nevs:\n";
     c("total", s.total_evs_);
     c("invalid time", s.ev_invalid_time_);
     c("station not found", s.ev_station_not_found_);
     c("trip not found", s.ev_trp_not_found_);
-    c("additional train event", s.additional_not_found_);
+    c("additional train event", s.additional_not_found_);  // TODO(felix) track
+
+    o << "\ntrips:\n";
+    c("total", s.trip_total_);
+    c("station not found", s.trip_station_not_found_);
+    c("time not found", s.trip_time_not_found_);
+    c("primary not found", s.trip_primary_not_found_);
+    c("primary 0 not found", s.trip_primary_0_not_found_);
 
     o << "\nupdates\n";
     c("total", s.total_updates_);
@@ -98,6 +70,8 @@ struct statistics {
 
     return o;
   }
+
+  void print() { std::cout << *this << "\n"; }
 
   void log_sched_time_mismatch(int diff) {
     if (diff != 0) {
@@ -158,42 +132,53 @@ struct statistics {
     }
   }
 
-  unsigned delay_msgs_;
-  unsigned cancel_msgs_;
-  unsigned additional_msgs_;
-  unsigned reroute_msgs_;
-  unsigned con_decision_msgs_;
-  unsigned con_assessment_msgs_;
+  void resolve_events(std::vector<boost::optional<ev_key>> const&) {}
+  // void count_reroute(reroute_result const) {}
 
-  unsigned total_evs_;
-  unsigned ev_invalid_time_;
-  unsigned ev_station_not_found_;
-  unsigned ev_trp_not_found_;
-  unsigned additional_not_found_;
+  unsigned delay_msgs_ = 0;
+  unsigned cancel_msgs_ = 0;
+  unsigned additional_msgs_ = 0;
+  unsigned reroute_msgs_ = 0;
+  unsigned con_decision_msgs_ = 0;
+  unsigned con_assessment_msgs_ = 0;
 
-  unsigned total_updates_;
-  unsigned found_updates_;
-  unsigned update_mismatch_sched_time_;
-  unsigned diff_gt_5_, diff_gt_10_, diff_gt_30_;
+  unsigned total_evs_ = 0;
+  unsigned ev_invalid_time_ = 0;
+  unsigned ev_station_not_found_ = 0;
+  unsigned ev_trp_not_found_ = 0;
+  unsigned additional_not_found_ = 0;
+  unsigned unresolved_events_ = 0;
+  unsigned update_time_out_of_schedule_ = 0;
 
-  unsigned conflicting_events_;
-  unsigned conflicting_moved_;
-  unsigned route_overtake_;
+  unsigned trip_total_ = 0;
+  unsigned trip_station_not_found_ = 0;
+  unsigned trip_time_not_found_ = 0;
+  unsigned trip_primary_not_found_ = 0;
+  unsigned trip_primary_0_not_found_ = 0;
 
-  unsigned propagated_updates_;
-  unsigned graph_updates_;
+  unsigned total_updates_ = 0;
+  unsigned found_updates_ = 0;
+  unsigned update_mismatch_sched_time_ = 0;
+  unsigned diff_gt_5_ = 0, diff_gt_10_ = 0, diff_gt_30_ = 0;
 
-  unsigned additional_total_;
-  unsigned additional_ok_;
-  unsigned additional_trip_id_;
-  unsigned additional_err_count_;
-  unsigned additional_err_order_;
-  unsigned additional_err_station_;
-  unsigned additional_err_time_;
-  unsigned additional_decreasing_ev_time_;
-  unsigned additional_station_mismatch_;
+  unsigned conflicting_events_ = 0;
+  unsigned conflicting_moved_ = 0;
+  unsigned route_overtake_ = 0;
 
-  unsigned canceled_trp_not_found_;
+  unsigned propagated_updates_ = 0;
+  unsigned graph_updates_ = 0;
+
+  unsigned additional_total_ = 0;
+  unsigned additional_ok_ = 0;
+  unsigned additional_trip_id_ = 0;
+  unsigned additional_err_count_ = 0;
+  unsigned additional_err_order_ = 0;
+  unsigned additional_err_station_ = 0;
+  unsigned additional_err_time_ = 0;
+  unsigned additional_decreasing_ev_time_ = 0;
+  unsigned additional_station_mismatch_ = 0;
+
+  unsigned canceled_trp_not_found_ = 0;
 };
 
 }  // namespace rt

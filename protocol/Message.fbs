@@ -39,6 +39,7 @@ include "reliability/ReliableRoutingRequest.fbs";
 include "reliability/ReliableRoutingResponse.fbs";
 include "ris/RISBatch.fbs";
 include "ris/RISForwardTimeRequest.fbs";
+include "ris/RISPurgeRequest.fbs";
 include "routing/RoutingRequest.fbs";
 include "routing/RoutingResponse.fbs";
 include "rt/RtUpdate.fbs";
@@ -150,7 +151,8 @@ union MsgContent {
   motis.railviz.RailVizTripGuessRequest,
   motis.railviz.RailVizTripGuessResponse,
   motis.address.AddressRequest,
-  motis.address.AddressResponse
+  motis.address.AddressResponse,
+  motis.ris.RISPurgeRequest
 }
 
 // Destination Examples:

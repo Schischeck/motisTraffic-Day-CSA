@@ -8,6 +8,8 @@
 
 #include "parser/file.h"
 
+#include "conf/simple_config_param.h"
+
 #include "motis/core/common/logging.h"
 #include "motis/bikesharing/database.h"
 #include "motis/bikesharing/error.h"
@@ -25,10 +27,11 @@ namespace motis {
 namespace bikesharing {
 
 bikesharing::bikesharing() : module("Bikesharing Options", "bikesharing") {
-  string_param(database_path_, "bikesharing", "database_path",
+  string_param(database_path_, "bikesharing.mdb", "database_path",
                "Location of the Bikesharing Database (folder or ':memory:')");
   string_param(nextbike_path_, "", "nextbike_path",
                "Where nextbike snapshots can be found (folder or single file)");
+  size_t_param(db_max_size_, "db_max_size", "virtual memory map size");
 }
 
 bikesharing::~bikesharing() = default;
@@ -43,7 +46,7 @@ void bikesharing::init(motis::module::registry& reg) {
 
 msg_ptr bikesharing::init_module(msg_ptr const&) {
   if (!database_path_.empty()) {
-    database_ = std::make_unique<database>(database_path_);
+    database_ = std::make_unique<database>(database_path_, db_max_size_);
 
     if (database_->is_initialized()) {
       LOG(info) << "using initialized bikesharing database";

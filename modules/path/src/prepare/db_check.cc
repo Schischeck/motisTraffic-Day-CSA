@@ -10,8 +10,6 @@
 
 #include "motis/path/fbs/PathIndex_generated.h"
 
-using websocketpp::md5::md5_hash_hex;
-
 using namespace motis::module;
 
 namespace motis {

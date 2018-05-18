@@ -32,7 +32,7 @@ struct flat_matrix {
     int row_index_;
   };
 
-  flat_matrix() = default;
+  flat_matrix() : column_count_{0} {}
 
   explicit flat_matrix(int column_count)
       : column_count_(column_count), entries_(column_count * column_count) {}

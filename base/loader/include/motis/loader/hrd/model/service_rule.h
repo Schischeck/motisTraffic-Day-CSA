@@ -14,14 +14,19 @@ namespace hrd {
 
 struct resolved_rule_info {
   bitfield traffic_days_;
-  int eva_num_1_, eva_num_2_;
-  uint8_t type_;
+  int eva_num_1_{0}, eva_num_2_{0};
+  uint8_t type_{0};
 };
 
-typedef std::tuple<hrd_service*, hrd_service*, resolved_rule_info>
-    service_combination;
+using service_combination =
+    std::tuple<hrd_service*, hrd_service*, resolved_rule_info>;
 
 struct service_rule {
+  service_rule(service_rule const&) = default;
+  service_rule(service_rule&&) = default;
+  service_rule& operator=(service_rule const&) = delete;
+  service_rule& operator=(service_rule&&) = delete;
+
   explicit service_rule(bitfield const& mask) : mask_(mask) {}
   virtual ~service_rule() = default;
   virtual int applies(hrd_service const&) const = 0;
@@ -35,9 +40,9 @@ protected:
   std::vector<std::pair<int, uint64_t>> get_ids(hrd_service const&);
 };
 
-typedef std::pair<int, uint64_t> service_id;  // (train_num, admin)
-typedef std::map<service_id, std::vector<std::shared_ptr<service_rule>>>
-    service_rules;
+using service_id = std::pair<int, uint64_t>;  // (train_num, admin)
+using service_rules =
+    std::map<service_id, std::vector<std::shared_ptr<service_rule>>>;
 
 }  // namespace hrd
 }  // namespace loader

@@ -19,7 +19,7 @@ struct interchange {
     enter_ = ev_key();
     exit_ = ev_key();
   }
-  std::size_t exit_stop_idx_, enter_stop_idx_;
+  size_t exit_stop_idx_{0}, enter_stop_idx_{0};
   ev_key exit_, enter_;
 };
 
@@ -54,7 +54,7 @@ ev_key get_event_at(schedule const& sched, Connection const* con,
       begin(*trp->edges_), end(*trp->edges_), [&](trip::route_edge const& e) {
         auto const k = ev_key{e, trp->lcon_idx_, ev_type};
         auto const schedule_time = get_schedule_time(sched, k);
-        return k.lcon()->valid_ &&  //
+        return (k.lcon()->valid_ != 0u) &&  //
                ((ev_type == event_type::ARR &&
                  e->to_->get_station()->id_ == station_idx &&
                  schedule_time == ev_time) ||
@@ -83,7 +83,7 @@ std::vector<interchange> get_interchanges(schedule const& sched,
       ic.enter_ = get_event_at(sched, con, stop_idx, event_type::DEP);
       ic.enter_stop_idx_ = stop_idx;
       if (ic.exit_.valid()) {
-        interchanges.emplace_back(std::move(ic));
+        interchanges.emplace_back(ic);
       }
       ic.reset();
     }

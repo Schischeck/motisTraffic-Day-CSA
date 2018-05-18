@@ -8,6 +8,7 @@
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/message_to_journeys.h"
 #include "motis/module/message.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
@@ -17,14 +18,16 @@ using namespace motis::test::schedule;
 using namespace motis::module;
 using namespace motis::routing;
 using motis::test::schedule::simple_realtime::dataset_opt;
-using motis::test::schedule::simple_realtime::get_ris_message;
 
 namespace motis {
 namespace routing {
 
 struct routing_rt : public motis_instance_test {
   routing_rt()
-      : motis::test::motis_instance_test(dataset_opt, {"routing", "rt"}) {}
+      : motis::test::motis_instance_test(
+            dataset_opt, {"routing", "ris", "rt"},
+            {"--ris.input=test/schedule/simple_realtime/risml/delays.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 
   msg_ptr routing_request() const {
     auto const interval = Interval(unix_time(1355), unix_time(1355));
@@ -34,8 +37,9 @@ struct routing_rt : public motis_instance_test {
         CreateRoutingRequest(
             fbb, Start_PretripStart,
             CreatePretripStart(
-                fbb, CreateInputStation(fbb, fbb.CreateString("8000260"),
-                                        fbb.CreateString("")),
+                fbb,
+                CreateInputStation(fbb, fbb.CreateString("8000260"),
+                                   fbb.CreateString("")),
                 &interval)
                 .Union(),
             CreateInputStation(fbb, fbb.CreateString("8000208"),
@@ -50,8 +54,6 @@ struct routing_rt : public motis_instance_test {
 };
 
 TEST_F(routing_rt, finds_annotated_connections) {
-  publish(get_ris_message(sched()));
-  publish(make_no_msg("/ris/system_time_changed"));
   auto res = call(routing_request());
   auto journeys = message_to_journeys(motis_content(RoutingResponse, res));
 

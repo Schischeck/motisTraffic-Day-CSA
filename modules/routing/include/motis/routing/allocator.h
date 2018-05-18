@@ -14,6 +14,14 @@ struct allocator {
     clear();
   }
 
+  ~allocator() = default;
+
+  allocator(allocator const&) = delete;
+  allocator& operator=(allocator const&) = delete;
+
+  allocator(allocator&&) = delete;
+  allocator& operator=(allocator&&) = delete;
+
   inline void dealloc(void* p) { list_.push(p); }
 
   inline void* alloc(size_t const size) {
@@ -52,8 +60,8 @@ private:
   }
 
   std::vector<parser::buffer> mem_;
-  unsigned char* next_ptr_;
-  unsigned char* end_ptr_;
+  unsigned char* next_ptr_{nullptr};
+  unsigned char* end_ptr_{nullptr};
 
   struct node {
     inline void* take() {
@@ -66,7 +74,7 @@ private:
       mem_ptr->next_ = next_;
       next_ = mem_ptr;
     }
-    node* next_;
+    node* next_{nullptr};
   } list_;
 };
 

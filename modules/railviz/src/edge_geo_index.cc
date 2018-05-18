@@ -15,11 +15,11 @@
 namespace bg = boost::geometry;
 namespace bgi = boost::geometry::index;
 
-typedef bg::cs::spherical_equatorial<bg::degree> coordinate_system;
-typedef bg::model::point<double, 2, coordinate_system> spherical_point;
-typedef bg::model::box<spherical_point> box;
-typedef std::pair<box, int> value;
-typedef bgi::rtree<value, bgi::quadratic<16>> rtree;
+using coordinate_system = bg::cs::spherical_equatorial<bg::degree>;
+using spherical_point = bg::model::point<double, 2, coordinate_system>;
+using box = bg::model::box<spherical_point>;
+using value = std::pair<box, int>;
+using rtree = bgi::rtree<value, bgi::quadratic<16>>;
 
 namespace motis {
 namespace railviz {
@@ -34,7 +34,7 @@ geo::coord to_coord(spherical_point const p) {
 
 box bounding_box(spherical_point const c1, spherical_point const c2) {
   bg::model::segment<spherical_point> s(c1, c2);
-  box b;
+  box b{};
   bg::envelope(s, b);
   return b;
 }
@@ -56,7 +56,7 @@ public:
     }
   }
 
-  std::vector<edge const*> edges(geo::box const b) const {
+  std::vector<edge const*> edges(geo::box const& b) const {
     std::vector<value> result_n;
     auto const bounds = bounding_box(to_point(b.first), to_point(b.second));
     rtree_.query(bgi::intersects(bounds), std::back_inserter(result_n));
@@ -114,9 +114,9 @@ private:
         continue;
       }
 
-      entries.push_back(std::make_pair(get_bounding_box(station_pair),
-                                       station_pairs_.size()));
-      station_pairs_.push_back(station_pair);
+      entries.emplace_back(get_bounding_box(station_pair),
+                           station_pairs_.size());
+      station_pairs_.emplace_back(station_pair);
     }
   }
 
@@ -135,7 +135,7 @@ private:
             continue;
           }
 
-          edges.push_back(&e);
+          edges.emplace_back(&e);
         }
       }
     }
@@ -175,7 +175,7 @@ edge_geo_index::edge_geo_index(
 
 edge_geo_index::~edge_geo_index() = default;
 
-std::vector<edge const*> edge_geo_index::edges(geo::box area) const {
+std::vector<edge const*> edge_geo_index::edges(geo::box const& area) const {
   return impl_->edges(area);
 }
 

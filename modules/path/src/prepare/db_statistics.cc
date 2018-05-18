@@ -224,7 +224,6 @@ check_responses(kv_database const& db,
       results;
 
   utl::parallel_for("checking responses", indices, 50, [&](auto const& index) {
-
     auto buf = db.get(index);
     auto msg_ptr = std::make_shared<module::message>(buf.size(), buf.c_str());
     auto msg = motis_content(PathSeqResponse, msg_ptr);

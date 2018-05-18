@@ -1,5 +1,3 @@
-#pragma once
-
 #include <vector>
 
 #include "geo/latlng.h"
@@ -42,7 +40,7 @@ void make_dests(IntermodalRoutingRequest const*, geo::latlng const&,
 
 void remove_intersection(std::vector<mumo_edge>& starts,
                          std::vector<mumo_edge> const& destinations,
-                         routing::SearchDir const);
+                         routing::SearchDir);
 
 std::vector<flatbuffers::Offset<routing::AdditionalEdgeWrapper>> write_edges(
     flatbuffers::FlatBufferBuilder& fbb,  //

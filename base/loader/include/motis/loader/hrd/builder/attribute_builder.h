@@ -24,7 +24,7 @@ struct attribute_builder {
       hrd_service::attribute const&, bitfield_builder&,
       flatbuffers64::FlatBufferBuilder&);
 
-  std::map<uint16_t, std::string> const hrd_attributes_;
+  std::map<uint16_t, std::string> hrd_attributes_;
   std::map<uint16_t, flatbuffers64::Offset<AttributeInfo>> fbs_attribute_infos_;
   std::map<std::pair<uint16_t, int>, flatbuffers64::Offset<Attribute>>
       fbs_attributes_;

@@ -34,15 +34,15 @@ flatbuffers64::Offset<flatbuffers64::String> to_fbs_string(
     std::string const& /* charset -> currently only supported: ISO-8859-1 */) {
   std::vector<unsigned char> utf8(s.length() * 2, '\0');
   auto number_of_input_bytes = s.length();
-  unsigned char const* in = reinterpret_cast<unsigned char const*>(s.c_str());
-  unsigned char* out_begin = &utf8[0];
-  unsigned char* out = out_begin;
+  auto in = reinterpret_cast<unsigned char const*>(s.c_str());
+  auto out_begin = &utf8[0];
+  auto out = out_begin;
   for (std::size_t i = 0; i < number_of_input_bytes; ++i) {
     if (*in < 128) {
       *out++ = *in++;
     } else {
-      *out++ = 0xc2 + (*in > 0xbf);
-      *out++ = (*in++ & 0x3f) + 0x80;
+      *out++ = 0xc2 + (*in > 0xbfu);
+      *out++ = (*in++ & 0x3fu) + 0x80u;
     }
   }
   return to_fbs_string(b, parser::cstr(reinterpret_cast<char const*>(out_begin),

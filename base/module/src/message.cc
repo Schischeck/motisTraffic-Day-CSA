@@ -10,10 +10,6 @@
 #include "motis/module/error.h"
 #include "motis/protocol/resources.h"
 
-#include "rapidjson/rapidjson_with_exception.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-
 #undef GetMessage
 
 using namespace flatbuffers;
@@ -67,77 +63,13 @@ std::pair<const char**, size_t> message::get_fbs_definitions() {
   return std::make_pair(symbols, number_of_symbols);
 }
 
-void write_json_value(rapidjson::Value const& v,
-                      rapidjson::Writer<rapidjson::StringBuffer>& writer) {
-  auto const is_type_key = [](auto const& m) {
-    auto const key = m.name.GetString();
-    auto const key_len = m.name.GetStringLength();
-    return key_len >= 5 && std::strcmp(key + key_len - 5, "_type") == 0;
-  };
-
-  switch (v.GetType()) {
-    case rapidjson::kObjectType: {
-      writer.StartObject();
-
-      auto const begin = v.MemberBegin();
-      auto const end = v.MemberEnd();
-
-      // first run: write all *_type members
-      for (auto it = begin; it != end; ++it) {
-        if (is_type_key(*it)) {
-          writer.String(it->name.GetString(), it->name.GetStringLength());
-          write_json_value(it->value, writer);
-        }
-      }
-
-      // second run: write all non *_type members.
-      for (auto it = begin; it != end; ++it) {
-        if (!is_type_key(*it)) {
-          writer.String(it->name.GetString(), it->name.GetStringLength());
-          write_json_value(it->value, writer);
-        }
-      }
-
-      writer.EndObject();
-      break;
-    }
-
-    case rapidjson::kArrayType: {
-      writer.StartArray();
-      for (auto i = 0u; i < v.Size(); ++i) {
-        write_json_value(v[i], writer);
-      }
-      writer.EndArray();
-      break;
-    }
-
-    default: v.Accept(writer);
-  }
-}
-
-std::string fix_json(std::string const& json) {
-  rapidjson::Document d;
-  bool failure = d.Parse<0>(json.c_str()).HasParseError();
-  if (failure) {
-    throw std::system_error(error::unable_to_parse_msg);
-  }
-
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-
-  write_json_value(d, writer);
-
-  return buffer.GetString();
-}
-
-msg_ptr make_msg(std::string const& json, bool fix) {
+msg_ptr make_msg(std::string const& json) {
   if (json.empty()) {
     LOG(motis::logging::error) << "empty request";
     throw std::system_error(error::unable_to_parse_msg);
   }
 
-  bool parse_ok =
-      json_parser->Parse(fix ? fix_json(json).c_str() : json.c_str());
+  bool parse_ok = json_parser->Parse(json.c_str());
   if (!parse_ok) {
     LOG(motis::logging::error) << "parse error: " << json_parser->error_;
     throw std::system_error(error::unable_to_parse_msg);

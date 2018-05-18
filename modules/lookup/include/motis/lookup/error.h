@@ -53,6 +53,6 @@ namespace std {
 
 template <>
 struct is_error_code_enum<motis::lookup::error::error_code_t>
-    : public boost::true_type {};
+    : public std::true_type {};
 
 }  // namespace std

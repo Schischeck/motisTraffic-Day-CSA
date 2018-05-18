@@ -1,7 +1,5 @@
 #include "gtest/gtest.h"
 
-#include "../include/helper.h"
-
 #include "motis/protocol/RISMessage_generated.h"
 #include "motis/ris/risml/risml_parser.h"
 
@@ -9,30 +7,41 @@ namespace motis {
 namespace ris {
 namespace risml {
 
-// clang-format off
-constexpr auto ist_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151006235934781\" KNr=\"123863714\">\
-<ListNachricht><Nachricht><Ist>\
-<Service Id=\"85713913\" IdZNr=\"8329\" IdZGattung=\"S\" IdBf=\"MMAM\" \
-IdBfEvaNr=\"8004204\" IdZeit=\"20151006234400\"  ZielBfCode=\"MHO\" \
-ZielBfEvaNr=\"8002980\" Zielzeit=\"20151007010600\" IdVerwaltung=\"07\" \
-IdZGattungInt=\"s\" IdLinie=\"3\" SourceZNr=\"EFZ\">\
-<ListZug>\
-<Zug Nr=\"8329\" Gattung=\"S\" Linie=\"3\"  GattungInt=\"s\" Verwaltung=\"07\" >\
-<ListZE>\
-<ZE Typ=\"Ab\" >\
-<Bf Code=\"MOL\" EvaNr=\"8004667\" Name=\"Olching\" />\
-<Zeit Soll=\"20151006235900\" Ist=\"20151006235900\" />\
-</ZE>    </ListZE></Zug></ListZug></Service></Ist><ListQuelle>\
-<Quelle Sender=\"ZENTRAL\"  Typ=\"IstProg\" KNr=\"18762\" TIn=\"20151006235920176\" \
-TOutSnd=\"20151006235934696\"/>\
-<Quelle Sender=\"10.35.205.140:7213/13\" Typ=\"UIC 102\" TIn=\"20151006235933\" \
-Esc=\"mue810jyct\" />\
-</ListQuelle></Nachricht></ListNachricht></Paket>";
-// clang-format on
+constexpr auto ist_fixture_1 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151006235934781" KNr="123863714">
+ <ListNachricht>
+  <Nachricht>
+   <Ist>
+    <Service Id="85713913" IdZNr="8329" IdZGattung="S" IdBf="MMAM"
+             IdBfEvaNr="8004204" IdZeit="20151006234400"  ZielBfCode="MHO"
+             ZielBfEvaNr="8002980" Zielzeit="20151007010600" IdVerwaltung="07"
+             IdZGattungInt="s" IdLinie="3" SourceZNr="EFZ">
+     <ListZug>
+      <Zug Nr="8329" Gattung="S" Linie="3"  GattungInt="s" Verwaltung="07" >
+       <ListZE>
+        <ZE Typ="Ab">
+         <Bf Code="MOL" EvaNr="8004667" Name="Olching" />
+         <Zeit Soll="20151006235900" Ist="20151006235900" />
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+    </Service>
+   </Ist>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL"  Typ="IstProg" KNr="18762" TIn="20151006235920176"
+            TOutSnd="20151006235934696"/>
+    <Quelle Sender="10.35.205.140:7213/13" Typ="UIC 102" TIn="20151006235933"
+            Esc="mue810jyct" />
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_delay_message, ist_message_1) {
-  auto const messages = parse_xmls(pack(ist_fixture_1));
+  auto const messages = parse_xml(ist_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -65,26 +74,41 @@ TEST(ris_delay_message, ist_message_1) {
   EXPECT_EQ(1444168740, e0->updated_time());
 }
 
-// clang-format off
-char const* ist_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007000002316\" KNr=\"123863963\">\
-<ListNachricht><Nachricht><Ist>\
-<Service Id=\"86009330\" IdZNr=\"60418\" IdZGattung=\"IC\" IdBf=\"MH\"\
- IdBfEvaNr=\"8000261\" IdZeit=\"20151006225000\"  ZielBfCode=\"TS\"\
- ZielBfEvaNr=\"8000096\" Zielzeit=\"20151007011600\" IdVerwaltung=\"80\"\
- IdZGattungInt=\"IC\" IdLinie=\"\" SourceZNr=\"EFZ\">\
-<ListZug><Zug Nr=\"60418\" Gattung=\"IC\"  GattungInt=\"IC\" Verwaltung=\"80\" >\
-<ListZE><ZE Typ=\"Ab\" ><Bf Code=\"MOL\" EvaNr=\"8004667\" />\
-<Zeit Soll=\"20151006234800\" Ist=\"20151006235900\" />\
-</ZE>    </ListZE></Zug></ListZug></Service></Ist><ListQuelle>\
-<Quelle Sender=\"ZENTRAL\"  Typ=\"IstProg\" KNr=\"18777\" TIn=\"20151007000000336\"\
- TOutSnd=\"20151007000002053\"/><Quelle Sender=\"10.35.205.140:7213/13\"\
- Typ=\"UIC 102\" TIn=\"20151007000001\" Esc=\"mue810jyhi\" />\
-</ListQuelle></Nachricht></ListNachricht></Paket>";
-// clang-format on
+constexpr auto ist_fixture_2 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151007000002316" KNr="123863963">
+ <ListNachricht>
+  <Nachricht>
+   <Ist>
+    <Service Id="86009330" IdZNr="60418" IdZGattung="IC" IdBf="MH"
+             IdBfEvaNr="8000261" IdZeit="20151006225000"  ZielBfCode="TS"
+             ZielBfEvaNr="8000096" Zielzeit="20151007011600" IdVerwaltung="80"
+             IdZGattungInt="IC" IdLinie="" SourceZNr="EFZ">
+     <ListZug>
+      <Zug Nr="60418" Gattung="IC"  GattungInt="IC" Verwaltung="80" >
+       <ListZE>
+        <ZE Typ="Ab" >
+         <Bf Code="MOL" EvaNr="8004667" />
+         <Zeit Soll="20151006234800" Ist="20151006235900" />
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+    </Service>
+   </Ist>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL"  Typ="IstProg" KNr="18777" TIn="20151007000000336"
+            TOutSnd="20151007000002053"/>
+    <Quelle Sender="10.35.205.140:7213/13"
+            Typ="UIC 102" TIn="20151007000001" Esc="mue810jyhi" />
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_delay_message, ist_message_2) {
-  auto const messages = parse_xmls(pack(ist_fixture_2));
+  auto const messages = parse_xml(ist_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -111,44 +135,44 @@ TEST(ris_delay_message, ist_message_2) {
   EXPECT_EQ(1444168740, e0->updated_time());
 }
 
-// clang-format off
-char const* ist_fixture_3 = "<?xml version=\"1.0\"?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151116171000721\" KNr=\"187859610\">\
-  <ListNachricht>\
-    <Nachricht>\
-      <Ist>\
-        <Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
-IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
-ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
-IdVerwaltung=\"07\" SourceZNr=\"EFZ\" RegSta=\"Sonderzug\">\
-          <ListZug>\
-            <Zug Nr=\"59622\" Gattung=\"RB\" GattungInt=\"RB\" Name=\"RB 59622\" Verwaltung=\"07\">\
-              <ListZE>\
-                <ZE Typ=\"An\">\
-                  <Bf Code=\"MSTA\" EvaNr=\"8005672\" Name=\"Iffeldorf\"/>\
-                  <Zeit Soll=\"20151116170800\" Ist=\"20151116170900\"/>\
-                </ZE>\
-                <ZE Typ=\"Ab\">\
-                  <Bf Code=\"MSTA\" EvaNr=\"8005672\" Name=\"Iffeldorf\"/>\
-                  <Zeit Soll=\"20151116170900\" Ist=\"20151116170900\"/>\
-                </ZE>\
-              </ListZE>\
-            </Zug>\
-          </ListZug>\
-        </Service>\
-      </Ist>\
-      <ListQuelle>\
-        <Quelle Sender=\"ZENTRAL\" Typ=\"IstProg\" KNr=\"3325\" \
-TIn=\"20151116170958659\" TOutSnd=\"20151116170958601\"/>\
-        <Quelle Sender=\"GPS\" TIn=\"20151116170954\"/>\
-      </ListQuelle>\
-    </Nachricht>\
-  </ListNachricht>\
-</Paket>";
-// clang-format on
+constexpr auto ist_fixture_3 = R"(
+<?xml version="1.0"?>
+<Paket Version="1.2" SpezVer="1" TOut="20151116171000721" KNr="187859610">
+ <ListNachricht>
+  <Nachricht>
+   <Ist>
+    <Service Id="249933654442" IdZGattung="RB" IdZGattungInt="RB"
+             IdBf="MKCH" IdBfEvaNr="8003355" IdZeit="20151116164500" IdZNr="59622"
+             ZielBfCode="MH  N" ZielBfEvaNr="8098261" Zielzeit="20151116180000"
+             IdVerwaltung="07" SourceZNr="EFZ" RegSta="Sonderzug">
+     <ListZug>
+      <Zug Nr="59622" Gattung="RB" GattungInt="RB" Name="RB 59622" Verwaltung="07">
+       <ListZE>
+        <ZE Typ="An">
+         <Bf Code="MSTA" EvaNr="8005672" Name="Iffeldorf"/>
+         <Zeit Soll="20151116170800" Ist="20151116170900"/>
+        </ZE>
+        <ZE Typ="Ab">
+         <Bf Code="MSTA" EvaNr="8005672" Name="Iffeldorf"/>
+         <Zeit Soll="20151116170900" Ist="20151116170900"/>
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+    </Service>
+   </Ist>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL" Typ="IstProg" KNr="3325"
+            TIn="20151116170958659" TOutSnd="20151116170958601"/>
+    <Quelle Sender="GPS" TIn="20151116170954"/>
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_delay_message, ist_message_3) {
-  auto const messages = parse_xmls(pack(ist_fixture_3));
+  auto const messages = parse_xml(ist_fixture_3);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -187,20 +211,35 @@ TEST(ris_delay_message, ist_message_3) {
   EXPECT_EQ(1447690140, e1->updated_time());
 }
 
-// clang-format off
-std::string type_fixture(std::string type_string) {
-  return std::string("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket TOut=\"20151116180000\"><ListNachricht><Nachricht>\
-<Ist><Service Id=\"249933654442\" IdZGattung=\"RB\" IdZGattungInt=\"RB\" \
-IdBf=\"MKCH\" IdBfEvaNr=\"8003355\" IdZeit=\"20151116164500\" IdZNr=\"59622\" \
-ZielBfCode=\"MH  N\" ZielBfEvaNr=\"8098261\" Zielzeit=\"20151116180000\" \
-IdVerwaltung=\"07\" SourceZNr=\"EFZ\">\
-<ListZug><Zug><ListZE><ZE Typ=\"") + type_string + "\" >\
-<Bf/><Zeit Soll=\"20151116180000\" Ist=\"20151116180000\"/></ZE></ListZE>\
-</Zug></ListZug></Service></Ist><ListQuelle>\
-</ListQuelle></Nachricht></ListNachricht></Paket>";
+std::string type_fixture(std::string const& type_string) {
+  return std::string(R"(<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket TOut="20151116180000">
+ <ListNachricht>
+  <Nachricht>
+   <Ist>
+    <Service Id="249933654442" IdZGattung="RB" IdZGattungInt="RB"
+             IdBf="MKCH" IdBfEvaNr="8003355" IdZeit="20151116164500" IdZNr="59622"
+             ZielBfCode="MH  N" ZielBfEvaNr="8098261" Zielzeit="20151116180000"
+             IdVerwaltung="07" SourceZNr="EFZ">
+     <ListZug>
+      <Zug>
+       <ListZE>
+        <ZE Typ=")") +
+         type_string + R"(">
+         <Bf/>
+         <Zeit Soll="20151116180000" Ist="20151116180000"/>
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+    </Service>
+   </Ist>
+   <ListQuelle/>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 }
-// clang-format on
 
 EventType get_type(std::vector<ris_message> const& messages) {
   if (messages.empty()) {
@@ -213,50 +252,64 @@ EventType get_type(std::vector<ris_message> const& messages) {
 
 TEST(ris_delay_message, train_event_type) {
   auto start_msg = type_fixture("Start");
-  auto start = parse_xmls(pack(start_msg.c_str()));
+  auto start = parse_xml(start_msg.c_str());
   ASSERT_EQ(EventType_DEP, get_type(start));
 
   auto ab_msg = type_fixture("Ab");
-  auto ab = parse_xmls(pack(ab_msg.c_str()));
+  auto ab = parse_xml(ab_msg.c_str());
   ASSERT_EQ(EventType_DEP, get_type(ab));
 
   auto an_msg = type_fixture("An");
-  auto an = parse_xmls(pack(an_msg.c_str()));
+  auto an = parse_xml(an_msg.c_str());
   ASSERT_EQ(EventType_ARR, get_type(an));
 
   auto ziel_msg = type_fixture("Ziel");
-  auto ziel = parse_xmls(pack(ziel_msg.c_str()));
+  auto ziel = parse_xml(ziel_msg.c_str());
   ASSERT_EQ(EventType_ARR, get_type(ziel));
 
   // "Durch" events are ignored
   auto pass_msg = type_fixture("Durch");
-  auto pass = parse_xmls(pack(pass_msg.c_str()));
+  auto pass = parse_xml(pass_msg.c_str());
   auto content = GetMessage(pass[0].data())->content();
   auto delay_message = reinterpret_cast<DelayMessage const*>(content);
   EXPECT_EQ(0, delay_message->events()->size());
 }
 
-// clang-format off
-char const* ist_prog_fixture_1 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151006235943156\" KNr=\"123863771\">\
-<ListNachricht><Nachricht><IstProg >\
-<Service Id=\"85825746\" IdZNr=\"21839\" IdZGattung=\"RE\" IdBf=\"AL\"\
- IdBfEvaNr=\"8000237\" IdZeit=\"20151006232300\"  ZielBfCode=\"ABCH\"\
- ZielBfEvaNr=\"8000058\" Zielzeit=\"20151007000500\" IdVerwaltung=\"02\"\
- IdZGattungInt=\"RE\" IdLinie=\"\" SourceZNr=\"EFZ\">\
-<ListZug><Zug Nr=\"21839\" Gattung=\"RE\"  GattungInt=\"RE\" Verwaltung=\"02\" >\
-<ListZE><ZE Typ=\"Ziel\" >\
-<Bf Code=\"ABCH\" EvaNr=\"8000058\" Name=\"B�chen\"/>\
-<Zeit Soll=\"20151007000500\" Prog=\"20151007000600\" Dispo=\"NEIN\" />\
-</ZE>    </ListZE></Zug></ListZug></Service></IstProg>\
-<ListQuelle><Quelle Sender=\"ZENTRAL\"  Typ=\"IstProg\" KNr=\"18767\"\
- TIn=\"20151006235939097\" TOutSnd=\"20151006235943107\"/>\
-<Quelle Sender=\"10.35.204.12:7213/13\" Typ=\"UIC 102\" TIn=\"20151006235942\"\
- Esc=\"bln810jye7\" /></ListQuelle></Nachricht></ListNachricht></Paket>";
-// clang-format on
+constexpr auto ist_prog_fixture_1 = R"(
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151006235943156" KNr="123863771">
+ <ListNachricht>
+  <Nachricht>
+   <IstProg >
+    <Service Id="85825746" IdZNr="21839" IdZGattung="RE" IdBf="AL"
+             IdBfEvaNr="8000237" IdZeit="20151006232300"  ZielBfCode="ABCH"
+             ZielBfEvaNr="8000058" Zielzeit="20151007000500" IdVerwaltung="02"
+             IdZGattungInt="RE" IdLinie="" SourceZNr="EFZ">
+     <ListZug>
+      <Zug Nr="21839" Gattung="RE"  GattungInt="RE" Verwaltung="02" >
+       <ListZE>
+        <ZE Typ="Ziel" >
+         <Bf Code="ABCH" EvaNr="8000058" Name="B�chen"/>
+         <Zeit Soll="20151007000500" Prog="20151007000600" Dispo="NEIN" />
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+    </Service>
+   </IstProg>
+   <ListQuelle>
+    <Quelle Sender="ZENTRAL"  Typ="IstProg" KNr="18767"
+            TIn="20151006235939097" TOutSnd="20151006235943107"/>
+    <Quelle Sender="10.35.204.12:7213/13" Typ="UIC 102" TIn="20151006235942"
+            Esc="bln810jye7" />
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+)";
 
 TEST(ris_delay_message, ist_prog_message_1) {
-  auto const messages = parse_xmls(pack(ist_prog_fixture_1));
+  auto const messages = parse_xml(ist_prog_fixture_1);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];
@@ -283,30 +336,47 @@ TEST(ris_delay_message, ist_prog_message_1) {
   EXPECT_EQ(1444169160, e0->updated_time());
 }
 
-// clang-format off
-char const* ist_prog_fixture_2 = "<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?>\
-<Paket Version=\"1.2\" SpezVer=\"1\" TOut=\"20151007000000657\" KNr=\"123863949\">\
-<ListNachricht><Nachricht><IstProg >\
-<Service Id=\"85712577\" IdZNr=\"37616\" IdZGattung=\"S\" IdBf=\"APB\"\
- IdBfEvaNr=\"8004862\" IdZeit=\"20151006231000\"  ZielBfCode=\"AWL\"\
- ZielBfEvaNr=\"8006236\" Zielzeit=\"20151007001900\" IdVerwaltung=\"0S\"\
- IdZGattungInt=\"s\" IdLinie=\"1\" SourceZNr=\"EFZ\">\
-<ListZug><Zug Nr=\"37616\" Gattung=\"S\" Linie=\"1\"  GattungInt=\"s\" Verwaltung=\"0S\" >\
-<ListZE>\
-<ZE Typ=\"An\" ><Bf Code=\"ARI\" EvaNr=\"8005106\" Name=\"Hamburg-Rissen\"/>\
-<Zeit Soll=\"20151007001400\" Prog=\"20151007001800\" Dispo=\"NEIN\" /></ZE>\
-<ZE Typ=\"Ab\" ><Bf Code=\"ARI\" EvaNr=\"8005106\" Name=\"Hamburg-Rissen\"/>\
-<Zeit Soll=\"20151007001400\" Prog=\"20151007001800\" Dispo=\"NEIN\" /></ZE>\
-<ZE Typ=\"Ziel\" ><Bf Code=\"AWL\" EvaNr=\"8006236\" Name=\"Wedel(Holst)\"/>\
-<Zeit Soll=\"20151007001900\" Prog=\"20151007002200\" Dispo=\"NEIN\" /></ZE>\
-    </ListZE></Zug></ListZug></Service></IstProg>\
-<ListQuelle><Quelle Sender=\"SBahnHamburg\"  Typ=\"IstProg\" KNr=\"8909333\"\
- TIn=\"20151006235950236\" TOutSnd=\"20151007000000064\"/></ListQuelle>\
- </Nachricht></ListNachricht></Paket>";
-// clang-format on
+constexpr auto ist_prog_fixture_2 = R"--((
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<Paket Version="1.2" SpezVer="1" TOut="20151007000000657" KNr="123863949">
+ <ListNachricht>
+  <Nachricht>
+   <IstProg >
+    <Service Id="85712577" IdZNr="37616" IdZGattung="S" IdBf="APB"
+             IdBfEvaNr="8004862" IdZeit="20151006231000"  ZielBfCode="AWL"
+             ZielBfEvaNr="8006236" Zielzeit="20151007001900" IdVerwaltung="0S"
+             IdZGattungInt="s" IdLinie="1" SourceZNr="EFZ">
+     <ListZug>
+      <Zug Nr="37616" Gattung="S" Linie="1"  GattungInt="s" Verwaltung="0S" >
+       <ListZE>
+        <ZE Typ="An" >
+         <Bf Code="ARI" EvaNr="8005106" Name="Hamburg-Rissen"/>
+         <Zeit Soll="20151007001400" Prog="20151007001800" Dispo="NEIN" />
+        </ZE>
+        <ZE Typ="Ab" >
+         <Bf Code="ARI" EvaNr="8005106" Name="Hamburg-Rissen"/>
+         <Zeit Soll="20151007001400" Prog="20151007001800" Dispo="NEIN" />
+        </ZE>
+        <ZE Typ="Ziel" >
+         <Bf Code="AWL" EvaNr="8006236" Name="Wedel(Holst)"/>
+         <Zeit Soll="20151007001900" Prog="20151007002200" Dispo="NEIN" />
+        </ZE>
+       </ListZE>
+      </Zug>
+     </ListZug>
+    </Service>
+   </IstProg>
+   <ListQuelle>
+    <Quelle Sender="SBahnHamburg"  Typ="IstProg" KNr="8909333"
+            TIn="20151006235950236" TOutSnd="20151007000000064"/>
+   </ListQuelle>
+  </Nachricht>
+ </ListNachricht>
+</Paket>
+))--";
 
 TEST(ris_delay_message, ist_prog_message_2) {
-  auto const messages = parse_xmls(pack(ist_prog_fixture_2));
+  auto const messages = parse_xml(ist_prog_fixture_2);
   ASSERT_EQ(1, messages.size());
 
   auto const& message = messages[0];

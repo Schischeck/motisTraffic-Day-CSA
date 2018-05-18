@@ -98,21 +98,25 @@ msg_ptr intermodal::route(msg_ptr const& msg) {
   using namespace std::placeholders;
   if (req->search_dir() == SearchDir_Forward) {
     if (start.is_intermodal_) {
-      make_starts(req, start.pos_, std::bind(appender, std::ref(deps),  //
-                                             STATION_START, _1, _2, _3));
+      make_starts(req, start.pos_,
+                  std::bind(appender, std::ref(deps),  //
+                            STATION_START, _1, _2, _3));
     }
     if (dest.is_intermodal_) {
-      make_dests(req, dest.pos_, std::bind(appender, std::ref(arrs),  //
-                                           _1, STATION_END, _2, _3));
+      make_dests(req, dest.pos_,
+                 std::bind(appender, std::ref(arrs),  //
+                           _1, STATION_END, _2, _3));
     }
   } else {
     if (start.is_intermodal_) {
-      make_starts(req, start.pos_, std::bind(appender, std::ref(deps),  //
-                                             _1, STATION_START, _2, _3));
+      make_starts(req, start.pos_,
+                  std::bind(appender, std::ref(deps),  //
+                            _1, STATION_START, _2, _3));
     }
     if (dest.is_intermodal_) {
-      make_dests(req, dest.pos_, std::bind(appender, std::ref(arrs),  //
-                                           STATION_END, _1, _2, _3));
+      make_dests(req, dest.pos_,
+                 std::bind(appender, std::ref(arrs),  //
+                           STATION_END, _1, _2, _3));
     }
   }
 

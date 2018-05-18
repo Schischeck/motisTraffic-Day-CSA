@@ -17,7 +17,8 @@ Offset<AdditionalEvent> parse_additional_event(FlatBufferBuilder& fbb,
                                                xml_node const& e_node,
                                                xml_node const& t_node) {
   auto track_attr = child_attr(e_node, "Gleis", "Soll");
-  auto track = fbb.CreateString(track_attr ? track_attr.value() : "");
+  auto track =
+      fbb.CreateString(track_attr != nullptr ? track_attr.value() : "");
   auto category = fbb.CreateString(t_node.attribute("Gattung").value());
   return CreateAdditionalEvent(fbb, event, category, track);
 }

@@ -6,12 +6,10 @@
 #include <vector>
 
 #include "motis/core/common/hash_map.h"
-#include "motis/core/common/synchronization.h"
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/constant_graph.h"
 #include "motis/core/schedule/delay_info.h"
-#include "motis/core/schedule/event.h"
 #include "motis/core/schedule/event.h"
 #include "motis/core/schedule/nodes.h"
 #include "motis/core/schedule/provider.h"
@@ -23,17 +21,25 @@ namespace motis {
 
 struct schedule {
   schedule()
-      : schedule_begin_(0),
-        schedule_end_(0),
-        node_count_(0),
-        system_time_(0),
-        last_update_timestamp_(0) {
+      : first_event_schedule_time_{std::numeric_limits<time_t>::max()},
+        last_event_schedule_time_{std::numeric_limits<time_t>::min()},
+        schedule_begin_{0},
+        schedule_end_{0},
+        node_count_{0},
+        route_count_{0},
+        system_time_{0},
+        last_update_timestamp_{0} {
     graph_to_delay_info_.set_empty_key({nullptr, 0, event_type::DEP});
   }
 
   schedule(schedule const&) = delete;
   schedule& operator=(schedule const&) = delete;
+  schedule(schedule&&) = delete;
+  schedule& operator=(schedule&&) = delete;
+  ~schedule() = default;
 
+  std::time_t first_event_schedule_time_;
+  std::time_t last_event_schedule_time_;
   std::time_t schedule_begin_, schedule_end_;
   std::string name_;
 
@@ -52,7 +58,6 @@ struct schedule {
   std::vector<node*> route_index_to_first_route_node_;
   std::unordered_map<uint32_t, std::vector<int32_t>> train_nr_to_routes_;
   waiting_time_rules waiting_time_rules_;
-  synchronization sync_;
 
   std::vector<std::unique_ptr<connection>> full_connections_;
   std::vector<std::unique_ptr<connection_info>> connection_infos_;
@@ -72,6 +77,6 @@ struct schedule {
   hash_map<ev_key, delay_info*> graph_to_delay_info_;
 };
 
-typedef std::unique_ptr<schedule> schedule_ptr;
+using schedule_ptr = std::unique_ptr<schedule>;
 
 }  // namespace motis

@@ -31,7 +31,6 @@ using namespace parser;
 using namespace pugi;
 namespace fs = boost::filesystem;
 using fs::directory_iterator;
-using boost::system::error_code;
 
 namespace motis {
 namespace bikesharing {
@@ -99,8 +98,8 @@ std::vector<std::string> get_nextbike_files(std::string const& path) {
 }
 
 std::time_t nextbike_filename_to_timestamp(std::string const& filename) {
-  auto dash_pos = filename.rfind("-");
-  auto dot_pos = filename.rfind(".");
+  auto dash_pos = filename.rfind('-');
+  auto dot_pos = filename.rfind('.');
   if (dash_pos == std::string::npos || dot_pos == std::string::npos ||
       dash_pos > dot_pos) {
     throw std::runtime_error("unexpected nextbike filename");
@@ -171,8 +170,8 @@ msg_ptr to_geo_request(std::vector<terminal> const& terminals, double r) {
 close_locations find_close_terminals(std::vector<terminal> const& terminals) {
   std::vector<value> values;
   for (size_t i = 0; i < terminals.size(); ++i) {
-    values.push_back(std::make_pair(
-        spherical_point(terminals[i].lng_, terminals[i].lat_), i));
+    values.emplace_back(spherical_point(terminals[i].lng_, terminals[i].lat_),
+                        i);
   }
   bgi::rtree<value, bgi::quadratic<16>> rtree{values};
 

@@ -26,17 +26,14 @@ struct rail_graph {
 
   std::vector<std::unique_ptr<rail_node>> nodes_;
   std::vector<geo::polyline> polylines_;
-
   hash_map<std::string, std::vector<size_t>> stations_to_nodes_;
 };
 
 struct rail_node {
-  rail_node(size_t const idx, geo::latlng pos)
-      : idx_(idx), pos_(std::move(pos)) {}
+  rail_node(size_t const idx, geo::latlng pos) : idx_(idx), pos_(pos) {}
 
   size_t idx_;
   geo::latlng pos_;
-
   std::vector<rail_edge> edges_;
 };
 
@@ -44,16 +41,15 @@ struct rail_edge {
   rail_edge(uint64_t polyline_idx, bool forward, size_t dist,
             rail_node const* from, rail_node const* to)
       : polyline_idx_(polyline_idx),
-        forward_(forward),
+        forward_(forward ? 1u : 0u),
         dist_(dist),
         from_(from),
         to_(to) {}
 
-  bool is_forward() const { return forward_; }
+  bool is_forward() const { return forward_ != 0; }
 
   uint64_t polyline_idx_ : 63;
-  size_t forward_ : 1;
-
+  uint64_t forward_ : 1;
   size_t dist_;
 
   rail_node const* from_;
@@ -67,14 +63,14 @@ inline void print_rail_graph_stats(rail_graph const& graph) {
 
   auto vec =
       utl::to_vec(graph.nodes_, [](auto const& n) { return n->edges_.size(); });
-  auto const count = std::accumulate(begin(vec), end(vec), 0);
+  auto const count = std::accumulate(begin(vec), end(vec), size_t{0});
   auto const avg = count / vec.size();
 
   LOG(ml::info) << "- edges: " << count;
   LOG(ml::info) << "- degree: "  //
-                << " 0:" << std::count(begin(vec), end(vec), 0)
-                << " 1:" << std::count(begin(vec), end(vec), 1)
-                << " 2:" << std::count(begin(vec), end(vec), 2);
+                << " 0:" << std::count(begin(vec), end(vec), 0u)
+                << " 1:" << std::count(begin(vec), end(vec), 1u)
+                << " 2:" << std::count(begin(vec), end(vec), 2u);
 
   std::sort(begin(vec), end(vec));
   LOG(ml::info) << "- degree: "  //

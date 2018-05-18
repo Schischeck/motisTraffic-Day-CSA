@@ -22,3 +22,5 @@ gmon.out
 /bikesharing*
 config.ini
 /eval
+*.mdb
+*.mdb-lock

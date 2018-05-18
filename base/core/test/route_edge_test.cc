@@ -4,9 +4,10 @@
 
 using namespace motis;
 
-auto e = make_route_edge(nullptr, nullptr, {light_connection(0, 10, nullptr),
-                                            light_connection(1, 11, nullptr),
-                                            light_connection(2, 12, nullptr)});
+auto e = make_route_edge(
+    nullptr, nullptr,
+    {light_connection(0, 10, nullptr), light_connection(1, 11, nullptr),
+     light_connection(2, 12, nullptr)});
 
 TEST(core_route_edge, get_connection_test_valid) {
   auto c = e.get_connection(1);
@@ -21,7 +22,7 @@ TEST(core_route_edge, get_connection_test_valid_last) {
 
 TEST(core_route_edge, get_connection_invalid_next_test) {
   auto e1 = e;
-  e1.m_.route_edge_.conns_[1].valid_ = false;
+  e1.m_.route_edge_.conns_[1].valid_ = 0u;
 
   auto c = e1.get_connection(1);
   ASSERT_TRUE(c);
@@ -31,8 +32,8 @@ TEST(core_route_edge, get_connection_invalid_next_test) {
 
 TEST(core_route_edge, get_connection_2_invalid_next_test) {
   auto e1 = e;
-  e1.m_.route_edge_.conns_[0].valid_ = false;
-  e1.m_.route_edge_.conns_[1].valid_ = false;
+  e1.m_.route_edge_.conns_[0].valid_ = 0u;
+  e1.m_.route_edge_.conns_[1].valid_ = 0u;
 
   auto c = e1.get_connection(0);
   ASSERT_TRUE(c);
@@ -42,8 +43,8 @@ TEST(core_route_edge, get_connection_2_invalid_next_test) {
 
 TEST(core_route_edge, get_connection_end_test) {
   auto e1 = e;
-  e1.m_.route_edge_.conns_[1].valid_ = false;
-  e1.m_.route_edge_.conns_[2].valid_ = false;
+  e1.m_.route_edge_.conns_[1].valid_ = 0u;
+  e1.m_.route_edge_.conns_[2].valid_ = 0u;
 
   EXPECT_FALSE(e1.get_connection(1));
 }
@@ -64,7 +65,7 @@ TEST(core_route_edge, get_connection_reverse_valid_2_test) {
 
 TEST(core_route_edge, get_connection_reverse_invalid_next_test) {
   auto e1 = e;
-  e1.m_.route_edge_.conns_[2].valid_ = false;
+  e1.m_.route_edge_.conns_[2].valid_ = 0u;
 
   auto c = e1.get_connection<search_dir::BWD>(20);
   ASSERT_TRUE(c);
@@ -74,8 +75,8 @@ TEST(core_route_edge, get_connection_reverse_invalid_next_test) {
 
 TEST(core_route_edge, get_connection_reverse_2_invalid_next_test) {
   auto e1 = e;
-  e1.m_.route_edge_.conns_[1].valid_ = false;
-  e1.m_.route_edge_.conns_[2].valid_ = false;
+  e1.m_.route_edge_.conns_[1].valid_ = 0u;
+  e1.m_.route_edge_.conns_[2].valid_ = 0u;
 
   auto c = e1.get_connection<search_dir::BWD>(20);
   ASSERT_TRUE(c);
@@ -85,8 +86,8 @@ TEST(core_route_edge, get_connection_reverse_2_invalid_next_test) {
 
 TEST(core_route_edge, get_connection_reverse_end_test) {
   auto e1 = e;
-  e1.m_.route_edge_.conns_[0].valid_ = false;
-  e1.m_.route_edge_.conns_[1].valid_ = false;
+  e1.m_.route_edge_.conns_[0].valid_ = 0u;
+  e1.m_.route_edge_.conns_[1].valid_ = 0u;
 
   EXPECT_FALSE(e1.get_connection<search_dir::BWD>(11));
 }

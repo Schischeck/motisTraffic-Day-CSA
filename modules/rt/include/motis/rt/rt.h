@@ -14,6 +14,12 @@ struct rt : public motis::module::module {
   rt();
   ~rt() override;
 
+  rt(rt const&) = delete;
+  rt& operator=(rt const&) = delete;
+
+  rt(rt&&) = delete;
+  rt& operator=(rt&&) = delete;
+
   std::string name() const override { return "rt"; }
 
   boost::program_options::options_description desc() override;

@@ -32,7 +32,6 @@ struct railviz_get_station_test : public motis_instance_test {
 TEST_F(railviz_get_station_test, simple_result_ok) {
   auto const res_msg = call(get_station("5386096", unix_time(1500), 3));
   auto const res = motis_content(RailVizStationResponse, res_msg);
-  std::cout << res_msg->to_json() << "\n";
   EXPECT_EQ(res->station()->name()->str(), "Darmstadt hbf");
   EXPECT_EQ(3, res->events()->size());
 }

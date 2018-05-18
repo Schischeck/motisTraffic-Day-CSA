@@ -11,9 +11,10 @@ target_link_libraries(motis-cli
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_THREAD_LIBRARY}
   ${NETWORKING}
-  snappy
+  zstd
   conf
   motis-module
+  motis-core
   net-tcp_client
 )
 

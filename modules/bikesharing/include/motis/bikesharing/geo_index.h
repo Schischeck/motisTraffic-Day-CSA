@@ -21,8 +21,14 @@ struct geo_index {
   explicit geo_index(database const&);
   ~geo_index();
 
-  std::vector<close_terminal> get_terminals(double const lat, double const lng,
-                                            double const radius) const;
+  geo_index(geo_index const&) = delete;
+  geo_index& operator=(geo_index const&) = delete;
+
+  geo_index(geo_index&&) = default;
+  geo_index& operator=(geo_index&&) = default;
+
+  std::vector<close_terminal> get_terminals(double lat, double lng,
+                                            double radius) const;
 
 private:
   struct impl;

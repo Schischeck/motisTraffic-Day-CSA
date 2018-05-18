@@ -10,15 +10,16 @@
 namespace motis {
 namespace module {
 
-inline std::vector<future> motis_publish_(msg_ptr const& msg, ctx::op_id id) {
-  auto& op = ctx::current_op<ctx_data>();
-  auto& data = op.data_;
-  id.parent_index = op.id_.index;
+inline std::vector<future> motis_publish_impl(msg_ptr const& msg,
+                                              ctx::op_id id) {
+  auto const op = ctx::current_op<ctx_data>();
+  auto& data = op->data_;
+  id.parent_index = op->id_.index;
   return data.dispatcher_->publish(msg, data, id);
 }
 
 #define motis_publish(msg) \
-  ::motis::module::motis_publish_(msg, ctx::op_id(CTX_LOCATION))
+  ::motis::module::motis_publish_impl(msg, ctx::op_id(CTX_LOCATION))
 
 }  // namespace module
 }  // namespace motis

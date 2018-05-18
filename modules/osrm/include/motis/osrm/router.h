@@ -8,8 +8,14 @@ namespace motis {
 namespace osrm {
 
 struct router {
-  explicit router(std::string path);
+  explicit router(std::string const& path);
   ~router();
+
+  router(router const&) = delete;
+  router& operator=(router const&) = delete;
+
+  router(router&&) = delete;
+  router& operator=(router&&) = delete;
 
   motis::module::msg_ptr one_to_many(OSRMOneToManyRequest const*) const;
   motis::module::msg_ptr via(OSRMViaRouteRequest const*) const;

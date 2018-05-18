@@ -36,9 +36,9 @@ constexpr int DEFAULT_CHANGE_TIME_LOCAL_TRANSPORT = 2;
 void parse_ds100_mappings(loaded_file const& infotext_file,
                           std::map<cstr, int>& ds100_to_eva_number) {
   enum { eva_number, ds100_code };
-  typedef std::tuple<int, cstr> entry;
+  using entry = std::tuple<int, cstr>;
 
-  std::array<uint8_t, detail::MAX_COLUMNS> column_map;
+  std::array<uint8_t, detail::MAX_COLUMNS> column_map{};
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[3] = 0;
   column_map[4] = 1;
@@ -62,10 +62,10 @@ void parse_ds100_mappings(loaded_file const& infotext_file,
 }
 
 enum { from_ds100_key, to_ds100_key, duration_key, track_change_time_key };
-typedef std::tuple<cstr, cstr, int, int> minct;
+using minct = std::tuple<cstr, cstr, int, int>;
 void load_minct(std::vector<minct>& records) {
   loaded_file minct_file{"minct.csv", station_meta_data::minct_};
-  std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map;
+  std::array<detail::column_idx_t, detail::MAX_COLUMNS> column_map{};
   std::fill(begin(column_map), end(column_map), detail::NO_COLUMN_IDX);
   column_map[0] = 0;
   column_map[1] = 1;
@@ -91,28 +91,30 @@ int station_meta_data::get_station_change_time(int eva_num) const {
 
 void parse_and_add(loaded_file const& metabhf_file,
                    std::set<station_meta_data::footpath>& footpaths,
-                   std::set<station_meta_data::meta_station>& meta_stations) {
+                   std::set<station_meta_data::meta_station>& meta_stations,
+                   config const& c) {
   for_each_line(metabhf_file.content(), [&](cstr line) {
-    if (line.length() < 19 || line[0] == '%' || line[0] == '*') {
+    if (line.length() < 16 || line[0] == '%' || line[0] == '*') {
       return;
     }
 
     if (line[7] == ':') {  // equivalent stations
-      int eva = parse<int>(line.substr(0, size(7)));
+      auto const eva = parse<int>(line.substr(c.meta_.meta_stations_.eva_));
       std::vector<int> equivalent;
       for_each_token(line.substr(8), ' ', [&equivalent](cstr token) {
-        int e = parse<int>(token);
+        auto const e = parse<int>(token);
         if (e != 0) {
           equivalent.push_back(e);
         }
       });
+
       if (!equivalent.empty()) {
         meta_stations.insert({eva, equivalent});
       }
     } else {  // footpaths
-      footpaths.insert({parse<int>(line.substr(0, size(7))),
-                        parse<int>(line.substr(8, size(7))),
-                        parse<int>(line.substr(16, size(3)))});
+      footpaths.insert({parse<int>(line.substr(c.meta_.footpaths_.from_)),
+                        parse<int>(line.substr(c.meta_.footpaths_.to_)),
+                        parse<int>(line.substr(c.meta_.footpaths_.duration_))});
     }
   });
 }
@@ -120,7 +122,7 @@ void parse_and_add(loaded_file const& metabhf_file,
 void parse_station_meta_data(loaded_file const& infotext_file,
                              loaded_file const& metabhf_file,
                              loaded_file const& metabhf_zusatz_file,
-                             station_meta_data& metas) {
+                             station_meta_data& metas, config const& config) {
   parse_ds100_mappings(infotext_file, metas.ds100_to_eva_num_);
 
   std::vector<minct> records;
@@ -146,8 +148,9 @@ void parse_station_meta_data(loaded_file const& infotext_file,
       }
     }
   }
-  parse_and_add(metabhf_file, metas.footpaths_, metas.meta_stations_);
-  parse_and_add(metabhf_zusatz_file, metas.footpaths_, metas.meta_stations_);
+  parse_and_add(metabhf_file, metas.footpaths_, metas.meta_stations_, config);
+  parse_and_add(metabhf_zusatz_file, metas.footpaths_, metas.meta_stations_,
+                config);
 }
 
 const char* station_meta_data::minct_ = R"(AA;;7;4

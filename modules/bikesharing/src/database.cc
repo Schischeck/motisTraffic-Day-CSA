@@ -1,13 +1,14 @@
 #include "motis/bikesharing/database.h"
 
-#include "rocksdb/db.h"
-#include "rocksdb/utilities/leveldb_options.h"
+#include "lmdb/lmdb.hpp"
+
+#include "utl/to_vec.h"
 
 #include "motis/bikesharing/error.h"
 
 using std::system_error;
 
-using namespace rocksdb;
+namespace db = lmdb;
 using namespace flatbuffers;
 
 namespace motis {
@@ -17,74 +18,71 @@ constexpr auto kSummaryKey = "__summary";
 
 struct database::database_impl {
   database_impl() = default;
-
-  explicit database_impl(std::string const& path) {
-    DB* db;
-    LevelDBOptions options;
-    options.create_if_missing = true;
-    Status s = DB::Open(ConvertOptions(options), path, &db);
-
-    if (!s.ok()) {
-      throw system_error(error::database_error);
-    }
-
-    db_.reset(db);
-  }
-
   virtual ~database_impl() = default;
 
-  virtual bool is_initialized() const {
-    std::string value;
-    Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
+  database_impl(database_impl const&) = delete;
+  database_impl& operator=(database_impl const&) = delete;
 
-    return s.ok() && !s.IsNotFound();
+  database_impl(database_impl&&) = default;
+  database_impl& operator=(database_impl&&) = default;
+
+  explicit database_impl(std::string const& path, size_t const max_size) {
+    env_.set_maxdbs(1);
+    env_.set_mapsize(max_size);
+    env_.open(path.c_str(), db::env_open_flags::NOSUBDIR |
+                                db::env_open_flags::NOLOCK |
+                                db::env_open_flags::NOTLS);
+  }
+
+  virtual bool is_initialized() const {
+    if (!env_.is_open()) {
+      return false;
+    }
+    auto txn = db::txn{env_};
+    auto db = txn.dbi_open();
+    return txn.get(db, kSummaryKey).has_value();
   }
 
   virtual persistable_terminal get(std::string const& id) const {
-    std::string value;
-    Status s = db_->Get(ReadOptions(), id, &value);
-
-    if (s.IsNotFound()) {
+    auto txn = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = txn.dbi_open();
+    if (auto const r = txn.get(db, id); !r.has_value()) {
       throw system_error(error::terminal_not_found);
-    } else if (!s.ok()) {
-      throw system_error(error::database_error);
+    } else {
+      return persistable_terminal(*r);
     }
-
-    return persistable_terminal(value);
   }
 
   virtual void put(std::vector<persistable_terminal> const& terminals) {
+    auto txn = db::txn{env_};
+    auto db = txn.dbi_open();
     for (auto const& t : terminals) {
-      Status s = db_->Put(WriteOptions(), t.get()->id()->str(), t.to_string());
-      if (!s.ok()) {
-        throw system_error(error::database_error);
-      }
+      txn.put(db, t.get()->id()->str(), t.to_string());
     }
+    txn.commit();
   }
 
   virtual bikesharing_summary get_summary() const {
-    std::string value;
-    Status s = db_->Get(ReadOptions(), kSummaryKey, &value);
-
-    if (s.IsNotFound() || !s.ok()) {
+    auto txn = db::txn{env_, db::txn_flags::RDONLY};
+    auto db = txn.dbi_open();
+    if (auto const r = txn.get(db, kSummaryKey); !r.has_value()) {
       throw system_error(error::database_error);
+    } else {
+      return bikesharing_summary(*r);
     }
-
-    return bikesharing_summary(value);
   }
 
   virtual void put_summary(bikesharing_summary const& summary) {
-    Status s = db_->Put(WriteOptions(), kSummaryKey, summary.to_string());
-    if (!s.ok()) {
-      throw system_error(error::database_error);
-    }
+    auto txn = db::txn{env_};
+    auto db = txn.dbi_open();
+    txn.put(db, kSummaryKey, summary.to_string());
+    txn.commit();
   }
 
-  std::unique_ptr<DB> db_;
+  db::env mutable env_;
 };
 
 struct inmemory_database : public database::database_impl {
-
   bool is_initialized() const override {
     auto it = store_.find(kSummaryKey);
     return it != end(store_);
@@ -119,9 +117,10 @@ struct inmemory_database : public database::database_impl {
   std::map<std::string, std::string> store_;
 };
 
-database::database(std::string const& path)
+database::database(std::string const& path, size_t const max_size)
     : impl_(path == ":memory:" ? new inmemory_database()
-                               : new database_impl(path)) {}
+                               : new database_impl(path, max_size)) {}
+
 database::~database() = default;
 
 bool database::is_initialized() const { return impl_->is_initialized(); }
@@ -156,11 +155,9 @@ Offset<Vector<Offset<Availability>>> create_availabilities(
 
 Offset<Vector<Offset<CloseLocation>>> create_close_locations(
     FlatBufferBuilder& b, std::vector<close_location> const& locations) {
-  std::vector<Offset<CloseLocation>> vec;
-  for (auto const& l : locations) {
-    vec.push_back(CreateCloseLocation(b, b.CreateString(l.id_), l.duration_));
-  }
-  return b.CreateVector(vec);
+  return b.CreateVector(utl::to_vec(locations, [&](auto&& l) {
+    return CreateCloseLocation(b, b.CreateString(l.id_), l.duration_);
+  }));
 }
 
 }  // namespace detail
@@ -180,14 +177,11 @@ persistable_terminal convert_terminal(
 
 bikesharing_summary make_summary(std::vector<terminal> const& terminals) {
   FlatBufferBuilder b;
-
-  std::vector<Offset<TerminalLocation>> locations;
-  for (auto const& terminal : terminals) {
-    locations.push_back(CreateTerminalLocation(b, b.CreateString(terminal.uid_),
-                                               terminal.lat_, terminal.lng_));
-  }
-  b.Finish(CreateSummary(b, b.CreateVector(locations)));
-
+  b.Finish(CreateSummary(
+      b, b.CreateVector(utl::to_vec(terminals, [&](auto&& terminal) {
+        return CreateTerminalLocation(b, b.CreateString(terminal.uid_),
+                                      terminal.lat_, terminal.lng_);
+      }))));
   return bikesharing_summary(std::move(b));
 }
 

@@ -12,10 +12,10 @@ namespace gtfs {
 
 template <typename T>
 struct flat_map {
-  typedef std::size_t index_t;
-  typedef std::pair<index_t, T> entry_t;
-  typedef typename std::vector<entry_t>::iterator iterator;
-  typedef typename std::vector<entry_t>::const_iterator const_iterator;
+  using index_t = std::size_t;
+  using entry_t = std::pair<index_t, T>;
+  using iterator = typename std::vector<entry_t>::iterator;
+  using const_iterator = typename std::vector<entry_t>::const_iterator;
 
   struct cmp {
     bool operator()(entry_t const& lhs, entry_t const& rhs) {

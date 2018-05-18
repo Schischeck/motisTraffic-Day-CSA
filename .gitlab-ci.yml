@@ -1,17 +1,17 @@
 variables:
-  ASAN_SYMBOLIZER_PATH: "/usr/bin/llvm-symbolizer"
+  ASAN_SYMBOLIZER_PATH: "/opt/clang+llvm-5.0.0-linux-x86_64-ubuntu16.04/bin/llvm-symbolizer"
 
-# GCC 5 production
-gcc-5-release:
+# GCC 7 production
+gcc-7-release:
   tags:
-    - xenial
+    - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - git submodule update --init --recursive
-    - mkdir -p build-gcc-5
-    - cd build-gcc-5
-    - cmake -DCMAKE_BUILD_TYPE=Release ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
+    - mkdir -p build-gcc-7
+    - cd build-gcc-7
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -20,20 +20,21 @@ gcc-5-release:
     - ./motis-test
     - ./motis-itest
 
-# Clang 3.8 debug with address sanitizer
-clang-3.8-debug-asan:
+# Clang 5 debug with address sanitizer
+clang-debug-asan:
   tags:
-    - xenial
+    - bionic
   script:
+    - export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
     - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
-    - export CXX=clang++-3.8
-    - export CC=clang-3.8
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
+    - export CXX=clang++
+    - export CC=clang
     - git submodule update --init --recursive
     - mkdir -p build-asan
     - cd build-asan
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
@@ -42,65 +43,68 @@ clang-3.8-debug-asan:
     - ./motis-test
     - ./motis-itest
 
-
-# Clang 3.8 debug with thread sanitizer
-clang-3.8-debug-tsan:
+# GCC 7 debug valgrind
+gcc-7-debug-valgrind:
   tags:
-    - xenial
+    - bionic
   script:
-    - export CXXFLAGS="-fsanitize=thread -fno-omit-frame-pointer"
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
-    - export CXX=clang++-3.8
-    - export CC=clang-3.8
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
+    #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM
     - git submodule update --init --recursive
-    - mkdir -p build-tsan
-    - cd build-tsan
-    - cmake -DCMAKE_BUILD_TYPE=Debug ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
-    - ./motis --mode test
-              --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
-              --dataset.begin 20151111
-              --dataset.write_serialized false
-              --listen.ws false
-    - ./motis-test
-    - ./motis-itest
-
-# GCC 5 debug valgrind
-gcc-5-debug-valgrind:
-  tags:
-    - xenial
-  script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-gcc-5
-    - git submodule update --init --recursive
-    - mkdir -p build-gcc-5-valgrind
-    - cd build-gcc-5-valgrind
-    - cmake -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
-    - make -j8 motis-test motis-itest motis motis-eval motis-cli
+    - mkdir -p build-gcc-7-valgrind
+    - cd build-gcc-7-valgrind
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
+    - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis --mode test
               --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
               --dataset.begin 20151111
               --dataset.write_serialized false
               --listen.ws false
+              --ris.db_max_size 1048576
+              --bikesharing.db_max_size 1048576
+              --path.db_max_size 1048576
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-itest
-  
+
 # MSVC release
 msvc-release:
   tags:
     - windows
   script:
     - set WD=%cd%
-    - call "C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat" amd64
+    - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
     - cd %WD%
-    - set BOOST_ROOT=C:\boost_1_60_0
+    - set BOOST_ROOT=C:\boost_1_65_1
     - git submodule update --init --recursive
     - mkdir build-msvc-release
     - cd build-msvc-release
-    - cmake -G "NMake Makefiles JOM" -DCMAKE_BUILD_TYPE=Release -DZLIB_ROOT=C:\zlib-1.2.8 -DNO_SSL=1 -DMODULES="routing guesser rt" ..
-    - jom motis-test motis-itest motis motis-eval motis-cli
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DZLIB_ROOT=C:\zlib-1.2.8 ..
+    - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
+    - motis --mode test
+            --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
+            --dataset.begin 20151111
+            --dataset.write_serialized false
+            --listen.ws false
+    - motis-test
+    - motis-itest
+
+# MSVC debug
+msvc-debug:
+  tags:
+    - windows
+  script:
+    - set WD=%cd%
+    - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+    - cd %WD%
+    - set BOOST_ROOT=C:\boost_1_65_1
+    - git submodule update --init --recursive
+    - mkdir build-msvc-debug
+    - cd build-msvc-debug
+    - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DZLIB_ROOT=C:\zlib-1.2.8 ..
+    - ninja motis-test motis-itest motis motis-eval motis-cli path-prepare
     - motis --mode test
             --dataset.path ../base/loader/test_resources/hrd_schedules/single-ice
             --dataset.begin 20151111
@@ -112,25 +116,25 @@ msvc-release:
 # Clang-Tidy
 clang-tidy:
   tags:
-    - xenial
+    - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
-    - export CXX=clang++-3.8
-    - export CC=clang-3.8
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
+    - export CXX=clang++
+    - export CC=clang
     - git submodule update --init --recursive
     - mkdir build-clang-tidy
     - cd build-clang-tidy
-    - cmake -DMOTIS_LINT=true ..
-    - make -j8 lint
+    - cmake -GNinja -DMOTIS_LINT=true ..
+    - ninja -j8 lint
 
 # Clang-Format
 clang-format:
   tags:
-    - xenial
+    - bionic
   script:
-    - export BOOST_ROOT=/opt/boost_1_60_0-clang-3.8
+    - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - git submodule update --init --recursive
     - mkdir build-clang-format
     - cd build-clang-format
-    - cmake ..
-    - make format-check
+    - cmake -GNinja ..
+    - ninja format-check

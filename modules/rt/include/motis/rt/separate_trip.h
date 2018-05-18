@@ -49,7 +49,8 @@ inline void copy_trip_route(
   auto const route_id = sched.route_count_++;
 
   auto const build_node = [&](node const* orig) {
-    return new node(orig->station_node_, sched.node_count_++, route_id);
+    return new node(orig->station_node_, sched.node_count_++,  // NOLINT
+                    route_id);
   };
 
   for (auto const& e : route_edges(k)) {
@@ -121,7 +122,7 @@ inline void build_change_edges(
           sched.stations_.at(station_node->id_)->transfer_time_, true));
     }
 
-    if (in_out.out_allowed_ && station_node->foot_node_) {
+    if (in_out.out_allowed_ && station_node->foot_node_ != nullptr) {
       route_node->edges_.push_back(
           make_after_train_edge(route_node, station_node->foot_node_, 0, true));
     }

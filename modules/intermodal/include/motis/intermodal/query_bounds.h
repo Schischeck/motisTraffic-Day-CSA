@@ -21,7 +21,7 @@ struct query_start {
       : start_type_(start_type),
         start_(start),
         is_intermodal_(true),
-        pos_(std::move(pos)) {}
+        pos_(pos) {}
 
   routing::Start start_type_;
   flatbuffers::Offset<void> start_;
@@ -39,7 +39,7 @@ struct query_dest {
 
   query_dest(flatbuffers::Offset<routing::InputStation> const station,
              geo::latlng pos)
-      : station_(station), is_intermodal_(true), pos_(std::move(pos)) {}
+      : station_(station), is_intermodal_(true), pos_(pos) {}
 
   flatbuffers::Offset<routing::InputStation> station_;
 

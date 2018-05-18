@@ -23,13 +23,17 @@ motis_instance_test::motis_instance_test(
     std::vector<std::string> const& modules,
     std::vector<std::string> const& modules_cmdline_opt)
     : instance_(std::make_unique<motis_instance>()) {
+  auto modules_cmdline_opt_patched = modules_cmdline_opt;
+  modules_cmdline_opt_patched.emplace_back("--ris.db_max_size=1048576");
+  modules_cmdline_opt_patched.emplace_back("--ris.clear_db=true");
+
   std::vector<conf::configuration*> confs;
   for (auto const& module : instance_->modules()) {
     confs.push_back(module);
   }
 
   conf::options_parser parser(confs);
-  parser.read_command_line_args(modules_cmdline_opt);
+  parser.read_command_line_args(modules_cmdline_opt_patched);
 
   try {
     instance_->init_schedule(dataset_opt);

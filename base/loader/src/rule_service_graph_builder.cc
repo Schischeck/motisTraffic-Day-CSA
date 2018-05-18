@@ -39,8 +39,8 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
   return false;
 }
 
-typedef std::pair<route_section, std::vector<participant>> service_section;
-typedef std::pair<Service const*, Rule const*> neighbor;
+using service_section = std::pair<route_section, std::vector<participant>>;
+using neighbor = std::pair<Service const*, Rule const*>;
 
 struct rule_service_section_builder {
   rule_service_section_builder(graph_builder& gb, RuleService const* rs)
@@ -143,7 +143,7 @@ struct rule_service_section_builder {
          src_section_idx < src_to_idx;
          ++src_section_idx, ++service_section_idx) {
       if (sections[src_section_idx] == nullptr) {
-        section_mem_.emplace_back(new service_section());
+        section_mem_.emplace_back(std::make_unique<service_section>());
         sections[src_section_idx] = section_mem_.back().get();
       }
       sections_[service][service_section_idx] = sections[src_section_idx];
@@ -224,7 +224,7 @@ struct rule_service_route_builder {
       std::map<Service const*, std::vector<service_section*>>& sections,
       unsigned route_id)
       : gb_(gb),
-        traffic_days_(std::move(traffic_days)),
+        traffic_days_(traffic_days),
         first_day_(first_day),
         last_day_(last_day),
         sections_(sections),
@@ -330,7 +330,7 @@ struct rule_service_route_builder {
       auto const& p_sections = sections_.at(p.service_);
       auto const p_succ_from =
           find_from(visited, p_sections, p.section_idx_ + 1);
-      if (p_succ_from) {
+      if (p_succ_from != nullptr) {
         return p_succ_from;
       }
     }
@@ -360,7 +360,7 @@ struct rule_service_route_builder {
     for (participant const& p : s->second) {
       auto const& p_sections = sections_.at(p.service_);
       auto const p_pred_to = find_to(visited, p_sections, p.section_idx_ - 1);
-      if (p_pred_to) {
+      if (p_pred_to != nullptr) {
         return p_pred_to;
       }
     }
@@ -415,14 +415,15 @@ struct rule_service_route_builder {
       auto from = section_idx;
       auto to = section_idx + 1;
 
-      std::set<service_section *> v_from, v_to;  // visited sets
+      std::set<service_section*> v_from, v_to;  // visited sets
       auto const from_route_node = find_from(v_from, sections, section_idx);
       auto const to_route_node = find_to(v_to, sections, section_idx);
 
       sections[section_idx]->first = gb_.add_route_section(
           route_id_, build_connections(*sections[section_idx]),
-          stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
-          stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
+          stops->Get(from), in_allowed->Get(from) != 0u,
+          out_allowed->Get(from) != 0u, stops->Get(to),
+          in_allowed->Get(to) != 0u, out_allowed->Get(to) != 0u,
           from_route_node, to_route_node);
     }
 

@@ -61,15 +61,6 @@ std::vector<hrd_service::section> parse_section(
   return sections;
 }
 
-struct range_parse_information {
-  int from_eva_or_idx_start_;
-  int to_eva_or_idx_start_;
-  int from_hhmm_or_idx_start_;
-  int to_hhmm_or_idx_start_;
-} attribute_parse_info{6, 14, 29, 36}, line_parse_info{9, 17, 25, 32},
-    category_parse_info{7, 15, 23, 30}, traffic_days_parse_info{6, 14, 29, 36},
-    direction_parse_info{13, 21, 29, 36};
-
 std::vector<std::pair<cstr, range>> compute_ranges(
     std::vector<cstr> const& spec_lines,
     std::vector<hrd_service::stop> const& stops,
@@ -78,12 +69,10 @@ std::vector<std::pair<cstr, range>> compute_ranges(
   std::transform(
       begin(spec_lines), end(spec_lines), begin(parsed), [&](cstr spec) {
         return std::make_pair(
-            spec,
-            range(stops,
-                  spec.substr(parse_info.from_eva_or_idx_start_, size(7)),
-                  spec.substr(parse_info.to_eva_or_idx_start_, size(7)),
-                  spec.substr(parse_info.from_hhmm_or_idx_start_, size(6)),
-                  spec.substr(parse_info.to_hhmm_or_idx_start_, size(6))));
+            spec, range(stops, spec.substr(parse_info.from_eva_or_idx_),
+                        spec.substr(parse_info.to_eva_or_idx_),
+                        spec.substr(parse_info.from_hhmm_or_idx_),
+                        spec.substr(parse_info.to_hhmm_or_idx_)));
       });
   return parsed;
 }
@@ -104,7 +93,7 @@ void parse_range(
   }
 }
 
-hrd_service::hrd_service(specification const& spec)
+hrd_service::hrd_service(specification const& spec, config const& c)
     : origin_(parser_info{spec.filename_, spec.line_number_from_,
                           spec.line_number_to_}),
       num_repetitions_(parse<int>(spec.internal_service_.substr(22, size(3)))),
@@ -116,40 +105,42 @@ hrd_service::hrd_service(specification const& spec)
           std::next(begin(spec.stops_), spec.stops_.size() - 1),
           std::vector<section>({parse_initial_section(spec)}), parse_section)),
       initial_train_num_(initial_train_num(spec)) {
-  parse_range(spec.attributes_, attribute_parse_info, stops_, sections_,
-              &section::attributes_, [](cstr line, range const&) {
-                return attribute{parse<int>(line.substr(22, size(6))),
-                                 line.substr(3, size(2))};
+  parse_range(spec.attributes_, c.attribute_parse_info_, stops_, sections_,
+              &section::attributes_, [&c](cstr line, range const&) {
+                return attribute{parse<int>(line.substr(c.s_info_.att_eva_)),
+                                 line.substr(c.s_info_.att_code_)};
               });
 
-  parse_range(spec.categories_, category_parse_info, stops_, sections_,
-              &section::category_,
-              [](cstr line, range const&) { return line.substr(3, size(3)); });
-
-  parse_range(spec.line_information_, line_parse_info, stops_, sections_,
-              &section::line_information_, [](cstr line, range const&) {
-                return line.substr(3, size(5)).trim();
+  parse_range(spec.categories_, c.category_parse_info_, stops_, sections_,
+              &section::category_, [&c](cstr line, range const&) {
+                return line.substr(c.s_info_.cat_);
               });
 
-  parse_range(spec.traffic_days_, traffic_days_parse_info, stops_, sections_,
-              &section::traffic_days_, [](cstr line, range const&) {
-                return parse<int>(line.substr(22, size(6)));
+  parse_range(spec.line_information_, c.line_parse_info_, stops_, sections_,
+              &section::line_information_, [&c](cstr line, range const&) {
+                return line.substr(c.s_info_.line_).trim();
               });
 
-  parse_range(
-      spec.directions_, direction_parse_info, stops_, sections_,
-      &section::directions_, [&](cstr line, range const& r) {
-        if (isdigit(line[5])) {
-          return std::make_pair(parse<uint64_t>(line.substr(5, size(7))),
-                                EVA_NUMBER);
-        } else if (line[5] == ' ') {
-          return std::make_pair(
-              static_cast<uint64_t>(stops_[r.to_idx_].eva_num_), EVA_NUMBER);
-        } else {
-          return std::make_pair(raw_to_int<uint64_t>(line.substr(5, size(7))),
-                                DIRECTION_CODE);
-        }
-      });
+  parse_range(spec.traffic_days_, c.traffic_days_parse_info_, stops_, sections_,
+              &section::traffic_days_, [&c](cstr line, range const&) {
+                return parse<int>(line.substr(c.s_info_.traff_days_));
+              });
+
+  parse_range(spec.directions_, c.direction_parse_info_, stops_, sections_,
+              &section::directions_, [&](cstr line, range const& r) {
+                if (isdigit(line[5]) != 0) {
+                  return std::make_pair(
+                      parse<uint64_t>(line.substr(c.s_info_.dir_)), EVA_NUMBER);
+                } else if (line[5] == ' ') {
+                  return std::make_pair(
+                      static_cast<uint64_t>(stops_[r.to_idx_].eva_num_),
+                      EVA_NUMBER);
+                } else {
+                  return std::make_pair(
+                      raw_to_int<uint64_t>(line.substr(c.s_info_.dir_)),
+                      DIRECTION_CODE);
+                }
+              });
 
   verify_service();
 }

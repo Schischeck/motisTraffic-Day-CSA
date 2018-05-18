@@ -17,8 +17,7 @@ namespace motis {
 namespace path {
 
 struct station {
-  station(std::string id, geo::latlng pos)
-      : id_(std::move(id)), pos_(std::move(pos)) {}
+  station(std::string id, geo::latlng pos) : id_(std::move(id)), pos_(pos) {}
 
   friend bool operator<(station const& lhs, station const& rhs) {
     return std::tie(lhs.id_) < std::tie(rhs.id_);

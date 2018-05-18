@@ -21,6 +21,12 @@ struct mem_retriever {
                 std::size_t bytes)
       : mutex_(mutex), memory_(retrieve(mem_pool, bytes)) {}
 
+  mem_retriever(mem_retriever const&) = delete;
+  mem_retriever& operator=(mem_retriever const&) = delete;
+
+  mem_retriever(mem_retriever&&) = delete;
+  mem_retriever& operator=(mem_retriever&&) = delete;
+
   ~mem_retriever() {
     std::lock_guard<std::mutex> lock(mutex_);
     memory_->in_use_ = false;
@@ -36,7 +42,7 @@ private:
     auto it = std::find_if(begin(mem_pool), end(mem_pool),
                            [](auto&& m) { return !m->in_use_; });
     if (it == end(mem_pool)) {
-      mem_pool.emplace_back(new memory(bytes));
+      mem_pool.emplace_back(std::make_unique<memory>(bytes));
       mem_pool.back()->in_use_ = true;
       return mem_pool.back().get();
     }

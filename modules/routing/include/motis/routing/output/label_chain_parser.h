@@ -197,8 +197,8 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
             MOTIS_UNKNOWN_TRACK,
 
             // Arrival graph time:
-            stops.empty() ? INVALID_TIME : last_con ? last_con->a_time_
-                                                    : current.now_,
+            stops.empty() ? INVALID_TIME
+                          : last_con ? last_con->a_time_ : current.now_,
 
             // Departure graph time:
             current.now_,
@@ -263,7 +263,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
             stops.emplace_back(
                 static_cast<unsigned int>(++stop_index),
                 get_node(current)->get_station()->id_,
-                current.connection_->full_con_->a_track_,
+                current.connection_->full_con_->a_track_,  // NOLINT
                 succ.connection_->full_con_->d_track_,
                 current.connection_->a_time_, succ.connection_->d_time_,
                 a_di.get_schedule_time(), d_di.get_schedule_time(),

@@ -79,16 +79,14 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
   auto const req = motis_content(RailVizTripGuessRequest, msg);
 
   auto const& sched = get_schedule();
-  auto const t = unix_to_motistime(sched, req->time());
-
   auto it =
       std::lower_bound(begin(sched.trips_), end(sched.trips_),
                        std::make_pair(primary_trip_id{0u, req->train_num(), 0u},
                                       static_cast<trip*>(nullptr)));
 
   auto const cmp = [&](trip const* a, trip const* b) {
-    return std::abs(a->id_.primary_.time_ - t) <
-           std::abs(b->id_.primary_.time_ - t);
+    return std::abs(static_cast<int64_t>(a->id_.primary_.time_)) <
+           std::abs(static_cast<int64_t>(b->id_.primary_.time_));
   };
 
   std::vector<trip const*> trips;
@@ -134,8 +132,9 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
                    trips,
                    [&](trip const* trp) {
                      return CreateTrip(
-                         fbb, to_fbs(fbb, *sched.stations_.at(
-                                              trp->id_.primary_.station_id_)),
+                         fbb,
+                         to_fbs(fbb, *sched.stations_.at(
+                                         trp->id_.primary_.station_id_)),
                          CreateTripInfo(
                              fbb, to_fbs(sched, fbb, trp),
                              to_fbs(sched, fbb, get_first_dep_ci(trp), trp)));
@@ -152,7 +151,7 @@ msg_ptr railviz::get_station(msg_ptr const& msg) const {
   auto const station = get_station_node(sched, req->station_id()->str());
 
   struct ev_info {
-    motis::time t_;
+    motis::time t_{0};
     ev_key k_;
   };
 
@@ -292,7 +291,7 @@ std::vector<Offset<Train>> events_to_trains(
                     [&](trip const* trp) { return to_fbs(sched, fbb, trp); }));
   };
 
-  auto const get_route = [&fbb, &sched, &routes, &fbs_routes, &route_edges,
+  auto const get_route = [&fbb, &routes, &fbs_routes, &route_edges,
                           &get_route_segments](ev_key const& k) -> int {
     auto const insert = routes.emplace(k.get_node()->route_, fbs_routes.size());
     if (insert.second) {

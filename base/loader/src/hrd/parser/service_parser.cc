@@ -54,9 +54,10 @@ void parse_specification(loaded_file const& file,
   }
 }
 
-void expand_and_consume(hrd_service&& non_expanded_service,
-                        std::map<int, bitfield> const& bitfields,
-                        std::function<void(hrd_service const&)> consumer) {
+void expand_and_consume(
+    hrd_service&& non_expanded_service,
+    std::map<int, bitfield> const& bitfields,
+    std::function<void(hrd_service const&)> const& consumer) {
   std::vector<hrd_service> expanded_services;
   expand_traffic_days(non_expanded_service, bitfields, expanded_services);
   expand_repetitions(expanded_services);
@@ -67,10 +68,11 @@ void expand_and_consume(hrd_service&& non_expanded_service,
 
 void for_each_service(loaded_file const& file,
                       std::map<int, bitfield> const& bitfields,
-                      std::function<void(hrd_service const&)> consumer) {
+                      std::function<void(hrd_service const&)> consumer,
+                      config const& c) {
   parse_specification(file, [&](specification const& spec) {
     try {
-      expand_and_consume(hrd_service(spec), bitfields, consumer);
+      expand_and_consume(hrd_service(spec, c), bitfields, consumer);
     } catch (parser_error const& e) {
       LOG(error) << "skipping bad service at " << e.filename_ << ":"
                  << e.line_number_;

@@ -8,7 +8,6 @@
 
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
-#include "motis/core/common/timing.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/access/edge_access.h"
 #include "motis/core/conv/trip_conv.h"
@@ -18,7 +17,6 @@
 #include "motis/routing/additional_edges.h"
 #include "motis/routing/build_query.h"
 #include "motis/routing/error.h"
-#include "motis/routing/label/configs.h"
 #include "motis/routing/label/configs.h"
 #include "motis/routing/mem_manager.h"
 #include "motis/routing/mem_retriever.h"
@@ -67,11 +65,12 @@ msg_ptr routing::route(msg_ptr const& msg) {
   message_creator fbb;
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
-      CreateRoutingResponse(fbb, &stats, fbb.CreateVector(utl::to_vec(
-                                             res.journeys_,
-                                             [&](journey const& j) {
-                                               return to_connection(fbb, j);
-                                             })),
+      CreateRoutingResponse(fbb, &stats,
+                            fbb.CreateVector(utl::to_vec(res.journeys_,
+                                                         [&](journey const& j) {
+                                                           return to_connection(
+                                                               fbb, j);
+                                                         })),
                             motis_to_unixtime(sched, res.interval_begin_),
                             motis_to_unixtime(sched, res.interval_end_))
           .Union());

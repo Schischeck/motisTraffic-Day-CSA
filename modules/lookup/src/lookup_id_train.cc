@@ -35,9 +35,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
                                   timestamp_reason::SCHEDULE, ""};
     arr.valid_ = s.has_arrival();
     if (arr.valid_) {
-      auto lcon = s.arr_lcon();
-      auto info = s.arr_info(sched);
-
+      auto const& lcon = s.arr_lcon();
       arr.timestamp_ = motis_to_unixtime(sched, lcon.a_time_);
       arr.schedule_timestamp_ =
           arr.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time
@@ -50,9 +48,7 @@ Offset<Connection> lookup_id_train(FlatBufferBuilder& fbb,
                                   timestamp_reason::SCHEDULE, ""};
     dep.valid_ = s.has_departure();
     if (dep.valid_) {
-      auto lcon = s.dep_lcon();
-      auto info = s.dep_info(sched);
-
+      auto const& lcon = s.dep_lcon();
       dep.timestamp_ = motis_to_unixtime(sched, lcon.d_time_);
       dep.schedule_timestamp_ =
           dep.timestamp_;  // TODO(Sebastian Fahnenschreiber) get sched time

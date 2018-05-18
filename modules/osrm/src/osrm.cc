@@ -59,7 +59,7 @@ void osrm::init_async() {
         auto r = std::make_unique<router>(dataset);
 
         std::lock_guard<std::mutex> lock(mutex);
-        routers_.emplace(std::move(profile), std::move(r));
+        routers_.emplace(profile, std::move(r));
       }));
 }
 

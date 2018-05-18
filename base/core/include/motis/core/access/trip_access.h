@@ -46,6 +46,17 @@ inline trip const* find_trip(schedule const& sched, primary_trip_id id) {
   if (it != end(sched.trips_) && it->first == id) {
     return it->second;
   }
+
+#ifdef MOTIS_TRIP_DEBUG
+  if (it != end(sched.trips_)) {
+    auto f = it->first;
+    std::cout << "closest: "  //
+              << f.station_id_ << "(" << id.station_id_ << ") "  //
+              << f.time_ << " (" << id.time_ << ") "  //
+              << f.train_nr_ << " (" << id.train_nr_ << ")\n";
+  }
+#endif
+
   return nullptr;
 }
 

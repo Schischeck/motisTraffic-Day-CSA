@@ -25,7 +25,7 @@ void add_light_conns(edge* e,
 }
 
 void duplicate_checker::remove_duplicates(station_node* s) {
-  std::vector<std::pair<time, light_connection *>> arr_lcs, dep_lcs;
+  std::vector<std::pair<time, light_connection*>> arr_lcs, dep_lcs;
   for (auto& r : s->get_route_nodes()) {
     for (auto& e : r->incoming_edges_) {
       add_light_conns(e, arr_lcs, &light_connection::a_time_);
@@ -69,14 +69,17 @@ bool duplicate_checker::is_duplicate_event(
 }
 
 void duplicate_checker::set_new_service_num(light_connection* lc) {
-  schedule_.connection_infos_.emplace_back(
-      new connection_info(*lc->full_con_->con_info_));
-  auto conn_info_cpy = schedule_.connection_infos_.back().get();
+  auto conn_info_cpy = schedule_.connection_infos_
+                           .emplace_back(std::make_unique<connection_info>(
+                               *lc->full_con_->con_info_))
+                           .get();
   conn_info_cpy->original_train_nr_ = conn_info_cpy->train_nr_;
   conn_info_cpy->train_nr_ = --last_service_num_;
 
-  schedule_.full_connections_.emplace_back(new connection(*lc->full_con_));
-  auto full_conn_cpy = schedule_.full_connections_.back().get();
+  auto full_conn_cpy =
+      schedule_.full_connections_
+          .emplace_back(std::make_unique<connection>(*lc->full_con_))
+          .get();
   full_conn_cpy->con_info_ = conn_info_cpy;
 
   lc->full_con_ = full_conn_cpy;

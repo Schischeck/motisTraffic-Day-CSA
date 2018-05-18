@@ -23,7 +23,7 @@ inline node* build_route_node(int route_index, int node_id,
         make_foot_edge(route_node, station_node, transfer_time, true));
   }
 
-  if (station_node->foot_node_ && out_allowed) {
+  if (station_node->foot_node_ != nullptr && out_allowed) {
     route_node->edges_.push_back(
         make_after_train_edge(route_node, station_node->foot_node_, 0, true));
   }

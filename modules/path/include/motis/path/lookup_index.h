@@ -41,7 +41,7 @@ struct lookup_index {
     }
 
     std::vector<std::string> station_ids_;
-    class_t clasz_;
+    class_t clasz_ = 0;
   };
 
   lookup_index() {

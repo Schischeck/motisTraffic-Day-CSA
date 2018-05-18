@@ -16,6 +16,12 @@ public:
 
   ~module_settings() override = default;
 
+  module_settings(module_settings const&) = default;
+  module_settings& operator=(module_settings const&) = default;
+
+  module_settings(module_settings&&) = default;
+  module_settings& operator=(module_settings&&) = default;
+
   boost::program_options::options_description desc() override;
   void print(std::ostream& out) const override;
 

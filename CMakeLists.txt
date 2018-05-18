@@ -1,5 +1,24 @@
+set(CMAKE_USER_MAKE_RULES_OVERRIDE
+   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/c_flag_overrides.cmake)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE_CXX
+   ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cxx_flag_overrides.cmake)
+
 cmake_minimum_required(VERSION 3.0)
 project(motis)
+
+# Quickfix for GCC 7
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_definitions(-Wno-implicit-fallthrough)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
+endif()
+
+# Quickfix for MSVC
+if (MSVC)
+  add_definitions(/std:c++latest)
+  add_definitions(/D_HAS_AUTO_PTR_ETC)
+  add_definitions(/D_USE_MATH_DEFINES)
+  add_definitions(/DNOMINMAX)
+endif()
 
 option(MOTIS_LINT "enable lint (clang-tidy) target" OFF)
 option(MOTIS_COV "enable coverage (coverage) target" OFF)
@@ -55,7 +74,7 @@ foreach(flags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_DEBUG)
 endforeach()
 
 if (NOT MSVC)
-  set(MOTIS_CXX_FLAGS "-std=c++14 -Wall -Wextra")
+  set(MOTIS_CXX_FLAGS "-std=c++1z -Wall -Wextra -DBOOST_NO_AUTO_PTR=1")
   if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     set(MOTIS_CXX_FLAGS "${MOTIS_CXX_FLAGS} -Wno-maybe-uninitialized")
   endif()
@@ -65,7 +84,6 @@ if (NOT MSVC)
   endif()
 else()
   include(external_lib/address-typeahead/external_lib/googletest/googletest/cmake/internal_utils.cmake)
-  fix_default_compiler_settings_()
   set(MOTIS_CXX_FLAGS "-DBOOST_THREAD_USE_LIB -DWIN32_LEAN_AND_MEAN")
 endif()
 
@@ -87,7 +105,7 @@ if (MSVC)
   set(Boost_USE_MULTITHREADED ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost COMPONENTS system filesystem regex program_options thread context REQUIRED)
+find_package(Boost COMPONENTS system filesystem regex program_options thread REQUIRED)
 find_package(Threads)
 
 link_directories(${Boost_LIBRARY_DIRS})
@@ -100,21 +118,15 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIR})
 include_directories(SYSTEM external_lib/address-typeahead/external_lib/expat/include)
 include_directories(SYSTEM external_lib/address-typeahead/external_lib/leveldb/include)
 include_directories(SYSTEM external_lib/address-typeahead/external_lib/googletest/googletest/include)
+include_directories(SYSTEM external_lib/address-typeahead/external_lib/osmium/include)
+include_directories(SYSTEM external_lib/address-typeahead/external_lib/zlib)
 include_directories(SYSTEM external_lib/flatbuffers/include)
-include_directories(SYSTEM external_lib/osmium/include)
 include_directories(SYSTEM external_lib/miniz)
 include_directories(SYSTEM external_lib/osrm-backend/include)
 include_directories(SYSTEM external_lib/osrm-backend/third_party)
 include_directories(SYSTEM external_lib/osrm-backend/external_lib/stxxl/include)
 include_directories(SYSTEM ${CMAKE_BINARY_DIR}/external_lib/osrm-backend/external_lib/stxxl/include)
-include_directories(SYSTEM external_lib/pugixml/src)
-include_directories(SYSTEM external_lib/rapidjson/include)
-include_directories(SYSTEM external_lib/rocksdb/include)
-include_directories(SYSTEM external_lib/rocksdb/external_lib/snappy)
 include_directories(SYSTEM external_lib/sparsehash/src)
-include_directories(SYSTEM external_lib/sqlite/include)
-include_directories(SYSTEM external_lib/sqlpp11/include)
-include_directories(SYSTEM external_lib/sqlpp11-connector-sqlite3/include)
 include_directories(SYSTEM external_lib/websocketpp)
 include_directories(external_lib/address-typeahead/include)
 include_directories(external_lib/address-typeahead/external_lib/guess/include)
@@ -128,15 +140,14 @@ include_directories(external_lib/utl/include)
 add_subdirectory(external_lib/address-typeahead EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/flatbuffers EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/osrm-backend EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/rocksdb EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/pugixml/scripts EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/sqlite EXCLUDE_FROM_ALL)
-add_subdirectory(external_lib/sqlpp11-connector-sqlite3/src EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/pugixml EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/conf EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/geo EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/net EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/parser EXCLUDE_FROM_ALL)
 add_subdirectory(external_lib/ctx EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/lmdb EXCLUDE_FROM_ALL)
+add_subdirectory(external_lib/tar EXCLUDE_FROM_ALL)
 
 
 ################################
@@ -161,6 +172,7 @@ set(MODULES ${modules-option} CACHE STRING "Modules to load")
 string(REPLACE " " ";" modules "${MODULES}")
 list(REMOVE_ITEM modules
   "reliability"
+  "address"
 )
 
 set(module-targets "")
@@ -243,6 +255,8 @@ if(MOTIS_LINT)
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
         -exit-on-error
+        -quiet
+        -clang-tidy-binary clang-tidy-6.0
         -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(base/)|(modules/)|(test/)"
         "^${CMAKE_CURRENT_SOURCE_DIR}/base/"
         "^${CMAKE_CURRENT_SOURCE_DIR}/modules/"
@@ -283,7 +297,17 @@ endif()
 # clang-format check
 ################################
 add_custom_target(format-check
-  find ${CMAKE_CURRENT_SOURCE_DIR}/base ${CMAKE_CURRENT_SOURCE_DIR}/modules ${CMAKE_CURRENT_SOURCE_DIR}/test -type f -name "*.cc" -o -name "*.h" -print0
+  find
+      ${CMAKE_CURRENT_SOURCE_DIR}/base
+      ${CMAKE_CURRENT_SOURCE_DIR}/modules
+      ${CMAKE_CURRENT_SOURCE_DIR}/test
+    -type f
+    (
+    -name "*.cc"
+    -o
+    -name "*.h"
+    )
+    -print0
   | xargs -0 clang-format -i
   COMMAND
   git status --porcelain | xargs -I {} -0 test -z \"{}\"

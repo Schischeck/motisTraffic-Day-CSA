@@ -13,7 +13,7 @@ namespace loader {
 namespace gtfs {
 
 struct date {
-  enum { ADD, REMOVE } type_;
+  enum { ADD, REMOVE } type_{ADD};
   boost::gregorian::date day_;
 };
 

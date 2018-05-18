@@ -15,7 +15,9 @@ static loader::loader_options dataset_opt("test/schedule/simple_realtime",
                                           "20151124", 2, false, true, false,
                                           true);
 
-motis::module::msg_ptr get_ris_message(motis::schedule const&);
+static loader::loader_options dataset_opt_long("test/schedule/simple_realtime",
+                                               "20151124", 6, false, true,
+                                               false, true);
 
 }  // namespace simple_realtime
 }  // namespace schedule

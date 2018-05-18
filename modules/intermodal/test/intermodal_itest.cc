@@ -22,7 +22,6 @@ using namespace motis::module;
 using namespace motis::routing;
 using namespace motis::intermodal;
 using motis::test::schedule::simple_realtime::dataset_opt;
-using motis::test::schedule::simple_realtime::get_ris_message;
 
 namespace motis {
 namespace intermodal {

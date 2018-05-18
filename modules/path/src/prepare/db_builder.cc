@@ -56,16 +56,18 @@ void db_builder::append(std::vector<std::string> const& station_ids,
     fbs_lines.push_back(CreatePolyline(b, b.CreateVector(flat_polyline)));
   }
 
-  std::vector<Offset<PathSourceInfo>> fbs_info;
-  for (auto const& info : sequence_infos) {
-    fbs_info.push_back(CreatePathSourceInfo(b, info.idx_, info.from_, info.to_,
-                                            b.CreateString(info.type_)));
-  }
-
-  auto res = CreatePathSeqResponse(
-      b, b.CreateVector(fbs_stations), b.CreateVector(classes),
-      b.CreateVector(fbs_lines), b.CreateVector(fbs_info));
-  b.create_and_finish(MsgContent_PathSeqResponse, res.Union());
+  b.create_and_finish(
+      MsgContent_PathSeqResponse,
+      CreatePathSeqResponse(
+          b, b.CreateVector(fbs_stations), b.CreateVector(classes),
+          b.CreateVector(fbs_lines),
+          b.CreateVector(utl::to_vec(sequence_infos,
+                                     [&](auto&& info) {
+                                       return CreatePathSourceInfo(
+                                           b, info.idx_, info.from_, info.to_,
+                                           b.CreateString(info.type_));
+                                     })))
+          .Union());
 
   db_->put(std::to_string(index_), routing_sequence(std::move(b)).to_string());
   indices_.emplace_back(station_ids, classes, index_);
@@ -78,22 +80,19 @@ void db_builder::finish() {
 }
 
 void db_builder::finish_index() {
-  message_creator b;
-  std::vector<Offset<motis::path::PathIndex>> r;
   std::sort(begin(indices_), end(indices_));
 
-  for (auto const& index : indices_) {
-    auto ids = std::get<0>(index);
-    auto classes = std::get<1>(index);
-
-    auto const fbs_stations =
-        utl::to_vec(ids, [&](auto const& id) { return b.CreateString(id); });
-
-    r.push_back(CreatePathIndex(b, b.CreateVector(fbs_stations),
-                                b.CreateVector(classes), std::get<2>(index)));
-  }
-
-  b.Finish(CreatePathLookup(b, b.CreateVector(r)));
+  message_creator b;
+  b.Finish(
+      CreatePathLookup(b, b.CreateVector(utl::to_vec(indices_, [&](auto&& e) {
+        auto const& [station_ids, classes, index] = e;
+        return CreatePathIndex(
+            b,
+            b.CreateVector(utl::to_vec(
+                station_ids,
+                [&](auto const& id) { return b.CreateString(id); })),
+            b.CreateVector(classes), index);
+      }))));
   db_->put(kIndexKey, routing_lookup(std::move(b)).to_string());
 }
 

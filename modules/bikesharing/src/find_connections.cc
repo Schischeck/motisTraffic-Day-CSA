@@ -131,7 +131,7 @@ private:
       double val = bikesharing::get_availability(
           term->availability()->Get(bucket), aggr);
       bucket = (bucket + 1) % kBucketCount;
-      availability.push_back({t, t + kSecondsPerHour, val});
+      availability.emplace_back(t, t + kSecondsPerHour, val);
     }
     return availability;
   }

@@ -14,7 +14,11 @@ namespace motis {
 class node;
 
 struct edge_cost {
-  edge_cost() : time_(INVALID_TIME) {}
+  edge_cost()
+      : connection_(nullptr),
+        time_(INVALID_TIME),
+        price_(0),
+        transfer_(false) {}
 
   edge_cost(duration time, light_connection const* c)
       : connection_(c), time_(time), price_(0), transfer_(false) {}
@@ -48,7 +52,7 @@ public:
     THROUGH_EDGE
   };
 
-  edge() = default;
+  edge() : from_{nullptr}, to_{nullptr} {}
 
   /** route edge constructor. */
   edge(node* from, node* to, std::vector<light_connection> const& connections)
@@ -127,7 +131,7 @@ public:
     if (m_.type_ == INVALID_EDGE) {
       return NO_EDGE;
     } else if (m_.type_ == ROUTE_EDGE) {
-      if (m_.route_edge_.conns_.size() == 0) {
+      if (m_.route_edge_.conns_.empty()) {
         return NO_EDGE;
       } else {
         return edge_cost(
@@ -158,7 +162,7 @@ public:
 
     auto it = lc;
     while (it != end(m_.route_edge_.conns_)) {
-      if (skip == 0 && it->valid_) {
+      if (skip == 0 && (it->valid_ != 0u)) {
         return it;
       }
       ++it;
@@ -177,7 +181,7 @@ public:
     auto it = std::reverse_iterator<light_connection const*>(lc);
     --it;
     while (it != m_.route_edge_.conns_.rend()) {
-      if (skip == 0 && it->valid_) {
+      if (skip == 0 && (it->valid_ != 0u)) {
         return &*it;
       }
       ++it;
@@ -192,7 +196,7 @@ public:
   light_connection const* get_connection(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
-    if (m_.route_edge_.conns_.size() == 0) {
+    if (m_.route_edge_.conns_.empty()) {
       return nullptr;
     }
 
@@ -227,10 +231,11 @@ public:
     assert(type() == ROUTE_EDGE);
 
     light_connection const* c = get_connection<Dir>(start_time);
-    return (c == nullptr) ? NO_EDGE : edge_cost((Dir == search_dir::FWD)
-                                                    ? c->a_time_ - start_time
+    return (c == nullptr)
+               ? NO_EDGE
+               : edge_cost((Dir == search_dir::FWD) ? c->a_time_ - start_time
                                                     : start_time - c->d_time_,
-                                                c);
+                           c);
   }
 
   template <search_dir Dir = search_dir::FWD>
@@ -309,9 +314,11 @@ public:
   node* to_;
 
   union edge_details {
-    edge_details() { std::memset(this, 0, sizeof(*this)); }
+    edge_details() {  // NOLINT
+      std::memset(this, 0, sizeof(*this));  // NOLINT
+    }
 
-    edge_details(edge_details&& other) noexcept {
+    edge_details(edge_details&& other) noexcept {  // NOLINT
       type_ = other.type_;
       if (type_ == ROUTE_EDGE) {
         route_edge_.init_empty();
@@ -323,7 +330,7 @@ public:
       }
     }
 
-    edge_details(edge_details const& other) {
+    edge_details(edge_details const& other) {  // NOLINT
       type_ = other.type_;
       if (type_ == ROUTE_EDGE) {
         route_edge_.init_empty();

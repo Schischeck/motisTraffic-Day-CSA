@@ -18,13 +18,22 @@ struct typed_flatbuffer {
                 std::default_delete<uint8_t[]>()) {}
 
   template <typename Buffer>
-  typed_flatbuffer(size_t buffer_size, Buffer* buffer)
+  typed_flatbuffer(size_t buffer_size,  // NOLINT (delegating member init)
+                   Buffer* buffer)
       : typed_flatbuffer(buffer_size) {
     std::memcpy(buffer_.get(), buffer, buffer_size_);
   }
 
-  explicit typed_flatbuffer(std::string const& s)
+  explicit typed_flatbuffer(  // NOLINT (delegating member init)
+      std::string const& s)
       : typed_flatbuffer(s.size(), s.data()) {}
+
+  explicit typed_flatbuffer(  // NOLINT (delegating member init)
+      std::string_view s)
+      : typed_flatbuffer(s.size(), s.data()) {}
+
+  typed_flatbuffer(typed_flatbuffer const&) = delete;
+  typed_flatbuffer& operator=(typed_flatbuffer const&) = delete;
 
   typed_flatbuffer(typed_flatbuffer&&) = default;  // NOLINT
   typed_flatbuffer& operator=(typed_flatbuffer&&) = default;  // NOLINT

@@ -45,13 +45,14 @@ std::vector<Offset<RatingElement>> convert_rating_elements(
   std::vector<Offset<RatingElement>> rating_elements;
   for (auto e : conn_rating.public_transport_ratings_) {
     Range r(e.departure_stop_idx_, e.arrival_stop_idx());
-    rating_elements.push_back(CreateRatingElement(
-        b, &r, convert(b, e.departure_distribution_,
-                       orig_conn.stops_[e.departure_stop_idx_]
-                           .departure_.schedule_timestamp_),
-        convert(b, e.arrival_distribution_,
-                orig_conn.stops_[e.arrival_stop_idx()]
-                    .arrival_.schedule_timestamp_)));
+    rating_elements.push_back(
+        CreateRatingElement(b, &r,
+                            convert(b, e.departure_distribution_,
+                                    orig_conn.stops_[e.departure_stop_idx_]
+                                        .departure_.schedule_timestamp_),
+                            convert(b, e.arrival_distribution_,
+                                    orig_conn.stops_[e.arrival_stop_idx()]
+                                        .arrival_.schedule_timestamp_)));
   }
   return rating_elements;
 }
@@ -86,9 +87,10 @@ std::vector<Offset<RatingElement>> convert_rating_elements_short(
     }
     Range r(rating_from->departure_stop_idx_, rating_to->arrival_stop_idx());
     rating_elements.push_back(CreateRatingElement(
-        b, &r, convert(b, rating_from->departure_distribution_,
-                       orig_conn.stops_[rating_from->departure_stop_idx_]
-                           .departure_.schedule_timestamp_),
+        b, &r,
+        convert(b, rating_from->departure_distribution_,
+                orig_conn.stops_[rating_from->departure_stop_idx_]
+                    .departure_.schedule_timestamp_),
         convert(b, rating_to->arrival_distribution_,
                 orig_conn.stops_[rating_to->arrival_stop_idx()]
                     .arrival_.schedule_timestamp_)));
@@ -105,10 +107,11 @@ Offset<Vector<Offset<Rating>>> convert_ratings(
     auto const& conn_rating = orig_ratings[c_idx];
     auto const orig_conn = orig_connections[c_idx];
     v_conn_ratings.push_back(CreateRating(
-        b, b.CreateVector(
-               short_output
-                   ? convert_rating_elements_short(b, conn_rating, orig_conn)
-                   : convert_rating_elements(b, conn_rating, orig_conn)),
+        b,
+        b.CreateVector(
+            short_output
+                ? convert_rating_elements_short(b, conn_rating, orig_conn)
+                : convert_rating_elements(b, conn_rating, orig_conn)),
         static_cast<float>(conn_rating.connection_rating_)));
   }
   return b.CreateVector(v_conn_ratings);
@@ -156,25 +159,25 @@ Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
         bikesharings,
     bool const dep_is_intermodal, bool const arr_is_intermodal,
     std::vector<journey> const& journeys) {
-  auto to_bike_info = [&b](
-      intermodal::bikesharing::bikesharing_info const& infos, bool const valid,
-      time_t bike_time) {
-    auto rel = [&]() -> unsigned {
-      auto const it = std::find_if(
-          infos.availability_intervals_.begin(),
-          infos.availability_intervals_.end(), [&bike_time](auto const& i) {
-            return i.from_ <= bike_time && i.to_ >= bike_time;
-          });
-      if (it == infos.availability_intervals_.end()) {
-        return 0;
-      }
-      return it->rating_;
-    };
-    auto from = Position(infos.from_.lat_, infos.from_.lng_);
-    auto to = Position(infos.to_.lat_, infos.to_.lng_);
-    return CreateBikeInfo(b, valid, b.CreateString(infos.from_.id_), &from,
-                          b.CreateString(infos.to_.id_), &to, rel());
-  };
+  auto to_bike_info =
+      [&b](intermodal::bikesharing::bikesharing_info const& infos,
+           bool const valid, time_t bike_time) {
+        auto rel = [&]() -> unsigned {
+          auto const it = std::find_if(
+              infos.availability_intervals_.begin(),
+              infos.availability_intervals_.end(), [&bike_time](auto const& i) {
+                return i.from_ <= bike_time && i.to_ >= bike_time;
+              });
+          if (it == infos.availability_intervals_.end()) {
+            return 0;
+          }
+          return it->rating_;
+        };
+        auto from = Position(infos.from_.lat_, infos.from_.lng_);
+        auto to = Position(infos.to_.lat_, infos.to_.lng_);
+        return CreateBikeInfo(b, valid, b.CreateString(infos.from_.id_), &from,
+                              b.CreateString(infos.to_.id_), &to, rel());
+      };
 
   if (!bikesharings.empty() && bikesharings.size() != journeys.size()) {
     throw std::system_error(error::failure);
@@ -185,10 +188,11 @@ Offset<Vector<Offset<AdditionalInfos>>> create_additional_infos(
     auto const& bike = bikesharings[i];
     auto const& j = journeys[i];
     infos.push_back(CreateAdditionalInfos(
-        b, to_bike_info(
-               bike.first,
-               dep_is_intermodal && !bike.first.availability_intervals_.empty(),
-               j.stops_.front().departure_.timestamp_),
+        b,
+        to_bike_info(
+            bike.first,
+            dep_is_intermodal && !bike.first.availability_intervals_.empty(),
+            j.stops_.front().departure_.timestamp_),
         to_bike_info(
             bike.second,
             arr_is_intermodal && !bike.second.availability_intervals_.empty(),

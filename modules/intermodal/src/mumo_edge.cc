@@ -139,9 +139,10 @@ std::vector<Offset<AdditionalEdgeWrapper>> write_edges(
     FlatBufferBuilder& fbb, std::vector<mumo_edge> const& starts,
     std::vector<mumo_edge> const& destinations) {
   std::vector<Offset<AdditionalEdgeWrapper>> edges;
+  edges.reserve(starts.size() + destinations.size());
 
   for (auto const& edge : starts) {
-    edges.push_back(CreateAdditionalEdgeWrapper(
+    edges.emplace_back(CreateAdditionalEdgeWrapper(
         fbb, AdditionalEdge_MumoEdge,
         CreateMumoEdge(fbb, fbb.CreateString(edge.from_),
                        fbb.CreateString(edge.to_), edge.duration_, 0,
@@ -150,7 +151,7 @@ std::vector<Offset<AdditionalEdgeWrapper>> write_edges(
   }
 
   for (auto const& edge : destinations) {
-    edges.push_back(CreateAdditionalEdgeWrapper(
+    edges.emplace_back(CreateAdditionalEdgeWrapper(
         fbb, AdditionalEdge_MumoEdge,
         CreateMumoEdge(fbb, fbb.CreateString(edge.from_),
                        fbb.CreateString(edge.to_), edge.duration_, 0,

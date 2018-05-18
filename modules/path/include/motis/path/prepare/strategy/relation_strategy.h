@@ -24,9 +24,7 @@ static constexpr auto kRelationMatchRadius = 200;
 struct relation_strategy : public routing_strategy {
   struct relation_node_ref {
     relation_node_ref(size_t polyline_idx, size_t point_idx, geo::latlng pos)
-        : polyline_idx_(polyline_idx),
-          point_idx_(point_idx),
-          pos_(std::move(pos)) {}
+        : polyline_idx_(polyline_idx), point_idx_(point_idx), pos_(pos) {}
 
     size_t polyline_idx_;  // n-th polyline
     size_t point_idx_;  // m-th point on polyline
@@ -67,6 +65,11 @@ struct relation_strategy : public routing_strategy {
       stations_to_refs_[station.id_] = std::move(node_refs);
     }
   }
+
+  relation_strategy(relation_strategy const&) = default;
+  relation_strategy(relation_strategy&&) = default;
+  relation_strategy& operator=(relation_strategy const&) = default;
+  relation_strategy& operator=(relation_strategy&&) = default;
 
   ~relation_strategy() override = default;
 

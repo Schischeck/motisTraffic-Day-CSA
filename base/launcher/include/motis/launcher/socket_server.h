@@ -14,6 +14,12 @@ struct socket_server {
   socket_server(boost::asio::io_service&, motis::module::receiver&);
   ~socket_server();
 
+  socket_server(socket_server&&) = default;
+  socket_server& operator=(socket_server&&) = default;
+
+  socket_server(socket_server const&) = delete;
+  socket_server& operator=(socket_server const&) = delete;
+
   void listen(std::string const& host, std::string const& port);
   void stop();
 

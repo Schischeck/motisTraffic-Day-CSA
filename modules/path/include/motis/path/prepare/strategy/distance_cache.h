@@ -48,7 +48,7 @@ struct distance_cache {
     }
 
     std::string from_, to_;
-    strategy_id_t strategy_id_;
+    strategy_id_t strategy_id_ = 0;
   };
 
   using value = std::vector<std::vector<routing_result>>;

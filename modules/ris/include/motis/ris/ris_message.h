@@ -13,7 +13,7 @@ namespace motis {
 namespace ris {
 
 struct ris_message : typed_flatbuffer<Message> {
-  ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
+  ris_message(time_t earliest, time_t latest, time_t timestamp,
               flatbuffers::FlatBufferBuilder&& fbb)
       : typed_flatbuffer(std::move(fbb)),
         earliest_(earliest),
@@ -21,16 +21,16 @@ struct ris_message : typed_flatbuffer<Message> {
         timestamp_(timestamp) {}
 
   // testing w/o flatbuffers
-  ris_message(std::time_t earliest, std::time_t latest, std::time_t timestamp,
+  ris_message(time_t earliest, time_t latest, time_t timestamp,
               std::string const& msg)
       : typed_flatbuffer(msg),
         earliest_(earliest),
         latest_(latest),
         timestamp_(timestamp) {}
 
-  std::time_t earliest_;
-  std::time_t latest_;
-  std::time_t timestamp_;
+  time_t earliest_;
+  time_t latest_;
+  time_t timestamp_;
 };
 
 }  // namespace ris

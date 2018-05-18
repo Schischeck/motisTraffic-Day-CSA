@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "snappy.h"
+#include "zstd.hpp"
 
 #include "net/tcp_server.h"
 
@@ -10,9 +10,14 @@
 
 #include "motis/module/message.h"
 
-using net::tcp_server;
-using namespace motis::module;
 namespace p = std::placeholders;
+
+using zstd::compress;
+using zstd::uncompress;
+
+using net::tcp_server;
+
+using namespace motis::module;
 
 namespace motis {
 namespace launcher {
@@ -28,8 +33,7 @@ struct socket_server::impl {
   void stop() { server_->stop(); }
 
   void receive(std::string const& request, net::handler_cb_fun cb) {
-    snappy::Uncompress(static_cast<char const*>(request.data()), request.size(),
-                       &buf_);
+    uncompress(static_cast<char const*>(request.data()), request.size(), &buf_);
     auto req_msg =
         make_msg(reinterpret_cast<void const*>(buf_.data()), buf_.size());
     receiver_.on_msg(req_msg,
@@ -37,7 +41,8 @@ struct socket_server::impl {
                                          p::_1, p::_2)));
   }
 
-  void reply(int id, net::handler_cb_fun cb, msg_ptr res, std::error_code ec) {
+  void reply(int id, net::handler_cb_fun const& cb, msg_ptr const& res,
+             std::error_code ec) {
     msg_ptr response;
 
     if (ec) {
@@ -50,8 +55,8 @@ struct socket_server::impl {
     response->get()->mutate_id(id);
 
     std::string b;
-    snappy::Compress(reinterpret_cast<char const*>(response->data()),
-                     response->size(), &b);
+    compress(reinterpret_cast<char const*>(response->data()), response->size(),
+             &b);
     cb(std::ref(b), true);
   }
 

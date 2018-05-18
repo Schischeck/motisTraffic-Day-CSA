@@ -150,9 +150,10 @@ void init_predecessors_and_successors(
     auto& preceding_arrival_distribution_node =
         distributions_container.get_node_non_const(
             distributions_container::to_container_key(
-                *element.from_, graph_accessor::get_previous_light_connection(
-                                    route_edge->m_.route_edge_.conns_,
-                                    element.light_connection_->d_time_),
+                *element.from_,
+                graph_accessor::get_previous_light_connection(
+                    route_edge->m_.route_edge_.conns_,
+                    element.light_connection_->d_time_),
                 event_type::ARR, schedule));
     preceding_arrival_distribution_node.successors_.push_back(
         &departure_distribution_node);

@@ -27,5 +27,5 @@ compile_flatbuffers_to_resource_header(
 file(GLOB_RECURSE motis-module-files src/*.cc)
 add_library(motis-module STATIC ${motis-module-files} ${resource-header})
 add_dependencies(motis-module generated-protocol-headers)
-target_link_libraries(motis-module flatbuffers32 ctx conf ${Boost_THREAD_LIBRARY})
+target_link_libraries(motis-module motis-core flatbuffers32 ctx conf ${Boost_THREAD_LIBRARY})
 set_target_properties(motis-module PROPERTIES COMPILE_FLAGS ${MOTIS_CXX_FLAGS})

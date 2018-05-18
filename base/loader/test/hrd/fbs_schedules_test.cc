@@ -115,7 +115,7 @@ TEST(loader_hrd_fbs_services, directions_and_providers) {
     auto section_idx = 0;
     for (auto const& section :
          *schedule->services()->Get(service_idx)->sections()) {
-      if (section->direction()) {
+      if (section->direction() != nullptr) {
         ASSERT_TRUE(0 <= section_idx && section_idx <= 11);
         ASSERT_FALSE(section->direction()->text());
         ASSERT_STREQ("8003436", section->direction()->station()->id()->c_str());

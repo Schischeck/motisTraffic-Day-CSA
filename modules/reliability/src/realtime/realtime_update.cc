@@ -188,7 +188,6 @@ auto route_node_and_light_conn(trip const& tr, unsigned const station_idx,
         auto const t = event_type == EventType_ARR ? light_conn.a_time_
                                                    : light_conn.d_time_;
         return s == station_idx && tr == train_id && t == graph_time;
-
       });
   if (trip_edge == tr.edges_->end()) {
     throw std::system_error(error::failure);

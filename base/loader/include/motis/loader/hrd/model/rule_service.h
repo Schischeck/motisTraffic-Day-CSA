@@ -11,8 +11,15 @@ struct service_resolvent {
   explicit service_resolvent(hrd_service* origin)
       : service_(nullptr), origin_(origin) {}
 
-  service_resolvent(std::unique_ptr<hrd_service> service, hrd_service* origin)
-      : service_(std::move(service)), origin_(origin) {}
+  service_resolvent(
+#ifdef _WIN32
+      std::shared_ptr<hrd_service> service,
+#else
+      std::unique_ptr<hrd_service> service,
+#endif
+      hrd_service* origin)
+      : service_(std::move(service)), origin_(origin) {
+  }
 
   friend bool operator<(service_resolvent const& rhs,
                         service_resolvent const& lhs) {
@@ -24,18 +31,23 @@ struct service_resolvent {
     return rhs.origin_ == lhs.origin_;
   }
 
+#ifdef _WIN32
+  // Bug in std::set of MSVC requires copy constructor.
+  std::shared_ptr<hrd_service> service_;
+#else
   std::unique_ptr<hrd_service> service_;
-  hrd_service* origin_;
+#endif
+  hrd_service* origin_{nullptr};
 };
 
 struct service_rule_resolvent {
   service_rule_resolvent(resolved_rule_info rule_info, hrd_service* s1,
                          hrd_service* s2)
-      : rule_info_(std::move(rule_info)), s1_(s1), s2_(s2) {}
+      : rule_info_(rule_info), s1_(s1), s2_(s2) {}
 
   resolved_rule_info rule_info_;
-  hrd_service* s1_;
-  hrd_service* s2_;
+  hrd_service* s1_{nullptr};
+  hrd_service* s2_{nullptr};
 };
 
 struct rule_service {

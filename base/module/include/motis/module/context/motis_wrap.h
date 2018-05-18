@@ -28,26 +28,26 @@ R call(std::function<R(Args...)> const& func, Params<Args...> const& params) {
 }  // namespace detail
 
 template <typename R, typename... Args>
-std::function<R(Args...)> motis_wrap_(std::function<R(Args...)> fn,
-                                      ctx::op_id id) {
+std::function<R(Args...)> motis_wrap_impl(std::function<R(Args...)> fn,
+                                          ctx::op_id id) {
   auto& op = ctx::current_op<ctx_data>();
   auto& dispatcher = op.data_.dispatcher_;
 
   id.parent_index = op.id_.index;
 
-  return [ fn = std::move(fn), &dispatcher, id ](Args... args) {
+  return [fn = std::move(fn), &dispatcher, id](Args... args) {
     auto& scheduler = dispatcher->scheduler_;
     auto& registry = dispatcher->registry_;
     return scheduler.enqueue(
         ctx_data(dispatcher, registry.sched_),
-        [ fn = std::move(fn), args = std::make_tuple(std::move(args)...) ] {
+        [fn = std::move(fn), args = std::make_tuple(std::move(args)...)] {
           return detail::call(fn, args);
         },
         id);
   };
 }
 
-#define motis_wrap(fn) motis_wrap_(fn, ctx::op_id(CTX_LOCATION))
+#define motis_wrap(fn) motis_wrap_impl(fn, ctx::op_id(CTX_LOCATION))
 
 }  // namespace module
 }  // namespace motis

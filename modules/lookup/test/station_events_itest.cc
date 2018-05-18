@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "motis/module/message.h"
+#include "motis/ris/risml/risml_parser.h"
 #include "motis/test/motis_instance_test.h"
 #include "motis/test/schedule/simple_realtime.h"
 
@@ -9,7 +10,6 @@ using namespace motis::module;
 using namespace motis::test;
 using namespace motis::lookup;
 using motis::test::schedule::simple_realtime::dataset_opt;
-using motis::test::schedule::simple_realtime::get_ris_message;
 
 constexpr auto kNotInPeriod = R""(
 { "destination": {"type": "Module", "target": "/lookup/station_events"},
@@ -55,13 +55,14 @@ constexpr auto kFrankfurtRequest = R""(
 
 struct lookup_station_events_test : public motis_instance_test {
   lookup_station_events_test()
-      : motis_instance_test(dataset_opt, {"lookup", "rt"}) {}
+      : motis_instance_test(
+            dataset_opt, {"lookup", "rt"},
+            {"--ris.input=test/schedule/simple_realtime/risml/delays.xml",
+             "--ris.init_time=2015-11-24T11:00:00"}) {}
 };
 
 // TODO(sebastian) re-enable when working realtime module is available
 TEST_F(lookup_station_events_test, DISABLED_station_events) {
-  call(get_ris_message(sched()));
-
   ASSERT_ANY_THROW(call(make_msg(kNotInPeriod)));
 
   {

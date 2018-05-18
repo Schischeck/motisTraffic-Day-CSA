@@ -37,22 +37,18 @@ struct node_ref {
            std::tie(b.id_, b.strategy_id_, b.coords_);
   }
 
-  strategy_id_t strategy_id_;
-  node_ref_id_t id_;
-
+  strategy_id_t strategy_id_ = 0;
+  node_ref_id_t id_ = 0;
   geo::latlng coords_;
 };
 
 struct routing_result {
   routing_result()
       : strategy_id_(kInvalidStrategyId),
-        source_(),
         weight_(std::numeric_limits<double>::infinity()) {}
 
   routing_result(size_t strategy_id, source_spec source, double weight)
-      : strategy_id_(strategy_id),
-        source_(std::move(source)),
-        weight_(weight) {}
+      : strategy_id_(strategy_id), source_(source), weight_(weight) {}
 
   strategy_id_t strategy_id() const { return strategy_id_; }
   bool is_valid() const { return strategy_id_ != kInvalidStrategyId; }
@@ -65,7 +61,8 @@ struct routing_result {
 struct routing_result_matrix {
   using raw_results_t = std::vector<std::vector<routing_result>>;
 
-  routing_result_matrix() : ptr_(nullptr) {}
+  routing_result_matrix() = default;
+  ~routing_result_matrix() = default;
 
   explicit routing_result_matrix(raw_results_t const* ptr,
                                  bool is_transposed = false)
@@ -80,6 +77,9 @@ struct routing_result_matrix {
   routing_result_matrix(routing_result_matrix&&) = default;  // NOLINT
   routing_result_matrix& operator=(routing_result_matrix&&) =  // NOLINT
       default;
+
+  routing_result_matrix(routing_result_matrix const&) = delete;
+  routing_result_matrix& operator=(routing_result_matrix const&) = delete;
 
   void verify_dimensions(size_t const from, size_t const to) const {
     if (!is_transposed_) {
@@ -102,14 +102,18 @@ struct routing_result_matrix {
   }
 
   std::unique_ptr<raw_results_t> mem_;
-  raw_results_t const* ptr_;
-
-  bool is_transposed_;
+  raw_results_t const* ptr_ = nullptr;
+  bool is_transposed_ = false;
 };
 
 struct routing_strategy {
+  routing_strategy() = delete;
   explicit routing_strategy(strategy_id_t const strategy_id)
       : strategy_id_(strategy_id) {}
+  routing_strategy(routing_strategy const&) = default;
+  routing_strategy(routing_strategy&&) = default;
+  routing_strategy& operator=(routing_strategy const&) = default;
+  routing_strategy& operator=(routing_strategy&&) = default;
   virtual ~routing_strategy() = default;
 
   virtual std::vector<node_ref> close_nodes(

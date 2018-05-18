@@ -15,6 +15,12 @@ struct bikesharing : public motis::module::module {
   bikesharing();
   ~bikesharing() override;
 
+  bikesharing(bikesharing const&) = delete;
+  bikesharing& operator=(bikesharing const&) = delete;
+
+  bikesharing(bikesharing&&) = delete;
+  bikesharing& operator=(bikesharing&&) = delete;
+
   std::string name() const override { return "bikesharing"; }
   void init(motis::module::registry&) override;
 
@@ -27,6 +33,7 @@ private:
 
   std::string database_path_;
   std::string nextbike_path_;
+  size_t db_max_size_{static_cast<size_t>(1024) * 1024 * 1024 * 512};
 
   std::unique_ptr<database> database_;
   std::unique_ptr<geo_index> geo_index_;

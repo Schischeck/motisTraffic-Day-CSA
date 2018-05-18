@@ -15,7 +15,7 @@
 namespace motis {
 namespace rt {
 
-enum class status {
+enum class reroute_result {
   OK,
   TRIP_NOT_FOUND,
   EVENT_COUNT_MISMATCH,
@@ -27,7 +27,7 @@ enum class status {
 struct schedule_event {
   schedule_event(primary_trip_id trp_id, uint32_t station_idx,
                  motis::time schedule_time, event_type ev_type)
-      : trp_id_(std::move(trp_id)),
+      : trp_id_(trp_id),
         station_idx_(station_idx),
         schedule_time_(schedule_time),
         ev_type_(ev_type) {}
@@ -63,7 +63,7 @@ struct reroute_event : public event_info {
   // ADDITIONAL
   reroute_event(event_info ev_info, ris::ReroutedEvent const* additional_event,
                 delay_info* di)
-      : event_info(std::move(ev_info)),
+      : event_info(ev_info),
         type_(type::ADDITIONAL),
         in_out_(true, true),
         di_(di),
@@ -91,11 +91,7 @@ struct reroute_event : public event_info {
 struct section {
   section(light_connection lcon, station_node* from, station_node* to,
           reroute_event dep, reroute_event arr)
-      : lcon_(std::move(lcon)),
-        from_(from),
-        to_(to),
-        dep_(std::move(dep)),
-        arr_(std::move(arr)) {}
+      : lcon_(lcon), from_(from), to_(to), dep_(dep), arr_(arr) {}
 
   light_connection lcon_;
   station_node *from_, *to_;
@@ -134,14 +130,14 @@ inline void store_cancelled_delays(
 }
 
 inline void add_additional_events(
-    schedule& sched,
+    statistics& stats, schedule& sched,
     std::map<schedule_event, delay_info*> const& cancelled_delays,
     trip const* trp,
     flatbuffers::Vector<flatbuffers::Offset<ris::ReroutedEvent>> const*
         new_events,
     std::vector<reroute_event>& events) {
   auto const new_opt_evs = resolve_event_info(
-      sched, utl::to_vec(*new_events, [](ris::ReroutedEvent const* ev) {
+      stats, sched, utl::to_vec(*new_events, [](ris::ReroutedEvent const* ev) {
         return ev->base()->base();
       }));
 
@@ -152,8 +148,9 @@ inline void add_additional_events(
     }
 
     auto const new_ev = new_events->Get(i);
-    events.emplace_back(*ev, new_ev, get_stored_delay_info(
-                                         sched, cancelled_delays, trp, new_ev));
+    events.emplace_back(
+        *ev, new_ev,
+        get_stored_delay_info(sched, cancelled_delays, trp, new_ev));
   }
 }
 
@@ -170,7 +167,7 @@ inline void add_if_not_deleted(
   auto const di_it = sched.graph_to_delay_info_.find(k);
   auto const di =
       di_it == end(sched.graph_to_delay_info_) ? nullptr : di_it->second;
-  auto const schedtime = di ? di->get_schedule_time() : k.get_time();
+  auto const schedtime = di != nullptr ? di->get_schedule_time() : k.get_time();
   events.emplace_back(k, schedtime, di);
 }
 
@@ -186,28 +183,28 @@ inline void add_not_deleted_trip_events(
   }
 }
 
-inline status check_events(std::vector<reroute_event> const& events) {
+inline reroute_result check_events(std::vector<reroute_event> const& events) {
   if (events.empty() || events.size() % 2 != 0) {
-    return status::EVENT_COUNT_MISMATCH;
+    return reroute_result::EVENT_COUNT_MISMATCH;
   }
 
   event_type next = event_type::DEP;
   uint32_t arr_station_idx = 0;
   for (auto const& ev : events) {
     if (ev.ev_type_ != next) {
-      return status::EVENT_ORDER_MISMATCH;
+      return reroute_result::EVENT_ORDER_MISMATCH;
     }
 
     if (ev.ev_type_ == event_type::DEP && arr_station_idx != 0 &&
         ev.station_idx_ != arr_station_idx) {
-      return status::STATION_MISMATCH;
+      return reroute_result::STATION_MISMATCH;
     }
 
     next = (next == event_type::DEP) ? event_type::ARR : event_type::DEP;
     arr_station_idx = ev.station_idx_;
   }
 
-  return status::OK;
+  return reroute_result::OK;
 }
 
 inline uint16_t get_track(schedule& sched, reroute_event const& ev) {
@@ -242,7 +239,7 @@ inline connection_info const* get_con_info(
 inline std::vector<section> build_trip_from_events(
     schedule& sched, std::vector<reroute_event> const& events) {
   auto const get_time = [](reroute_event const& ev) {
-    return ev.di_ ? ev.di_->get_current_time() : ev.sched_time_;
+    return ev.di_ != nullptr ? ev.di_->get_current_time() : ev.sched_time_;
   };
 
   std::vector<section> sections;
@@ -284,11 +281,12 @@ inline std::vector<trip::route_edge> build_route(
         sched.stations_.at(s.to_->id_)->transfer_time_;
 
     auto const from_route_node =
-        prev_route_node ? prev_route_node
-                        : build_route_node(route_id, sched.node_count_++,
-                                           s.from_, from_station_transfer_time,
-                                           s.dep_.in_out_.in_allowed_,
-                                           s.dep_.in_out_.out_allowed_);
+        prev_route_node != nullptr
+            ? prev_route_node
+            : build_route_node(route_id, sched.node_count_++, s.from_,
+                               from_station_transfer_time,
+                               s.dep_.in_out_.in_allowed_,
+                               s.dep_.in_out_.out_allowed_);
     auto const to_route_node = build_route_node(
         route_id, sched.node_count_++, s.to_, to_station_transfer_time,
         s.arr_.in_out_.in_allowed_, s.arr_.in_out_.out_allowed_);
@@ -336,7 +334,7 @@ inline void update_trip(schedule& sched, trip* trp,
                         std::vector<trip::route_edge> const& trip_edges) {
   for (auto const& trp_e : *trp->edges_) {
     auto const e = trp_e.get_edge();
-    e->m_.route_edge_.conns_[trp->lcon_idx_].valid_ = false;
+    e->m_.route_edge_.conns_[trp->lcon_idx_].valid_ = 0u;
   }
 
   std::vector<trip*> trps = {trp};
@@ -352,36 +350,40 @@ inline void update_trip(schedule& sched, trip* trp,
   trp->lcon_idx_ = 0;
 }
 
-inline std::pair<status, trip const*> reroute(
-    schedule& sched, std::map<schedule_event, delay_info*>& cancelled_delays,
+inline std::pair<reroute_result, trip const*> reroute(
+    statistics& stats, schedule& sched,
+    std::map<schedule_event, delay_info*>& cancelled_delays,
     ris::RerouteMessage const* msg) {
-  auto const trp =
-      const_cast<trip*>(find_trip_fuzzy(sched, msg->trip_id()));  // NOLINT
+  auto const trp = const_cast<trip*>(  // NOLINT
+      find_trip_fuzzy(stats, sched, msg->trip_id()));
   if (trp == nullptr) {
-    return {status::TRIP_NOT_FOUND, nullptr};
+    return {reroute_result::TRIP_NOT_FOUND, nullptr};
   }
 
   for (auto const& e : *trp->edges_) {
-    if (get_lcon(e, trp->lcon_idx_).full_con_->con_info_->merged_with_ ||
+    if ((get_lcon(e, trp->lcon_idx_).full_con_->con_info_->merged_with_ !=
+         nullptr) ||
         std::any_of(
             begin(e->from_->incoming_edges_), end(e->from_->incoming_edges_),
             [](edge const* e) { return e->type() == edge::THROUGH_EDGE; }) ||
         std::any_of(
             begin(e->to_->edges_), end(e->to_->edges_),
             [](edge const& e) { return e.type() == edge::THROUGH_EDGE; })) {
-      return {status::RULE_SERVICE_REROUTE_NOT_SUPPORTED, nullptr};
+      return {reroute_result::RULE_SERVICE_REROUTE_NOT_SUPPORTED, nullptr};
     }
   }
 
   auto evs = std::vector<reroute_event>{};
-  auto const del_evs = resolve_events(
-      sched, trp, utl::to_vec(*msg->cancelled_events(),
-                              [](ris::Event const* ev) { return ev; }));
-  add_additional_events(sched, cancelled_delays, trp, msg->new_events(), evs);
+  auto const del_evs =
+      resolve_events(stats, sched, trp,
+                     utl::to_vec(*msg->cancelled_events(),
+                                 [](ris::Event const* ev) { return ev; }));
+  add_additional_events(stats, sched, cancelled_delays, trp, msg->new_events(),
+                        evs);
   add_not_deleted_trip_events(sched, del_evs, trp, evs);
   std::sort(begin(evs), end(evs));
   auto check_result = check_events(evs);
-  if (check_result != status::OK) {
+  if (check_result != reroute_result::OK) {
     return {check_result, trp};
   }
 
@@ -395,7 +397,7 @@ inline std::pair<status, trip const*> reroute(
   update_trip(sched, trp, trip_edges);
   store_cancelled_delays(sched, trp, del_evs, cancelled_delays);
 
-  return {status::OK, trp};
+  return {reroute_result::OK, trp};
 }
 
 }  // namespace rt

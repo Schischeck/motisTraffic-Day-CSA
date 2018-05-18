@@ -23,6 +23,11 @@ struct stub_strategy : public routing_strategy {
     }
   }
 
+  stub_strategy(stub_strategy const&) = default;
+  stub_strategy(stub_strategy&&) = default;
+  stub_strategy& operator=(stub_strategy const&) = default;
+  stub_strategy& operator=(stub_strategy&&) = default;
+
   ~stub_strategy() override = default;
 
   std::vector<node_ref> close_nodes(

@@ -133,11 +133,12 @@ TEST_F(reliability_bikesharing, DISABLED_retrieve_bikesharing_infos) {
       *motis_content(BikesharingResponse, res_arr)->edges(), *aggregator, 120);
 
   auto sort = [](std::vector<bikesharing_info>& infos) {
-    std::sort(infos.begin(), infos.end(), [](bikesharing_info const& a,
-                                             bikesharing_info const& b) {
-      return a.station_eva_ < b.station_eva_ ||
-             (a.station_eva_ == b.station_eva_ && a.duration() < b.duration());
-    });
+    std::sort(infos.begin(), infos.end(),
+              [](bikesharing_info const& a, bikesharing_info const& b) {
+                return a.station_eva_ < b.station_eva_ ||
+                       (a.station_eva_ == b.station_eva_ &&
+                        a.duration() < b.duration());
+              });
   };
   sort(dep_infos);
   sort(arr_infos);

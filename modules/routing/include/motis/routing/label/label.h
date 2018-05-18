@@ -12,10 +12,10 @@ struct label_data : public DataClass... {};
 template <search_dir Dir, std::size_t MaxBucket, typename GetBucket,
           typename Data, typename Init, typename Updater, typename Filter,
           typename Dominance, typename PostSearchDominance, typename Comparator>
-struct label : public Data {
+struct label : public Data {  // NOLINT
   enum : std::size_t { MAX_BUCKET = MaxBucket };
 
-  label() = default;
+  label() = default;  // NOLINT
 
   label(edge const* e, label* pred, time now, lower_bounds& lb)
       : pred_(pred),

@@ -19,7 +19,7 @@ public:
     int from_, to_;
   };
 
-  typedef boost::icl::interval<int>::type interval;
+  using interval = boost::icl::interval<int>::type;
 
   void add_entry(T entry, int index) {
     attributes_[entry] += interval(index, index + 1);

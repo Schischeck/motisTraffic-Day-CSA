@@ -40,9 +40,9 @@ struct message : public typed_flatbuffer<Message> {
   static std::pair<const char**, size_t> get_fbs_definitions();
 };
 
-typedef std::shared_ptr<message> msg_ptr;
+using msg_ptr = std::shared_ptr<message>;
 
-msg_ptr make_msg(std::string const& json, bool fix = false);
+msg_ptr make_msg(std::string const& json);
 msg_ptr make_msg(message_creator& builder);
 msg_ptr make_msg(void const* buf, size_t len);
 
@@ -51,18 +51,20 @@ msg_ptr make_success_msg();
 msg_ptr make_error_msg(std::error_code const&);
 
 template <typename T>
-inline T const* motis_content_(msg_ptr const& msg, MsgContent content_type) {
+inline T const* motis_content_impl(msg_ptr const& msg,
+                                   MsgContent content_type) {
   if (msg->get()->content_type() != content_type) {
     throw std::system_error(error::unexpected_message_type);
   }
   return reinterpret_cast<T const*>(msg->get()->content());
 }
 
-#define motis_content(content_type, msg) \
-  motis::module::motis_content_<content_type>(msg, MsgContent_##content_type)
+#define motis_content(content_type, msg)               \
+  motis::module::motis_content_impl<content_type>(msg, \
+                                                  MsgContent_##content_type)
 
 template <typename TableType>
-inline flatbuffers::Offset<TableType> motis_copy_table_(
+inline flatbuffers::Offset<TableType> motis_copy_table_impl(  // NOLINT
     flatbuffers::FlatBufferBuilder& fbb, char const* table_name,
     void const* src) {
   return flatbuffers::Offset<TableType>(
@@ -72,8 +74,9 @@ inline flatbuffers::Offset<TableType> motis_copy_table_(
           .o);
 }
 
-#define motis_copy_table(table_type, target_builder, src) \
-  motis::module::motis_copy_table_<table_type>(target_builder, #table_type, src)
+#define motis_copy_table(table_type, target_builder, src)          \
+  motis::module::motis_copy_table_impl<table_type>(target_builder, \
+                                                   #table_type, src)
 
 }  // namespace module
 }  // namespace motis

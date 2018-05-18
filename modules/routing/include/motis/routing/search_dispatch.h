@@ -17,19 +17,18 @@ struct get_search_dir {};
 template <template <search_dir, size_t, typename...> class Label,
           size_t MaxBucket, typename... Args>
 struct get_search_dir<Label<search_dir::FWD, MaxBucket, Args...>> {
-  static constexpr auto v_ = search_dir::FWD;
+  static constexpr auto V = search_dir::FWD;
 };
 
 template <template <search_dir, size_t, typename...> class Label,
           size_t MaxBucket, typename... Args>
 struct get_search_dir<Label<search_dir::BWD, MaxBucket, Args...>> {
-  static constexpr auto v_ = search_dir::BWD;
+  static constexpr auto V = search_dir::BWD;
 };
 
 template <typename Label, template <search_dir, typename> class Gen>
 search_result get_connections(search_query const& q) {
-  return search<get_search_dir<Label>::v_,
-                Gen<get_search_dir<Label>::v_, Label>,
+  return search<get_search_dir<Label>::V, Gen<get_search_dir<Label>::V, Label>,
                 Label>::get_connections(q);
 }
 

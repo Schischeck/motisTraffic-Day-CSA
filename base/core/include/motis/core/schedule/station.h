@@ -44,6 +44,6 @@ public:
   std::vector<station*> equivalent_;
 };
 
-typedef std::unique_ptr<station> station_ptr;
+using station_ptr = std::unique_ptr<station>;
 
 }  // namespace motis

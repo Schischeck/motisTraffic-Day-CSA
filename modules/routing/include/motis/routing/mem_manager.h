@@ -17,6 +17,11 @@ public:
   mem_manager(mem_manager const&) = delete;
   mem_manager& operator=(mem_manager const&) = delete;
 
+  mem_manager(mem_manager&&) = delete;
+  mem_manager& operator=(mem_manager&&) = delete;
+
+  ~mem_manager() = default;
+
   void reset() {
     allocations_ = 0;
     alloc_.clear();
@@ -28,7 +33,8 @@ public:
   template <typename T, typename... Args>
   T* create(Args&&... args) {
     ++allocations_;
-    return new (alloc_.alloc(sizeof(T))) T(std::forward<Args>(args)...);
+    return new (alloc_.alloc(sizeof(T)))  // NOLINT
+        T(std::forward<Args>(args)...);
   }
 
   template <typename T>

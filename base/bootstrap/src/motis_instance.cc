@@ -46,7 +46,8 @@ void motis_instance::init_schedule(
   sched_ = schedule_.get();
 }
 
-void motis_instance::init_modules(std::vector<std::string> const& modules) {
+void motis_instance::init_modules(std::vector<std::string> const& modules,
+                                  unsigned num_threads) {
   for (auto const& module : modules_) {
     if (std::find(begin(modules), end(modules), module->name()) ==
         end(modules)) {
@@ -66,26 +67,26 @@ void motis_instance::init_modules(std::vector<std::string> const& modules) {
       throw;
     }
   }
-  publish("/init");
+  publish("/init", num_threads);
 }
 
-msg_ptr motis_instance::call(std::string const& target) {
-  return call(make_no_msg(target));
+msg_ptr motis_instance::call(std::string const& target, unsigned num_threads) {
+  return call(make_no_msg(target), num_threads);
 }
 
-msg_ptr motis_instance::call(msg_ptr const& msg) {
+msg_ptr motis_instance::call(msg_ptr const& msg, unsigned num_threads) {
   std::exception_ptr e;
   msg_ptr response;
 
-  run([&]() {
-    try {
-      response = motis_call(msg)->val();
-    } catch (...) {
-      e = std::current_exception();
-    }
-  });
-  ios_.run();
-  ios_.reset();
+  run(
+      [&]() {
+        try {
+          response = motis_call(msg)->val();
+        } catch (...) {
+          e = std::current_exception();
+        }
+      },
+      access_of(msg), num_threads);
 
   if (e) {
     std::rethrow_exception(e);
@@ -94,22 +95,22 @@ msg_ptr motis_instance::call(msg_ptr const& msg) {
   return response;
 }
 
-void motis_instance::publish(std::string const& target) {
-  publish(make_no_msg(target));
+void motis_instance::publish(std::string const& target, unsigned num_threads) {
+  publish(make_no_msg(target), num_threads);
 }
 
-void motis_instance::publish(msg_ptr const& msg) {
+void motis_instance::publish(msg_ptr const& msg, unsigned num_threads) {
   std::exception_ptr e;
 
-  run([&]() {
-    try {
-      ctx::await_all(motis_publish(msg));
-    } catch (...) {
-      e = std::current_exception();
-    }
-  });
-  ios_.run();
-  ios_.reset();
+  run(
+      [&]() {
+        try {
+          ctx::await_all(motis_publish(msg));
+        } catch (...) {
+          e = std::current_exception();
+        }
+      },
+      access_of(msg), num_threads);
 
   if (e) {
     std::rethrow_exception(e);
