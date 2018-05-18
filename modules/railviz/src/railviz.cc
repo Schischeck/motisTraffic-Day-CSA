@@ -79,8 +79,6 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
   auto const req = motis_content(RailVizTripGuessRequest, msg);
 
   auto const& sched = get_schedule();
-  auto const t = unix_to_motistime(sched, req->time());
-
   auto it =
       std::lower_bound(begin(sched.trips_), end(sched.trips_),
                        std::make_pair(primary_trip_id{0u, req->train_num(), 0u},
