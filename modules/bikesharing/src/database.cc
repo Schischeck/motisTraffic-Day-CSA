@@ -177,14 +177,11 @@ persistable_terminal convert_terminal(
 
 bikesharing_summary make_summary(std::vector<terminal> const& terminals) {
   FlatBufferBuilder b;
-
-  std::vector<Offset<TerminalLocation>> locations;
-  for (auto const& terminal : terminals) {
-    locations.push_back(CreateTerminalLocation(b, b.CreateString(terminal.uid_),
-                                               terminal.lat_, terminal.lng_));
-  }
-  b.Finish(CreateSummary(b, b.CreateVector(locations)));
-
+  b.Finish(CreateSummary(
+      b, b.CreateVector(utl::to_vec(terminals, [&](auto&& terminal) {
+        return CreateTerminalLocation(b, b.CreateString(terminal.uid_),
+                                      terminal.lat_, terminal.lng_);
+      }))));
   return bikesharing_summary(std::move(b));
 }
 
