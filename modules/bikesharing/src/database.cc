@@ -1,8 +1,8 @@
 #include "motis/bikesharing/database.h"
 
-#include <iostream>
-
 #include "lmdb/lmdb.hpp"
+
+#include "utl/to_vec.h"
 
 #include "motis/bikesharing/error.h"
 
@@ -155,11 +155,9 @@ Offset<Vector<Offset<Availability>>> create_availabilities(
 
 Offset<Vector<Offset<CloseLocation>>> create_close_locations(
     FlatBufferBuilder& b, std::vector<close_location> const& locations) {
-  std::vector<Offset<CloseLocation>> vec;
-  for (auto const& l : locations) {
-    vec.push_back(CreateCloseLocation(b, b.CreateString(l.id_), l.duration_));
-  }
-  return b.CreateVector(vec);
+  return b.CreateVector(utl::to_vec(locations, [&](auto&& l) {
+    return CreateCloseLocation(b, b.CreateString(l.id_), l.duration_);
+  }));
 }
 
 }  // namespace detail
