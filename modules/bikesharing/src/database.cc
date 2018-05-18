@@ -18,6 +18,13 @@ constexpr auto kSummaryKey = "__summary";
 
 struct database::database_impl {
   database_impl() = default;
+  virtual ~database_impl() = default;
+
+  database_impl(database_impl const&) = delete;
+  database_impl& operator=(database_impl const&) = delete;
+
+  database_impl(database_impl&&) = default;
+  database_impl& operator=(database_impl&&) = default;
 
   explicit database_impl(std::string const& path, size_t const max_size) {
     env_.set_maxdbs(1);
