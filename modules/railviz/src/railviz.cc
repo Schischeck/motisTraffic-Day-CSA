@@ -87,8 +87,8 @@ msg_ptr railviz::get_trip_guesses(msg_ptr const& msg) const {
                                       static_cast<trip*>(nullptr)));
 
   auto const cmp = [&](trip const* a, trip const* b) {
-    return std::abs(a->id_.primary_.time_ - t) <
-           std::abs(b->id_.primary_.time_ - t);
+    return std::abs(static_cast<int64_t>(a->id_.primary_.time_)) <
+           std::abs(static_cast<int64_t>(b->id_.primary_.time_));
   };
 
   std::vector<trip const*> trips;
