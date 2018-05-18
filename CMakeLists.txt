@@ -254,7 +254,7 @@ if(MOTIS_LINT)
   add_custom_target(lint
     /usr/bin/python
       ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
-#        -exit-on-error
+        -exit-on-error
         -quiet
         -clang-tidy-binary clang-tidy-6.0
         -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(base/)|(modules/)|(test/)"
