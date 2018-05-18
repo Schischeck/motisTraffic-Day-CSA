@@ -1,5 +1,7 @@
 #include "motis/bikesharing/database.h"
 
+#include <iostream>
+
 #include "lmdb/lmdb.hpp"
 
 #include "motis/bikesharing/error.h"
@@ -17,9 +19,9 @@ constexpr auto kSummaryKey = "__summary";
 struct database::database_impl {
   database_impl() = default;
 
-  explicit database_impl(std::string const& path) {
+  explicit database_impl(std::string const& path, size_t const max_size) {
     env_.set_maxdbs(1);
-    env_.set_mapsize(static_cast<size_t>(1024) * 1024 * 1024 * 512);
+    env_.set_mapsize(max_size);
     env_.open(path.c_str(), db::env_open_flags::NOSUBDIR |
                                 db::env_open_flags::NOLOCK |
                                 db::env_open_flags::NOTLS);
@@ -28,6 +30,9 @@ struct database::database_impl {
   virtual ~database_impl() = default;
 
   virtual bool is_initialized() const {
+    if (!env_.is_open()) {
+      return false;
+    }
     auto txn = db::txn{env_};
     auto db = txn.dbi_open();
     return txn.get(db, kSummaryKey).has_value();
@@ -70,10 +75,9 @@ struct database::database_impl {
   }
 
   db::env mutable env_;
-};  // namespace bikesharing
+};
 
 struct inmemory_database : public database::database_impl {
-
   bool is_initialized() const override {
     auto it = store_.find(kSummaryKey);
     return it != end(store_);
@@ -108,9 +112,10 @@ struct inmemory_database : public database::database_impl {
   std::map<std::string, std::string> store_;
 };
 
-database::database(std::string const& path)
+database::database(std::string const& path, size_t const max_size)
     : impl_(path == ":memory:" ? new inmemory_database()
-                               : new database_impl(path)) {}
+                               : new database_impl(path, max_size)) {}
+
 database::~database() = default;
 
 bool database::is_initialized() const { return impl_->is_initialized(); }

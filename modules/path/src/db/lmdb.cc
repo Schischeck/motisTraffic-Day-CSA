@@ -10,9 +10,9 @@ namespace motis {
 namespace path {
 
 struct lmdb_database::impl {
-  explicit impl(std::string const& path) {
+  explicit impl(std::string const& path, size_t const max_db_size) {
     env_.set_maxdbs(1);
-    env_.set_mapsize(static_cast<size_t>(1024) * 1024 * 1024 * 512);
+    env_.set_mapsize(max_db_size);
     env_.open(path.c_str(), db::env_open_flags::NOSUBDIR |
                                 db::env_open_flags::NOLOCK |
                                 db::env_open_flags::NOTLS);
@@ -46,8 +46,9 @@ struct lmdb_database::impl {
   db::env mutable env_;
 };
 
-lmdb_database::lmdb_database(std::string path)
-    : impl_{std::make_unique<lmdb_database::impl>(std::move(path))} {}
+lmdb_database::lmdb_database(std::string path, size_t const max_db_size)
+    : impl_{std::make_unique<lmdb_database::impl>(std::move(path),
+                                                  max_db_size)} {}
 
 lmdb_database::~lmdb_database() = default;
 

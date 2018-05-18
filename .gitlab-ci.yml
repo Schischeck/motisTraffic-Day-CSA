@@ -61,6 +61,8 @@ gcc-7-debug-valgrind:
               --dataset.write_serialized false
               --listen.ws false
               --ris.db_max_size 1048576
+              --bikesharing.db_max_size 1048576
+              --path.db_max_size 1048576
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
       ./motis-test
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full

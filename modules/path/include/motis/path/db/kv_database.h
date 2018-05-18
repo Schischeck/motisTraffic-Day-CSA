@@ -23,7 +23,7 @@ struct kv_database {
 };
 
 std::unique_ptr<kv_database> load_db(std::string const& path,
-                                     bool required = false);
+                                     size_t max_db_size, bool required = false);
 
 }  // namespace path
 }  // namespace motis

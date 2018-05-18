@@ -34,6 +34,7 @@ private:
                                       bool debug_info) const;
 
   std::string database_path_;
+  size_t db_max_size_{static_cast<size_t>(1024) * 1024 * 1024 * 512};
 
   std::unique_ptr<kv_database> db_;
   std::unique_ptr<lookup_index> lookup_;

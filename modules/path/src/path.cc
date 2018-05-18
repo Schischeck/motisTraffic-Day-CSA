@@ -4,6 +4,8 @@
 
 #include "parser/util.h"
 
+#include "conf/simple_config_param.h"
+
 #include "geo/polyline.h"
 
 #include "utl/to_vec.h"
@@ -51,12 +53,13 @@ namespace path {
 
 path::path() : module("Path", "path") {
   string_param(database_path_, "pathdb", "db", "/path/to/pathdb");
+  size_t_param(db_max_size_, "db_max_size", "virtual memory map size");
 }
 
 path::~path() = default;
 
 void path::init(registry& r) {
-  db_ = load_db(database_path_);
+  db_ = load_db(database_path_, db_max_size_);
 
   if (auto buf = db_->try_get(kIndexKey)) {
     lookup_ = std::make_unique<lookup_index>(*buf);
