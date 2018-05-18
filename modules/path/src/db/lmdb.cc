@@ -26,7 +26,7 @@ struct lmdb_database::impl {
   }
 
   std::string get(std::string const& k) const {
-    if (auto v = try_get(k); !v) {
+    if (auto const v = try_get(k); v) {
       return *v;
     } else {
       throw std::system_error(error::not_found);
