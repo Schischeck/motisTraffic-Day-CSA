@@ -25,6 +25,7 @@ clang-debug-asan:
   tags:
     - bionic
   script:
+    - export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer
     - export CXXFLAGS="-fsanitize=address -fno-omit-frame-pointer"
     - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - export CXX=clang++
