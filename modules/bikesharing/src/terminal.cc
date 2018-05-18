@@ -40,7 +40,7 @@ void snapshot_merger::add_snapshot(
   ++snapshot_count_;
   auto const& bucket = timestamp_to_bucket(t);
   for (auto const& s : snapshots) {
-    terminals_[s.uid_] = s;
+    terminals_[s.uid_] = terminal{s.uid_, s.lat_, s.lng_, s.name_};
     distributions_[s.uid_].at(bucket).push_back(s.available_bikes_);
   }
 }
@@ -61,7 +61,8 @@ availability compute_availability(std::vector<int>& dist) {
   a.q90_ = dist[(size - 1) * 0.1];
 
   auto lb = std::lower_bound(begin(dist), end(dist), 5);
-  a.percent_reliable_ = std::distance(lb, end(dist)) / size;
+  a.percent_reliable_ =
+      std::distance(lb, end(dist)) / static_cast<double>(size);
 
   return a;
 }

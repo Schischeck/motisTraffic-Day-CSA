@@ -26,6 +26,12 @@ struct database {
   explicit database(std::string const& path, size_t max_size);
   ~database();
 
+  database(database const&) = delete;
+  database& operator=(database const&) = delete;
+
+  database(database&&) = default;
+  database& operator=(database&&) = default;
+
   bool is_initialized() const;
 
   persistable_terminal get(std::string const& id) const;

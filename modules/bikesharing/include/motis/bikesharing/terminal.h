@@ -14,25 +14,25 @@ namespace bikesharing {
 
 struct terminal {
   std::string uid_;
-  double lat_, lng_;
+  double lat_ = 0.0, lng_ = 0.0;
   std::string name_;
 };
 
 struct terminal_snapshot : public terminal {
-  int available_bikes_;
+  int available_bikes_ = 0;
 };
 
 struct availability {
-  double average_;
-  double median_;
-  double minimum_;
-  double q90_;
-  double percent_reliable_;
+  double average_ = 0;
+  double median_ = 0;
+  double minimum_ = 0;
+  double q90_ = 0;
+  double percent_reliable_ = 0;
 };
 
 struct close_location {
   std::string id_;
-  int duration_;
+  int duration_ = 0;
 };
 
 constexpr size_t kHoursPerDay = 24;

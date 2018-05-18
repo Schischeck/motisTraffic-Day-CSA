@@ -27,8 +27,6 @@ struct database::database_impl {
                                 db::env_open_flags::NOTLS);
   }
 
-  virtual ~database_impl() = default;
-
   virtual bool is_initialized() const {
     if (!env_.is_open()) {
       return false;
