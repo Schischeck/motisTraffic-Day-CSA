@@ -155,7 +155,7 @@ struct ris::impl {
     auto const until =
         static_cast<time_t>(motis_content(RISPurgeRequest, msg)->until());
 
-    auto t = db::txn{env_, db::txn_flags::RDONLY};
+    auto t = db::txn{env_};
     auto db = t.dbi_open(MSG_DB);
     auto c = db::cursor{t, db};
     auto bucket = c.get(db::cursor_op::SET_RANGE, until);
