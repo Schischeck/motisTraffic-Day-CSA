@@ -165,6 +165,7 @@ struct ris::impl {
       }
       bucket = c.get(db::cursor_op::PREV, 0);
     }
+    t.commit();
 
     return {};
   }
