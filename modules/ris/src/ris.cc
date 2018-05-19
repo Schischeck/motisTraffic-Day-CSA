@@ -518,7 +518,8 @@ void ris::init(motis::module::registry& r) {
                 access_t::WRITE);
   r.register_op("/ris/read", [this](auto&& m) { return impl_->read(m); },
                 access_t::WRITE);
-  r.register_op("/ris/purge", [this](auto&& m) { return impl_->purge(m); });
+  r.register_op("/ris/purge", [this](auto&& m) { return impl_->purge(m); },
+                access_t::WRITE);
 }
 
 }  // namespace ris
