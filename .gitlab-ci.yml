@@ -1,15 +1,15 @@
 variables:
   ASAN_SYMBOLIZER_PATH: "/opt/clang+llvm-5.0.0-linux-x86_64-ubuntu16.04/bin/llvm-symbolizer"
 
-# GCC 7 production
-gcc-7-release:
+# GCC production
+gcc-release:
   tags:
     - bionic
   script:
     - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     - git submodule update --init --recursive
-    - mkdir -p build-gcc-7
-    - cd build-gcc-7
+    - mkdir -p build-release
+    - cd build-release
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
     - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
@@ -20,7 +20,7 @@ gcc-7-release:
     - ./motis-test
     - ./motis-itest
 
-# Clang 5 debug with address sanitizer
+# Clang debug with address sanitizer
 clang-debug-asan:
   tags:
     - bionic
@@ -31,8 +31,8 @@ clang-debug-asan:
     - export CXX=clang++
     - export CC=clang
     - git submodule update --init --recursive
-    - mkdir -p build-asan
-    - cd build-asan
+    - mkdir -p build-clang-debug-asan
+    - cd build-clang-debug-asan
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_ASAN=true ..
     - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - ./motis --mode test
@@ -43,16 +43,16 @@ clang-debug-asan:
     - ./motis-test
     - ./motis-itest
 
-# GCC 7 debug valgrind
-gcc-7-debug-valgrind:
+# GCC debug valgrind
+gcc-debug-valgrind:
   tags:
     - bionic
   script:
     - export BOOST_ROOT=/opt/boost_1_67_0-gcc-7
     #- export CXXFLAGS="-D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC" TODO(felix) currently not working with OSRM
     - git submodule update --init --recursive
-    - mkdir -p build-gcc-7-valgrind
-    - cd build-gcc-7-valgrind
+    - mkdir -p build-gcc-debug-valgrind
+    - cd build-gcc-debug-valgrind
     - cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -DCTX_VALGRIND=true ..
     - ninja -j8 motis-test motis-itest motis motis-eval motis-cli path-prepare
     - valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full
