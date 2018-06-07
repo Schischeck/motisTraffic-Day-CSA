@@ -23,10 +23,11 @@ struct journey_meta_data {
       : c_(c),
         duration_(c->stops()->Get(c->stops()->Length() - 1)->arrival()->time() -
                   c->stops()->Get(0)->departure()->time()),
-        transfers_(std::max(
-            0u, std::count_if(std::begin(*c->stops()), std::end(*c->stops()),
-                              [](Stop const* s) { return s->exit(); }) -
-                    1)) {}
+        transfers_(
+            std::max(0, static_cast<int>(std::count_if(
+                            std::begin(*c->stops()), std::end(*c->stops()),
+                            [](Stop const* s) { return s->exit(); })) -
+                            1)) {}
 
   inline friend bool operator==(journey_meta_data const& a,
                                 journey_meta_data const& b) {
@@ -50,7 +51,11 @@ struct journey_meta_data {
     return std::make_tuple(duration_, get_departure_time(), transfers_);
   }
 
+  template <int AlphaNominator = 1, int AlphaDenominator = 2>
   inline bool dominates(journey_meta_data const& o) const {
+    static constexpr auto const alpha =
+        static_cast<double>(AlphaNominator) / AlphaDenominator;
+
     bool could_dominate = false;
 
     if (transfers_ > o.transfers_) {
@@ -58,16 +63,24 @@ struct journey_meta_data {
     }
     could_dominate = could_dominate || transfers_ < o.transfers_;
 
+    auto const tt_a = get_arrival_time() - get_departure_time();
+    auto const tt_b = o.get_arrival_time() - o.get_departure_time();
+    auto const tt_ratio = static_cast<double>(tt_a) / tt_b;
     auto const dist_a = std::abs(get_departure_time() - o.get_departure_time());
     auto const dist_b = std::abs(get_arrival_time() - o.get_arrival_time());
     auto const dist = std::min(dist_a, dist_b) / 60;
-    auto const travel_time_dominance =
-        routing::travel_time_alpha_dominance::domination_info<int>(
-            duration_, o.duration_, dist);
-    if (travel_time_dominance.greater()) {
+
+    auto const smaller = [&]() {
+      return tt_a + alpha * tt_ratio * dist < tt_b;
+    };
+    auto const greater = [&]() {
+      return tt_a + alpha * tt_ratio * dist > tt_b;
+    };
+
+    if (greater()) {
       return false;
     }
-    could_dominate = could_dominate || travel_time_dominance.smaller();
+    could_dominate = could_dominate || smaller();
 
     return could_dominate;
   }
@@ -79,10 +92,12 @@ struct journey_meta_data {
 
 struct response {
   explicit response(routing::RoutingResponse const* r)
-      : connections_(utl::to_set(*r->connections(), [](Connection const* c) {
-          return journey_meta_data(c);
-        })) {}
+      : connections_{utl::to_set(
+            *r->connections(),
+            [](Connection const* c) { return journey_meta_data(c); })},
+        r_{r} {}
   std::set<journey_meta_data> connections_;
+  routing::RoutingResponse const* r_;
 };
 
 }  // namespace comparator

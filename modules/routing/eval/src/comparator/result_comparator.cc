@@ -34,19 +34,38 @@ void print(journey_meta_data const& con) {
     return std::string(static_cast<char const*>(buf), 6);
   };
 
-  std::cout << std::setw(5) << con.duration_  //
+  auto const format_duration = [](int seconds) {
+    auto const total_minutes = seconds / 60;
+    auto const days = total_minutes / (60 * 24);
+    auto const hours = (total_minutes - days * 60 * 24) / 60;
+    auto const minutes = total_minutes - days * 60 * 24 - hours * 60;
+
+    std::stringstream ss;
+    if (days != 0) {
+      ss << days << "d ";
+    }
+    if (hours != 0) {
+      ss << std::right << std::setw(2) << hours << "h ";
+    }
+    if (minutes != 0) {
+      ss << std::right << std::setw(2) << minutes << "min";
+    }
+    return ss.str();
+  };
+
+  std::cout << std::right << std::setw(13) << format_duration(con.duration_)  //
             << " [" << format_time(con.get_departure_time()) << " - "
             << format_time(con.get_arrival_time()) << "]\t"  //
             << std::setw(5) << con.transfers_;
 }
 
 void print_empty() {
-  std::cout << std::setw(20) << std::left << "-"
+  std::cout << std::setw(27) << std::left << "-"
             << "\t" << std::setw(5) << "-";
 }
 
 bool print_differences(response const& r1, response const& r2,
-                       RoutingRequest const*, int id,
+                       RoutingRequest const* req, int id,
                        bool print_only_second_empty) {
   if (r1.connections_ == r2.connections_) {
     return true;
@@ -57,12 +76,26 @@ bool print_differences(response const& r1, response const& r2,
     return false;
   }
 
-  std::cout << "ERROR [id = " << id << "] ";
+  auto const interval_begin = static_cast<time_t>(
+      reinterpret_cast<PretripStart const*>(req->start())->interval()->begin());
+  auto const interval_end = static_cast<time_t>(
+      reinterpret_cast<PretripStart const*>(req->start())->interval()->end());
+  auto const begin_tm = *std::localtime(&interval_begin);
+  auto const end_tm = *std::localtime(&interval_end);
+  std::cout << "ERROR [id = " << id
+            << "]: " << std::put_time(&begin_tm, "%FT%TZ") << " - "
+            << std::put_time(&end_tm, "%FT%TZ") << "\n";
   if (r1.connections_.size() != r2.connections_.size()) {
     std::cout << "#con1 = " << r1.connections_.size() << ", "
               << "#con2 = " << r2.connections_.size() << " ";
   } else {
     std::cout << "#con = " << r1.connections_.size() << " ";
+  }
+  if (r1.r_->statistics()->max_label_quit()) {
+    std::cout << "--- con1: MAX_LABEL_QUIT ---\n";
+  }
+  if (r2.r_->statistics()->max_label_quit()) {
+    std::cout << "--- con2: MAX_LABEL_QUIT ---\n";
   }
 
   auto end1 = end(r1.connections_);
