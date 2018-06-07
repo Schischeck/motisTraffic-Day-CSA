@@ -97,7 +97,7 @@ struct response {
             c, [](auto&& con) { return journey_meta_data(con); })},
         r_{r} {}
 
-  response(routing::RoutingResponse const* r)
+  explicit response(routing::RoutingResponse const* r)
       : connections_{utl::to_set(
             *r->connections(),
             [](Connection const* c) { return journey_meta_data(c); })},
