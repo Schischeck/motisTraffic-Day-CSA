@@ -714,6 +714,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
                          bool adjust_footpaths) {
   scoped_timer timer("building graph");
 
+  LOG(info) << "schedule: " << serialized->name()->str();
+
   schedule_ptr sched(new schedule());
   sched->classes_ = class_mapping();
   sched->schedule_begin_ = from;
