@@ -63,12 +63,12 @@ struct journey_meta_data {
     }
     could_dominate = could_dominate || transfers_ < o.transfers_;
 
-    auto const tt_a = get_arrival_time() - get_departure_time();
-    auto const tt_b = o.get_arrival_time() - o.get_departure_time();
+    auto const tt_a = (get_arrival_time() - get_departure_time()) / 60;
+    auto const tt_b = (o.get_arrival_time() - o.get_departure_time()) / 60;
     auto const tt_ratio = static_cast<double>(tt_a) / tt_b;
-    auto const dist_a = std::abs(get_departure_time() - o.get_departure_time());
-    auto const dist_b = std::abs(get_arrival_time() - o.get_arrival_time());
-    auto const dist = std::min(dist_a, dist_b) / 60;
+    auto const d_dep = std::abs(get_departure_time() - o.get_departure_time());
+    auto const d_arr = std::abs(get_arrival_time() - o.get_arrival_time());
+    auto const dist = std::min(d_dep, d_arr) / 60;
 
     auto const smaller = [&]() {
       return tt_a + alpha * tt_ratio * dist < tt_b;
