@@ -42,13 +42,13 @@ void print(journey_meta_data const& con) {
 
     std::stringstream ss;
     if (days != 0) {
-      ss << days << "d ";
+      ss << days << "d";
     }
     if (hours != 0) {
-      ss << std::right << std::setw(2) << hours << "h ";
+      ss << " " << std::right << std::setw(2) << hours << "h";
     }
     if (minutes != 0) {
-      ss << std::right << std::setw(2) << minutes << "min";
+      ss << " " << std::right << std::setw(2) << minutes << "min";
     }
     return ss.str();
   };
