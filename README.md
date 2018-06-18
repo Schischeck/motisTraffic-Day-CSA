@@ -2,6 +2,7 @@
 
 This command sequence produces a minimal build of the main MOTIS binary with no modules enabled on a clean Ubuntu 18.04 system:
 
+```bash
     #!/bin/bash
 
     # Install dependencies from package manager
@@ -31,3 +32,4 @@ This command sequence produces a minimal build of the main MOTIS binary with no 
     cd motis && mkdir build && cd build
     CXXFLAGS="-march=native" BOOST_ROOT=~/boost_1_67_0 cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DMODULES="" ..
     ninja
+````
