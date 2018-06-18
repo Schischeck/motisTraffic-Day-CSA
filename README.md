@@ -28,7 +28,7 @@ cd boost_1_67_0
 
 # Clone and build MOTIS (requires SSH-key!)
 cd ~
-git clone --recursive -y git@git.motis-project.de:motis/motis.git
+git clone --recursive git@git.motis-project.de:motis/motis.git
 cd motis && mkdir build && cd build
 CXXFLAGS="-march=native" BOOST_ROOT=~/boost_1_67_0 cmake -GNinja -DCMAKE_BUILD_TYPE=Release -DMODULES="" ..
 ninja
