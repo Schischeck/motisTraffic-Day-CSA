@@ -58,9 +58,6 @@ struct journey {
     std::string text_;
   };
 
-  uint16_t get_duration() const;
-  uint16_t get_transfers() const;
-
   unsigned duration_{0}, transfers_{0}, price_{0};
   std::vector<stop> stops_;
   std::vector<transport> transports_;

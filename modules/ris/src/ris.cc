@@ -431,6 +431,7 @@ private:
     auto write = [&](ris_message&& m) {
       if (buf_msg_count++ > WRITE_MSG_BUF_MAX_SIZE) {
         flush_to_db();
+        buf_msg_count = 0;
       }
 
       auto& buf_val = buf[m.timestamp_];
