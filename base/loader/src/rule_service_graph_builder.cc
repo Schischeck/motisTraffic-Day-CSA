@@ -39,8 +39,18 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
   return false;
 }
 
-using service_section = std::pair<route_section, std::vector<participant>>;
 using neighbor = std::pair<Service const*, Rule const*>;
+struct service_section {
+  service_section()
+      : route_section_(route_section()),
+        participants_(std::vector<participant>()),
+        in_allowed_(false),
+        out_allowed_(false){};
+  route_section route_section_;
+  std::vector<participant> participants_;
+  bool in_allowed_;
+  bool out_allowed_;
+};
 
 struct rule_service_section_builder {
   rule_service_section_builder(graph_builder& gb, RuleService const* rs)
@@ -148,7 +158,7 @@ struct rule_service_section_builder {
       }
       sections_[service][service_section_idx] = sections[src_section_idx];
 
-      auto& section_participants = sections[src_section_idx]->second;
+      auto& section_participants = sections[src_section_idx]->participants_;
       auto not_already_added =
           std::find_if(begin(section_participants), end(section_participants),
                        [&service](participant const& p) {
@@ -157,6 +167,12 @@ struct rule_service_section_builder {
 
       if (not_already_added) {
         section_participants.emplace_back(service, service_section_idx);
+        sections_[service][service_section_idx]->in_allowed_ =
+            sections_[service][service_section_idx]->in_allowed_ ||
+            service->route()->in_allowed()->Get(service_section_idx) != 0u;
+        sections_[service][service_section_idx]->out_allowed_ =
+            sections_[service][service_section_idx]->in_allowed_ ||
+            service->route()->out_allowed()->Get(service_section_idx) != 0u;
       }
     }
   }
@@ -241,10 +257,11 @@ struct rule_service_route_builder {
           [&entry] {
             node const* pred_to = nullptr;
             for (auto const& s : entry.second) {
-              if (pred_to != nullptr && pred_to != s->first.from_route_node_) {
+              if (pred_to != nullptr &&
+                  pred_to != s->route_section_.from_route_node_) {
                 return false;
               }
-              pred_to = s->first.to_route_node_;
+              pred_to = s->route_section_.to_route_node_;
             }
             return true;
           }(),
@@ -255,7 +272,7 @@ struct rule_service_route_builder {
   void adjust_times() {
     for (auto& entry : sections_) {
       lcon_time_adjuster().adjust_times(
-          entry.second[0]->first.from_route_node_);
+          entry.second[0]->route_section_.from_route_node_);
     }
   }
 
@@ -289,7 +306,7 @@ struct rule_service_route_builder {
 
   std::vector<light_connection> build_connections(
       service_section const& section) {
-    auto participants = section.second;
+    auto participants = section.participants_;
     std::sort(begin(participants), end(participants));
 
     std::array<participant, 16> services;
@@ -317,8 +334,8 @@ struct rule_service_route_builder {
     auto const& s = sections[i];
     visited.emplace(s);
 
-    if (s->first.to_route_node_ != nullptr) {
-      return s->first.to_route_node_;
+    if (s->route_section_.to_route_node_ != nullptr) {
+      return s->route_section_.to_route_node_;
     }
 
     auto const succ_from = find_from(visited, sections, i + 1);
@@ -326,7 +343,7 @@ struct rule_service_route_builder {
       return succ_from;
     }
 
-    for (participant const& p : s->second) {
+    for (participant const& p : s->participants_) {
       auto const& p_sections = sections_.at(p.service_);
       auto const p_succ_from =
           find_from(visited, p_sections, p.section_idx_ + 1);
@@ -348,8 +365,8 @@ struct rule_service_route_builder {
     auto const& s = sections[i];
     visited.emplace(s);
 
-    if (s->first.from_route_node_ != nullptr) {
-      return s->first.from_route_node_;
+    if (s->route_section_.from_route_node_ != nullptr) {
+      return s->route_section_.from_route_node_;
     }
 
     auto const pred_to = find_to(visited, sections, i - 1);
@@ -357,7 +374,7 @@ struct rule_service_route_builder {
       return pred_to;
     }
 
-    for (participant const& p : s->second) {
+    for (participant const& p : s->participants_) {
       auto const& p_sections = sections_.at(p.service_);
       auto const p_pred_to = find_to(visited, p_sections, p.section_idx_ - 1);
       if (p_pred_to != nullptr) {
@@ -379,28 +396,30 @@ struct rule_service_route_builder {
                            return p.service_ == s;
                          };
                          auto contains_curr =
-                             std::find_if(begin(ss->second), end(ss->second),
-                                          is_curr) != end(ss->second);
+                             std::find_if(begin(ss->participants_),
+                                          end(ss->participants_),
+                                          is_curr) != end(ss->participants_);
                          return contains_curr;
                        }),
            "every section contains participant");
-    verify(std::all_of(
-               begin(sections), end(sections),
-               [](service_section const* ss) {
-                 auto const get_from_to = [](participant const& p) {
-                   auto const stations = p.service_->route()->stations();
-                   auto const from = stations->Get(p.section_idx_);
-                   auto const to = stations->Get(p.section_idx_ + 1);
-                   return std::make_pair(from, to);
-                 };
+    verify(
+        std::all_of(begin(sections), end(sections),
+                    [](service_section const* ss) {
+                      auto const get_from_to = [](participant const& p) {
+                        auto const stations = p.service_->route()->stations();
+                        auto const from = stations->Get(p.section_idx_);
+                        auto const to = stations->Get(p.section_idx_ + 1);
+                        return std::make_pair(from, to);
+                      };
 
-                 auto const ref = get_from_to(ss->second.front());
-                 return std::all_of(begin(ss->second), end(ss->second),
-                                    [&get_from_to, &ref](participant const& p) {
-                                      return get_from_to(p) == ref;
-                                    });
-               }),
-           "service section station mismatch");
+                      auto const ref = get_from_to(ss->participants_.front());
+                      return std::all_of(
+                          begin(ss->participants_), end(ss->participants_),
+                          [&get_from_to, &ref](participant const& p) {
+                            return get_from_to(p) == ref;
+                          });
+                    }),
+        "service section station mismatch");
 
     auto const& r = s->route();
     auto const& stops = r->stations();
@@ -408,7 +427,7 @@ struct rule_service_route_builder {
     auto const& out_allowed = r->out_allowed();
     for (unsigned i = 0; i < stops->size() - 1; ++i) {
       auto section_idx = i;
-      if (sections[section_idx]->first.is_valid()) {
+      if (sections[section_idx]->route_section_.is_valid()) {
         continue;
       }
 
@@ -419,22 +438,25 @@ struct rule_service_route_builder {
       auto const from_route_node = find_from(v_from, sections, section_idx);
       auto const to_route_node = find_to(v_to, sections, section_idx);
 
-      sections[section_idx]->first = gb_.add_route_section(
+      sections[section_idx]->route_section_ = gb_.add_route_section(
           route_id_, build_connections(*sections[section_idx]),
-          stops->Get(from), in_allowed->Get(from) != 0u,
-          out_allowed->Get(from) != 0u, stops->Get(to),
-          in_allowed->Get(to) != 0u, out_allowed->Get(to) != 0u,
+          stops->Get(from),  //
+          sections[section_idx]->in_allowed_,  //
+          sections[section_idx]->out_allowed_,
+          stops->Get(to),  //
+          sections[section_idx + 1]->in_allowed_,  //
+          sections[section_idx + 1]->out_allowed_,  //
           from_route_node, to_route_node);
     }
 
     verify(std::all_of(begin(sections), end(sections),
-                       [](auto&& s) { return s->first.is_valid(); }),
+                       [](auto&& s) { return s->route_section_.is_valid(); }),
            "all built sections are valid");
     verify(
         [&sections]() {
           for (auto i = 0u; i < sections.size() - 1; ++i) {
-            if (sections[i]->first.to_route_node_ !=
-                sections[i + 1]->first.from_route_node_) {
+            if (sections[i]->route_section_.to_route_node_ !=
+                sections[i + 1]->route_section_.from_route_node_) {
               return false;
             }
           }
@@ -445,11 +467,12 @@ struct rule_service_route_builder {
 
   void write_trip_info(Service const* s,
                        std::vector<service_section*> const& sections) {
-    push_mem(gb_.sched_.trip_edges_,
-             utl::to_vec(
-                 begin(sections), end(sections), [](service_section* section) {
-                   return trip::route_edge(section->first.get_route_edge());
-                 }));
+    push_mem(
+        gb_.sched_.trip_edges_,
+        utl::to_vec(
+            begin(sections), end(sections), [](service_section* section) {
+              return trip::route_edge(section->route_section_.get_route_edge());
+            }));
 
     auto edges = gb_.sched_.trip_edges_.back().get();
     int lcon_idx = 0;
@@ -474,7 +497,8 @@ struct rule_service_route_builder {
   node* get_through_route_node(Service const* service, Station const* station,
                                bool source) {
     auto get_node = [source](service_section const* s) {
-      return source ? s->first.to_route_node_ : s->first.from_route_node_;
+      return source ? s->route_section_.to_route_node_
+                    : s->route_section_.from_route_node_;
     };
 
     auto station_it = gb_.stations_.find(station);
