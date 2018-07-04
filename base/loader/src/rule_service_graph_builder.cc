@@ -444,8 +444,12 @@ struct rule_service_route_builder {
           sections[section_idx]->in_allowed_,  //
           sections[section_idx]->out_allowed_,
           stops->Get(to),  //
-          sections[section_idx + 1]->in_allowed_,  //
-          sections[section_idx + 1]->out_allowed_,  //
+          section_idx + 1 >= sections.size()
+              ? true
+              : sections[section_idx + 1]->in_allowed_,  //
+          section_idx + 1 >= sections.size()
+              ? true
+              : sections[section_idx + 1]->out_allowed_,  //
           from_route_node, to_route_node);
     }
 
