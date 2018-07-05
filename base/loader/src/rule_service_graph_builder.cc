@@ -42,8 +42,8 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
 using neighbor = std::pair<Service const*, Rule const*>;
 struct service_section {
   service_section()
-      : route_section_(route_section()),
-        participants_(std::vector<participant>()),
+      : route_section_(),
+        participants_(),
         in_allowed_(false),
         out_allowed_(false){};
   route_section route_section_;
@@ -434,7 +434,7 @@ struct rule_service_route_builder {
       auto from = section_idx;
       auto to = section_idx + 1;
 
-      std::set<service_section*> v_from, v_to;  // visited sets
+      std::set<service_section *> v_from, v_to;  // visited sets
       auto const from_route_node = find_from(v_from, sections, section_idx);
       auto const to_route_node = find_to(v_to, sections, section_idx);
 
@@ -450,7 +450,8 @@ struct rule_service_route_builder {
           section_idx + 1 >= sections.size()
               ? true
               : sections[section_idx + 1]->out_allowed_,  //
-          from_route_node, to_route_node);
+          from_route_node,
+          to_route_node);
     }
 
     verify(std::all_of(begin(sections), end(sections),
