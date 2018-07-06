@@ -41,11 +41,17 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
 
 using neighbor = std::pair<Service const*, Rule const*>;
 struct service_section {
-  service_section() : in_allowed_(false), out_allowed_(false){};
+  service_section()
+      : in_allowed_from_(false),
+        out_allowed_from_(false),
+        in_allowed_to_(false),
+        out_allowed_to_(false){};
   route_section route_section_;
   std::vector<participant> participants_;
-  bool in_allowed_;
-  bool out_allowed_;
+  bool in_allowed_from_;
+  bool out_allowed_from_;
+  bool in_allowed_to_;
+  bool out_allowed_to_;
 };
 
 struct rule_service_section_builder {
@@ -163,12 +169,18 @@ struct rule_service_section_builder {
 
       if (not_already_added) {
         section_participants.emplace_back(service, service_section_idx);
-        sections_[service][service_section_idx]->in_allowed_ =
-            sections_[service][service_section_idx]->in_allowed_ ||
+        sections_[service][service_section_idx]->in_allowed_from_ =
+            sections_[service][service_section_idx]->in_allowed_from_ ||
             service->route()->in_allowed()->Get(service_section_idx) != 0u;
-        sections_[service][service_section_idx]->out_allowed_ =
-            sections_[service][service_section_idx]->in_allowed_ ||
+        sections_[service][service_section_idx]->out_allowed_from_ =
+            sections_[service][service_section_idx]->out_allowed_from_ ||
             service->route()->out_allowed()->Get(service_section_idx) != 0u;
+        sections_[service][service_section_idx]->in_allowed_to_ =
+            sections_[service][service_section_idx]->in_allowed_to_ ||
+            service->route()->in_allowed()->Get(service_section_idx + 1) != 0u;
+        sections_[service][service_section_idx]->out_allowed_to_ =
+            sections_[service][service_section_idx]->out_allowed_to_ ||
+            service->route()->out_allowed()->Get(service_section_idx + 1) != 0u;
       }
     }
   }
@@ -437,15 +449,11 @@ struct rule_service_route_builder {
       sections[section_idx]->route_section_ = gb_.add_route_section(
           route_id_, build_connections(*sections[section_idx]),
           stops->Get(from),  //
-          sections[section_idx]->in_allowed_,  //
-          sections[section_idx]->out_allowed_,
+          sections[section_idx]->in_allowed_from_,  //
+          sections[section_idx]->out_allowed_from_,
           stops->Get(to),  //
-          section_idx + 1 >= sections.size()
-              ? true
-              : sections[section_idx + 1]->in_allowed_,  //
-          section_idx + 1 >= sections.size()
-              ? true
-              : sections[section_idx + 1]->out_allowed_,  //
+          sections[section_idx]->in_allowed_to_,  //
+          sections[section_idx]->out_allowed_to_,  //
           from_route_node, to_route_node);
     }
 
