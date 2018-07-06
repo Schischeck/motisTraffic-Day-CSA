@@ -40,18 +40,14 @@ bool has_active_days(bitfield const& traffic_days, int first, int last) {
 }
 
 using neighbor = std::pair<Service const*, Rule const*>;
+
 struct service_section {
-  service_section()
-      : in_allowed_from_(false),
-        out_allowed_from_(false),
-        in_allowed_to_(false),
-        out_allowed_to_(false){};
   route_section route_section_;
   std::vector<participant> participants_;
-  bool in_allowed_from_;
-  bool out_allowed_from_;
-  bool in_allowed_to_;
-  bool out_allowed_to_;
+  bool in_allowed_from_ = false;
+  bool out_allowed_from_ = false;
+  bool in_allowed_to_ = false;
+  bool out_allowed_to_ = false;
 };
 
 struct rule_service_section_builder {
@@ -169,17 +165,15 @@ struct rule_service_section_builder {
 
       if (not_already_added) {
         section_participants.emplace_back(service, service_section_idx);
-        sections_[service][service_section_idx]->in_allowed_from_ =
-            sections_[service][service_section_idx]->in_allowed_from_ ||
+
+        auto& ss = sections_[service][service_section_idx];
+        ss->in_allowed_from_ |=
             service->route()->in_allowed()->Get(service_section_idx) != 0u;
-        sections_[service][service_section_idx]->out_allowed_from_ =
-            sections_[service][service_section_idx]->out_allowed_from_ ||
+        ss->out_allowed_from_ |=
             service->route()->out_allowed()->Get(service_section_idx) != 0u;
-        sections_[service][service_section_idx]->in_allowed_to_ =
-            sections_[service][service_section_idx]->in_allowed_to_ ||
+        ss->in_allowed_to_ |=
             service->route()->in_allowed()->Get(service_section_idx + 1) != 0u;
-        sections_[service][service_section_idx]->out_allowed_to_ =
-            sections_[service][service_section_idx]->out_allowed_to_ ||
+        ss->out_allowed_to_ |=
             service->route()->out_allowed()->Get(service_section_idx + 1) != 0u;
       }
     }
