@@ -136,7 +136,7 @@ struct light_connection {
     return t == event_type::DEP ? d_time_ : a_time_;
   }
 
-  unsigned travel_time() const { return a_time_ - d_time_; }
+  time travel_time() const { return a_time_ - d_time_; }
 
   bool operator<(light_connection const& o) const {
     return d_time_ < o.d_time_;

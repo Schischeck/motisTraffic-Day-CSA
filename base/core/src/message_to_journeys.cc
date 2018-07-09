@@ -58,7 +58,7 @@ journey::trip create_empty_trip() {
   return t;
 }
 
-journey::transport to_transport(Walk const& walk, uint16_t duration) {
+journey::transport to_transport(Walk const& walk, time duration) {
   auto t = create_empty_transport();
   t.is_walk_ = true;
   t.duration_ = duration;
@@ -70,7 +70,7 @@ journey::transport to_transport(Walk const& walk, uint16_t duration) {
   return t;
 }
 
-journey::transport to_transport(Transport const& transport, uint16_t duration) {
+journey::transport to_transport(Transport const& transport, time duration) {
   auto t = create_empty_transport();
   t.duration_ = duration;
   t.from_ = transport.range()->from();
@@ -110,12 +110,12 @@ journey::attribute to_attribute(Attribute const& attribute) {
   return a;
 }
 
-uint16_t get_move_duration(
+time get_move_duration(
     Range const& range,
     flatbuffers::Vector<flatbuffers::Offset<Stop>> const& stops) {
   Stop const& from = *stops[range.from()];
   Stop const& to = *stops[range.to()];
-  return (to.arrival()->time() - from.departure()->time()) / 60;
+  return time((to.arrival()->time() - from.departure()->time()) / 60);
 }
 
 journey convert(Connection const* conn) {

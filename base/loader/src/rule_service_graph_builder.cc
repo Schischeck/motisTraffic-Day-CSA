@@ -200,11 +200,11 @@ struct lcon_time_adjuster {
       auto& curr_arr = curr_lcon.a_time_;
 
       if (last_arr > curr_dep) {
-        curr_dep += 60;
+        curr_dep = curr_dep + time(60);
       }
 
       if (curr_dep > curr_arr) {
-        curr_arr += 60;
+        curr_arr = curr_arr + time(60);
       }
 
       assert(last_arr <= curr_dep && curr_dep <= curr_arr);
@@ -320,7 +320,7 @@ struct rule_service_route_builder {
       if (traffic_days_.test(day_idx)) {
         lcons.push_back(
             gb_.section_to_connection(get_or_create_trips(services, day_idx),
-                                      services, day_idx, 0, adjusted));
+                                      services, day_idx, time(0), adjusted));
       }
     }
     return lcons;

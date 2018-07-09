@@ -41,8 +41,8 @@ inline uint16_t night_travel_duration(time const travel_begin,
   assert(night_begin < MINUTES_A_DAY);
   assert(night_end < MINUTES_A_DAY);
 
-  uint16_t const tb = travel_begin % MINUTES_A_DAY;
-  uint16_t const te = travel_end % MINUTES_A_DAY;
+  uint16_t const tb = travel_begin.mam();
+  uint16_t const te = travel_end.mam();
 
   if (night_begin < night_end) {
     if (tb < te) {

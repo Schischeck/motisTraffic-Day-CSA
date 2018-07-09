@@ -10,12 +10,12 @@ constexpr auto TRANSFER_COST = 20;
 constexpr auto MAX_WEIGHTED = MAX_TRAVEL_TIME + TRANSFER_COST * MAX_TRANSFERS;
 
 struct weighted {
-  duration weighted_, weighted_lb_;
+  uint64_t weighted_, weighted_lb_;
 };
 
 struct get_weighted_lb {
   template <typename Label>
-  duration operator()(Label const* l) {
+  uint64_t operator()(Label const* l) {
     return l->weighted_lb_;
   }
 };
@@ -23,7 +23,7 @@ struct get_weighted_lb {
 struct weighted_initializer {
   template <typename Label, typename LowerBounds>
   static void init(Label& l, LowerBounds& lb) {
-    l.weighted_ = std::abs(l.now_ - l.start_);
+    l.weighted_ = std::abs(l.now_.ts() - l.start_.ts());
 
     auto const tt_lb = lb.travel_time_[l.get_node()];
     auto const ic_lb = lb.transfers_[l.get_node()];
@@ -31,7 +31,7 @@ struct weighted_initializer {
         lb.transfers_.is_reachable(ic_lb)) {
       l.weighted_lb_ = l.weighted_ + tt_lb + (TRANSFER_COST * ic_lb);
     } else {
-      l.weighted_lb_ = std::numeric_limits<duration>::max();
+      l.weighted_lb_ = std::numeric_limits<uint64_t>::max();
     }
   }
 };
@@ -39,7 +39,7 @@ struct weighted_initializer {
 struct weighted_updater {
   template <typename Label, typename LowerBounds>
   static void update(Label& l, edge_cost const& ec, LowerBounds& lb) {
-    l.weighted_ += ec.time_;
+    l.weighted_ += ec.time_.ts();
     if (ec.transfer_) {
       l.weighted_ += TRANSFER_COST;
     }
@@ -50,7 +50,7 @@ struct weighted_updater {
         lb.transfers_.is_reachable(ic_lb)) {
       l.weighted_lb_ = l.weighted_ + tt_lb + (TRANSFER_COST * ic_lb);
     } else {
-      l.weighted_lb_ = std::numeric_limits<duration>::max();
+      l.weighted_lb_ = std::numeric_limits<uint64_t>::max();
     }
   }
 };

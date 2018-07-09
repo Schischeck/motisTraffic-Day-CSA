@@ -29,7 +29,7 @@ struct transport {
 
   unsigned from_, to_;
   light_connection const* con_;
-  unsigned duration_;
+  time duration_;
   int mumo_id_;
   unsigned mumo_price_;
 };

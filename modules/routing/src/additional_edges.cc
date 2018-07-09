@@ -23,7 +23,7 @@ std::vector<edge> create_additional_edges(
         edges.push_back(make_mumo_edge(
             get_station_node(sched, info->from_station_id()->str()),
             get_station_node(sched, info->to_station_id()->str()),
-            info->duration(), info->price(), info->mumo_id()));
+            time(info->duration()), info->price(), info->mumo_id()));
         break;
       }
 
@@ -34,7 +34,7 @@ std::vector<edge> create_additional_edges(
         edges.push_back(make_time_dependent_mumo_edge(
             get_station_node(sched, edge->from_station_id()->str()),
             get_station_node(sched, edge->to_station_id()->str()),
-            edge->duration(), edge->price(), edge->mumo_id(),
+            time(edge->duration()), edge->price(), edge->mumo_id(),
             unix_to_motistime(sched.schedule_begin_, info->interval()->begin()),
             unix_to_motistime(sched.schedule_begin_, info->interval()->end())));
         break;
@@ -48,8 +48,9 @@ std::vector<edge> create_additional_edges(
             get_station_node(sched, edge->to_station_id()->str());
         edges.push_back(make_periodic_mumo_edge(
             get_station_node(sched, edge->from_station_id()->str()),
-            head_station, edge->duration(), edge->price(), edge->mumo_id(),
-            info->interval()->begin(), info->interval()->end()));
+            head_station, time(edge->duration()), edge->price(),
+            edge->mumo_id(), time(info->interval()->begin()),
+            time(info->interval()->end())));
         break;
       }
 

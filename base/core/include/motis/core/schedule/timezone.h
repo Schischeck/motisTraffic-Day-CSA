@@ -1,5 +1,6 @@
 #pragma once
 
+#include <climits>
 #include <ctime>
 
 #include "motis/core/schedule/time.h"
@@ -15,7 +16,7 @@ struct season {
 struct timezone {
   explicit timezone(int general_offset)
       : general_offset_(general_offset),
-        season_({INVALID_TIME, INVALID_TIME, INVALID_TIME}) {}
+        season_({INT_MAX, INVALID_TIME, INVALID_TIME}) {}
 
   timezone(int general_offset, season s)
       : general_offset_(general_offset), season_(s) {}

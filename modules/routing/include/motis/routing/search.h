@@ -53,7 +53,7 @@ struct search {
       auto const from = (Dir == search_dir::FWD) ? orig_from : orig_to;
       auto const to = (Dir == search_dir::FWD) ? orig_to : orig_from;
       auto const ec = e.get_minimum_cost();
-      travel_time_lb_graph_edges[to].emplace_back(from, ec.time_);
+      travel_time_lb_graph_edges[to].emplace_back(from, ec.time_.ts());
       transfers_lb_graph_edges[to].emplace_back(from, ec.transfer_ ? 1 : 0);
     }
 
@@ -98,9 +98,9 @@ struct search {
           interval_end));
     };
 
-    time const schedule_begin = SCHEDULE_OFFSET_MINUTES;
+    time const schedule_begin = time(SCHEDULE_OFFSET_MINUTES);
     time const schedule_end =
-        (q.sched_->schedule_end_ - q.sched_->schedule_begin_) / 60;
+        time((q.sched_->schedule_end_ - q.sched_->schedule_begin_) / 60);
 
     auto const map_to_interval = [&schedule_begin, &schedule_end](time t) {
       return std::min(schedule_end, std::max(schedule_begin, t));

@@ -175,7 +175,7 @@ full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
 
   full_trip_id id;
   id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
-  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time, line_id);
+  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time.ts(), line_id);
   return id;
 }
 
@@ -265,7 +265,7 @@ void graph_builder::add_route_services(
         continue;
       }
 
-      time prev_arr = 0;
+      time prev_arr = time(0);
       bool adjusted = false;
       std::vector<light_connection> lcons;
       auto t = create_merged_trips(s, day);
@@ -517,7 +517,7 @@ void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
     }
 
     next_node_id_ = from_node->add_foot_edge(
-        next_node_id_, make_foot_edge(from_node, to_node, duration));
+        next_node_id_, make_foot_edge(from_node, to_node, time(duration)));
   }
 }
 

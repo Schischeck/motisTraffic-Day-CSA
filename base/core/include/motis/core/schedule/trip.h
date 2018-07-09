@@ -15,9 +15,9 @@
 namespace motis {
 
 struct primary_trip_id {
-  primary_trip_id() : station_id_{0}, time_{INVALID_TIME}, train_nr_{0} {}
+  primary_trip_id() : station_id_{0}, time_{INVALID_TIME.ts()}, train_nr_{0} {}
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
-      : station_id_(station_id), time_(time), train_nr_(train_nr) {}
+      : station_id_(station_id), time_(time.ts()), train_nr_(train_nr) {}
 
   friend bool operator<(primary_trip_id const& lhs,
                         primary_trip_id const& rhs) {
@@ -31,7 +31,7 @@ struct primary_trip_id {
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
 
-  motis::time get_time() const { return static_cast<motis::time>(time_); }
+  motis::time get_time() const { return time(time_); }
   uint32_t get_train_nr() const { return static_cast<uint32_t>(train_nr_); }
 
   uint64_t station_id_ : 31;
@@ -158,7 +158,7 @@ struct hash<motis::secondary_trip_id> {
   std::size_t operator()(motis::secondary_trip_id const& e) const {
     std::size_t seed = 0;
     motis::hash_combine(seed, e.target_station_id_);
-    motis::hash_combine(seed, e.target_time_);
+    motis::hash_combine(seed, e.target_time_.ts());
     motis::hash_combine(seed, e.line_id_);
     return seed;
   }

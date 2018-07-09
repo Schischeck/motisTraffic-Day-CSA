@@ -35,7 +35,7 @@ inline constant_graph build_station_graph(
 
   auto add_edges = [&g, dir](station_node const& sn) {
     // Stores the minimum distance to each neighboring station.
-    std::unordered_map<uint32_t /* neighbor station node id */, duration> min;
+    std::unordered_map<uint32_t /* neighbor station node id */, uint32_t> min;
 
     auto update_min = [&min](uint32_t const from, edge_cost const& ec) {
       if (!ec.is_valid()) {
@@ -44,7 +44,7 @@ inline constant_graph build_station_graph(
 
       auto const it = min.find(from);
       if (it == end(min) || ec.time_ < it->second) {
-        min[from] = ec.time_;
+        min[from] = ec.time_.ts();
       }
     };
 

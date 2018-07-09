@@ -40,8 +40,8 @@ inline time unix_to_motistime(schedule const& sched, std::time_t t) {
 
 inline time motis_time(int const hhmm, int const day_idx = 0,
                        int const timezone_offset = kDefaultTimezoneOffset) {
-  return SCHEDULE_OFFSET_MINUTES + day_idx * MINUTES_A_DAY + hhmm_to_min(hhmm) -
-         timezone_offset;
+  return time(SCHEDULE_OFFSET_MINUTES + day_idx * MINUTES_A_DAY +
+              hhmm_to_min(hhmm) - timezone_offset);
 }
 
 inline std::time_t unix_time(

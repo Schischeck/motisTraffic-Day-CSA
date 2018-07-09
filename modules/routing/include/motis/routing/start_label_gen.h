@@ -52,7 +52,7 @@ struct pretrip_gen {
           mem, lbs, start_edge, nullptr,
           (Dir == search_dir::FWD ? start_edge->to_ : start_edge->from_)
               ->get_station(),
-          0, interval_begin, interval_end, interval_end, labels);
+          time(0), interval_begin, interval_end, interval_end, labels);
     }
 
     return labels;
@@ -63,7 +63,7 @@ struct pretrip_gen {
                                     edge const* start_edge,
                                     edge const* query_edge,
                                     station_node const* station,  //
-                                    duration d,  //
+                                    time d,  //
                                     time departure_begin, time departure_end,
                                     time edge_interval_end,
                                     std::vector<Label*>& labels) {
@@ -109,7 +109,7 @@ struct pretrip_gen {
                                     lower_bounds& lbs,  //
                                     edge const* start_edge,
                                     edge const* query_edge,
-                                    duration d,  //
+                                    time d,  //
                                     time departure_begin, time departure_end,
                                     time edge_interval_end,
                                     std::vector<Label*>& labels) {
@@ -132,7 +132,7 @@ struct pretrip_gen {
 
     auto i = 0;
     auto t = (Dir == search_dir::FWD) ? departure_begin : departure_end;
-    auto const max_start_labels = departure_end - departure_begin + 1;
+    auto const max_start_labels = departure_end.ts() - departure_begin.ts() + 1;
     while (!end_reached(t)) {
       auto con = re.get_connection<Dir>(t);
 
@@ -142,8 +142,7 @@ struct pretrip_gen {
 
       t = get_time(con);
 
-      auto time_off =
-          d + std::max(static_cast<int>(t) - d - edge_interval_end, 0);
+      auto time_off = d + std::max(t - d - edge_interval_end, time(0));
 
       if (query_edge == nullptr) {
         auto l = mem.create<Label>(start_edge, nullptr, t, lbs);

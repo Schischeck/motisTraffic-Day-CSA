@@ -30,7 +30,7 @@ timezone create_timezone(int general_offset, int season_offset,
     return timezone(general_offset);
   }
 
-  time season_begin = 0;
+  time season_begin = time(0);
   if (day_idx_schedule_first_day <= day_idx_season_first_day) {
     season_begin = to_motis_time(
         day_idx(day_idx_schedule_first_day, day_idx_schedule_last_day,
@@ -49,26 +49,27 @@ timezone create_timezone(int general_offset, int season_offset,
   return {general_offset, {season_offset, season_begin, season_end}};
 }
 
-time get_event_time(int day_idx, int local_time, timezone const* tz) {
+time get_event_time(int day_idx, uint32_t local_time, timezone const* tz) {
   return tz != nullptr ? tz->to_motis_time(day_idx, local_time)
                        : to_motis_time(day_idx, local_time);
 }
 
-time get_adjusted_event_time(int day_idx, int local_time, timezone const* tz) {
+time get_adjusted_event_time(int day_idx, uint32_t local_time,
+                             timezone const* tz) {
   auto const t = get_event_time(day_idx, local_time, tz);
-  if (t != INVALID_TIME) {
+  if (t.valid()) {
     return t;
   }
 
   auto const adjusted = get_event_time(day_idx, local_time + kAdjust, tz);
-  verify(adjusted != INVALID_TIME, "adjusted needs to be valid");
+  verify(adjusted.valid(), "adjusted needs to be valid");
   return adjusted;
 }
 
 std::pair<time, time> get_event_times(int day_idx,  //
-                                      int prev_arr_motis_time,
-                                      int curr_dep_local_time,
-                                      int curr_arr_local_time,
+                                      time prev_arr_motis_time,
+                                      uint32_t curr_dep_local_time,
+                                      uint32_t curr_arr_local_time,
                                       timezone const* tz_dep,
                                       timezone const* tz_arr, bool& adjusted) {
   auto const offset = adjusted ? kAdjust : 0;
@@ -80,7 +81,7 @@ std::pair<time, time> get_event_times(int day_idx,  //
   auto arr_motis_time =
       get_event_time(day_idx, curr_arr_local_time + offset, tz_arr);
 
-  if (prev_arr_motis_time > dep_motis_time || dep_motis_time == INVALID_TIME) {
+  if (prev_arr_motis_time > dep_motis_time || !dep_motis_time.valid()) {
     dep_motis_time =
         get_event_time(day_idx, curr_dep_local_time + total_offset, tz_dep);
     arr_motis_time =
@@ -89,14 +90,14 @@ std::pair<time, time> get_event_times(int day_idx,  //
     verify(!prev_adjusted, "double adjustment of time offset [case 1]");
   }
 
-  if (arr_motis_time == INVALID_TIME) {
+  if (!arr_motis_time.valid()) {
     arr_motis_time =
         get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
     adjusted = true;
     verify(!prev_adjusted, "double adjustment of time offset [case 2]");
   }
 
-  if (dep_motis_time == INVALID_TIME) {
+  if (!dep_motis_time.valid()) {
     dep_motis_time =
         get_event_time(day_idx, curr_dep_local_time + total_offset, tz_dep);
     adjusted = true;

@@ -40,14 +40,14 @@ struct label : public Data {  // NOLINT
       return false;
     }
     if (no_cost) {
-      ec.time_ = 0;
+      ec.time_ = time(0);
     }
 
     l = *this;
     l.pred_ = this;
     l.edge_ = &e;
     l.connection_ = ec.connection_;
-    l.now_ += (Dir == search_dir::FWD) ? ec.time_ : -ec.time_;
+    l.now_ = l.now_ + ((Dir == search_dir::FWD) ? ec.time_ : -ec.time_);
 
     Updater::update(l, ec, lb);
     return !l.is_filtered();

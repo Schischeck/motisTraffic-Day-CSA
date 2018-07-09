@@ -36,7 +36,7 @@ waiting_time_rules load_waiting_time_rules(
   int number_of_groups = categories.size();
   rules.waits_for_other_trains_.resize(number_of_groups + 1);
   rules.other_trains_wait_for_.resize(number_of_groups + 1);
-  rules.waiting_time_matrix_ = flat_matrix<duration>(number_of_groups + 1);
+  rules.waiting_time_matrix_ = flat_matrix<uint32_t>(number_of_groups + 1);
 
   for (int i = 0; i < number_of_groups; i++) {
     int group = i + 1;  // groups are one-based

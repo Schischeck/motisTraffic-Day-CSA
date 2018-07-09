@@ -125,7 +125,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
   node const* last_route_node = nullptr;
   light_connection const* last_con = nullptr;
   auto walk_arrival = INVALID_TIME;
-  auto walk_arrival_di = delay_info({nullptr, INVALID_TIME, event_type::DEP});
+  auto walk_arrival_di = delay_info({nullptr, 0, event_type::DEP});
   auto stop_index = -1;
 
   auto it = begin(labels);
@@ -225,7 +225,7 @@ parse_label_chain(schedule const& sched, Label* terminal_label,
 
         transports.emplace_back(stop_index,
                                 static_cast<unsigned int>(stop_index) + 1,
-                                std::next(it)->now_ - current.now_,
+                                std::next(it)->now_.ts() - current.now_.ts(),
                                 std::next(it)->edge_->get_mumo_id(), 0);
 
         walk_arrival = std::next(it)->now_;

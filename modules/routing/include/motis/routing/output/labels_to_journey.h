@@ -61,7 +61,7 @@ journey labels_to_journey(schedule const& sched, Label* label,
   j.trips_ = generate_journey_trips(t, sched);
   j.attributes_ = generate_journey_attributes(t);
 
-  j.duration_ = label->now_ - label->start_;
+  j.duration_ = label->now_.ts() - label->start_.ts();
   j.transfers_ =
       std::accumulate(begin(j.stops_), end(j.stops_), 0,
                       [](int transfers_count, journey::stop const& s) {
