@@ -30,7 +30,7 @@ timezone create_timezone(int general_offset, int season_offset,
     return timezone(general_offset);
   }
 
-  time season_begin = time(0);
+  time season_begin = 0;
   if (day_idx_schedule_first_day <= day_idx_season_first_day) {
     season_begin = to_motis_time(
         day_idx(day_idx_schedule_first_day, day_idx_schedule_last_day,

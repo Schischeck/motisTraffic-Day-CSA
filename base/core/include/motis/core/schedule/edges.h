@@ -68,8 +68,8 @@ public:
 
   /** foot edge constructor. */
   edge(node* from, node* to, uint8_t type, time time_cost, uint16_t price,
-       bool transfer, int mumo_id = 0, time interval_begin = time(0),
-       time interval_end = time(0))
+       bool transfer, int mumo_id = 0, time interval_begin = 0,
+       time interval_end = 0)
       : from_(from), to_(to) {
     m_.type_ = type;
     m_.foot_edge_.time_cost_ = time_cost;
@@ -121,7 +121,7 @@ public:
 
       case HOTEL_EDGE: return calc_cost_hotel_edge(start_time);
 
-      case THROUGH_EDGE: return edge_cost(time(0), false, 0);
+      case THROUGH_EDGE: return edge_cost(0, false, 0);
 
       default: return NO_EDGE;
     }
@@ -145,13 +145,13 @@ public:
             false, std::begin(m_.route_edge_.conns_)->full_con_->price_);
       }
     } else if (m_.type_ == FOOT_EDGE || m_.type_ == AFTER_TRAIN_FOOT_EDGE) {
-      return edge_cost(time(0), m_.foot_edge_.transfer_);
+      return edge_cost(0, m_.foot_edge_.transfer_);
     } else if (m_.type_ == HOTEL_EDGE) {
-      return edge_cost(time(0), false, m_.hotel_edge_.price_);
+      return edge_cost(0, false, m_.hotel_edge_.price_);
     } else if (m_.type_ == MUMO_EDGE || m_.type_ == TIME_DEPENDENT_MUMO_EDGE) {
-      return edge_cost(time(0), false, m_.foot_edge_.price_);
+      return edge_cost(0, false, m_.foot_edge_.price_);
     } else {
-      return edge_cost(time(0));
+      return edge_cost(0);
     }
   }
 
@@ -213,7 +213,7 @@ public:
     } else {
       auto it = std::lower_bound(
           m_.route_edge_.conns_.rbegin(), m_.route_edge_.conns_.rend(),
-          light_connection(time(0), start_time, nullptr),
+          light_connection(0, start_time, nullptr),
           [](light_connection const& lhs, light_connection const& rhs) {
             return lhs.a_time_ > rhs.a_time_;
           });
@@ -299,7 +299,7 @@ public:
       if (timestamp < period_begin) {
         return period_begin - timestamp;
       } else if (timestamp > period_end) {
-        return (time(MINUTES_A_DAY) - timestamp) + period_begin;
+        return (time{MINUTES_A_DAY} - timestamp) + period_begin;
       }
     }
     /* validity-period is over midnight */
@@ -307,7 +307,7 @@ public:
       return period_begin - timestamp;
     }
 
-    return time(0);
+    return 0;
   }
 
   node* from_;
@@ -407,7 +407,7 @@ public:
       time interval_end_;
 
       void init_empty() {
-        time_cost_ = time(0);
+        time_cost_ = 0;
         price_ = 0;
         transfer_ = false;
         mumo_id_ = -1;
@@ -430,7 +430,7 @@ private:
       return NO_EDGE;
     }
     auto const time_off =
-        std::max(time(0), m_.foot_edge_.interval_begin_ - start_time);
+        std::max(time{0}, m_.foot_edge_.interval_begin_ - start_time);
     return edge_cost(time_off + m_.foot_edge_.time_cost_,
                      m_.foot_edge_.transfer_, m_.foot_edge_.price_);
   }
@@ -453,18 +453,17 @@ inline edge make_route_edge(node* from, node* to,
   return edge(from, to, connections);
 }
 
-inline edge make_foot_edge(node* from, node* to, time time_cost = time(0),
+inline edge make_foot_edge(node* from, node* to, time time_cost = 0,
                            bool transfer = false) {
   return edge(from, to, edge::FOOT_EDGE, time_cost, 0, transfer);
 }
 
-inline edge make_after_train_edge(node* from, node* to,
-                                  time time_cost = time(0),
+inline edge make_after_train_edge(node* from, node* to, time time_cost = 0,
                                   bool transfer = false) {
   return edge(from, to, edge::AFTER_TRAIN_FOOT_EDGE, time_cost, 0, transfer);
 }
 
-inline edge make_mumo_edge(node* from, node* to, time time_cost = time(0),
+inline edge make_mumo_edge(node* from, node* to, time time_cost = 0,
                            uint16_t price = 0, int mumo_id = 0) {
   return edge(from, to, edge::MUMO_EDGE, time_cost, price, false, mumo_id);
 }
@@ -491,11 +490,11 @@ inline edge make_hotel_edge(node* station_node, uint16_t checkout_time,
 }
 
 inline edge make_invalid_edge(node* from, node* to) {
-  return edge(from, to, edge::INVALID_EDGE, time(0), 0, false, 0);
+  return edge(from, to, edge::INVALID_EDGE, 0, 0, false, 0);
 }
 
 inline edge make_through_edge(node* from, node* to) {
-  return edge(from, to, edge::THROUGH_EDGE, time(0), 0, false, 0);
+  return edge(from, to, edge::THROUGH_EDGE, 0, 0, false, 0);
 }
 
 }  // namespace motis

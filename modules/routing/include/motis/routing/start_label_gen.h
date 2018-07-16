@@ -52,7 +52,7 @@ struct pretrip_gen {
           mem, lbs, start_edge, nullptr,
           (Dir == search_dir::FWD ? start_edge->to_ : start_edge->from_)
               ->get_station(),
-          time(0), interval_begin, interval_end, interval_end, labels);
+          0, interval_begin, interval_end, interval_end, labels);
     }
 
     return labels;
@@ -142,7 +142,7 @@ struct pretrip_gen {
 
       t = get_time(con);
 
-      auto time_off = d + std::max(t - d - edge_interval_end, time(0));
+      auto time_off = d + std::max(t - d - edge_interval_end, time{0});
 
       if (query_edge == nullptr) {
         auto l = mem.create<Label>(start_edge, nullptr, t, lbs);

@@ -19,7 +19,7 @@ public:
             day + static_cast<int16_t>(minute / MINUTES_A_DAY))},
         min_{static_cast<decltype(min_)>(minute % MINUTES_A_DAY)} {}
 
-  explicit time(int64_t timestamp)
+  time(int64_t timestamp)
       : day_{static_cast<decltype(day_)>(std::abs(timestamp) / MINUTES_A_DAY)},
         min_{static_cast<decltype(min_)>(std::abs(timestamp) % MINUTES_A_DAY)} {
     if (timestamp < 0) {
@@ -117,6 +117,8 @@ public:
 
     return *this;
   }
+
+  friend bool operator==(time t, int i) { return i == t.ts(); }
 
   friend std::ostream& operator<<(std::ostream& out, time const& t) {
     return !t.valid() ? (out << "INVALID")

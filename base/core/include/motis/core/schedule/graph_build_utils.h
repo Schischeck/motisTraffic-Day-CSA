@@ -20,12 +20,12 @@ inline node* build_route_node(int route_index, int node_id,
     route_node->edges_.push_back(make_invalid_edge(route_node, station_node));
   } else {
     route_node->edges_.push_back(
-        make_foot_edge(route_node, station_node, time(transfer_time), true));
+        make_foot_edge(route_node, station_node, transfer_time, true));
   }
 
   if (station_node->foot_node_ != nullptr && out_allowed) {
-    route_node->edges_.push_back(make_after_train_edge(
-        route_node, station_node->foot_node_, time(0), true));
+    route_node->edges_.push_back(
+        make_after_train_edge(route_node, station_node->foot_node_, 0, true));
   }
 
   return route_node;

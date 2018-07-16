@@ -40,7 +40,7 @@ struct label : public Data {  // NOLINT
       return false;
     }
     if (no_cost) {
-      ec.time_ = time(0);
+      ec.time_ = 0;
     }
 
     l = *this;

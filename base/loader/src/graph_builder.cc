@@ -265,7 +265,7 @@ void graph_builder::add_route_services(
         continue;
       }
 
-      time prev_arr = time(0);
+      time prev_arr = 0;
       bool adjusted = false;
       std::vector<light_connection> lcons;
       auto t = create_merged_trips(s, day);
@@ -517,7 +517,7 @@ void graph_builder::add_footpaths(Vector<Offset<Footpath>> const* footpaths) {
     }
 
     next_node_id_ = from_node->add_foot_edge(
-        next_node_id_, make_foot_edge(from_node, to_node, time(duration)));
+        next_node_id_, make_foot_edge(from_node, to_node, duration));
   }
 }
 

@@ -48,9 +48,8 @@ std::vector<edge> create_additional_edges(
             get_station_node(sched, edge->to_station_id()->str());
         edges.push_back(make_periodic_mumo_edge(
             get_station_node(sched, edge->from_station_id()->str()),
-            head_station, time(edge->duration()), edge->price(),
-            edge->mumo_id(), time(info->interval()->begin()),
-            time(info->interval()->end())));
+            head_station, edge->duration(), edge->price(), edge->mumo_id(),
+            info->interval()->begin(), info->interval()->end()));
         break;
       }
 

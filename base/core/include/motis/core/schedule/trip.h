@@ -31,7 +31,7 @@ struct primary_trip_id {
            *reinterpret_cast<uint64_t const*>(&rhs);
   }
 
-  motis::time get_time() const { return time(time_); }
+  motis::time get_time() const { return time_; }
   uint32_t get_train_nr() const { return static_cast<uint32_t>(train_nr_); }
 
   uint64_t station_id_ : 31;
