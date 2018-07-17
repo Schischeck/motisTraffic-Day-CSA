@@ -66,52 +66,13 @@ time get_adjusted_event_time(int day_idx, uint32_t local_time,
   return adjusted;
 }
 
-std::pair<time, time> get_event_times(int day_idx,  //
-                                      time prev_arr_motis_time,
-                                      uint32_t curr_dep_local_time,
-                                      uint32_t curr_arr_local_time,
-                                      timezone const* tz_dep,
-                                      timezone const* tz_arr, bool& adjusted) {
-  auto const offset = adjusted ? kAdjust : 0;
-  auto const total_offset = offset + kAdjust;
-  auto const prev_adjusted = adjusted;
-
-  auto dep_motis_time =
-      get_event_time(day_idx, curr_dep_local_time + offset, tz_dep);
-  auto arr_motis_time =
-      get_event_time(day_idx, curr_arr_local_time + offset, tz_arr);
-
-  if (prev_arr_motis_time > dep_motis_time || !dep_motis_time.valid()) {
-    dep_motis_time =
-        get_event_time(day_idx, curr_dep_local_time + total_offset, tz_dep);
-    arr_motis_time =
-        get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
-    adjusted = true;
-    verify(!prev_adjusted, "double adjustment of time offset [case 1]");
-  }
-
-  if (!arr_motis_time.valid()) {
-    arr_motis_time =
-        get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
-    adjusted = true;
-    verify(!prev_adjusted, "double adjustment of time offset [case 2]");
-  }
-
-  if (!dep_motis_time.valid()) {
-    dep_motis_time =
-        get_event_time(day_idx, curr_dep_local_time + total_offset, tz_dep);
-    adjusted = true;
-    verify(!prev_adjusted, "double adjustment of time offset [case 3]");
-  }
-
-  if (arr_motis_time < dep_motis_time) {
-    arr_motis_time =
-        get_event_time(day_idx, curr_arr_local_time + total_offset, tz_arr);
-    adjusted = true;
-    verify(!prev_adjusted, "double adjustment of time offset [case 4]");
-  }
-
-  return std::make_pair(dep_motis_time, arr_motis_time);
+bool is_in_season(int day_idx, int minutes_after_midnight, timezone const* tz) {
+  auto const minutes_after_schedule_begin =
+      motis::to_motis_time(day_idx, minutes_after_midnight);
+  return tz->season_.begin_ != INVALID_TIME &&
+         tz->season_.begin_ + tz->general_offset_ <=
+             minutes_after_schedule_begin &&
+         minutes_after_schedule_begin <= tz->season_.end_ + tz->season_.offset_;
 }
 
 }  // namespace loader

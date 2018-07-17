@@ -21,6 +21,7 @@ struct label : public Data {  // NOLINT
       : pred_(pred),
         edge_(e),
         connection_(nullptr),
+        day_idx_(0),
         start_(pred != nullptr ? pred->start_ : now),
         now_(now),
         dominated_(false) {
@@ -47,6 +48,7 @@ struct label : public Data {  // NOLINT
     l.pred_ = this;
     l.edge_ = &e;
     l.connection_ = ec.connection_;
+    l.day_idx_ = ec.day_idx_;
     l.now_ = l.now_ + ((Dir == search_dir::FWD) ? ec.time_ : -ec.time_);
 
     Updater::update(l, ec, lb);
@@ -84,6 +86,7 @@ struct label : public Data {  // NOLINT
   label* pred_;
   edge const* edge_;
   light_connection const* connection_;
+  uint16_t day_idx_;
   time start_, now_;
   bool dominated_;
 };

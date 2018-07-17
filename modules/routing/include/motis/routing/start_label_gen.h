@@ -126,21 +126,24 @@ struct pretrip_gen {
       }
     };
 
-    auto const get_time = [](light_connection const* lcon) {
-      return (Dir == search_dir::FWD) ? lcon->d_time_ : lcon->a_time_;
+    auto const get_time = [](light_connection const* lcon, uint16_t day) {
+      return (Dir == search_dir::FWD) ? lcon->event_time(event_type::DEP, day)
+                                      : lcon->event_time(event_type::ARR, day);
     };
 
     auto i = 0;
     auto t = (Dir == search_dir::FWD) ? departure_begin : departure_end;
     auto const max_start_labels = departure_end.ts() - departure_begin.ts() + 1;
     while (!end_reached(t)) {
-      auto con = re.get_connection<Dir>(t);
+      auto conpair = re.get_connection<Dir>(t);
+      auto con = conpair.first;
+      auto day = conpair.second;
 
-      if (con == nullptr || end_reached(get_time(con))) {
+      if (con == nullptr || end_reached(get_time(con, day))) {
         break;
       }
 
-      t = get_time(con);
+      t = get_time(con, day);
 
       auto time_off = d + std::max(t - d - edge_interval_end, time{0});
 

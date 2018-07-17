@@ -5,36 +5,6 @@
 
 namespace motis {
 
-template <typename F>
-void foreach_departure_in(edge const& edge, time begin, time end, F fun) {
-  if (edge.type() != edge::ROUTE_EDGE) {
-    return;
-  }
-
-  auto const& conns = edge.m_.route_edge_.conns_;
-  auto it = std::lower_bound(std::begin(conns), std::end(conns),
-                             light_connection(begin));
-  for (; it != std::end(conns) && it->d_time_ < end; ++it) {
-    fun(it);
-  }
-}
-
-template <typename F>
-void foreach_arrival_in(edge const& edge, time begin, time end, F fun) {
-  if (edge.type() != edge::ROUTE_EDGE) {
-    return;
-  }
-
-  auto const& conns = edge.m_.route_edge_.conns_;
-  auto it = std::lower_bound(std::begin(conns), std::end(conns), begin,
-                             [](light_connection const& lcon, time const& t) {
-                               return lcon.a_time_ < t;
-                             });
-  for (; it != std::end(conns) && it->a_time_ < end; ++it) {
-    fun(it);
-  }
-}
-
 inline edge const* get_route_edge(node const* route_node,
                                   light_connection const* lcon,
                                   event_type const ev_type) {
@@ -67,13 +37,14 @@ inline light_connection const& get_lcon(edge const* route_edge,
   return route_edge->m_.route_edge_.conns_[index];
 }
 
-inline time get_time(light_connection const* lcon, event_type const ev_type) {
-  return ev_type == event_type::DEP ? lcon->d_time_ : lcon->a_time_;
+inline time get_time(light_connection const* lcon, event_type const ev_type,
+                     int day) {
+  return lcon->event_time(ev_type, day);
 }
 
 inline time get_time(edge const* route_edge, std::size_t const lcon_index,
-                     event_type const ev_type) {
-  return get_time(&get_lcon(route_edge, lcon_index), ev_type);
+                     event_type const ev_type, int day) {
+  return get_time(&get_lcon(route_edge, lcon_index), ev_type, day);
 }
 
 inline std::size_t get_lcon_index(edge const* route_edge,

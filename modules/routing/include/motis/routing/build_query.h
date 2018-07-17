@@ -51,7 +51,9 @@ inline node const* get_route_node(schedule const& sched, TripId const* trip,
   auto const stop_it = std::find_if(
       begin(stops), end(stops), [&](access::trip_stop const& stop) {
         return stop.get_route_node()->station_node_ == station &&
-               stop.arr_lcon().a_time_ == arrival_time;
+               arrival_time ==
+                   stop.arr_lcon().a_time_ +
+                       static_cast<int>(MINUTES_A_DAY) * arrival_time.day();
       });
   if (stop_it == end(stops)) {
     throw std::system_error(error::event_not_found);

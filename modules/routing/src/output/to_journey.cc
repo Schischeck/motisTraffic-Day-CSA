@@ -158,7 +158,7 @@ std::vector<journey::stop> generate_journey_stops(
                                              sched.schedule_begin_,
                                              stop.a_sched_time_),
                                          stop.a_reason_,
-                                         sched.tracks_[stop.a_track_]}
+                                         ""}
              : journey::stop::event_info{false, 0, 0,
                                          timestamp_reason::SCHEDULE, ""},
          stop.d_time_ != INVALID_TIME
@@ -170,7 +170,7 @@ std::vector<journey::stop> generate_journey_stops(
                                              sched.schedule_begin_,
                                              stop.d_sched_time_),
                                          stop.d_reason_,
-                                         sched.tracks_[stop.d_track_]}
+                                         ""}
              : journey::stop::event_info{false, 0, 0,
                                          timestamp_reason::SCHEDULE, ""}});
   }

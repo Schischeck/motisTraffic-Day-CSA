@@ -14,21 +14,29 @@ namespace motis {
 class node;
 
 struct edge_cost {
-  edge_cost()
-      : connection_(nullptr),
-        time_(INVALID_TIME),
+  edge_cost() : time_(INVALID_TIME) {}
+
+  edge_cost(time time, light_connection const* c, uint16_t day_idx)
+      : connection_(c),
+        day_idx_(day_idx),
+        time_(time),
         price_(0),
         transfer_(false) {}
-
-  edge_cost(time time, light_connection const* c)
-      : connection_(c), time_(time), price_(0), transfer_(false) {}
 
   explicit edge_cost(time time, bool transfer = false, uint16_t price = 0)
       : connection_(nullptr), time_(time), price_(price), transfer_(transfer) {}
 
-  bool is_valid() const { return time_.valid(); }
+  explicit edge_cost(uint16_t const& time_, bool transfer = false,
+                     uint16_t price = 0)
+      : connection_(nullptr),
+        time_(time(time_)),
+        price_(price),
+        transfer_(transfer) {}
+
+  bool is_valid() const { return time_ != INVALID_TIME; }
 
   light_connection const* connection_;
+  unsigned day_idx_;
   time time_;
   uint16_t price_;
   bool transfer_;
@@ -193,36 +201,49 @@ public:
   }
 
   template <search_dir Dir = search_dir::FWD>
-  light_connection const* get_connection(time const start_time) const {
+  std::pair<light_connection const*, uint16_t> const get_connection(
+      time const start_time) const {
     assert(type() == ROUTE_EDGE);
+    assert(start_time >= 0);
 
-    if (m_.route_edge_.conns_.empty()) {
-      return nullptr;
+    if (m_.route_edge_.conns_.size() == 0) {
+      return {nullptr, 0};
     }
 
     if (Dir == search_dir::FWD) {
       auto it = std::lower_bound(std::begin(m_.route_edge_.conns_),
                                  std::end(m_.route_edge_.conns_),
-                                 light_connection(start_time));
+                                 light_connection(start_time.mam()));
+      auto const start_pos = it;
+      auto const abort_time =
+          start_pos->event_time(event_type::DEP, start_time.day()) +
+          MAX_TRAVEL_TIME_MINUTES;
 
-      if (it == std::end(m_.route_edge_.conns_)) {
-        return nullptr;
-      } else {
-        return get_next_valid_lcon(&*it);
+      auto day = static_cast<uint16_t>(start_time.day());
+      while (true) {
+        if (day >= loader::BIT_COUNT) {
+          return {nullptr, 0};
+        }
+
+        if (it == end(m_.route_edge_.conns_)) {
+          it = begin(m_.route_edge_.conns_);
+          day += 1;
+          continue;
+        }
+
+        if (start_pos->event_time(event_type::DEP, day) > abort_time) {
+          return {nullptr, 0};
+        }
+
+        if (it->traffic_days_->test(day) && it->valid_) {
+          return {get_next_valid_lcon(&*it), day};
+        } else {
+          ++it;
+        }
       }
     } else {
-      auto it = std::lower_bound(
-          m_.route_edge_.conns_.rbegin(), m_.route_edge_.conns_.rend(),
-          light_connection(0, start_time, nullptr),
-          [](light_connection const& lhs, light_connection const& rhs) {
-            return lhs.a_time_ > rhs.a_time_;
-          });
-
-      if (it == m_.route_edge_.conns_.rend()) {
-        return nullptr;
-      } else {
-        return get_prev_valid_lcon(&*it);
-      }
+      // todo
+      return {nullptr, 0};
     }
   }
 
@@ -230,12 +251,16 @@ public:
   edge_cost get_route_edge_cost(time const start_time) const {
     assert(type() == ROUTE_EDGE);
 
-    light_connection const* c = get_connection<Dir>(start_time);
+    const light_connection* c;
+    uint16_t day;
+    std::tie(c, day) = get_connection<Dir>(start_time);
     return (c == nullptr)
                ? NO_EDGE
-               : edge_cost((Dir == search_dir::FWD) ? c->a_time_ - start_time
-                                                    : start_time - c->d_time_,
-                           c);
+               : edge_cost(
+                     (Dir == search_dir::FWD)
+                         ? c->event_time(event_type::ARR, day) - start_time
+                         : start_time - c->event_time(event_type::DEP, day),
+                     c, day);
   }
 
   template <search_dir Dir = search_dir::FWD>

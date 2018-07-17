@@ -10,6 +10,7 @@
 #include "motis/core/schedule/provider.h"
 #include "motis/core/schedule/time.h"
 #include "motis/core/schedule/trip_idx.h"
+#include "motis/loader/bitfield.h"
 
 namespace motis {
 
@@ -121,22 +122,24 @@ struct connection {
 struct light_connection {
   light_connection() = default;
 
-  explicit light_connection(time d_time) : d_time_(d_time) {}  // NOLINT
+  explicit light_connection(uint16_t d_time)
+      : traffic_days_(nullptr), d_time_(d_time) {}
 
-  light_connection(time d_time, time a_time,
+  light_connection(size_t bitfield_idx, uint16_t d_time, uint16_t a_time,
                    connection const* full_con = nullptr,
                    merged_trips_idx trips = 0)
       : full_con_(full_con),
+        bitfield_idx_(bitfield_idx),
         d_time_(d_time),
         a_time_(a_time),
         trips_(trips),
-        valid_(1u) {}
+        valid_(true) {}
 
-  time event_time(event_type const t) const {
-    return t == event_type::DEP ? d_time_ : a_time_;
+  time event_time(event_type const t, uint16_t day) const {
+    return time(day, t == event_type::DEP ? d_time_ : a_time_);
   }
 
-  time travel_time() const { return a_time_ - d_time_; }
+  time travel_time() const { return time(a_time_ - d_time_); }
 
   bool operator<(light_connection const& o) const {
     return d_time_ < o.d_time_;
@@ -148,7 +151,12 @@ struct light_connection {
   }
 
   connection const* full_con_;
-  time d_time_, a_time_;
+  union {
+    size_t bitfield_idx_;
+    loader::bitfield const* traffic_days_;
+  };
+  uint16_t d_time_;
+  uint16_t a_time_;
   uint32_t trips_ : 31;
   uint32_t valid_ : 1;
 };

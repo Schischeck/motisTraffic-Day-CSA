@@ -17,17 +17,21 @@ class node;
 
 struct ev_key {
   ev_key() : route_edge_(nullptr), lcon_idx_(0), ev_type_(event_type::DEP) {}
-  ev_key(trip::route_edge route_edge, std::size_t lcon_idx, event_type type)
-      : route_edge_(route_edge), lcon_idx_(lcon_idx), ev_type_(type) {}
+  ev_key(trip::route_edge route_edge, std::size_t lcon_idx, int day,
+         event_type type)
+      : route_edge_(std::move(route_edge)),
+        lcon_idx_(lcon_idx),
+        day_(day),
+        ev_type_(type) {}
 
   friend bool operator==(ev_key const& lhs, const ev_key& rhs) {
-    return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) ==
-           std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.ev_type_);
+    return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.day_, lhs.ev_type_) ==
+           std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.day_, rhs.ev_type_);
   }
 
   friend bool operator<(ev_key const& lhs, const ev_key& rhs) {
-    return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.ev_type_) <
-           std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.ev_type_);
+    return std::tie(lhs.route_edge_, lhs.lcon_idx_, lhs.day_, lhs.ev_type_) <
+           std::tie(rhs.route_edge_, rhs.lcon_idx_, rhs.day_, rhs.ev_type_);
   }
 
   bool valid() const { return route_edge_.valid(); }
@@ -39,16 +43,15 @@ struct ev_key {
   ev_key get_opposite() const {
     auto const ev_type =
         ev_type_ == event_type::ARR ? event_type::DEP : event_type::ARR;
-    return {route_edge_, lcon_idx_, ev_type};
+    // TODO: assuming opposite is on the same day
+    return {route_edge_, lcon_idx_, day_, ev_type};
   }
 
   light_connection const* lcon() const {
     return &route_edge_->m_.route_edge_.conns_[lcon_idx_];
   }
 
-  time get_time() const {
-    return ev_type_ == event_type::DEP ? lcon()->d_time_ : lcon()->a_time_;
-  }
+  time get_time() const { return lcon()->event_time(ev_type_, day_); }
 
   node* get_node() const {
     return ev_type_ == event_type::DEP ? route_edge_->from_ : route_edge_->to_;
@@ -58,6 +61,7 @@ struct ev_key {
 
   trip::route_edge route_edge_;
   std::size_t lcon_idx_;
+  int day_;
   event_type ev_type_;
 };
 
@@ -71,6 +75,7 @@ struct hash<motis::ev_key> {
     std::size_t seed = 0;
     motis::hash_combine(seed, e.route_edge_);
     motis::hash_combine(seed, e.lcon_idx_);
+    motis::hash_combine(seed, e.day_);
     motis::hash_combine(seed, e.ev_type_ == motis::event_type::DEP ? 0 : 1);
     return seed;
   }

@@ -26,7 +26,7 @@ struct registry {
                    access_t const access = access_t::READ) {
     auto const call = [fn_rec = std::forward<Fn>(fn),
                        name](msg_ptr const& m) -> msg_ptr {
-      logging::scoped_timer t{name};
+      //logging::scoped_timer t{name};
       return fn_rec(m);
     };
     if (!operations_.emplace(name, op{std::move(call), access}).second) {
@@ -39,7 +39,7 @@ struct registry {
                  access_t const access = access_t::READ) {
     topic_subscriptions_[topic].emplace_back(
         [fn_rec = std::forward<Fn>(fn), topic](msg_ptr const& m) -> msg_ptr {
-          logging::scoped_timer t{topic};
+          //logging::scoped_timer t{topic};
           return fn_rec(m);
         },
         access);
@@ -51,7 +51,7 @@ struct registry {
     subscribe(
         topic,
         [fn_rec = std::forward<Fn>(fn), topic](msg_ptr const&) -> msg_ptr {
-          logging::scoped_timer t{topic};
+          //logging::scoped_timer t{topic};
           fn_rec();
           return nullptr;
         },

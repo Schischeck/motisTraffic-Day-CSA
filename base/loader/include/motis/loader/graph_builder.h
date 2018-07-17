@@ -1,11 +1,5 @@
 #pragma once
 
-#include <ctime>
-#include <array>
-#include <map>
-#include <set>
-#include <vector>
-
 #include "flatbuffers/flatbuffers.h"
 
 #include "motis/core/common/hash_helper.h"
@@ -19,11 +13,24 @@
 #include "motis/core/schedule/timezone.h"
 
 #include "motis/loader/bitfield.h"
+#include "motis/loader/util.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
 
 namespace motis {
 namespace loader {
+
+struct lcon_times {
+  lcon_times() = default;
+  lcon_times(uint16_t dep, uint16_t arr) : d_time_(dep), a_time_(arr) {}
+  friend bool operator<(lcon_times const& a, lcon_times const& b) {
+    return std::tie(a.d_time_, a.a_time_) < std::tie(b.d_time_, b.a_time_);
+  }
+  friend bool operator==(lcon_times const& a, lcon_times const& b) {
+    return std::tie(a.d_time_, a.a_time_) == std::tie(b.d_time_, b.a_time_);
+  }
+  uint16_t d_time_, a_time_;
+};
 
 struct route_section {
   route_section()
@@ -62,49 +69,80 @@ struct route_section {
   int outgoing_route_edge_index_;
 };
 
-struct participant {
-  participant() : service_(nullptr), section_idx_(0) {}
+typedef std::vector<route_section> route;
 
-  participant(Service const* service, int section_idx)
-      : service_(service), section_idx_(section_idx) {}
+struct route_t {
 
-  friend bool operator<(participant const& lhs, participant const& rhs) {
-    return lhs.service_ > rhs.service_;
+  route_t() = default;
+  route_t(std::vector<light_connection> const& new_lcons,
+          std::vector<time> const& times) {
+    lcons_.emplace_back(new_lcons);
+    times_.emplace_back(times);
   }
 
-  friend bool operator>(participant const& lhs, participant const& rhs) {
-    return lhs.service_ < rhs.service_;
+  bool add_service(std::vector<light_connection> const& new_lcons,
+                   std::vector<time> const& new_times) {
+    verify(std::all_of(begin(lcons_), end(lcons_),
+                       [&new_lcons](auto const& i) {
+                         return new_lcons.size() == i.size();
+                       }),
+           "number of sections not matching");
+
+    verify(new_lcons.size() * 2 == new_times.size(),
+           "number of times and lcons not matching");
+
+    auto const& insert_it = std::lower_bound(
+        begin(times_), end(times_), new_times,
+        [](std::vector<time> const& lhs, std::vector<time> const& rhs) {
+          return lhs.front() < rhs.front();
+        });
+    auto const insert_idx = std::distance(begin(times_), insert_it);
+
+    // check full time array!
+    // Example: insert [3,9,14,18] into [[4,10,12,16]]
+    // check 3 < 4 -> ok
+    // check 9 < 10 -> ok
+    // check 14 < 12 -> fail, new service overtakes the existing
+    for (unsigned i = 0; i < new_times.size(); ++i) {
+      auto middle_time = new_times[i].mam();
+      bool before_pred = false;
+      bool after_succ = false;
+      if (times_.size() != 0) {
+        if (insert_idx != 0) {
+          auto before_time =
+              times_[insert_idx - 1][i].mam();
+          before_pred = middle_time <= before_time;
+        }
+        if (static_cast<int>(insert_idx) < static_cast<int>(times_.size())) {
+          auto after_time = times_[insert_idx][i].mam();
+          after_succ = middle_time >= after_time;
+        }
+      }
+      if (before_pred || after_succ) {
+        return false;
+      }
+    }
+
+    // new_s is safe to add at idx
+    times_.insert(std::next(begin(times_), insert_idx), new_times);
+    lcons_.insert(std::next(begin(lcons_), insert_idx), new_lcons);
+    verify(
+        std::is_sorted(times_.begin(), times_.end(),
+                       [](std::vector<time> const& a,
+                          std::vector<time> const& b) { return a[0] < b[0]; }),
+        "route services not sorted");
+
+    return true;
   }
 
-  friend bool operator==(participant const& lhs, participant const& rhs) {
-    return lhs.service_ == rhs.service_;
+  bool empty() const { return times_.empty(); }
+
+  std::vector<light_connection> const& operator[](std::size_t idx) const {
+    return lcons_[idx];
   }
 
-  Service const* service_;
-  int section_idx_;
-};
-
-struct services_key {
-  services_key() = default;
-
-  services_key(Service const* service, int day_idx)
-      : services_({service}), day_idx_(day_idx) {}
-
-  services_key(std::set<Service const*> services, int day_idx)
-      : services_(std::move(services)), day_idx_(day_idx) {}
-
-  friend bool operator<(services_key const& lhs, services_key const& rhs) {
-    return std::tie(lhs.services_, lhs.day_idx_) <
-           std::tie(rhs.services_, rhs.day_idx_);
-  }
-
-  friend bool operator==(services_key const& lhs, services_key const& rhs) {
-    return std::tie(lhs.services_, lhs.day_idx_) ==
-           std::tie(rhs.services_, rhs.day_idx_);
-  }
-
-  std::set<Service const*> services_;
-  int day_idx_{0};
+  std::vector<std::vector<time>> times_;
+  std::vector<std::vector<light_connection>> lcons_;
 };
 
 template <typename T, typename... Args>
@@ -114,9 +152,6 @@ inline std::size_t push_mem(std::vector<std::unique_ptr<T>>& elements,
   elements.emplace_back(new T(args...));
   return idx;
 }
-
-using route = std::vector<route_section>;
-using route_lcs = std::vector<std::vector<light_connection>>;
 
 struct graph_builder {
   graph_builder(schedule& sched, Interval const* schedule_interval, time_t from,
@@ -131,75 +166,37 @@ struct graph_builder {
       flatbuffers64::Vector<flatbuffers64::Offset<MetaStation>> const*
           meta_stations);
 
-  timezone const* get_or_create_timezone(Timezone const* input_timez);
+  void add_services(
+      flatbuffers64::Vector<flatbuffers64::Offset<Service>> const* services);
+
+  void add_route_services(std::vector<Service const*> const& services);
+
+  std::vector<std::pair<std::vector<time>, std::unordered_set<unsigned>>>
+  service_times_to_utc(bitfield const& traffic_days, int start_idx, int end_idx,
+                       Service const* s);
+
+  merged_trips_idx create_merged_trips(Service const* s, int day_idx);
+
+  trip* register_service(const Service* s, int day_idx);
 
   station_node* get_station_node(Station const* station) const;
 
   full_trip_id get_full_trip_id(Service const* s, int day,
                                 int section_idx = 0) const;
 
-  merged_trips_idx create_merged_trips(Service const* s, int day_idx);
-
-  trip* register_service(Service const* s, int day_idx);
-
-  void add_services(
-      flatbuffers64::Vector<flatbuffers64::Offset<Service>> const* services);
-
-  void index_first_route_node(route const& r);
-
-  void add_route_services(std::vector<Service const*> const& services);
-
-  static int get_index(
-      std::vector<std::vector<light_connection>> const& alt_route,
-      std::vector<light_connection> const& sections);
-
-  void add_to_route(std::vector<std::vector<light_connection>>& route,
-                    std::vector<light_connection> const& sections, int index);
-
-  void add_to_routes(
-      std::vector<std::vector<std::vector<light_connection>>>& alt_routes,
-      std::vector<light_connection> const& sections);
-
-  connection_info* get_or_create_connection_info(Section const* section,
-                                                 int dep_day_index,
-                                                 connection_info* merged_with);
-
-  connection_info* get_or_create_connection_info(
-      std::array<participant, 16> const& services, int dep_day_index);
-
   light_connection section_to_connection(
-      merged_trips_idx trips, std::array<participant, 16> const& services,
-      int day, time prev_arr, bool& adjusted);
+      unsigned section_idx, Service const* service,
+      std::vector<time> relative_utc,
+      std::unordered_set<unsigned> srv_traffic_days,
+      merged_trips_idx trips_idx);
 
-  void add_footpaths(
-      flatbuffers64::Vector<flatbuffers64::Offset<Footpath>> const* footpaths);
+  void count_events(const Service* const& service, int section_idx);
 
-  void connect_reverse();
+  void add_to_routes(std::vector<route_t>& alt_routes,
+                     std::vector<time> const& times,
+                     std::vector<light_connection> const& lcons);
 
-  void sort_connections();
-  void sort_trips();
-
-  bitfield const& get_or_create_bitfield(
-      flatbuffers64::String const* serialized_bitfield);
-
-  void read_attributes(
-      int day,
-      flatbuffers64::Vector<flatbuffers64::Offset<Attribute>> const* attributes,
-      std::vector<attribute const*>& active_attributes);
-
-  std::string const* get_or_create_direction(Direction const* dir);
-
-  provider const* get_or_create_provider(Provider const* p);
-
-  int get_or_create_category_index(Category const* c);
-
-  int get_or_create_track(
-      int day,
-      flatbuffers64::Vector<flatbuffers64::Offset<Track>> const* tracks);
-
-  void write_trip_info(route&);
-
-  std::unique_ptr<route> create_route(Route const* r, route_lcs const& lcons,
+  std::unique_ptr<route> create_route(Route const* r, route_t const& lcons,
                                       unsigned route_index);
 
   route_section add_route_section(
@@ -208,18 +205,60 @@ struct graph_builder {
       Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
       node* from_route_node, node* to_route_node);
 
-  unsigned duplicate_count_;
-  unsigned lcon_count_;
-  unsigned next_route_index_;
-  unsigned next_node_id_;
+  void index_first_route_node(route const& r);
+
+  const std::string* get_or_create_direction(const Direction* dir);
+
+  const provider* get_or_create_provider(const Provider* p);
+
+  int get_or_create_category_index(const Category* c);
+
+  void write_trip_info(route&);
+
+  void add_footpaths(
+      flatbuffers64::Vector<flatbuffers64::Offset<Footpath>> const* footpaths);
+
+  void connect_reverse();
+
+  void sort_connections();
+  void sort_trips();
+  void dedup_bitfields();
+
+  timezone const* get_or_create_timezone(Timezone const* input_timez);
+
+  size_t get_or_create_bitfield(
+      flatbuffers64::String const* serialized_bitfield);
+
+  size_t get_or_create_bitfield(bitfield const&);
+
+  connection_info* get_or_create_connection_info(Section const* section,
+                                                 int dep_day_index);
+
+  connection_info* get_or_create_connection_info(Service const* service,
+                                                 unsigned section_idx,
+                                                 int dep_day_index);
+
+  connection* get_full_connection(
+      const Service* services, const station& from, const station& to,
+      const flatbuffers64::Vector<flatbuffers64::Offset<Track>>* dep_platf,
+      const flatbuffers64::Vector<flatbuffers64::Offset<Track>>* arr_platf,
+      unsigned section_idx);
+
+  connection* get_full_connection(unsigned int section_idx,
+                                  const Service* service);
+
+  schedule& sched_;
+  unsigned first_day_, last_day_;
+  unsigned from_day_, to_day_;
+  bool apply_rules_;
+  bool adjust_footpaths_;
+
   std::map<Category const*, int> categories_;
   std::map<std::string, int> tracks_;
-  std::map<AttributeInfo const*, attribute*> attributes_;
   std::map<flatbuffers64::String const*, std::string const*> directions_;
   std::map<Provider const*, provider const*> providers_;
   hash_map<Station const*, station_node*> stations_;
   std::map<Timezone const*, timezone const*> timezones_;
-  hash_map<flatbuffers64::String const*, bitfield> bitfields_;
   hash_set<connection_info*,
            deep_ptr_hash<connection_info::hash, connection_info>,
            deep_ptr_eq<connection_info>>
@@ -227,13 +266,14 @@ struct graph_builder {
   hash_set<connection*, deep_ptr_hash<connection::hash, connection>,
            deep_ptr_eq<connection>>
       connections_;
-  schedule& sched_;
-  int first_day_, last_day_;
-  bool apply_rules_;
-  bool adjust_footpaths_;
+
+  unsigned next_node_id_;
+  unsigned next_route_index_;
 
   connection_info con_info_;
   connection con_;
+
+  unsigned lcon_count_ = 0;
 };
 
 }  // namespace loader

@@ -20,12 +20,7 @@ time get_event_time(int day_idx, uint32_t local_time, timezone const* tz);
 time get_adjusted_event_time(int day_idx, uint32_t local_time,
                              timezone const* tz);
 
-std::pair<time, time> get_event_times(int day_idx,  //
-                                      time prev_arr_motis_time,
-                                      uint32_t curr_dep_local_time,
-                                      uint32_t curr_arr_local_time,
-                                      timezone const* tz_dep,
-                                      timezone const* tz_arr, bool& adjusted);
+bool is_in_season(int day_idx, int local_time, timezone const* tz);
 
 }  // namespace loader
 }  // namespace motis
