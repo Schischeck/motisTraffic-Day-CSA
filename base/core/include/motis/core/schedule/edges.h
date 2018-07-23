@@ -6,6 +6,7 @@
 
 #include "motis/core/common/array.h"
 #include "motis/core/common/constants.h"
+#include "motis/core/common/logging.h"
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/time.h"
 
@@ -63,7 +64,8 @@ public:
   edge() : from_{nullptr}, to_{nullptr} {}
 
   /** route edge constructor. */
-  edge(node* from, node* to, std::vector<light_connection> const& connections)
+  edge(node* from, node* to, std::vector<light_connection> const& connections,
+       size_t route_traffic_days)
       : from_(from), to_(to) {
     m_.type_ = ROUTE_EDGE;
     if (!connections.empty()) {
@@ -71,6 +73,7 @@ public:
       m_.route_edge_.conns_.set(std::begin(connections), std::end(connections));
       std::sort(std::begin(m_.route_edge_.conns_),
                 std::end(m_.route_edge_.conns_));
+      m_.route_edge_.bitfield_idx_ = route_traffic_days;
     }
   }
 
@@ -206,20 +209,29 @@ public:
     assert(type() == ROUTE_EDGE);
     assert(start_time >= 0);
 
-    if (m_.route_edge_.conns_.size() == 0) {
+    if (m_.route_edge_.conns_.empty()) {
       return {nullptr, 0};
+    }
+
+    bool has_traffic = false;
+    if (m_.route_edge_.traffic_days_ != nullptr) {
+      auto const last_day = (start_time + MAX_TRAVEL_TIME_MINUTES).day();
+      for (int day_idx = start_time.day(); day_idx <= last_day; ++day_idx) {
+        has_traffic |= m_.route_edge_.traffic_days_->test(day_idx);
+      }
+      if (!has_traffic) {
+        return {nullptr, 0};
+      }
     }
 
     if (Dir == search_dir::FWD) {
       auto it = std::lower_bound(std::begin(m_.route_edge_.conns_),
                                  std::end(m_.route_edge_.conns_),
                                  light_connection(start_time.mam()));
-      auto const start_pos = it;
-      auto const abort_time =
-          start_pos->event_time(event_type::DEP, start_time.day()) +
-          MAX_TRAVEL_TIME_MINUTES;
 
+      auto const abort_time = start_time + MAX_TRAVEL_TIME_MINUTES;
       auto day = static_cast<uint16_t>(start_time.day());
+
       while (true) {
         if (day >= loader::BIT_COUNT) {
           return {nullptr, 0};
@@ -231,11 +243,14 @@ public:
           continue;
         }
 
-        if (start_pos->event_time(event_type::DEP, day) > abort_time) {
+        if (it->event_time(event_type::DEP, day) > abort_time) {
           return {nullptr, 0};
         }
 
         if (it->traffic_days_->test(day) && it->valid_) {
+          if (!has_traffic) {
+            LOG(logging::info) << "has_traffic check wrong!";
+          }
           return {get_next_valid_lcon(&*it), day};
         } else {
           ++it;
@@ -411,8 +426,15 @@ public:
     struct {
       uint8_t type_padding_;
       array<light_connection> conns_;
+      union {
+        size_t bitfield_idx_;
+        loader::bitfield const* traffic_days_;
+      };
 
-      void init_empty() { new (&conns_) array<light_connection>(); }
+      void init_empty() {
+        new (&conns_) array<light_connection>();
+        traffic_days_ = nullptr;
+      }
     } route_edge_;
 
     // TYPE = FOOT_EDGE & CO
@@ -474,8 +496,9 @@ private:
 /* convenience helper functions to generate the right edge type */
 
 inline edge make_route_edge(node* from, node* to,
-                            std::vector<light_connection> const& connections) {
-  return edge(from, to, connections);
+                            std::vector<light_connection> const& connections,
+                            size_t const route_traffic_days) {
+  return edge(from, to, connections, route_traffic_days);
 }
 
 inline edge make_foot_edge(node* from, node* to, time time_cost = 0,

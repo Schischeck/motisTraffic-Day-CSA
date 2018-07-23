@@ -75,13 +75,14 @@ struct route_t {
 
   route_t() = default;
   route_t(std::vector<light_connection> const& new_lcons,
-          std::vector<time> const& times) {
+          std::vector<time> const& times, schedule const& sched) {
     lcons_.emplace_back(new_lcons);
     times_.emplace_back(times);
+    update_traffic_days(new_lcons, sched);
   }
 
   bool add_service(std::vector<light_connection> const& new_lcons,
-                   std::vector<time> const& new_times) {
+                   std::vector<time> const& new_times, schedule const& sched) {
     verify(std::all_of(begin(lcons_), end(lcons_),
                        [&new_lcons](auto const& i) {
                          return new_lcons.size() == i.size();
@@ -109,8 +110,7 @@ struct route_t {
       bool after_succ = false;
       if (times_.size() != 0) {
         if (insert_idx != 0) {
-          auto before_time =
-              times_[insert_idx - 1][i].mam();
+          auto before_time = times_[insert_idx - 1][i].mam();
           before_pred = middle_time <= before_time;
         }
         if (static_cast<int>(insert_idx) < static_cast<int>(times_.size())) {
@@ -132,10 +132,19 @@ struct route_t {
                           std::vector<time> const& b) { return a[0] < b[0]; }),
         "route services not sorted");
 
+    update_traffic_days(new_lcons, sched);
+
     return true;
   }
 
   bool empty() const { return times_.empty(); }
+
+  void update_traffic_days(std::vector<light_connection> const& new_lcons,
+                           schedule const& sched) {
+    for (auto const& lcon : new_lcons) {
+      traffic_days_ |= sched.bitfields_[lcon.bitfield_idx_];
+    }
+  }
 
   std::vector<light_connection> const& operator[](std::size_t idx) const {
     return lcons_[idx];
@@ -143,6 +152,7 @@ struct route_t {
 
   std::vector<std::vector<time>> times_;
   std::vector<std::vector<light_connection>> lcons_;
+  bitfield traffic_days_;
 };
 
 template <typename T, typename... Args>
@@ -203,7 +213,7 @@ struct graph_builder {
       int route_index, std::vector<light_connection> const& connections,
       Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
       Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
-      node* from_route_node, node* to_route_node);
+      node* from_route_node, node* to_route_node, size_t route_traffic_days);
 
   void index_first_route_node(route const& r);
 

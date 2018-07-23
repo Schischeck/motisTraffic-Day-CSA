@@ -1,5 +1,6 @@
 #include "motis/loader/graph_builder.h"
 
+#include <motis/core/schedule/edges.h>
 #include <numeric>
 
 #include "utl/get_or_create.h"
@@ -201,30 +202,31 @@ void graph_builder::add_route_services(
           service_times_to_utc(traffic_days, start_idx, end_idx, service);
     } catch (...) {
       std::cerr << "\nBAD SERVICE\n";
+      /*
+            for (int i = 0; i < service->times()->size(); ++i) {
+              std::cerr << service->times()->Get(i) << " ";
+            }
+            std::cerr << "\n";
 
-      for (int i = 0; i < service->times()->size(); ++i) {
-        std::cerr << service->times()->Get(i) << " ";
-      }
-      std::cerr << "\n";
+            for (int i = 0; i < service->route()->stations()->size(); ++i) {
+              auto const& station = service->route()->stations()->Get(i);
 
-      for (int i = 0; i < service->route()->stations()->size(); ++i) {
-        auto const& station = service->route()->stations()->Get(i);
+              auto const& arr = service->times()->Get(i * 2);
+              auto const& dep = service->times()->Get(i * 2 + 1);
 
-        auto const& arr = service->times()->Get(i * 2);
-        auto const& dep = service->times()->Get(i * 2 + 1);
-
-        std::cerr << station->id()->str() << " " << station->name()->str();
-        if (i != 0) {
-          std::cerr << " 0" << std::setfill('0') << std::setw(2) << arr / 60
-                    << std::setfill('0') << std::setw(2) << arr % 60;
-        }
-        if (i != service->route()->stations()->size() - 1) {
-          std::cerr << " 0" << std::setfill('0') << std::setw(2) << dep / 60
-                    << std::setfill('0') << std::setw(2) << dep % 60;
-        }
-        std::cerr << "\n";
-      }
-      // throw;
+              std::cerr << station->id()->str() << " " <<
+         station->name()->str(); if (i != 0) { std::cerr << " 0" <<
+         std::setfill('0') << std::setw(2) << arr / 60
+                          << std::setfill('0') << std::setw(2) << arr % 60;
+              }
+              if (i != service->route()->stations()->size() - 1) {
+                std::cerr << " 0" << std::setfill('0') << std::setw(2) << dep /
+         60
+                          << std::setfill('0') << std::setw(2) << dep % 60;
+              }
+              std::cerr << "\n";
+            }
+            // throw;*/
       continue;  // skip broken service
     }
 
@@ -475,12 +477,12 @@ void graph_builder::add_to_routes(std::vector<route_t>& alt_routes,
                                   std::vector<time> const& times,
                                   std::vector<light_connection> const& lcons) {
   for (auto& r : alt_routes) {
-    if (r.add_service(lcons, times)) {
+    if (r.add_service(lcons, times, sched_)) {
       return;
     }
   }
 
-  alt_routes.emplace_back(route_t{lcons, times});
+  alt_routes.emplace_back(route_t{lcons, times, sched_});
 }
 
 std::unique_ptr<route> graph_builder::create_route(Route const* r,
@@ -498,6 +500,10 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
                      }),
          "number of stops must match number of lcons");
 
+  sched_.route_traffic_days_.emplace_back(bitfield{lcons.traffic_days_});
+  if (!lcons.traffic_days_.any()) {
+    LOG(info) << "route with no traffic days !?";
+  }
   for (unsigned i = 0; i < stops->size() - 1; ++i) {
     auto from = i;
     auto to = i + 1;
@@ -514,7 +520,8 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
         route_index, section_lcons,  //
         stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
         stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
-        last_route_section.to_route_node_, nullptr));
+        last_route_section.to_route_node_, nullptr,
+        sched_.route_traffic_days_.size() - 1));
     last_route_section = route_sections->back();
   }
 
@@ -525,7 +532,7 @@ route_section graph_builder::add_route_section(
     int route_index, std::vector<light_connection> const& connections,
     Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
     Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
-    node* from_route_node, node* to_route_node) {
+    node* from_route_node, node* to_route_node, size_t route_traffic_days) {
   route_section section;
 
   auto const from_station_node = stations_[from_stop];
@@ -558,8 +565,9 @@ route_section graph_builder::add_route_section(
                      }),
       "creating edge with lcons not strictly sorted");
 
-  section.from_route_node_->edges_.push_back(make_route_edge(
-      section.from_route_node_, section.to_route_node_, connections));
+  section.from_route_node_->edges_.push_back(
+      make_route_edge(section.from_route_node_, section.to_route_node_,
+                      connections, route_traffic_days));
   lcon_count_ += connections.size();
 
   return section;
@@ -843,7 +851,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   LOG(info) << sched->stations_.size() << " stations";
   LOG(info) << sched->connection_infos_.size() << " connection infos";
   LOG(info) << builder.lcon_count_ << " light connections";
-  LOG(info) << sched->bitfields_.size() << " bitfields";
+  LOG(info) << sched->bitfields_.size() << " lcon bitfields";
+  LOG(info) << sched->route_traffic_days_.size() << " route bitfields";
   LOG(info) << builder.next_route_index_ << " routes";
   LOG(info) << sched->trip_mem_.size() << " trips";
   LOG(info) << serialized->services()->size()
@@ -859,10 +868,16 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
 
   for (auto const& station : sched->station_nodes_) {
     for (auto const& route_node : station->get_route_nodes()) {
-      for (auto const& edge : route_node->edges_) {
+      for (auto& edge : route_node->edges_) {
         if (edge.empty()) {
           continue;
         }
+
+        auto const bf_idx = edge.m_.route_edge_.bitfield_idx_;
+        verify(bf_idx < sched->route_traffic_days_.size(),
+               "invalid route traffic day bitfield index");
+        edge.m_.route_edge_.traffic_days_ = &sched->route_traffic_days_[bf_idx];
+
         light_connection const* prev = nullptr;
         for (auto const& con : edge.m_.route_edge_.conns_) {
           verify(con.a_time_ >= con.d_time_,
