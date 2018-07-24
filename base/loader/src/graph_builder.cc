@@ -500,10 +500,7 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
                      }),
          "number of stops must match number of lcons");
 
-  sched_.route_traffic_days_.emplace_back(bitfield{lcons.traffic_days_});
-  if (!lcons.traffic_days_.any()) {
-    LOG(info) << "route with no traffic days !?";
-  }
+  auto const bf_idx = get_or_create_bitfield(lcons.traffic_days_);
   for (unsigned i = 0; i < stops->size() - 1; ++i) {
     auto from = i;
     auto to = i + 1;
@@ -520,8 +517,7 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
         route_index, section_lcons,  //
         stops->Get(from), in_allowed->Get(from), out_allowed->Get(from),
         stops->Get(to), in_allowed->Get(to), out_allowed->Get(to),
-        last_route_section.to_route_node_, nullptr,
-        sched_.route_traffic_days_.size() - 1));
+        last_route_section.to_route_node_, nullptr, bf_idx));
     last_route_section = route_sections->back();
   }
 
@@ -793,6 +789,19 @@ void graph_builder::dedup_bitfields() {
         }
       }
     }
+
+    for (auto const& station : sched_.station_nodes_) {
+      for (auto const& route_node : station->get_route_nodes()) {
+        for (auto& edge : route_node->edges_) {
+          if (edge.empty()) {
+            continue;
+          }
+
+          auto const bf_idx = edge.m_.route_edge_.bitfield_idx_;
+          edge.m_.route_edge_.traffic_days_ = &sched_.bitfields_[map[bf_idx]];
+        }
+      }
+    }
   }
 }
 
@@ -851,8 +860,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   LOG(info) << sched->stations_.size() << " stations";
   LOG(info) << sched->connection_infos_.size() << " connection infos";
   LOG(info) << builder.lcon_count_ << " light connections";
-  LOG(info) << sched->bitfields_.size() << " lcon bitfields";
-  LOG(info) << sched->route_traffic_days_.size() << " route bitfields";
+  LOG(info) << sched->bitfields_.size() << " bitfields";
   LOG(info) << builder.next_route_index_ << " routes";
   LOG(info) << sched->trip_mem_.size() << " trips";
   LOG(info) << serialized->services()->size()
@@ -872,12 +880,6 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
         if (edge.empty()) {
           continue;
         }
-
-        auto const bf_idx = edge.m_.route_edge_.bitfield_idx_;
-        verify(bf_idx < sched->route_traffic_days_.size(),
-               "invalid route traffic day bitfield index");
-        edge.m_.route_edge_.traffic_days_ = &sched->route_traffic_days_[bf_idx];
-
         light_connection const* prev = nullptr;
         for (auto const& con : edge.m_.route_edge_.conns_) {
           verify(con.a_time_ >= con.d_time_,

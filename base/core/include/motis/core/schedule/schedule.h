@@ -62,7 +62,6 @@ struct schedule {
   std::vector<std::unique_ptr<std::string>> directions_;
   std::vector<std::unique_ptr<timezone>> timezones_;
   std::vector<loader::bitfield> bitfields_;
-  std::vector<loader::bitfield> route_traffic_days_;
 
   std::vector<std::pair<primary_trip_id, trip*>> trips_;
   std::vector<std::unique_ptr<trip>> trip_mem_;
