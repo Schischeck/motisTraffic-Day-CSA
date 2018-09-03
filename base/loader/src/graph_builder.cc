@@ -814,6 +814,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   sched->classes_ = class_mapping();
   sched->schedule_begin_ = serialized->interval()->from();
   sched->schedule_end_ = serialized->interval()->to();
+  sched->loaded_begin_ = from;
+  sched->loaded_end_ = to;
 
   LOG(info) << "schedule_begin: " << sched->schedule_begin_;
 

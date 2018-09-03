@@ -26,6 +26,8 @@ struct schedule {
   schedule()
       : schedule_begin_(0),
         schedule_end_(0),
+        loaded_begin_(0),
+        loaded_end_(0),
         node_count_(0),
         system_time_(0),
         last_update_timestamp_(0) {
@@ -36,6 +38,7 @@ struct schedule {
   schedule& operator=(schedule const&) = delete;
 
   std::time_t schedule_begin_, schedule_end_;
+  std::time_t loaded_begin_, loaded_end_;
   std::string name_;
 
   std::vector<station_ptr> stations_;

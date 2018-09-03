@@ -182,8 +182,8 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
 }
 
 bool has_events(edge const& e, motis::time from, motis::time to) {
-  auto con = e.get_connection(from);
-  return con != nullptr && con->d_time_ <= to;
+  auto[con, day] = e.get_connection(from);
+  return con != nullptr && con->event_time(event_type::DEP, day) <= to;
 }
 
 bool has_events(station_node const& s, motis::time from, motis::time to) {
@@ -198,7 +198,8 @@ bool has_events(station_node const& s, motis::time from, motis::time to) {
 }
 
 int random_station_id(std::vector<station_node const*> const& station_nodes,
-                      time_t motis_interval_start, time_t motis_interval_end) {
+                      motis::time motis_interval_start,
+                      motis::time motis_interval_end) {
   auto first = std::next(begin(station_nodes), 2);
   auto last = end(station_nodes);
 
@@ -271,9 +272,8 @@ int main(int argc, char** argv) {
   instance.init_schedule(dataset_opt);
 
   auto const& sched = *instance.schedule_;
-  search_interval_generator interval_gen(
-      sched.schedule_begin_ + SCHEDULE_OFFSET_MINUTES * 60,
-      sched.schedule_end_);
+  search_interval_generator interval_gen(sched.loaded_begin_,
+                                         sched.loaded_end_);
 
   std::vector<station_node const*> station_nodes;
   if (generator_opt.large_stations_) {
