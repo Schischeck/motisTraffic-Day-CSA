@@ -15,7 +15,7 @@
 namespace motis {
 
 struct primary_trip_id {
-  primary_trip_id() : station_id_{0}, time_{INVALID_TIME.ts()}, train_nr_{0} {}
+  primary_trip_id() : station_id_{0}, time_{0}, train_nr_{0} {}
   primary_trip_id(uint32_t station_id, uint32_t train_nr, motis::time time)
       : station_id_(station_id), time_(time.ts()), train_nr_(train_nr) {}
 

@@ -122,10 +122,10 @@ struct connection {
 struct light_connection {
   light_connection() = default;
 
-  explicit light_connection(uint16_t d_time)
+  explicit light_connection(int16_t d_time)
       : traffic_days_(nullptr), d_time_(d_time) {}
 
-  light_connection(size_t bitfield_idx, uint16_t d_time, uint16_t a_time,
+  light_connection(size_t bitfield_idx, int16_t d_time, int16_t a_time,
                    connection const* full_con = nullptr,
                    merged_trips_idx trips = 0)
       : full_con_(full_con),
@@ -155,8 +155,8 @@ struct light_connection {
     size_t bitfield_idx_;
     loader::bitfield const* traffic_days_;
   };
-  uint16_t d_time_;
-  uint16_t a_time_;
+  int16_t d_time_;
+  int16_t a_time_;
   uint32_t trips_ : 31;
   uint32_t valid_ : 1;
 };

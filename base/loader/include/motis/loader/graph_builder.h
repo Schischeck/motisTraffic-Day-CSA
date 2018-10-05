@@ -60,7 +60,11 @@ struct route_section {
     assert(static_cast<unsigned>(outgoing_route_edge_index_) <
            from_route_node_->edges_.size());
     assert(from_route_node_->edges_[outgoing_route_edge_index_].type() ==
-           edge::ROUTE_EDGE);
+               edge::ROUTE_EDGE ||
+           from_route_node_->edges_[outgoing_route_edge_index_].type() ==
+               edge::FWD_ROUTE_EDGE ||
+           from_route_node_->edges_[outgoing_route_edge_index_].type() ==
+               edge::BWD_ROUTE_EDGE);
     return &from_route_node_->edges_[outgoing_route_edge_index_];
   }
 

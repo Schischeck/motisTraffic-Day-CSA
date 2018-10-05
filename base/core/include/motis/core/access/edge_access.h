@@ -10,14 +10,15 @@ inline edge const* get_route_edge(node const* route_node,
                                   event_type const ev_type) {
   if (ev_type == event_type::DEP) {
     for (auto const& e : route_node->edges_) {
-      if (e.type() == edge::ROUTE_EDGE &&
+      if ((e.type() == edge::ROUTE_EDGE || e.type() == edge::FWD_ROUTE_EDGE ||
+           e.type() == edge::BWD_ROUTE_EDGE) &&
           e.m_.route_edge_.conns_.contains(lcon)) {
         return &e;
       }
     }
   } else {
     for (auto const& e : route_node->incoming_edges_) {
-      if (e->type() == edge::ROUTE_EDGE &&
+      if ((e->type() == edge::ROUTE_EDGE || e->type() == edge::FWD_ROUTE_EDGE || e->type() == edge::BWD_ROUTE_EDGE) &&
           e->m_.route_edge_.conns_.contains(lcon)) {
         return e;
       }

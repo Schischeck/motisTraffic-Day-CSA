@@ -354,10 +354,9 @@ light_connection graph_builder::section_to_connection(
   //  std::cout << "\nrel_utc_dep: " << rel_utc_dep;
   //  std::cout << "\nrel_utc_arr: " << rel_utc_arr;
 
-  auto const day_offset = rel_utc_dep.day();
-  uint16_t const utc_mam_dep =
-      (rel_utc_dep - (day_offset * MINUTES_A_DAY)).ts();
-  uint16_t const utc_mam_arr = utc_mam_dep + (rel_utc_arr - rel_utc_dep).ts();
+  unsigned const day_offset = rel_utc_dep.day();
+  int16_t const utc_mam_dep = (rel_utc_dep - (day_offset * MINUTES_A_DAY)).ts();
+  int16_t const utc_mam_arr = utc_mam_dep + (rel_utc_arr - rel_utc_dep).ts();
 
   //  std::cout << "\nday_offset: " << day_offset;
   //  std::cout << "\nutc_mam_dep: " << utc_mam_dep;
@@ -525,7 +524,7 @@ std::unique_ptr<route> graph_builder::create_route(Route const* r,
 }
 
 route_section graph_builder::add_route_section(
-    int route_index, std::vector<light_connection> const& connections,
+    int route_index, std::vector<light_connection> const& cons,
     Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
     Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
     node* from_route_node, node* to_route_node, size_t route_traffic_days) {
@@ -554,17 +553,52 @@ route_section graph_builder::add_route_section(
 
   section.outgoing_route_edge_index_ = section.from_route_node_->edges_.size();
 
+  // the edge constructor already does the sorting (req'd for bwd edges)
+  // but it should be in this order anyway
   verify(
-      std::is_sorted(begin(connections), end(connections),
+      std::is_sorted(begin(cons), end(cons),
                      [](light_connection const& a, light_connection const& b) {
                        return a.d_time_ <= b.d_time_ && a.a_time_ <= b.a_time_;
                      }),
       "creating edge with lcons not strictly sorted");
 
-  section.from_route_node_->edges_.push_back(
-      make_route_edge(section.from_route_node_, section.to_route_node_,
-                      connections, route_traffic_days));
-  lcon_count_ += connections.size();
+  auto const bidirectional =
+      std::all_of(begin(cons), end(cons),
+                  [](auto const& c) { return c.a_time_ < MINUTES_A_DAY; });
+
+  if (!bidirectional) {
+    // FWD
+    section.from_route_node_->edges_.push_back(
+        make_fwd_route_edge(section.from_route_node_, section.to_route_node_,
+                            cons, route_traffic_days));
+
+    // BWD
+    auto bwd_cons = std::vector<light_connection>();
+    std::transform(begin(cons), end(cons), std::back_inserter(bwd_cons),
+                   [this](auto const& c) {
+                     int const shift = c.a_time_ % MINUTES_A_DAY;
+                     int16_t const at = c.a_time_ - shift * MINUTES_A_DAY;
+                     int16_t const dt = c.d_time_ - shift * MINUTES_A_DAY;
+                     auto const bf = sched_.bitfields_[c.bitfield_idx_];
+                     bf << shift;
+
+                     return light_connection{
+                         get_or_create_bitfield(bf), dt, at, c.full_con_,
+                     };
+                   });
+
+    // TODO(Simon): make route_traffic_days based on BWD bitfields
+    section.from_route_node_->edges_.push_back(
+        make_bwd_route_edge(section.from_route_node_, section.to_route_node_,
+                            bwd_cons, route_traffic_days));
+
+    lcon_count_ += 2 * cons.size();
+  } else {
+    section.from_route_node_->edges_.push_back(
+        make_route_edge(section.from_route_node_, section.to_route_node_, cons,
+                        route_traffic_days));
+    lcon_count_ += cons.size();
+  }
 
   return section;
 }
@@ -780,7 +814,7 @@ void graph_builder::dedup_bitfields() {
     for (auto& s : sched_.station_nodes_) {
       for (auto& route_node : s->get_route_nodes()) {
         for (auto& e : route_node->edges_) {
-          if (e.type() != edge::ROUTE_EDGE) {
+          if (e.type() != edge::ROUTE_EDGE && e.type() != edge::FWD_ROUTE_EDGE && e.type() != edge::BWD_ROUTE_EDGE) {
             continue;
           }
           for (auto& c : e.m_.route_edge_.conns_) {
@@ -836,8 +870,8 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   builder.add_services(serialized->services());
   if (apply_rules) {
     scoped_timer timer("rule services");
-    // verify(false, "not implemented!");
-    LOG(error) << "apply rules enabled but not implemented";
+    // LOG(error) << "apply rules enabled but not implemented";
+    verify(false, "rule services not implemented!");
   }
 
   builder.add_footpaths(serialized->footpaths());

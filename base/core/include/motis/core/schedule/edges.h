@@ -52,6 +52,8 @@ public:
   enum type {
     INVALID_EDGE,
     ROUTE_EDGE,
+    FWD_ROUTE_EDGE,
+    BWD_ROUTE_EDGE,
     FOOT_EDGE,
     AFTER_TRAIN_FOOT_EDGE,
     MUMO_EDGE,
@@ -77,6 +79,28 @@ public:
     }
   }
 
+  /** oneway route edge constructor. */
+  edge(node* from, node* to, std::vector<light_connection> const& connections,
+       size_t route_traffic_days, search_dir dir)
+      : from_(from), to_(to) {
+    if (dir == search_dir::FWD) {
+      m_.type_ = FWD_ROUTE_EDGE;
+      std::sort(std::begin(m_.route_edge_.conns_),
+                std::end(m_.route_edge_.conns_));
+    } else if (dir == search_dir::BWD) {
+      m_.type_ = BWD_ROUTE_EDGE;
+      std::sort(
+          std::begin(m_.route_edge_.conns_), std::end(m_.route_edge_.conns_),
+          [](auto const& a, auto const& b) { return a.a_time_ < b.a_time_; });
+    }
+
+    if (!connections.empty()) {
+      m_.route_edge_.init_empty();
+      m_.route_edge_.conns_.set(std::begin(connections), std::end(connections));
+      m_.route_edge_.bitfield_idx_ = route_traffic_days;
+    }
+  }
+
   /** foot edge constructor. */
   edge(node* from, node* to, uint8_t type, time time_cost, uint16_t price,
        bool transfer, int mumo_id = 0, time interval_begin = 0,
@@ -90,7 +114,8 @@ public:
     m_.foot_edge_.interval_begin_ = interval_begin;
     m_.foot_edge_.interval_end_ = interval_end;
 
-    assert(m_.type_ != ROUTE_EDGE);
+    assert(m_.type_ != ROUTE_EDGE && m_.type_ != FWD_ROUTE_EDGE &&
+           m_.type_ != BWD_ROUTE_EDGE);
   }
 
   /** hotel edge constructor. */
@@ -108,7 +133,9 @@ public:
   edge_cost get_edge_cost(time start_time,
                           light_connection const* last_con) const {
     switch (m_.type_) {
-      case ROUTE_EDGE: return get_route_edge_cost<Dir>(start_time);
+      case ROUTE_EDGE:
+      case FWD_ROUTE_EDGE:
+      case BWD_ROUTE_EDGE: return get_route_edge_cost<Dir>(start_time);
 
       case AFTER_TRAIN_FOOT_EDGE:
         if (last_con == nullptr) {
@@ -141,7 +168,8 @@ public:
   edge_cost get_minimum_cost() const {
     if (m_.type_ == INVALID_EDGE) {
       return NO_EDGE;
-    } else if (m_.type_ == ROUTE_EDGE) {
+    } else if (m_.type_ == ROUTE_EDGE || m_.type_ == FWD_ROUTE_EDGE ||
+               m_.type_ == BWD_ROUTE_EDGE) {
       if (m_.route_edge_.conns_.empty()) {
         return NO_EDGE;
       } else {
@@ -168,7 +196,7 @@ public:
 
   inline light_connection const* get_next_valid_lcon(light_connection const* lc,
                                                      unsigned skip = 0) const {
-    assert(type() == ROUTE_EDGE);
+    assert(type() == ROUTE_EDGE || type() == FWD_ROUTE_EDGE || type() == BWD_ROUTE_EDGE);
     assert(lc);
 
     auto it = lc;
@@ -186,7 +214,7 @@ public:
 
   inline light_connection const* get_prev_valid_lcon(light_connection const* lc,
                                                      unsigned skip = 0) const {
-    assert(type() == ROUTE_EDGE);
+    assert(type() == ROUTE_EDGE || type() == FWD_ROUTE_EDGE || type() == BWD_ROUTE_EDGE);
     assert(lc);
 
     auto it = std::reverse_iterator<light_connection const*>(lc);
@@ -206,21 +234,25 @@ public:
   template <search_dir Dir = search_dir::FWD>
   std::pair<light_connection const*, uint16_t> const get_connection(
       time const start_time) const {
-    assert(type() == ROUTE_EDGE);
+    assert(type() == ROUTE_EDGE || type() == FWD_ROUTE_EDGE || type() == BWD_ROUTE_EDGE);
     assert(start_time >= 0);
 
     if (m_.route_edge_.conns_.empty()) {
       return {nullptr, 0};
     }
 
-    bool has_traffic = false;
-    if (m_.route_edge_.traffic_days_ != nullptr) {
-      auto const last_day = (start_time + MAX_TRAVEL_TIME_MINUTES).day();
-      for (int day_idx = start_time.day(); day_idx <= last_day; ++day_idx) {
-        has_traffic |= m_.route_edge_.traffic_days_->test(day_idx);
-      }
-      if (!has_traffic) {
-        return {nullptr, 0};
+    // assume traffic in BWD mode as bitfields were built assuming fwd bitfields
+    bool has_traffic = true;
+    if (Dir == search_dir::FWD) {
+      has_traffic = false;
+      if (m_.route_edge_.traffic_days_ != nullptr) {
+        auto const last_day = (start_time + MAX_TRAVEL_TIME_MINUTES).day();
+        for (int day_idx = start_time.day(); day_idx <= last_day; ++day_idx) {
+          has_traffic |= m_.route_edge_.traffic_days_->test(day_idx);
+        }
+        if (!has_traffic) {
+          return {nullptr, 0};
+        }
       }
     }
 
@@ -248,23 +280,57 @@ public:
         }
 
         if (it->traffic_days_->test(day) && it->valid_) {
-          if (!has_traffic) {
-            LOG(logging::info) << "has_traffic check wrong!";
-          }
           return {get_next_valid_lcon(&*it), day};
         } else {
           ++it;
         }
       }
     } else {
-      // todo
-      return {nullptr, 0};
+      auto it = std::lower_bound(
+          std::rbegin(m_.route_edge_.conns_), std::rend(m_.route_edge_.conns_),
+          light_connection{0, 0, static_cast<int16_t>(start_time.mam())},
+          [](auto const& lhs, auto const& rhs) {
+            return lhs.a_time_ > rhs.a_time_;
+          });
+
+      auto const abort_time = start_time - MAX_TRAVEL_TIME_MINUTES;
+      auto day = static_cast<uint16_t>(start_time.day());
+
+      while (true) {
+        if (day >= loader::BIT_COUNT) {
+          // will execute as day becomes uint16 max value
+          return {nullptr, 0};
+        }
+
+        if (it == std::rend(m_.route_edge_.conns_)) {
+          it = std::rbegin(m_.route_edge_.conns_);
+          day -= 1;
+          continue;
+        }
+
+        if (it->event_time(event_type::ARR, day) < abort_time) {
+          return {nullptr, 0};
+        }
+
+        if (it->traffic_days_->test(day) && it->valid_) {
+          return {get_prev_valid_lcon(&*it), day};
+        } else {
+          ++it;
+        }
+      }
     }
   }
 
   template <search_dir Dir = search_dir::FWD>
   edge_cost get_route_edge_cost(time const start_time) const {
-    assert(type() == ROUTE_EDGE);
+    assert(type() == ROUTE_EDGE || type() == FWD_ROUTE_EDGE ||
+           type() == BWD_ROUTE_EDGE);
+
+    if (type() != ROUTE_EDGE &&
+        ((type() == FWD_ROUTE_EDGE && Dir != search_dir::FWD) ||
+         (type() == BWD_ROUTE_EDGE && Dir != search_dir::BWD))) {
+      return NO_EDGE;
+    }
 
     const light_connection* c;
     uint16_t day;
@@ -303,6 +369,8 @@ public:
   inline char const* type_str() const {
     switch (type()) {
       case ROUTE_EDGE: return "ROUTE_EDGE";
+      case FWD_ROUTE_EDGE: return "FWD_ROUTE_EDGE";
+      case BWD_ROUTE_EDGE: return "BWD_ROUTE_EDGE";
       case FOOT_EDGE: return "FOOT_EDGE";
       case AFTER_TRAIN_FOOT_EDGE: return "AFTER_TRAIN_FOOT_EDGE";
       case MUMO_EDGE: return "MUMO_EDGE";
@@ -325,7 +393,10 @@ public:
   }
 
   inline bool empty() const {
-    return (type() != ROUTE_EDGE) ? true : m_.route_edge_.conns_.empty();
+    return type() == ROUTE_EDGE || type() == FWD_ROUTE_EDGE ||
+                   type() == BWD_ROUTE_EDGE
+               ? m_.route_edge_.conns_.empty()
+               : true;
   }
 
   static time calc_time_off(time const period_begin, time const period_end,
@@ -360,7 +431,8 @@ public:
 
     edge_details(edge_details&& other) noexcept {  // NOLINT
       type_ = other.type_;
-      if (type_ == ROUTE_EDGE) {
+      if (type_ == ROUTE_EDGE || type_ == FWD_ROUTE_EDGE ||
+          type_ == BWD_ROUTE_EDGE) {
         route_edge_.init_empty();
         route_edge_ = std::move(other.route_edge_);
       } else if (type_ == HOTEL_EDGE) {
@@ -372,7 +444,8 @@ public:
 
     edge_details(edge_details const& other) {  // NOLINT
       type_ = other.type_;
-      if (type_ == ROUTE_EDGE) {
+      if (type_ == ROUTE_EDGE || type_ == FWD_ROUTE_EDGE ||
+          type_ == BWD_ROUTE_EDGE) {
         route_edge_.init_empty();
         route_edge_ = other.route_edge_;
       } else if (type_ == HOTEL_EDGE) {
@@ -385,7 +458,8 @@ public:
 
     edge_details& operator=(edge_details&& other) noexcept {
       type_ = other.type_;
-      if (type_ == ROUTE_EDGE) {
+      if (type_ == ROUTE_EDGE || type_ == FWD_ROUTE_EDGE ||
+          type_ == BWD_ROUTE_EDGE) {
         route_edge_.init_empty();
         route_edge_ = std::move(other.route_edge_);
       } else if (type_ == HOTEL_EDGE) {
@@ -400,7 +474,8 @@ public:
 
     edge_details& operator=(edge_details const& other) {
       type_ = other.type_;
-      if (type_ == ROUTE_EDGE) {
+      if (type_ == ROUTE_EDGE || type_ == FWD_ROUTE_EDGE ||
+          type_ == BWD_ROUTE_EDGE) {
         route_edge_.init_empty();
         route_edge_ = other.route_edge_;
       } else if (type_ == HOTEL_EDGE) {
@@ -414,7 +489,8 @@ public:
     }
 
     ~edge_details() {
-      if (type_ == ROUTE_EDGE) {
+      if (type_ == ROUTE_EDGE || type_ == FWD_ROUTE_EDGE ||
+          type_ == BWD_ROUTE_EDGE) {
         route_edge_.conns_.~array<light_connection>();
       }
     }
@@ -499,6 +575,18 @@ inline edge make_route_edge(node* from, node* to,
                             std::vector<light_connection> const& connections,
                             size_t const route_traffic_days) {
   return edge(from, to, connections, route_traffic_days);
+}
+
+inline edge make_fwd_route_edge(
+    node* from, node* to, std::vector<light_connection> const& connections,
+    size_t const route_traffic_days) {
+  return edge(from, to, connections, route_traffic_days, search_dir::FWD);
+}
+
+inline edge make_bwd_route_edge(
+    node* from, node* to, std::vector<light_connection> const& connections,
+    size_t const route_traffic_days) {
+  return edge(from, to, connections, route_traffic_days, search_dir::BWD);
 }
 
 inline edge make_foot_edge(node* from, node* to, time time_cost = 0,
