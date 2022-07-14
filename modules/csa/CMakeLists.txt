@@ -8,7 +8,7 @@ add_library(motis-csa STATIC ${motis-csa-files})
 target_include_directories(motis-csa PUBLIC include)
 target_compile_features(motis-csa PUBLIC cxx_std_17)
 target_link_libraries(motis-csa
-  boost-system
+${Boost_SYSTEM_LIBRARY}
   motis-routing
   motis-module
   motis-core
