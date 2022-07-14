@@ -1,10 +1,11 @@
 #pragma once
 
-#include <vector>
-
 #include "boost/sort/block_indirect_sort/block_indirect_sort.hpp"
 
 #include "motis/core/common/logging.h"
+
+#include <numeric>
+#include <vector>
 
 namespace motis {
 

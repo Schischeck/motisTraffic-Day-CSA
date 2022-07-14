@@ -1,25 +1,41 @@
 #include "motis/loader/graph_builder.h"
 
 #include <motis/core/schedule/edges.h>
-#include <numeric>
-
-#include "utl/get_or_create.h"
-#include "utl/to_vec.h"
 
 #include "motis/core/common/logging.h"
+
 #include "motis/core/schedule/constant_graph.h"
 #include "motis/core/schedule/graph_build_utils.h"
 #include "motis/core/schedule/price.h"
+
+#include "motis/core/access/time_access.h"
+#include "motis/core/access/trip_iterator.h"
+
+#include "motis/loader/build_footpaths.h"
 #include "motis/loader/classes.h"
 #include "motis/loader/timezone_util.h"
 #include "motis/loader/tracking_dedup.h"
 #include "motis/loader/wzr_loader.h"
+
+#include <numeric>
+
+#include "utl/get_or_create.h"
+#include "utl/to_vec.h"
 
 using namespace motis::logging;
 using namespace flatbuffers64;
 
 namespace motis {
 namespace loader {
+
+std::vector<day_idx_t> day_offsets(std::vector<time> const& rel_utc_times) {
+  auto day_offsets = std::vector<day_idx_t>{};
+  day_offsets.resize(rel_utc_times.size() / 2);
+  for (size_t i = 0UL; i != rel_utc_times.size(); i += 2) {
+    day_offsets[i / 2] = rel_utc_times[i].day();  // TODO(felix) test for this
+  }
+  return day_offsets;
+}
 
 graph_builder::graph_builder(schedule& sched, Interval const* schedule_interval,
                              time_t from, time_t to, bool apply_rules,
@@ -88,6 +104,7 @@ void graph_builder::add_stations(Vector<Offset<Station>> const* stations) {
     s->timez_ = input_station->timezone()
                     ? get_or_create_timezone(input_station->timezone())
                     : nullptr;
+    s->equivalent_.push_back(s.get());
     sched_.eva_to_station_.insert(
         std::make_pair(input_station->id()->str(), s.get()));
 
@@ -232,8 +249,9 @@ void graph_builder::add_route_services(
 
     // make lcon for each section and time string
     std::vector<std::vector<light_connection>> lcon_strings(utc_times.size());
-    auto trip_idx = create_merged_trips(service, 0);
+    // auto trip_idx = create_merged_trips(service, utc_times[0].first);
     for (unsigned time_idx = 0; time_idx < utc_times.size(); ++time_idx) {
+      auto trip_idx = create_merged_trips(service, utc_times[time_idx].first);
       auto const section_length = static_cast<int>(service->sections()->size());
       lcon_strings[time_idx].resize(section_length);
       for (int section_idx = 0; section_idx < section_length; ++section_idx) {
@@ -269,6 +287,26 @@ void graph_builder::add_route_services(
     auto r = create_route(services[0]->route(), route, next_route_index_++);
     index_first_route_node(*r);
     write_trip_info(*r);
+    add_expanded_trips(*r);
+  }
+}
+
+void graph_builder::add_expanded_trips(route const& r) {
+  assert(!r.empty());
+  auto trips_added = false;
+  auto const& re = r.front().get_route_edge();
+  if (re != nullptr) {
+    for (auto const& lc : re->m_.route_edge_.conns_) {
+      auto const& merged_trips = sched_.merged_trips_[lc.trips_];
+      assert(merged_trips != nullptr);
+      assert(merged_trips->size() == 1);
+      auto const trp = merged_trips->front();
+      sched_.expanded_trips_.push_back(trp);
+      trips_added = true;
+    }
+  }
+  if (trips_added) {
+    sched_.expanded_trips_.finish_key();
   }
 }
 
@@ -282,14 +320,17 @@ void graph_builder::count_events(const Service* const& service,
   ++to.arr_class_events_.at(con_.clasz_);
 }
 
-merged_trips_idx graph_builder::create_merged_trips(Service const* s,
-                                                    int day_idx) {
+merged_trips_idx graph_builder::create_merged_trips(
+    Service const* s, std::vector<time> const& rel_utc_times) {
   return push_mem(sched_.merged_trips_,
-                  std::vector<trip*>({register_service(s, day_idx)}));
+                  std::vector<trip*>({register_service(s, rel_utc_times)}));
 }
 
-trip* graph_builder::register_service(Service const* s, int day_idx) {
-  sched_.trip_mem_.emplace_back(new trip(get_full_trip_id(s, day_idx)));
+trip* graph_builder::register_service(Service const* s,
+                                      std::vector<time> const& rel_utc_times) {
+
+  sched_.trip_mem_.emplace_back(
+      new trip(get_full_trip_id(s, rel_utc_times), day_offsets(rel_utc_times)));
   auto stored = sched_.trip_mem_.back().get();
   sched_.trips_.emplace_back(stored->id_.primary_, stored);
 
@@ -298,7 +339,7 @@ trip* graph_builder::register_service(Service const* s, int day_idx) {
     auto prev_section = s->sections()->Get(i - 1);
 
     if (curr_section->train_nr() != prev_section->train_nr()) {
-      sched_.trips_.emplace_back(get_full_trip_id(s, day_idx, i).primary_,
+      sched_.trips_.emplace_back(get_full_trip_id(s, rel_utc_times, i).primary_,
                                  stored);
     }
   }
@@ -312,28 +353,31 @@ trip* graph_builder::register_service(Service const* s, int day_idx) {
   return stored;
 }
 
-full_trip_id graph_builder::get_full_trip_id(Service const* s, int day,
-                                             int section_idx) const {
+full_trip_id graph_builder::get_full_trip_id(
+    Service const* s, std::vector<time> const& rel_utc_times,
+    int section_idx) const {
   auto const& stops = s->route()->stations();
   auto const dep_station_idx = get_station_node(stops->Get(section_idx))->id_;
   auto const arr_station_idx =
       get_station_node(stops->Get(stops->size() - 1))->id_;
 
-  auto const dep_tz = sched_.stations_[dep_station_idx]->timez_;
-  auto const dep_time = get_adjusted_event_time(
-      day - first_day_, s->times()->Get(section_idx * 2 + 1), dep_tz);
+  // auto const dep_tz = sched_.stations_[dep_station_idx]->timez_;
+  // auto const dep_time = get_adjusted_event_time(
+  // day - first_day_, s->times()->Get(section_idx * 2 + 1), dep_tz);
 
-  auto const arr_tz = sched_.stations_[arr_station_idx]->timez_;
-  auto const arr_time = get_adjusted_event_time(
-      day - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
+  // auto const arr_tz = sched_.stations_[arr_station_idx]->timez_;
+  // auto const arr_time = get_adjusted_event_time(
+  // day - first_day_, s->times()->Get(s->times()->size() - 2), arr_tz);
 
   auto const train_nr = s->sections()->Get(section_idx)->train_nr();
   auto const line_id_ptr = s->sections()->Get(0)->line_id();
   auto const line_id = line_id_ptr ? line_id_ptr->str() : "";
 
   full_trip_id id;
-  id.primary_ = primary_trip_id(dep_station_idx, train_nr, dep_time);
-  id.secondary_ = secondary_trip_id(arr_station_idx, arr_time.ts(), line_id);
+  id.primary_ = primary_trip_id(dep_station_idx, train_nr,
+                                rel_utc_times[section_idx * 2].mam());
+  id.secondary_ =
+      secondary_trip_id(arr_station_idx, rel_utc_times.back().mam(), line_id);
   return id;
 }
 
@@ -453,6 +497,14 @@ graph_builder::service_times_to_utc(bitfield const& traffic_days, int start_idx,
         continue;
       }
 
+      // Track first event.
+      sched_.first_event_schedule_time_ = std::min(
+          sched_.first_event_schedule_time_,
+          motis_to_unixtime(sched_, abs_utc) - SCHEDULE_OFFSET_MINUTES * 60);
+      sched_.last_event_schedule_time_ = std::max(
+          sched_.last_event_schedule_time_,
+          motis_to_unixtime(sched_, abs_utc) - SCHEDULE_OFFSET_MINUTES * 60);
+
       utc_service_times.emplace_back(rel_utc);
     }
 
@@ -562,10 +614,10 @@ route_section graph_builder::add_route_section(
                      }),
       "creating edge with lcons not strictly sorted");
 
-  auto const bidirectional =
-      std::all_of(begin(cons), end(cons),
-                  [](auto const& c) { return c.a_time_ < MINUTES_A_DAY; });
-
+  // auto const bidirectional =
+  // std::all_of(begin(cons), end(cons),
+  // [](auto const& c) { return c.a_time_ < MINUTES_A_DAY; });
+  auto const bidirectional = true;
   if (!bidirectional) {
     // FWD
     section.from_route_node_->edges_.push_back(
@@ -583,7 +635,10 @@ route_section graph_builder::add_route_section(
                      bf << shift;
 
                      return light_connection{
-                         get_or_create_bitfield(bf), dt, at, c.full_con_,
+                         get_or_create_bitfield(bf),
+                         dt,
+                         at,
+                         c.full_con_,
                      };
                    });
 
@@ -814,7 +869,9 @@ void graph_builder::dedup_bitfields() {
     for (auto& s : sched_.station_nodes_) {
       for (auto& route_node : s->get_route_nodes()) {
         for (auto& e : route_node->edges_) {
-          if (e.type() != edge::ROUTE_EDGE && e.type() != edge::FWD_ROUTE_EDGE && e.type() != edge::BWD_ROUTE_EDGE) {
+          if (e.type() != edge::ROUTE_EDGE &&
+              e.type() != edge::FWD_ROUTE_EDGE &&
+              e.type() != edge::BWD_ROUTE_EDGE) {
             continue;
           }
           for (auto& c : e.m_.route_edge_.conns_) {
@@ -874,7 +931,12 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
     verify(false, "rule services not implemented!");
   }
 
-  builder.add_footpaths(serialized->footpaths());
+  sched->expanded_trips_.finish_map();
+
+  // builder.add_footpaths(serialized->footpaths());
+  bool expand_footpaths = true;
+  build_footpaths(builder.next_node_id_, *sched, adjust_footpaths,
+                  expand_footpaths, builder.stations_, serialized);
 
   builder.connect_reverse();
   builder.sort_trips();
@@ -902,6 +964,10 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
   LOG(info) << serialized->services()->size()
             << " services (total not necessarily loaded)";
 
+  LOG(info) << sched->expanded_trips_.index_size() - 1 << " expanded routes";
+  LOG(info) << sched->expanded_trips_.data_size() << " expanded trips";
+  LOG(info) << builder.broken_trips_ << " broken trips ignored";
+
   /*
     std::ofstream fout("bitfields.bin");
     for (auto const& bf : bfs) {
@@ -922,7 +988,7 @@ schedule_ptr build_graph(Schedule const* serialized, time_t from, time_t to,
                  "INVALID LCON: arrival before departure");
           if (prev != nullptr && prev->d_time_ >= con.d_time_) {
             std::cout << "\nprev.d_time: " << prev->d_time_
-                      << "\tcurrent.dtime: " << con.d_time_;
+                      << "\tcurrent.dtime: " << con.d_time_ << std::endl;
             verify(false, "departures not sorted!");
           }
           prev = &con;

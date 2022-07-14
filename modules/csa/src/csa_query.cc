@@ -1,12 +1,13 @@
 #include "motis/csa/csa_query.h"
 
-#include "utl/verify.h"
-
 #include "motis/core/access/station_access.h"
 #include "motis/core/access/time_access.h"
+
 #include "motis/module/context/motis_call.h"
 
 #include "motis/csa/error.h"
+
+#include "utl/verify.h"
 
 using namespace motis::module;
 using namespace motis::routing;
@@ -50,10 +51,12 @@ std::vector<station_id> get_metas(schedule const& sched,
 
 csa_query::csa_query(schedule const& sched,
                      routing::RoutingRequest const* req) {
-  utl::verify_ex(req->search_type() == SearchType_Default ||
-                     req->search_type() == SearchType_Accessibility ||
-                     req->search_type() == SearchType_DefaultPrice ||
-                     req->search_type() == SearchType_DefaultPriceRegional,
+  utl::verify_ex(req->search_type() == SearchType_Default
+                 //||
+                 //  req->search_type() == SearchType_Accessibility ||
+                 //  req->search_type() == SearchType_DefaultPrice ||
+                 //  req->search_type() == SearchType_DefaultPriceRegional
+                 ,
                  std::system_error{error::search_type_not_supported});
   utl::verify_ex(req->use_start_footpaths(),
                  std::system_error{error::start_footpaths_no_disable});

@@ -1,22 +1,14 @@
-#include <iostream>
-#include <memory>
-#include <thread>
-
 #include "boost/asio/deadline_timer.hpp"
 #include "boost/asio/io_service.hpp"
 #include "boost/asio/signal_set.hpp"
 #include "boost/filesystem.hpp"
 
-#include "utl/to_vec.h"
-
-#include "net/http/server/shutdown_handler.hpp"
-
-#include "conf/options_parser.h"
-
 #include "motis/core/common/logging.h"
+
 #include "motis/bootstrap/dataset_settings.h"
 #include "motis/bootstrap/module_settings.h"
 #include "motis/bootstrap/motis_instance.h"
+
 #include "motis/launcher/batch_mode.h"
 #include "motis/launcher/http_server.h"
 #include "motis/launcher/launcher_settings.h"
@@ -24,6 +16,13 @@
 #include "motis/launcher/socket_server.h"
 #include "motis/launcher/ws_server.h"
 
+#include <iostream>
+#include <memory>
+#include <thread>
+
+#include "conf/options_parser.h"
+#include "net/http/server/shutdown_handler.hpp"
+#include "utl/to_vec.h"
 #include "version.h"
 
 using namespace motis::bootstrap;
@@ -47,7 +46,8 @@ int main(int argc, char** argv) {
 
   listener_settings listener_opt(false, true, false, "0.0.0.0", "8081", false,
                                  "0.0.0.0", "8080", "0.0.0.0", "7000", "");
-  dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, true, true, false);
+  dataset_settings dataset_opt("rohdaten", "TODAY", 2, true, false, true,
+                               false);
   module_settings module_opt(instance.module_names());
   launcher_settings launcher_opt(launcher_settings::motis_mode_t::SERVER,
                                  "queries.txt", "responses.txt",

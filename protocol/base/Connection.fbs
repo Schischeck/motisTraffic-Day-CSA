@@ -1,6 +1,8 @@
 include "base/Station.fbs";
 include "base/TripId.fbs";
 include "base/TimestampReason.fbs";
+include "base/ConnectionStatus.fbs";
+include "base/ProblemType.fbs";
 
 namespace motis;
 
@@ -8,6 +10,8 @@ table EventInfo {
   time:ulong;
   schedule_time:ulong;
   track:string;
+  schedule_track:string;
+  valid:bool;
   reason:TimestampReason;
 }
 
@@ -41,6 +45,7 @@ table Walk {
   range:Range;
   mumo_id:int;
   price:uint;
+  accessibility:uint;
   mumo_type:string;
 }
 
@@ -59,6 +64,19 @@ table Attribute {
 table Trip {
   range:Range;
   id:TripId;
+  debug:string;
+}
+
+table FreeText {
+  range:Range;
+  code:int;
+  text:string;
+  type:string;
+}
+
+table Problem{
+  range:Range;
+  type:ProblemType;
 }
 
 table Connection {
@@ -66,6 +84,9 @@ table Connection {
   transports:[MoveWrapper];
   trips:[Trip];
   attributes:[Attribute];
+  free_texts:[FreeText];
+  problems:[Problem];
   night_penalty:ushort;
   db_costs:ushort;
+  status:ConnectionStatus;
 }

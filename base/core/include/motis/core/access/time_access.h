@@ -2,8 +2,10 @@
 
 #include "motis/core/common/date_time_util.h"
 #include "motis/core/common/logging.h"
+
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/time.h"
+
 #include "motis/core/access/error.h"
 
 namespace motis {
@@ -20,6 +22,20 @@ inline std::time_t external_schedule_end(schedule const& sched) {
 
 inline void verify_timestamp(schedule const& sched, time_t t) {
   if (t < sched.schedule_begin_ || t >= external_schedule_end(sched)) {
+    auto const schedule_begin = external_schedule_begin(sched);
+    auto const schedule_end = external_schedule_end(sched);
+    LOG(logging::error) << "timestamp not in schedule: " << format_unixtime(t)
+                        << " [" << format_unixtime(schedule_begin) << ", "
+                        << format_unixtime(schedule_end) << "]";
+    throw std::system_error(motis::access::error::timestamp_not_in_schedule);
+  }
+}
+
+inline void verify_external_timestamp(schedule const& sched, time_t t) {
+  if (t < std::min(sched.first_event_schedule_time_,
+                   external_schedule_begin(sched)) ||
+      t >= std::max(sched.last_event_schedule_time_,
+                    external_schedule_end(sched))) {
     auto const schedule_begin = external_schedule_begin(sched);
     auto const schedule_end = external_schedule_end(sched);
     LOG(logging::error) << "timestamp not in schedule: " << format_unixtime(t)

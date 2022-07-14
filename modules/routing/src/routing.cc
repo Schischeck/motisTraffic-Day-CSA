@@ -4,14 +4,15 @@
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "boost/program_options.hpp"
 
-#include "utl/to_vec.h"
-
 #include "motis/core/common/logging.h"
 #include "motis/core/common/timing.h"
+
 #include "motis/core/schedule/schedule.h"
+
 #include "motis/core/access/edge_access.h"
 #include "motis/core/conv/trip_conv.h"
 #include "motis/core/journey/journeys_to_message.h"
+
 #include "motis/module/context/get_schedule.h"
 
 #include "motis/routing/additional_edges.h"
@@ -23,6 +24,8 @@
 #include "motis/routing/search.h"
 #include "motis/routing/search_dispatch.h"
 #include "motis/routing/start_label_gen.h"
+
+#include "utl/to_vec.h"
 
 #define LABEL_STORE_START_SIZE (64 * 1024 * 1024)  // 64MB default start size
 
@@ -61,18 +64,20 @@ msg_ptr routing::route(msg_ptr const& msg) {
   res.stats_.labels_created_ = query.mem_->allocations();
   res.stats_.num_bytes_in_use_ = query.mem_->get_num_bytes_in_use();
 
-  auto stats = to_fbs(res.stats_);
   message_creator fbb;
+  std::vector<flatbuffers::Offset<Statistics>> stats{
+      to_fbs(fbb, "routing", res.stats_)};
   fbb.create_and_finish(
       MsgContent_RoutingResponse,
-      CreateRoutingResponse(fbb, &stats,
-                            fbb.CreateVector(utl::to_vec(res.journeys_,
-                                                         [&](journey const& j) {
-                                                           return to_connection(
-                                                               fbb, j);
-                                                         })),
-                            motis_to_unixtime(sched, res.interval_begin_),
-                            motis_to_unixtime(sched, res.interval_end_))
+      CreateRoutingResponse(
+          fbb, fbb.CreateVectorOfSortedTables(&stats),
+          fbb.CreateVector(utl::to_vec(
+              res.journeys_,
+              [&](journey const& j) { return to_connection(fbb, j); })),
+          motis_to_unixtime(sched, res.interval_begin_),
+          motis_to_unixtime(sched, res.interval_end_),
+          fbb.CreateVector(
+              std::vector<flatbuffers::Offset<DirectConnection>>{}))
           .Union());
   return make_msg(fbb);
 }

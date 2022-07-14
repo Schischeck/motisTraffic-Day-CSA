@@ -2,6 +2,7 @@
 
 #include "motis/core/access/time_access.h"
 #include "motis/core/journey/journeys_to_message.h"
+
 #include "motis/module/context/get_schedule.h"
 
 #include "motis/csa/build_csa_timetable.h"
@@ -18,18 +19,18 @@ using namespace motis::routing;
 namespace motis::csa {
 
 csa::csa() : module("CSA", "csa") {
-  param(bridge_zero_duration_connections_, "bridge",
-        "Bridge zero duration connections (required for GPU CSA)");
-  param(add_footpath_connections_, "expand_footpaths",
-        "Add CSA connections representing connection and footpath");
+  bool_param(bridge_zero_duration_connections_, "bridge",
+             "Bridge zero duration connections (required for GPU CSA)");
+  bool_param(add_footpath_connections_, "expand_footpaths",
+             "Add CSA connections representing connection and footpath");
 }
 
 csa::~csa() = default;
 
 void csa::init(motis::module::registry& reg) {
-  timetable_ =
-      build_csa_timetable(get_sched(), bridge_zero_duration_connections_,
-                          add_footpath_connections_);
+  timetable_ = build_csa_timetable(synced_sched<RO>().sched(),
+                                   bridge_zero_duration_connections_,
+                                   add_footpath_connections_);
   reg.register_op("/csa", [&](msg_ptr const& msg) {
 #ifdef MOTIS_AVX
     return route(msg, implementation_type::CPU_SSE);

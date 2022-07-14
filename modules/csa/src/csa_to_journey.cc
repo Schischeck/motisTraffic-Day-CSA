@@ -37,8 +37,9 @@ parse_csa_journey(csa_journey const& csa) {
     if (e.is_connection()) {
       transports.emplace_back(stop_idx - 1, stop_idx, e.con_);
     } else {
-      transports.emplace_back(stop_idx - 1, stop_idx, e.arrival_ - e.departure_,
-                              e.mumo_id_, e.mumo_price_, e.mumo_accessibility_);
+      transports.emplace_back(stop_idx - 1, stop_idx,
+                              (e.arrival_ - e.departure_).ts(), e.mumo_id_,
+                              e.mumo_price_, e.mumo_accessibility_);
     }
   }
 
@@ -63,7 +64,7 @@ journey csa_to_journey(schedule const& sched, csa_journey const& csa) {
   j.attributes_ = generate_journey_attributes(transports);
   j.duration_ = csa.duration_;
   j.transfers_ = csa.transfers_;
-  j.accessibility_ = csa.accessibility_;
+  // j.accessibility_ = csa.accessibility_;
   j.db_costs_ = 0;
   j.price_ = csa.price_;
   j.night_penalty_ = 0;

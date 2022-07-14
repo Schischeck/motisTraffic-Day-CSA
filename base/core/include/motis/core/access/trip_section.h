@@ -3,6 +3,7 @@
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/schedule.h"
 #include "motis/core/schedule/trip.h"
+
 #include "motis/core/access/connection_access.h"
 #include "motis/core/access/edge_access.h"
 
@@ -33,6 +34,10 @@ public:
   station const& to_station(schedule const& sched) const {
     return get_station(sched, edge_->to_);
   }
+
+  uint32_t from_station_id() const { return edge_->from_->get_station()->id_; }
+
+  uint32_t to_station_id() const { return edge_->to_->get_station()->id_; }
 
 private:
   station const& get_station(schedule const& sched, node const* n) const {

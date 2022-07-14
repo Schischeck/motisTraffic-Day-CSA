@@ -1,13 +1,11 @@
 #pragma once
 
 #include <ctime>
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
+#include "motis/core/common/fws_multimap.h"
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
+
 #include "motis/core/schedule/attribute.h"
 #include "motis/core/schedule/category.h"
 #include "motis/core/schedule/constant_graph.h"
@@ -18,7 +16,15 @@
 #include "motis/core/schedule/station.h"
 #include "motis/core/schedule/trip.h"
 #include "motis/core/schedule/waiting_time_rules.h"
+
 #include "motis/loader/bitfield.h"
+
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "cista/containers/ptr.h"
 
 namespace motis {
 
@@ -37,6 +43,8 @@ struct schedule {
   schedule(schedule const&) = delete;
   schedule& operator=(schedule const&) = delete;
 
+  std::time_t first_event_schedule_time_{std::numeric_limits<time_t>::max()};
+  std::time_t last_event_schedule_time_{std::numeric_limits<time_t>::min()};
   std::time_t schedule_begin_, schedule_end_;
   std::time_t loaded_begin_, loaded_end_;
   std::string name_;
@@ -74,6 +82,8 @@ struct schedule {
   std::time_t system_time_, last_update_timestamp_;
   std::vector<std::unique_ptr<delay_info>> delay_mem_;
   hash_map<ev_key, delay_info*> graph_to_delay_info_;
+
+  fws_multimap<cista::offset::ptr<trip>> expanded_trips_;
 };
 
 typedef std::unique_ptr<schedule> schedule_ptr;

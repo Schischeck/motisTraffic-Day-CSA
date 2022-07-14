@@ -126,7 +126,8 @@ void parse_station_meta_data(loaded_file const& infotext_file,
   parse_ds100_mappings(infotext_file, metas.ds100_to_eva_num_);
 
   std::vector<minct> records;
-  load_minct(records);
+  // not in use for csa Thesis
+  //load_minct(records);
 
   for (auto const& record : records) {
     cstr const from_ds100 = std::get<from_ds100_key>(record);

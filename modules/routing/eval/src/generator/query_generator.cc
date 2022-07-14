@@ -1,22 +1,23 @@
+#include "boost/date_time/gregorian/gregorian_types.hpp"
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include "boost/program_options.hpp"
+
+#include "motis/core/schedule/time.h"
+
+#include "motis/core/access/time_access.h"
+
+#include "motis/module/message.h"
+
+#include "motis/bootstrap/dataset_settings.h"
+#include "motis/bootstrap/motis_instance.h"
+
 #include <fstream>
 #include <iostream>
 #include <random>
 
-#include "boost/program_options.hpp"
-
-#include "boost/date_time/gregorian/gregorian_types.hpp"
-#include "boost/date_time/posix_time/posix_time.hpp"
-
+#include "conf/options_parser.h"
 #include "utl/erase.h"
 #include "utl/to_vec.h"
-
-#include "conf/options_parser.h"
-
-#include "motis/core/schedule/time.h"
-#include "motis/core/access/time_access.h"
-#include "motis/module/message.h"
-#include "motis/bootstrap/dataset_settings.h"
-#include "motis/bootstrap/motis_instance.h"
 
 namespace po = boost::program_options;
 using namespace flatbuffers;
@@ -172,7 +173,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
           SearchType_Default, dir, fbb.CreateVector(std::vector<Offset<Via>>()),
           fbb.CreateVector(std::vector<Offset<AdditionalEdgeWrapper>>()))
           .Union(),
-      "/routing");
+      "/csa/cpu");
   auto msg = make_msg(fbb);
   msg->get()->mutate_id(id);
 
@@ -182,7 +183,7 @@ std::string query(int id, std::time_t interval_start, std::time_t interval_end,
 }
 
 bool has_events(edge const& e, motis::time from, motis::time to) {
-  auto[con, day] = e.get_connection(from);
+  auto [con, day] = e.get_connection(from);
   return con != nullptr && con->event_time(event_type::DEP, day) <= to;
 }
 

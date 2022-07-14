@@ -1,10 +1,9 @@
 #pragma once
 
-#include "flatbuffers/flatbuffers.h"
-
 #include "motis/core/common/hash_helper.h"
 #include "motis/core/common/hash_map.h"
 #include "motis/core/common/hash_set.h"
+
 #include "motis/core/schedule/connection.h"
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/nodes.h"
@@ -16,6 +15,8 @@
 #include "motis/loader/util.h"
 
 #include "motis/schedule-format/Schedule_generated.h"
+
+#include "flatbuffers/flatbuffers.h"
 
 namespace motis {
 namespace loader {
@@ -51,7 +52,7 @@ struct route_section {
            outgoing_route_edge_index_ != -1;
   }
 
-  edge* get_route_edge() {
+  edge* get_route_edge() const {
     if (outgoing_route_edge_index_ == -1) {
       return nullptr;
     }
@@ -185,17 +186,22 @@ struct graph_builder {
 
   void add_route_services(std::vector<Service const*> const& services);
 
+  void add_expanded_trips(route const& r);
+
   std::vector<std::pair<std::vector<time>, std::unordered_set<unsigned>>>
   service_times_to_utc(bitfield const& traffic_days, int start_idx, int end_idx,
                        Service const* s);
 
-  merged_trips_idx create_merged_trips(Service const* s, int day_idx);
+  merged_trips_idx create_merged_trips(Service const* s,
+                                       std::vector<time> const& rel_utc_times);
 
-  trip* register_service(const Service* s, int day_idx);
+  trip* register_service(const Service* s,
+                         std::vector<time> const& rel_utc_times);
 
   station_node* get_station_node(Station const* station) const;
 
-  full_trip_id get_full_trip_id(Service const* s, int day,
+  full_trip_id get_full_trip_id(Service const* s,
+                                std::vector<time> const& rel_utc_times,
                                 int section_idx = 0) const;
 
   light_connection section_to_connection(
@@ -218,6 +224,8 @@ struct graph_builder {
       Station const* from_stop, bool from_in_allowed, bool from_out_allowed,
       Station const* to_stop, bool to_in_allowed, bool to_out_allowed,
       node* from_route_node, node* to_route_node, size_t route_traffic_days);
+
+  bool check_trip(trip const* trp);
 
   void index_first_route_node(route const& r);
 
@@ -286,6 +294,7 @@ struct graph_builder {
 
   connection_info con_info_;
   connection con_;
+  std::size_t broken_trips_{0U};
 
   unsigned lcon_count_ = 0;
 };

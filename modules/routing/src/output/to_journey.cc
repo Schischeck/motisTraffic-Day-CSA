@@ -1,10 +1,11 @@
 #include "motis/routing/output/to_journey.h"
 
-#include <string>
-
 #include "motis/core/access/service_access.h"
 #include "motis/core/access/time_access.h"
+
 #include "motis/routing/output/interval_map.h"
+
+#include <string>
 
 namespace motis {
 namespace routing {
@@ -157,10 +158,9 @@ std::vector<journey::stop> generate_journey_stops(
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
                                              stop.a_sched_time_),
-                                         stop.a_reason_,
-                                         ""}
+                                         stop.a_reason_, "", ""}
              : journey::stop::event_info{false, 0, 0,
-                                         timestamp_reason::SCHEDULE, ""},
+                                         timestamp_reason::SCHEDULE, "", ""},
          stop.d_time_ != INVALID_TIME
              ? journey::stop::event_info{true,
                                          motis_to_unixtime(
@@ -169,10 +169,9 @@ std::vector<journey::stop> generate_journey_stops(
                                          motis_to_unixtime(
                                              sched.schedule_begin_,
                                              stop.d_sched_time_),
-                                         stop.d_reason_,
-                                         ""}
+                                         stop.d_reason_, "", ""}
              : journey::stop::event_info{false, 0, 0,
-                                         timestamp_reason::SCHEDULE, ""}});
+                                         timestamp_reason::SCHEDULE, "", ""}});
   }
   return journey_stops;
 }

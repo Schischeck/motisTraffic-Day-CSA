@@ -1,30 +1,33 @@
 include "base/Connection.fbs";
+include "base/DirectConnection.fbs";
+include "base/Statistics.fbs";
 
 namespace motis.routing;
 
-struct Statistics {
-  max_label_quit:bool;
-  labels_created:uint;
-  start_label_count:uint;
-  labels_popped:uint;
-  labels_equals_popped:uint;
-  labels_filtered:uint;
-  labels_dominated_by_results:uint;
-  labels_dominated_by_former_labels:uint;
-  labels_dominated_by_later_labels:uint;
-  labels_popped_until_first_result:uint;
-  labels_popped_after_last_result:uint;
-  priority_queue_max_size:uint;
-  travel_time_lb:uint;
-  transfers_lb:uint;
-  total_calculation_time:uint;
-  pareto_dijkstra:uint;
-  num_bytes_in_use:uint;
-}
+//struct Statistics {
+//  max_label_quit:bool;
+//  labels_created:uint;
+//  start_label_count:uint;
+//  labels_popped:uint;
+//  labels_equals_popped:uint;
+//  labels_filtered:uint;
+//  labels_dominated_by_results:uint;
+//  labels_dominated_by_former_labels:uint;
+//  labels_dominated_by_later_labels:uint;
+//  labels_popped_until_first_result:uint;
+//  labels_popped_after_last_result:uint;
+//  priority_queue_max_size:uint;
+//  travel_time_lb:uint;
+//  transfers_lb:uint;
+//  total_calculation_time:uint;
+//  pareto_dijkstra:uint;
+//  num_bytes_in_use:uint;
+//}
 
 table RoutingResponse {
-  statistics:Statistics;
+  statistics:[Statistics];
   connections:[motis.Connection];
   interval_begin:ulong;
   interval_end:ulong;
+  direct_connections:[motis.DirectConnection];
 }

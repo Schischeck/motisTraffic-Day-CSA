@@ -71,7 +71,7 @@ response dispatch_search_type(schedule const& sched, csa_timetable const& tt,
     case implementation_type::CPU:
       switch (search_type) {
         case SearchType_Default:
-        case SearchType_Accessibility:
+          // case SearchType_Accessibility:
           return run_search<cpu::csa_search<Dir>>(sched, tt, q);
         default: throw std::system_error(error::search_type_not_supported);
       }
@@ -80,7 +80,7 @@ response dispatch_search_type(schedule const& sched, csa_timetable const& tt,
     case implementation_type::CPU_SSE:
       switch (search_type) {
         case SearchType_Default:
-        case SearchType_Accessibility:
+          // case SearchType_Accessibility:
           return run_search<cpu::sse::csa_search<Dir>>(sched, tt, q);
         default: throw std::system_error(error::search_type_not_supported);
       }
@@ -93,17 +93,18 @@ response dispatch_search_type(schedule const& sched, csa_timetable const& tt,
       } else {
         switch (search_type) {
           case SearchType_Default:
-          case SearchType_Accessibility: {
-            csa_statistics stats;
-            if (q.is_ontrip()) {
-              gpu_search s{sched, tt, q, stats};
-              auto results = make_ontrip_pareto_set();
-              s.search(results, {q.search_interval_.begin_});
-              return {stats, std::move(results.set_), q.search_interval_};
-            } else {
-              return pretrip<gpu_search>(sched, tt, q, stats).search();
+            // case SearchType_Accessibility:
+            {
+              csa_statistics stats;
+              if (q.is_ontrip()) {
+                gpu_search s{sched, tt, q, stats};
+                auto results = make_ontrip_pareto_set();
+                s.search(results, {q.search_interval_.begin_});
+                return {stats, std::move(results.set_), q.search_interval_};
+              } else {
+                return pretrip<gpu_search>(sched, tt, q, stats).search();
+              }
             }
-          }
           default: throw std::system_error(error::search_type_not_supported);
         }
       }

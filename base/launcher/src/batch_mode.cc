@@ -1,5 +1,7 @@
 #include "motis/launcher/batch_mode.h"
 
+#include "motis/module/message.h"
+
 #include <algorithm>
 #include <fstream>
 #include <functional>
@@ -8,8 +10,6 @@
 #include <ostream>
 
 #include "utl/erase.h"
-
-#include "motis/module/message.h"
 
 using namespace motis::module;
 namespace p = std::placeholders;
@@ -98,10 +98,11 @@ private:
     }
     response->get()->mutate_id(id);
 
-    auto json = response->to_json();
-    utl::erase(json, '\n');
+    auto json = response->to_json(true);
+    // utl::erase(json, '\n');
 
     out_ << json << "\n";
+    out_.flush();
   }
 
   boost::asio::io_service& ios_;

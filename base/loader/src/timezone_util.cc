@@ -1,11 +1,11 @@
 #include "motis/loader/timezone_util.h"
 
+#include "motis/core/schedule/time.h"
+#include "motis/core/schedule/timezone.h"
+
 #include <algorithm>
 
 #include "parser/util.h"
-
-#include "motis/core/schedule/time.h"
-#include "motis/core/schedule/timezone.h"
 
 namespace motis {
 namespace loader {
@@ -68,7 +68,9 @@ time get_adjusted_event_time(int day_idx, uint32_t local_time,
 
 bool is_in_season(int day_idx, int minutes_after_midnight, timezone const* tz) {
   auto const minutes_after_schedule_begin =
-      motis::to_motis_time(day_idx, minutes_after_midnight);
+      time(day_idx, minutes_after_midnight);
+  // = motis::to_motis_time(day_idx, minutes_after_midnight);  Scheint ein
+  // fehler zu sein TODO: Prüfen ob dem so ist!
   return tz->season_.begin_ != INVALID_TIME &&
          tz->season_.begin_ + tz->general_offset_ <=
              minutes_after_schedule_begin &&

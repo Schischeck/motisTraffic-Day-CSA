@@ -2,12 +2,14 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <memory>
-#include <vector>
 
 #include "motis/core/common/array.h"
+
 #include "motis/core/schedule/edges.h"
 #include "motis/core/schedule/time.h"
+
+#include <memory>
+#include <vector>
 
 namespace motis {
 
@@ -76,6 +78,30 @@ public:
     } else {
       return station_node_;
     }
+  }
+
+  template <typename Fn>
+  void for_each_route_node(Fn&& f) const {
+    for (auto& edge : edges_) {
+      if (edge.to_->is_route_node()) {
+        f(edge.to_);
+      }
+    }
+  }
+
+  bool is_in_allowed() const {
+    assert(is_route_node());
+    return std::any_of(
+        begin(incoming_edges_), end(incoming_edges_), [&](auto const& e) {
+          return e->from_ == station_node_ && e->type() != edge::INVALID_EDGE;
+        });
+  }
+
+  bool is_out_allowed() const {
+    assert(is_route_node());
+    return std::any_of(begin(edges_), end(edges_), [&](auto const& e) {
+      return e.to_ == station_node_ && e.type() != edge::INVALID_EDGE;
+    });
   }
 
   array<edge> edges_;

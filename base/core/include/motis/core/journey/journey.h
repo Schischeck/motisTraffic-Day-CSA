@@ -1,10 +1,11 @@
 #pragma once
 
 #include <ctime>
-#include <string>
-#include <vector>
 
 #include "motis/core/schedule/delay_info.h"
+
+#include <string>
+#include <vector>
 
 namespace motis {
 
@@ -49,6 +50,7 @@ struct journey {
       std::time_t schedule_timestamp_{0};
       timestamp_reason timestamp_reason_{timestamp_reason::SCHEDULE};
       std::string track_;
+      std::string schedule_track_;
     } arrival_, departure_;
   };
 

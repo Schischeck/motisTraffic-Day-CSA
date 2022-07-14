@@ -17,7 +17,7 @@
 namespace motis {
 
 struct light_connection;
-struct station;
+class station;
 
 namespace csa {
 
@@ -27,14 +27,16 @@ using con_idx_t = uint16_t;
 
 struct csa_connection {
   csa_connection() = delete;
-  csa_connection(uint32_t from_station, uint32_t to_station,
-                 motis::time departure, motis::time arrival, uint16_t price,
-                 uint32_t trip, con_idx_t trip_con_idx, bool from_in_allowed,
-                 bool to_out_allowed, service_class clasz,
-                 light_connection const* light_con)
+  csa_connection(uint32_t from_station, uint32_t to_station, int16_t departure,
+                 int16_t arrival, uint16_t price, trip_id trip,
+                 con_idx_t trip_con_idx, bool from_in_allowed,
+                 bool to_out_allowed, uint8_t clasz,
+                 loader::bitfield const* traffic_days,
+                 light_connection const* light_con, day_idx_t day_offset)
       : from_station_(from_station),
         to_station_(to_station),
         trip_(trip),
+        traffic_days_(traffic_days),
         departure_(departure),
         arrival_(arrival),
         price_(price),
@@ -42,22 +44,26 @@ struct csa_connection {
         from_in_allowed_(from_in_allowed),
         to_out_allowed_(to_out_allowed),
         clasz_(clasz),
-        light_con_(light_con) {}
-  explicit csa_connection(motis::time t) : departure_(t), arrival_(t) {}
+        light_con_(light_con),
+        day_offset_(day_offset) {}
+  explicit csa_connection(motis::time const& t)
+      : departure_(t.mam()), arrival_(t.mam()) {}
 
   inline duration get_duration() const { return arrival_ - departure_; }
 
   station_id from_station_{0};
   station_id to_station_{0};
   trip_id trip_{0};
-  motis::time departure_;
-  motis::time arrival_{0};
+  loader::bitfield const* traffic_days_;
+  int16_t departure_;
+  int16_t arrival_{0};
   uint16_t price_{0};
   con_idx_t trip_con_idx_{0};
   bool from_in_allowed_{false};
   bool to_out_allowed_{false};
-  service_class clasz_{service_class::OTHER};
+  uint8_t clasz_;
   light_connection const* light_con_{nullptr};
+  day_idx_t day_offset_{0};
 };
 
 struct csa_station {
@@ -79,6 +85,11 @@ struct csa_timetable {
   std::vector<uint32_t> fwd_bucket_starts_, bwd_bucket_starts_;
 
   std::vector<std::vector<csa_connection const*>> trip_to_connections_;
+
+  // long int first_day_;
+  // long int last_day_;
+  motis::time first_event_;
+  motis::time last_event_;
 
 #ifdef MOTIS_CUDA
   gpu_timetable gpu_timetable_;

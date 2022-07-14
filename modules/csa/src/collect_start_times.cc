@@ -1,7 +1,6 @@
 #include "motis/csa/collect_start_times.h"
 
 #include "utl/pipes.h"
-
 #include "utl/to_vec.h"
 
 namespace motis::csa {
@@ -32,19 +31,30 @@ std::set<motis::time> collect_start_times_template(
   for (auto const& station_idx : q.meta_starts_) {
     for (auto const& fp : tt.stations_[station_idx].footpaths_) {
       auto const fp_offset =
-          fp.from_station_ == fp.to_station_ ? 0U : fp.duration_;
+          fp.from_station_ == fp.to_station_ ? 0U : fp.duration_.ts();
       auto const fp_to_station = tt.stations_[fp.to_station_];
-      utl::range{station_connections_begin<Dir>(fp_to_station),
-                 station_connections_end<Dir>(fp_to_station)}  //
-          | utl::transform([&](csa_connection const* c) {
-              return Dir == search_dir::FWD ? c->departure_ - fp_offset
-                                            : c->arrival_ + fp_offset;
-            })  //
-          | utl::unique()  //
-          | utl::remove_if([&](motis::time const t) {
-              return t < range.begin_ || t > range.end_;
-            })  //
-          | utl::for_each([&](motis::time const t) { start_times.insert(t); });
+
+      if (Dir == search_dir::FWD) {
+        for (auto const& c : fp_to_station.outgoing_connections_) {
+          for (auto i = range.begin_.day(); i <= range.end_.day(); ++i) {
+            auto t = motis::time(i, c->departure_ - fp_offset);
+            if (c->traffic_days_->test(i) && t >= range.begin_ &&
+                t <= range.end_) {
+              start_times.insert(t);
+            }
+          }
+        }
+      } else {
+        for (auto const& c : fp_to_station.incoming_connections_) {
+          for (auto i = range.begin_.day(); i <= range.end_.day(); ++i) {
+            auto t = motis::time(i, c->arrival_ + fp_offset);
+            if (c->traffic_days_->test(i - motis::time(c->arrival_).day()) &&
+                t >= range.begin_ && t <= range.end_) {
+              start_times.insert(t);
+            }
+          }
+        }
+      }
     }
   }
 

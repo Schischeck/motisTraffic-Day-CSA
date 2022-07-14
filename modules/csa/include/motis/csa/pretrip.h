@@ -1,8 +1,7 @@
 #pragma once
 
-#include <algorithm>
-
 #include "motis/core/common/timing.h"
+
 #include "motis/core/schedule/interval.h"
 #include "motis/core/schedule/schedule.h"
 
@@ -12,6 +11,8 @@
 #include "motis/csa/csa_timetable.h"
 #include "motis/csa/pareto_set.h"
 #include "motis/csa/response.h"
+
+#include <algorithm>
 
 namespace motis::csa {
 
@@ -140,7 +141,7 @@ struct pretrip_iterated_ontrip_search {
   void collect_results(CSASearch& csa, Results& results) {
     for (auto const& dest_idx : q_.meta_dests_) {
       for (csa_journey& j : csa.get_results(tt_.stations_.at(dest_idx))) {
-        if (j.duration() <= MAX_TRAVEL_TIME) {
+        if (j.is_reconstructed() && j.duration() <= MAX_TRAVEL_TIME) {
           results.push_back(j);
         }
       }

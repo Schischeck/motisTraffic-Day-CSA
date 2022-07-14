@@ -6,14 +6,15 @@ namespace motis::csa {
 
 struct csa_journey {
   csa_journey() = default;
-  csa_journey(search_dir dir, time start_time, time arrival_time,
+  csa_journey(search_dir dir, time const& start_time, time const& arrival_time,
               unsigned transfers, csa_station const* destination_station,
               unsigned price = 0)
       : dir_(dir),
         start_time_(start_time),
         arrival_time_(arrival_time),
-        duration_(arrival_time > start_time ? arrival_time - start_time
-                                            : start_time - arrival_time),
+        duration_((arrival_time > start_time ? arrival_time - start_time
+                                             : start_time - arrival_time)
+                      .ts()),
         transfers_(transfers),
         price_(price),
         destination_station_(destination_station) {}
@@ -31,8 +32,8 @@ struct csa_journey {
   struct csa_edge {
     csa_edge() = default;
     csa_edge(light_connection const* con, csa_station const* from,
-             csa_station const* to, bool enter, bool exit, time departure,
-             time arrival)
+             csa_station const* to, bool enter, bool exit,
+             time const& departure, time const& arrival)
         : con_(con),
           from_(from),
           to_(to),
@@ -40,9 +41,9 @@ struct csa_journey {
           exit_(exit),
           departure_(departure),
           arrival_(arrival) {}
-    csa_edge(csa_station const* from, csa_station const* to, time departure,
-             time arrival, int mumo_id = 0, unsigned mumo_price = 0,
-             unsigned mumo_accessibility = 0)
+    csa_edge(csa_station const* from, csa_station const* to,
+             time const& departure, time const& arrival, int mumo_id = 0,
+             unsigned mumo_price = 0, unsigned mumo_accessibility = 0)
         : from_(from),
           to_(to),
           departure_(departure),
@@ -53,7 +54,7 @@ struct csa_journey {
 
     bool is_connection() const { return con_ != nullptr; }
     bool is_walk() const { return con_ == nullptr; }
-    int duration() const { return arrival_ - departure_; }
+    int duration() const { return (arrival_ - departure_).ts(); }
 
     light_connection const* con_{nullptr};
     csa_station const* from_{nullptr};

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <climits>
+
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -11,6 +12,9 @@ constexpr uint16_t MAX_DAYS = 512;
 constexpr uint16_t MINUTES_A_DAY = 1440;
 
 namespace motis {
+
+using duration = uint16_t;
+using day_idx_t = int16_t;
 
 struct time {
 public:

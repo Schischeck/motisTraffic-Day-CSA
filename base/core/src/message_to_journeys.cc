@@ -1,13 +1,14 @@
 #include "motis/core/journey/message_to_journeys.h"
 
-#include <algorithm>
-
 #include "motis/core/schedule/category.h"
+
 #include "motis/core/conv/timestamp_reason_conv.h"
 #include "motis/core/journey/journey.h"
 #include "motis/core/journey/journey_util.h"
 
 #include "motis/protocol/RoutingResponse_generated.h"
+
+#include <algorithm>
 
 namespace motis {
 
@@ -15,6 +16,7 @@ journey::stop::event_info to_event_info(EventInfo const& event,
                                         bool const valid) {
   journey::stop::event_info e;
   e.track_ = event.track()->c_str();
+  e.schedule_track_ = event.schedule_track()->c_str();
   e.timestamp_ = event.time();
   e.schedule_timestamp_ = event.schedule_time();
   e.timestamp_reason_ = from_fbs(event.reason());

@@ -1,14 +1,17 @@
 #include "motis/module/message.h"
 
 #include <cstring>
+
+#include "motis/core/common/logging.h"
+
+#include "motis/module/error.h"
+
+#include "motis/protocol/resources.h"
+
 #include <stdexcept>
 
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-
-#include "motis/core/common/logging.h"
-#include "motis/module/error.h"
-#include "motis/protocol/resources.h"
 
 #undef GetMessage
 
@@ -17,10 +20,13 @@ using namespace flatbuffers;
 namespace motis {
 namespace module {
 
-std::unique_ptr<Parser> init_parser() {
+std::unique_ptr<Parser> init_parser(bool compact = false) {
   auto parser = std::make_unique<Parser>();
   parser->opts.strict_json = true;
   parser->opts.skip_unexpected_fields_in_json = true;
+  if (compact) {
+    parser->opts.indent_step = -1;
+  }
   int message_symbol_index = -1;
   for (unsigned i = 0; i < number_of_symbols; ++i) {
     if (strcmp(filenames[i], "Message.fbs") == 0) {  // NOLINT
@@ -44,12 +50,14 @@ reflection::Schema const& init_schema(Parser& parser) {
 }
 
 static std::unique_ptr<Parser> json_parser = init_parser();
+static std::unique_ptr<Parser> compact_json_parser = init_parser(true);
 static std::unique_ptr<Parser> reflection_parser = init_parser();
 static reflection::Schema const& schema = init_schema(*reflection_parser);
 
-std::string message::to_json() const {
+std::string message::to_json(bool compact) const {
   std::string json;
-  flatbuffers::GenerateText(*json_parser, data(), &json);
+  flatbuffers::GenerateText(compact ? *compact_json_parser : *json_parser,
+                            data(), &json);
   return json;
 }
 

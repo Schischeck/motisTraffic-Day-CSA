@@ -1,11 +1,13 @@
 #pragma once
 
 #include <cmath>
+
+#include "motis/core/schedule/footpath.h"
+#include "motis/core/schedule/timezone.h"
+
 #include <array>
 #include <memory>
 #include <string>
-
-#include "motis/core/schedule/timezone.h"
 
 namespace motis {
 
@@ -42,6 +44,8 @@ public:
   std::string eva_nr_, name_;
   timezone const* timez_;
   std::vector<station*> equivalent_;
+  std::vector<footpath> outgoing_footpaths_;
+  std::vector<footpath> incoming_footpaths_;
 };
 
 using station_ptr = std::unique_ptr<station>;

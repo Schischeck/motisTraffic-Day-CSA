@@ -1,8 +1,8 @@
 #pragma once
 
-#include <ostream>
-
 #include "motis/protocol/RoutingResponse_generated.h"
+
+#include <ostream>
 
 namespace motis {
 namespace routing {
@@ -48,15 +48,55 @@ struct statistics {
   int pareto_dijkstra_;
   int num_bytes_in_use_;
 
-  friend Statistics to_fbs(statistics const& s) {
-    return Statistics(
-        s.max_label_quit_, s.labels_created_, s.start_label_count_,
-        s.labels_popped_, s.labels_equals_popped_, s.labels_filtered_,
-        s.labels_dominated_by_results_, s.labels_dominated_by_former_labels_,
-        s.labels_dominated_by_later_labels_,
-        s.labels_popped_until_first_result_, s.labels_popped_after_last_result_,
-        s.priority_queue_max_size_, s.travel_time_lb_, s.transfers_lb_,
-        s.total_calculation_time_, s.pareto_dijkstra_, s.num_bytes_in_use_);
+  // friend Statistics to_fbs(statistics const& s) {
+  // return Statistics(
+  // s.max_label_quit_, s.labels_created_, s.start_label_count_,
+  // s.labels_popped_, s.labels_equals_popped_, s.labels_filtered_,
+  // s.labels_dominated_by_results_, s.labels_dominated_by_former_labels_,
+  // s.labels_dominated_by_later_labels_,
+  // s.labels_popped_until_first_result_, s.labels_popped_after_last_result_,
+  // s.priority_queue_max_size_, s.travel_time_lb_, s.transfers_lb_,
+  // s.total_calculation_time_, s.pareto_dijkstra_, s.num_bytes_in_use_);
+  // }
+  friend flatbuffers::Offset<Statistics> to_fbs(
+      flatbuffers::FlatBufferBuilder& fbb, char const* category,
+      statistics const& s) {
+    std::vector<flatbuffers::Offset<StatisticsEntry>> stats{};
+
+    auto const add_entry = [&](char const* key, auto const val) {
+      if (val != 0U) {
+        stats.emplace_back(
+            CreateStatisticsEntry(fbb, fbb.CreateString(key), val));
+      }
+    };
+
+    add_entry("labels_created", s.labels_created_);
+    add_entry("labels_dominated_by_former_labels",
+              s.labels_dominated_by_former_labels_);
+    add_entry("labels_dominated_by_later_labels",
+              s.labels_dominated_by_later_labels_);
+    add_entry("labels_dominated_by_results", s.labels_dominated_by_results_);
+    add_entry("labels_equals_popped", s.labels_equals_popped_);
+    add_entry("labels_filtered", s.labels_filtered_);
+    add_entry("labels_popped_after_last_result",
+              s.labels_popped_after_last_result_);
+    add_entry("labels_popped", s.labels_popped_);
+    add_entry("labels_popped_until_first_result",
+              s.labels_popped_until_first_result_);
+    // add_entry("labels_to_journey", s.labels_to_journey_);
+    add_entry("max_label_quit", s.max_label_quit_ ? 1 : 0);
+    add_entry("num_bytes_in_use", s.num_bytes_in_use_);
+    add_entry("pareto_dijkstra", s.pareto_dijkstra_);
+    add_entry("priority_queue_max_size", s.priority_queue_max_size_);
+    add_entry("start_label_count", s.start_label_count_);
+    add_entry("total_calculation_time", s.total_calculation_time_);
+    add_entry("transfers_lb", s.transfers_lb_);
+    add_entry("travel_time_lb", s.travel_time_lb_);
+    add_entry("price_l_b_", s.price_l_b_);
+    // add_entry("interval_extensions", s.interval_extensions_);
+
+    return CreateStatistics(fbb, fbb.CreateString(category),
+                            fbb.CreateVectorOfSortedTables(&stats));
   }
 };
 

@@ -31,17 +31,21 @@ std::vector<Offset<Stop>> convert_stops(
             ? CreateEventInfo(b, stop.arrival_.timestamp_,
                               stop.arrival_.schedule_timestamp_,
                               b.CreateString(stop.arrival_.track_),
+                              b.CreateString(stop.arrival_.schedule_track_),
+                              stop.arrival_.valid_,
                               convert_reason(stop.arrival_.timestamp_reason_))
-            : CreateEventInfo(b, 0, 0, b.CreateString(""),
-                              TimestampReason_SCHEDULE);
+            : CreateEventInfo(b, 0, 0, b.CreateString(""), b.CreateString(""),
+                              stop.arrival_.valid_, TimestampReason_SCHEDULE);
     auto const dep =
         stop.departure_.valid_
             ? CreateEventInfo(b, stop.departure_.timestamp_,
                               stop.departure_.schedule_timestamp_,
                               b.CreateString(stop.departure_.track_),
+                              b.CreateString(stop.departure_.schedule_track_),
+                              stop.departure_.valid_,
                               convert_reason(stop.departure_.timestamp_reason_))
-            : CreateEventInfo(b, 0, 0, b.CreateString(""),
-                              TimestampReason_SCHEDULE);
+            : CreateEventInfo(b, 0, 0, b.CreateString(""), b.CreateString(""),
+                              stop.departure_.valid_, TimestampReason_SCHEDULE);
     auto const pos = Position(stop.lat_, stop.lng_);
     buf_stops.push_back(
         CreateStop(b,
@@ -63,7 +67,7 @@ std::vector<Offset<MoveWrapper>> convert_moves(
     if (t.is_walk_) {
       moves.push_back(
           CreateMoveWrapper(b, Move_Walk,
-                            CreateWalk(b, &r, t.mumo_id_, t.mumo_price_,
+                            CreateWalk(b, &r, t.mumo_id_, t.mumo_price_, 0,
                                        b.CreateString(t.mumo_type_))
                                 .Union()));
     } else {
@@ -92,7 +96,8 @@ std::vector<Offset<Trip>> convert_trips(
         CreateTrip(b, &r,
                    CreateTripId(b, b.CreateString(t.station_id_), t.train_nr_,
                                 t.time_, b.CreateString(t.target_station_id_),
-                                t.target_time_, b.CreateString(t.line_id_))));
+                                t.target_time_, b.CreateString(t.line_id_)),
+                   b.CreateString("")));
   }
 
   return journey_trips;
@@ -111,10 +116,13 @@ std::vector<Offset<Attribute>> convert_attributes(
 }
 
 Offset<Connection> to_connection(FlatBufferBuilder& b, journey const& j) {
+  std::vector<Offset<Problem>> i_am_empty;
+  std::vector<Offset<FreeText>> i_am_free;
   return CreateConnection(b, b.CreateVector(convert_stops(b, j.stops_)),
                           b.CreateVector(convert_moves(b, j.transports_)),
                           b.CreateVector(convert_trips(b, j.trips_)),
                           b.CreateVector(convert_attributes(b, j.attributes_)),
+                          b.CreateVector(i_am_free), b.CreateVector(i_am_empty),
                           j.night_penalty_, j.db_costs_);
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ctime>
+
 #include <string>
 #include <utility>
 
@@ -11,7 +12,7 @@ class loader_options {
 public:
   loader_options(std::string default_dataset, std::string schedule_begin,
                  int num_days = 2, bool write_serialized = false,
-                 bool apply_rules = true, bool adjust_footpaths = true,
+                 bool apply_rules = false, bool adjust_footpaths = true,
                  bool unique_check = true);
 
   std::pair<std::time_t, std::time_t> interval() const;

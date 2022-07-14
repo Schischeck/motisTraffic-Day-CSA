@@ -2,15 +2,16 @@
 
 #include <cinttypes>
 
+#include "motis/core/common/hash_helper.h"
+
+#include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/nodes.h"
+
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "utl/to_vec.h"
-
-#include "motis/core/common/hash_helper.h"
-#include "motis/core/schedule/edges.h"
-#include "motis/core/schedule/nodes.h"
 
 namespace motis {
 
@@ -124,12 +125,19 @@ struct trip {
   explicit trip(full_trip_id id)
       : id_(std::move(id)), edges_(nullptr), lcon_idx_(0) {}
 
+  trip(full_trip_id id, std::vector<day_idx_t> const& day_offsets)
+      : id_(std::move(id)),
+        edges_(nullptr),
+        lcon_idx_(0),
+        day_offsets_(day_offsets) {}
+
   trip(full_trip_id id, std::vector<route_edge> const* edges, size_t lcon_idx)
       : id_(std::move(id)), edges_(edges), lcon_idx_(lcon_idx) {}
 
   full_trip_id id_;
   std::vector<route_edge> const* edges_;
   size_t lcon_idx_;
+  std::vector<day_idx_t> day_offsets_;
 };
 
 }  // namespace motis

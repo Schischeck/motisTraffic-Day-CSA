@@ -1,6 +1,19 @@
 #include "motis/csa/build_csa_timetable.h"
 
 #include <ciso646>
+
+#include "boost/sort/sort.hpp"
+
+#include "motis/core/common/logging.h"
+
+#include "motis/core/schedule/edges.h"
+#include "motis/core/schedule/nodes.h"
+#include "motis/core/schedule/station.h"
+#include "motis/core/schedule/time.h"
+
+#include "motis/core/access/station_access.h"
+#include "motis/core/access/trip_iterator.h"
+
 #include <algorithm>
 #include <functional>
 #include <map>
@@ -8,19 +21,10 @@
 #include <set>
 #include <thread>
 
-#include "boost/sort/sort.hpp"
-
+#include "utl/get_or_create.h"
 #include "utl/pipes/range.h"
 #include "utl/to_vec.h"
 #include "utl/verify.h"
-
-#include "motis/core/common/logging.h"
-#include "motis/core/schedule/edges.h"
-#include "motis/core/schedule/nodes.h"
-#include "motis/core/schedule/station.h"
-#include "motis/core/schedule/time.h"
-#include "motis/core/access/station_access.h"
-#include "motis/core/access/trip_iterator.h"
 
 using namespace motis::logging;
 using namespace motis::access;
@@ -30,7 +34,7 @@ namespace motis::csa {
 namespace {
 
 constexpr auto const BUCKET_SIZE = 1U;
-inline int get_bucket(time const t) { return t / BUCKET_SIZE; }
+inline int get_bucket(time const t) { return t.ts() / BUCKET_SIZE; }
 inline bool is_same_bucket(time const a, time const b) {
   return get_bucket(a) == get_bucket(b);
 };
@@ -42,6 +46,15 @@ void init_trip_to_connections(csa_timetable& tt) {
     if (con.light_con_ != nullptr) {
       assert(tt.trip_to_connections_[con.trip_].size() == con.trip_con_idx_);
       tt.trip_to_connections_[con.trip_].emplace_back(&con);
+    }
+  }
+}
+
+void reinit_trip_to_connections(csa_timetable& tt) {
+  scoped_timer timer("csa: reinit trip to connections");
+  for (auto const& con : tt.fwd_connections_) {
+    if (con.light_con_ != nullptr) {
+      tt.trip_to_connections_[con.trip_][con.trip_con_idx_] = &con;
     }
   }
 }
@@ -137,7 +150,7 @@ trip_id get_connections_from_expanded_trips(
   {
     scoped_timer connections_timer{"csa: build connections"};
     for (auto const& route_trips : sched.expanded_trips_) {
-      utl::verify(!route_trips.empty(), "empty route");
+      utl::new_verify(!route_trips.empty(), "empty route");
       auto const first_trip = route_trips[0];
       auto const in_allowed =
           utl::to_vec(stops(first_trip), [](trip_stop const& ts) {
@@ -155,54 +168,59 @@ trip_id get_connections_from_expanded_trips(
           auto const& s = *sec_it;
           auto const& lc = s.lcon();
 
-          if (bridge_zero_duration_connections) {
-            auto price_sum = s.fcon().price_;
-            for (auto const& following_sec :
-                 utl::range{std::next(sec_it), end(trp_sections)}) {
-              if (!is_same_bucket(lc.d_time_, following_sec.lcon().d_time_)) {
-                break;
-              }
-              price_sum += following_sec.fcon().price_;
-              tt.fwd_connections_.emplace_back(
-                  s.from_station_id(), following_sec.to_station_id(),
-                  lc.d_time_, following_sec.lcon().a_time_, price_sum, trip_idx,
-                  static_cast<con_idx_t>(s.index()), in_allowed[s.index()],
-                  out_allowed[following_sec.index() + 1], lc.full_con_->clasz_,
-                  nullptr);
-              ++bridged_count;
+          assert(!bridge_zero_duration_connections);
+          // todo  brauchen wir nicht
+          // if (bridge_zero_duration_connections) {
+          //  auto price_sum = s.fcon().price_;
+          //  for (auto const& following_sec :
+          //       utl::range{std::next(sec_it), end(trp_sections)}) {
+          //    if (!is_same_bucket(lc.d_time_, following_sec.lcon().d_time_)) {
+          //      break;
+          //    }
+          //    price_sum += following_sec.fcon().price_;
+          //    tt.fwd_connections_.emplace_back(
+          //        s.from_station_id(), following_sec.to_station_id(),
+          //        lc.d_time_, following_sec.lcon().a_time_, price_sum,
+          //        trip_idx, static_cast<con_idx_t>(s.index()),
+          //        in_allowed[s.index()], out_allowed[following_sec.index() +
+          //        1], lc.full_con_->clasz_, nullptr);
+          //    ++bridged_count;
+          //
+          //    if (add_footpath_connections) {
+          //      for (auto const& fp :
+          //           tt.stations_[following_sec.to_station_id()].footpaths_) {
+          //        if (fp.from_station_ != fp.to_station_) {
+          //          tt.fwd_connections_.emplace_back(
+          //              s.from_station_id(), fp.to_station_, lc.d_time_,
+          //              following_sec.lcon().a_time_ + fp.duration_ -
+          //                  tt.stations_[fp.to_station_].transfer_time_,
+          //              price_sum, trip_idx, s.index(), in_allowed[s.index()],
+          //              out_allowed[following_sec.index() + 1],
+          //              s.fcon().clasz_, nullptr);
+          //        }
+          //        ++bridged_footpath_count;
+          //        ++footpath_connections_count;
+          //      }
+          //    }
+          //  }
+          //}
 
-              if (add_footpath_connections) {
-                for (auto const& fp :
-                     tt.stations_[following_sec.to_station_id()].footpaths_) {
-                  if (fp.from_station_ != fp.to_station_) {
-                    tt.fwd_connections_.emplace_back(
-                        s.from_station_id(), fp.to_station_, lc.d_time_,
-                        following_sec.lcon().a_time_ + fp.duration_ -
-                            tt.stations_[fp.to_station_].transfer_time_,
-                        price_sum, trip_idx, s.index(), in_allowed[s.index()],
-                        out_allowed[following_sec.index() + 1], s.fcon().clasz_,
-                        nullptr);
-                  }
-                  ++bridged_footpath_count;
-                  ++footpath_connections_count;
-                }
-              }
-            }
-          }
-
-          if (add_footpath_connections) {
-            for (auto const& fp : tt.stations_[s.to_station_id()].footpaths_) {
-              if (fp.from_station_ != fp.to_station_) {
-                tt.fwd_connections_.emplace_back(
-                    s.from_station_id(), fp.to_station_, lc.d_time_,
-                    lc.a_time_ + fp.duration_ -
-                        tt.stations_[fp.to_station_].transfer_time_,
-                    s.fcon().price_, trip_idx, s.index(), in_allowed[s.index()],
-                    out_allowed[s.index() + 1], s.fcon().clasz_, nullptr);
-                ++footpath_connections_count;
-              }
-            }
-          }
+          assert(!add_footpath_connections);
+          // if (add_footpath_connections) {  // todo
+          //  for (auto const& fp : tt.stations_[s.to_station_id()].footpaths_)
+          //  {
+          //    if (fp.from_station_ != fp.to_station_) {
+          //      tt.fwd_connections_.emplace_back(
+          //          s.from_station_id(), fp.to_station_, lc.d_time_,
+          //          lc.a_time_ + fp.duration_.ts() -
+          //              tt.stations_[fp.to_station_].transfer_time_.ts(),
+          //          s.fcon().price_, trip_idx, s.index(),
+          //          in_allowed[s.index()], out_allowed[s.index() + 1],
+          //          s.fcon().clasz_, lc.traffic_days_, nullptr);
+          //      ++footpath_connections_count;
+          //    }
+          //  }
+          //}
 
           auto const from = s.from_station_id();
           auto const to = s.to_station_id();
@@ -211,7 +229,8 @@ trip_id get_connections_from_expanded_trips(
           tt.fwd_connections_.emplace_back(
               from, to, lc.d_time_, lc.a_time_, s.fcon().price_, trip_idx,
               static_cast<con_idx_t>(s.index()), from_in_allowed,
-              to_out_allowed, lc.full_con_->clasz_, &lc);
+              to_out_allowed, lc.full_con_->clasz_, lc.traffic_days_, &lc,
+              trp->day_offsets_[s.index()]);
         }
         ++trip_idx;
       }
@@ -222,13 +241,17 @@ trip_id get_connections_from_expanded_trips(
               << footpath_connections_count;
     LOG(info) << "CSA bridged footpath connections: " << bridged_footpath_count;
   }
-
+  assert(trip_idx == sched.expanded_trips_.data_size());
+  tt.trip_count_ = trip_idx;
+  init_trip_to_connections(tt);
   {
     scoped_timer sort_timer{"csa: sort connections"};
     boost::sort::parallel_stable_sort(
         std::begin(tt.fwd_connections_), std::end(tt.fwd_connections_),
         [&](csa_connection const& c1, csa_connection const& c2) -> bool {
           return c1.departure_ < c2.departure_;
+          // return c1.departure_ == c2.departure_ ? c1.arrival_ < c2.arrival_
+          // : c1.departure_ < c2.departure_;
         });
 
     tt.bwd_connections_ = tt.fwd_connections_;
@@ -242,6 +265,8 @@ trip_id get_connections_from_expanded_trips(
   }
 
   {
+    // TODO / NOTICE: not tested and/or adjusted to bitfields (only used in
+    // gpu_search)
     scoped_timer sort_timer{"csa: compute buckets"};
     tt.fwd_bucket_starts_ =
         get_bucket_starts(begin(tt.fwd_connections_), end(tt.fwd_connections_),
@@ -284,7 +309,11 @@ std::unique_ptr<csa_timetable> build_csa_timetable(
   tt->trip_count_ = get_connections_from_expanded_trips(
       *tt, sched, bridge_zero_duration_connections, add_footpath_connections);
 
-  init_trip_to_connections(*tt);
+  tt->first_event_ = unix_to_motistime(sched.schedule_begin_,
+                                       sched.first_event_schedule_time_);
+  tt->last_event_ =
+      unix_to_motistime(sched.schedule_begin_, sched.last_event_schedule_time_);
+  reinit_trip_to_connections(*tt);
   init_stop_to_connections(*tt);
 
 #ifdef MOTIS_CUDA
@@ -296,6 +325,7 @@ std::unique_ptr<csa_timetable> build_csa_timetable(
 
   LOG(info) << "CSA Stations: " << tt->stations_.size();
   LOG(info) << "CSA Connections: " << tt->fwd_connections_.size();
+  LOG(info) << "CSA Trips: " << tt->trip_count_;
 
   return tt;
 }

@@ -1,14 +1,16 @@
 #pragma once
 
-#include "utl/pipes.h"
-#include "utl/verify.h"
-
 #include "boost/filesystem.hpp"
 
 #include "motis/core/common/logging.h"
+
 #include "motis/core/access/service_access.h"
+
 #include "motis/csa/csa_search_shared.h"
 #include "motis/csa/csa_timetable.h"
+
+#include "utl/pipes.h"
+#include "utl/verify.h"
 
 #define TFMT "%02d:%02d.%d"
 #define FMT_TIME(t)                                             \
@@ -21,8 +23,13 @@ namespace motis::csa {
 struct journey_pointer {
   journey_pointer() = default;
   journey_pointer(csa_connection const* enter_con,
-                  csa_connection const* exit_con, footpath const* footpath)
-      : enter_con_(enter_con), exit_con_(exit_con), footpath_(footpath) {}
+                  csa_connection const* exit_con, footpath const* footpath,
+                  time const& enter_con_dep_time, time const& exit_con_arr_time)
+      : enter_con_(enter_con),
+        exit_con_(exit_con),
+        footpath_(footpath),
+        enter_con_dep_time_(enter_con_dep_time),
+        exit_con_arr_time_(exit_con_arr_time) {}
 
   bool valid() const {
     return enter_con_ != nullptr && exit_con_ != nullptr &&
@@ -32,16 +39,16 @@ struct journey_pointer {
   csa_connection const* enter_con_{nullptr};
   csa_connection const* exit_con_{nullptr};
   footpath const* footpath_{nullptr};
+  time enter_con_dep_time_;
+  time exit_con_arr_time_;
 };
 
 template <search_dir Dir, typename ArrivalTimes, typename TripReachable>
 struct csa_reconstruction {
-  using arrival_time_t = std::remove_reference_t<
-      std::remove_cv_t<decltype(std::declval<ArrivalTimes>()[0][0])>>;
 
   static constexpr auto INVALID =
-      Dir == search_dir::FWD ? std::numeric_limits<arrival_time_t>::max()
-                             : std::numeric_limits<arrival_time_t>::min();
+      Dir == search_dir::FWD ? time(std::numeric_limits<int16_t>::max(), 1439)
+                             : time(std::numeric_limits<int16_t>::min(), 0);
 
   csa_reconstruction(csa_timetable const& tt,
                      std::map<station_id, time> const& start_times,
@@ -80,14 +87,14 @@ struct csa_reconstruction {
             j.edges_.emplace_back(
                 &tt_.stations_[jp.footpath_->from_station_],
                 &tt_.stations_[jp.footpath_->to_station_],
-                jp.exit_con_->arrival_,
-                jp.exit_con_->arrival_ + jp.footpath_->duration_, -1);
+                jp.exit_con_arr_time_,
+                jp.exit_con_arr_time_ + jp.footpath_->duration_, -1);
           } else {
             j.edges_.emplace_back(
                 &tt_.stations_[jp.footpath_->from_station_],
                 &tt_.stations_[jp.footpath_->to_station_],
-                jp.enter_con_->departure_ - jp.footpath_->duration_,
-                jp.enter_con_->departure_, -1);
+                jp.enter_con_dep_time_ - jp.footpath_->duration_,
+                jp.enter_con_dep_time_, -1);
           }
         }
         assert(jp.enter_con_->trip_ == jp.exit_con_->trip_);
@@ -95,11 +102,17 @@ struct csa_reconstruction {
         auto const add_trip_edge = [&](csa_connection const* con) {
           auto const enter = con == jp.enter_con_;
           auto const exit = con == jp.exit_con_;
-          utl::verify(con->light_con_ != nullptr, "invalid light connection");
-          j.edges_.emplace_back(con->light_con_,
-                                &tt_.stations_[con->from_station_],
-                                &tt_.stations_[con->to_station_], enter, exit,
-                                con->departure_, con->arrival_);
+          utl::new_verify(con->light_con_ != nullptr,
+                          "invalid light connection");
+          auto const con_dep_day = jp.enter_con_dep_time_.day() +
+                                   con->day_offset_ -
+                                   jp.enter_con_->day_offset_;
+          auto const arr_mam_time = time(con->arrival_);
+          j.edges_.emplace_back(
+              con->light_con_, &tt_.stations_[con->from_station_],
+              &tt_.stations_[con->to_station_], enter, exit,
+              time(con_dep_day, con->departure_),
+              time(con_dep_day + arr_mam_time.day(), arr_mam_time.mam()));
         };
         if (Dir == search_dir::FWD) {
           auto in_trip = false;
@@ -155,7 +168,7 @@ struct csa_reconstruction {
 
   journey_pointer look_for_conn_arrival_within_transfer_time(
       csa_station const* stop, int transfers) {
-    for (auto t = 0U; t <= tt_.stations_[stop->id_].transfer_time_; ++t) {
+    for (auto t = 0; t <= tt_.stations_[stop->id_].transfer_time_.ts(); ++t) {
       auto const offset = Dir == search_dir::FWD ? t : -t;
       auto const jp = get_journey_pointer(
           *stop, transfers, arrival_time_[stop->id_][transfers] + offset);
@@ -206,7 +219,7 @@ struct csa_reconstruction {
 
   journey_pointer get_journey_pointer(
       csa_station const& station, int transfers,
-      time const station_arrival_override = INVALID) {
+      time const& station_arrival_override = INVALID) {
     auto const is_override_active = station_arrival_override != INVALID;
     auto const& station_arrival = is_override_active
                                       ? station_arrival_override
@@ -218,14 +231,27 @@ struct csa_reconstruction {
         }
 
         auto const& fp_dep_stop = tt_.stations_[fp.from_station_];
-        for (auto const& exit_con : get_exit_candidates(
-                 fp_dep_stop, station_arrival - fp.duration_, transfers)) {
+        auto const fp_dep_time = station_arrival - fp.duration_;
+        for (auto const& exit_con :
+             get_exit_candidates(fp_dep_stop, fp_dep_time, transfers)) {
+
+          assert(exit_con->traffic_days_->test(fp_dep_time.day() -
+                                               time(exit_con->arrival_).day()));
+          assert(fp_dep_time.mam() == time(exit_con->arrival_).mam());
+
+          auto const exit_con_dep_day =
+              (fp_dep_time.day() - time(exit_con->arrival_).day());
           for (auto const& enter_con :
                tt_.trip_to_connections_[exit_con->trip_]) {
+
+            auto const enter_con_dep =
+                time(exit_con_dep_day -
+                         (exit_con->day_offset_ - enter_con->day_offset_),
+                     enter_con->departure_);
             if (arrival_time_[enter_con->from_station_][transfers - 1] <=
-                    enter_con->departure_ &&
+                    enter_con_dep &&
                 enter_con->from_in_allowed_) {
-              return {enter_con, exit_con, &fp};
+              return {enter_con, exit_con, &fp, enter_con_dep, fp_dep_time};
             }
             if (enter_con == exit_con) {
               break;
@@ -236,16 +262,24 @@ struct csa_reconstruction {
     } else {
       for (auto const& fp : station.footpaths_) {
         auto const& fp_arr_stop = tt_.stations_[fp.to_station_];
-        for (auto const& enter_con : get_enter_candidates(
-                 fp_arr_stop, station_arrival + fp.duration_, transfers)) {
+        auto const fp_arr_time = station_arrival + fp.duration_;
+        for (auto const& enter_con :
+             get_enter_candidates(fp_arr_stop, fp_arr_time, transfers)) {
           auto const& trip_cons = tt_.trip_to_connections_[enter_con->trip_];
           for (auto i = static_cast<int>(trip_cons.size()) - 1; i >= 0; --i) {
             auto const& exit_con = trip_cons[i];
             auto const exit_arrival =
                 arrival_time_[exit_con->to_station_][transfers - 1];
-            if (exit_arrival != INVALID && exit_arrival >= exit_con->arrival_ &&
+            auto const exit_con_arr_mam_t = time(exit_con->arrival_);
+            auto const exit_con_arr_day =
+                (fp_arr_time).day() +
+                (exit_con->day_offset_ - enter_con->day_offset_) +
+                exit_con_arr_mam_t.day();
+            auto const exit_con_arr_time =
+                time(exit_con_arr_day, exit_con_arr_mam_t.mam());
+            if (exit_arrival != INVALID && exit_arrival >= exit_con_arr_time &&
                 exit_con->to_out_allowed_) {
-              return {enter_con, exit_con, &fp};
+              return {enter_con, exit_con, &fp, fp_arr_time, exit_con_arr_time};
             }
             if (exit_con == enter_con) {
               break;
@@ -257,25 +291,38 @@ struct csa_reconstruction {
     return {};
   }
 
+  bool not_same_arrival(csa_connection const& con,
+                        time const& arrival_time) const {
+    auto const con_arr_t = time(con.arrival_);
+    return (con_arr_t.mam() != arrival_time.mam()) ||
+           (!con.traffic_days_->test(arrival_time.day() - con_arr_t.day()));
+  }
+
   auto get_exit_candidates(csa_station const& arrival_station,
-                           time arrival_time, int transfers) const {
+                           time const& arrival_time, int transfers) const {
     return utl::all(arrival_station.incoming_connections_)  //
            | utl::remove_if(
                  [this, arrival_time, transfers](csa_connection const* con) {
-                   return con->arrival_ != arrival_time ||
-                          !trip_reachable_[con->trip_][transfers - 1] ||
+                   auto const con_arr_t = time(con->arrival_);
+                   auto const con_dep_d = arrival_time.day() - con_arr_t.day();
+                   return (con_arr_t.mam() != arrival_time.mam()) ||
+                          !con->traffic_days_->test(con_dep_d) ||
+                          (trip_reachable_[con->trip_][transfers - 1] >
+                           con->trip_con_idx_) ||
                           !con->to_out_allowed_;
                  })  //
            | utl::iterable();
   }
 
   auto get_enter_candidates(csa_station const& departure_station,
-                            time departure_time, int transfers) const {
+                            time const& departure_time, int transfers) const {
     return utl::all(departure_station.outgoing_connections_)  //
            | utl::remove_if(
                  [this, departure_time, transfers](csa_connection const* con) {
-                   return con->departure_ != departure_time ||
-                          !trip_reachable_[con->trip_][transfers - 1] ||
+                   return !con->traffic_days_->test(departure_time.day()) ||
+                          con->departure_ != departure_time.mam() ||
+                          trip_reachable_[con->trip_][transfers - 1] >
+                              departure_time.day() ||
                           !con->from_in_allowed_;
                  })  //
            | utl::iterable();
@@ -283,8 +330,9 @@ struct csa_reconstruction {
 
   csa_timetable const& tt_;
   std::map<station_id, time> const& start_times_;
-  ArrivalTimes const& arrival_time_;
-  TripReachable const& trip_reachable_;
+  ArrivalTimes const& arrival_time_;  // S
+  TripReachable const&
+      trip_reachable_;  // T  connection index from which the trip can be used
 };
 
 }  // namespace motis::csa

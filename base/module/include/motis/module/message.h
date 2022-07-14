@@ -1,13 +1,13 @@
 #pragma once
 
-#include "flatbuffers/flatbuffers.h"
-#include "flatbuffers/reflection.h"
-
-#include "motis/protocol/Message_generated.h"
-
 #include "motis/core/common/typed_flatbuffer.h"
 
 #include "motis/module/error.h"
+
+#include "motis/protocol/Message_generated.h"
+
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/reflection.h"
 
 namespace motis {
 namespace module {
@@ -33,7 +33,7 @@ struct message : public typed_flatbuffer<Message> {
 
   int id() const { return get()->id(); }
 
-  std::string to_json() const;
+  std::string to_json(bool compact = false) const;
 
   static reflection::Schema const& get_schema();
   static reflection::Object const* get_objectref(char const* name);
